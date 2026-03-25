@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Approval Workflow System - Login</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        /* Gradient Background */
+        .background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #4facfe 75%, #00f2fe 100%);
+            background-size: 400% 400%;
+            animation: gradient-shift 15s ease infinite;
+            z-index: -1;
+        }
+
+        @keyframes gradient-shift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Main Container */
+        .main-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            padding: 20px;
+            width: 100%;
+            position: relative;
+            z-index: 1;
+        }
+
+        .brand-container {
+            text-align: center;
+            margin-bottom: 0;
+            animation: fadeDown 1s ease;
+        }
+
+        .brand-title {
+            font-size: 30px;
+            font-weight: bold;
+            background: linear-gradient(90deg, #ffffff, #00f2fe);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 1px;
+        }
+
+        .brand-tagline {
+            font-size: 13px;
+            opacity: 0.8;
+            color: #ffffff;
+            margin-top: 4px;
+        }
+
+        @keyframes fadeDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Login Card - Glassmorphism */
+        .login-container {
+            width: 100%;
+            max-width: 350px;
+            padding: 25px;
+            border-radius: 15px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            animation: slide-up 0.6s ease-out;
+            transition: all 0.3s ease;
+        }
+
+        .login-container:hover {
+            transform: translateY(-5px);
+        }
+
+        @keyframes slide-up {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Title */
+        .login-title {
+            color: #ffffff;
+            font-size: 28px;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .login-subtitle {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 14px;
+            text-align: center;
+            margin-bottom: 30px;
+            font-weight: 300;
+            letter-spacing: 0.5px;
+        }
+
+        /* Form Container */
+        .form-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .form-label {
+            display: block;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            color: #ffffff;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .form-input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: rgba(255, 255, 255, 0.6);
+            background: rgba(255, 255, 255, 0.25);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.3), inset 0 0 20px rgba(255, 255, 255, 0.1);
+        }
+
+        /* Password Toggle */
+        .password-toggle {
+            position: absolute;
+            right: 14px;
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.7);
+            cursor: pointer;
+            font-size: 18px;
+            padding: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.2s ease;
+        }
+
+        .password-toggle:hover {
+            color: rgba(255, 255, 255, 0.95);
+        }
+
+        /* Error Message */
+        .error-message {
+            display: none;
+            color: #ff6b6b;
+            font-size: 13px;
+            margin-top: 6px;
+            animation: shake 0.4s ease;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        /* Login Button */
+        .login-button {
+            width: 100%;
+            padding: 13px;
+            margin-top: 25px;
+            border: none;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-button:hover:not(:disabled) {
+            transform: scale(1.02);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .login-button:active:not(:disabled) {
+            transform: scale(0.98);
+        }
+
+        .login-button:disabled {
+            opacity: 0.8;
+            cursor: not-allowed;
+        }
+
+        /* Success Message */
+        .success-message {
+            display: none;
+            color: #4ade80;
+            font-size: 13px;
+            margin-top: 10px;
+            text-align: center;
+            font-weight: 500;
+            animation: fade-in 0.4s ease;
+        }
+
+        .success-message.show {
+            display: block;
+        }
+
+        @keyframes fade-in {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 480px) {
+            .brand-title {
+                font-size: 28px;
+            }
+
+            .login-container {
+                max-width: 340px;
+                padding: 22px;
+                border-radius: 15px;
+            }
+
+            .login-title {
+                font-size: 24px;
+            }
+
+            .login-subtitle {
+                font-size: 12px;
+            }
+
+            .form-input {
+                padding: 11px 14px;
+                font-size: 13px;
+            }
+
+            .login-button {
+                padding: 12px;
+                font-size: 14px;
+            }
+        }
+
+        /* Loading Animation */
+        .spinner {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="background"></div>
+    <div class="main-container">
+        <div class="brand-container">
+            <h1 class="brand-title">⚡ ZyroFlow</h1>
+            <p class="brand-tagline">Zero Effort. Maximum Flow.</p>
+        </div>
+
+        <div class="login-container">
+            <h1 class="login-title">Approval Workflow System</h1>
+            <p class="login-subtitle">Secure Multi-Level Approval Platform</p>
+
+            <form id="login-form">
+                    <!-- Email Field -->
+                    <div class="form-group">
+                        <label class="form-label" for="email">Email Address</label>
+                        <div class="input-wrapper">
+                            <input
+                                type="email"
+                                id="email"
+                                class="form-input"
+                                placeholder="Enter your email"
+                                required
+                            >
+                        </div>
+                    </div>
+
+                    <!-- Password Field -->
+                    <div class="form-group">
+                        <label class="form-label" for="password">Password</label>
+                        <div class="input-wrapper">
+                            <input
+                                type="password"
+                                id="password"
+                                class="form-input"
+                                placeholder="Enter your password"
+                                required
+                            >
+                            <button
+                                type="button"
+                                id="password-toggle"
+                                class="password-toggle"
+                                aria-label="Toggle password visibility"
+                            >
+                                👁️
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Error Message -->
+                    <div id="errorMsg" class="error-message"></div>
+
+                    <!-- Success Message -->
+                    <div id="success-message" class="success-message">Login successful. Redirecting...</div>
+
+                    <!-- Login Button -->
+                    <button type="submit" id="loginBtn" class="login-button">
+                        Sign In
+                    </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const passwordToggle = document.getElementById('password-toggle');
+        const loginForm = document.getElementById('login-form');
+        const loginBtn = document.getElementById('loginBtn');
+        const errorMsg = document.getElementById('errorMsg');
+        const successMessage = document.getElementById('success-message');
+
+        // Password Show/Hide Toggle
+        passwordToggle.addEventListener('click', (e) => {
+            e.preventDefault();
+            const type = passwordInput.type === 'password' ? 'text' : 'password';
+            passwordInput.type = type;
+            passwordToggle.textContent = type === 'password' ? '👁️' : '👁️‍🗨️';
+        });
+
+        // Clear error messages on input
+        emailInput.addEventListener('input', () => {
+            hideError();
+        });
+
+        passwordInput.addEventListener('input', () => {
+            hideError();
+        });
+
+        // Form Submission
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            await handleLogin();
+        });
+
+        // Main Login Handler
+        async function handleLogin() {
+            // Clear previous messages
+            hideError();
+            successMessage.classList.remove('show');
+
+            // Get form values
+            const email = emailInput.value.trim();
+            const password = passwordInput.value.trim();
+
+            // Validation
+            if (!email || !password) {
+                showError('Please fill all fields');
+                return;
+            }
+
+            if (!isValidEmail(email)) {
+                showError('Please enter a valid email');
+                return;
+            }
+
+            // Disable button and show loading state
+            loginBtn.disabled = true;
+            const originalText = loginBtn.textContent;
+            loginBtn.innerHTML = '<span class="spinner"></span>Signing in...';
+
+            try {
+                // Simulate API call with 1.5 second delay
+                const response = await validateLogin(email, password);
+
+                if (response.success) {
+                    successMessage.classList.add('show');
+                    
+                    // Store authentication data
+                    localStorage.setItem('authToken', response.token);
+                    localStorage.setItem('userRole', response.role.toLowerCase());
+                    localStorage.setItem('role', response.role);
+                    localStorage.setItem('email', email);
+                    localStorage.setItem('userEmail', email);
+
+                    // Redirect based on role after 1.5 seconds
+                    setTimeout(() => {
+                        if (response.role === 'Admin') {
+                            window.location.href = 'admin-dashboard.html';
+                        } else if (response.role === 'Accounts') {
+                            window.location.href = 'accounts-dashboard.html';
+                        } else if (response.role === 'Manager') {
+                            window.location.href = 'manager-dashboard.html';
+                        } else if (response.role === 'CFO') {
+                            window.location.href = 'cfo-dashboard.html';
+                        } else if (response.role === 'MD') {
+                            window.location.href = 'md-dashboard.html';
+                        } else {
+                            window.location.href = 'user-dashboard.html';
+                        }
+                    }, 1500);
+                } else {
+                    showError(response.message);
+                    loginBtn.disabled = false;
+                    loginBtn.textContent = originalText;
+                }
+            } catch (error) {
+                showError('An error occurred. Please try again.');
+                loginBtn.disabled = false;
+                loginBtn.textContent = originalText;
+            }
+        }
+
+        // Helper Functions
+        function isValidEmail(email) {
+            const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return regex.test(email);
+        }
+
+        function showError(message) {
+            errorMsg.textContent = message;
+            errorMsg.classList.add('show');
+        }
+
+        function hideError() {
+            errorMsg.textContent = '';
+            errorMsg.classList.remove('show');
+        }
+
+        function getRole(email) {
+            const lowerEmail = String(email || '').toLowerCase();
+            if (lowerEmail.includes('admin')) return 'Admin';
+            if (lowerEmail.includes('accounts')) return 'Accounts';
+            if (lowerEmail.includes('manager')) return 'Manager';
+            if (lowerEmail.includes('cfo')) return 'CFO';
+            if (lowerEmail.includes('md')) return 'MD';
+            return 'Employee';
+        }
+
+        async function validateLogin(email, password) {
+            // Simulate network delay
+            await new Promise(resolve => setTimeout(resolve, 1500));
+
+            // Password validation (accept only "123456" for all users)
+            if (password !== '123456') {
+                return { 
+                    success: false, 
+                    message: 'Invalid email or password.' 
+                };
+            }
+
+            // Determine role dynamically from email
+            const role = getRole(email);
+
+            // Simulate JWT token generation
+            const token = btoa(JSON.stringify({ email, role, timestamp: Date.now() }));
+
+            return {
+                success: true,
+                token: token,
+                role: role,
+                message: 'Login successful'
+            };
+        }
+    </script>
+</body>
+</html>

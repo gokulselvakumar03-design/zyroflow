@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Admin Rules - Approval Workflow</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body class="bg-light">
+    <div class="container mt-4">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Admin Rule Management</h2>
+        <div>
+          <a class="btn btn-sm btn-outline-secondary" href="employee.html">Employee</a>
+          <a class="btn btn-sm btn-outline-secondary" href="approver.html">Approver</a>
+          <a class="btn btn-sm btn-outline-secondary" href="track.html">Track</a>
+          <button id="logout-btn" class="btn btn-sm btn-danger">Logout</button>
+        </div>
+      </div>
+
+      <div id="rules-alert" class="alert d-none" role="alert"></div>
+      <form id="rules-form" class="card p-3 shadow-sm bg-white">
+        <div class="form-row">
+          <div class="form-group col-md-3">
+            <label for="rule_request_type">Request Type</label>
+            <input type="text" id="rule_request_type" class="form-control" placeholder="expense" required>
+          </div>
+          <div class="form-group col-md-2">
+            <label for="rule_min_amount">Min Amount</label>
+            <input type="number" id="rule_min_amount" class="form-control" placeholder="100000" required>
+          </div>
+          <div class="form-group col-md-2">
+            <label for="rule_max_amount">Max Amount</label>
+            <input type="number" id="rule_max_amount" class="form-control" placeholder="1000000" required>
+          </div>
+          <div class="form-group col-md-4">
+            <label for="rule_approvers">Approvers (CSV)</label>
+            <input type="text" id="rule_approvers" class="form-control" placeholder="Accounts,CFO,MD" required>
+          </div>
+          <div class="form-group col-md-1 align-self-end">
+            <button type="submit" class="btn btn-primary">Save</button>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+      checkAuth();
+      document.getElementById('logout-btn').addEventListener('click', logout);
+
+      document.getElementById('rules-form').addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const request_type = document.getElementById('rule_request_type').value.trim();
+        const min_amount = Number(document.getElementById('rule_min_amount').value);
+        const max_amount = Number(document.getElementById('rule_max_amount').value);
+        const approvers = document.getElementById('rule_approvers').value.trim();
+
+        const result = await createRule(request_type, min_amount, max_amount, approvers);
+        const alert = document.getElementById('rules-alert');
+
+        if (result.success) {
+          alert.className = 'alert alert-success';
+          alert.innerText = 'Rule created successfully';
+          document.getElementById('rules-form').reset();
+        } else {
+          alert.className = 'alert alert-danger';
+          alert.innerText = result.message || 'Rule creation failed';
+        }
+        alert.classList.remove('d-none');
+      });
+    </script>
+  </body>
+</html>

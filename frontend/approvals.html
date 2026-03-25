@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Approvals - Approval Workflow</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body class="bg-light">
+    <div class="container mt-4">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Pending Approvals</h2>
+        <div>
+          <a class="btn btn-sm btn-outline-secondary" href="employee.html">Employee</a>
+          <a class="btn btn-sm btn-outline-secondary" href="track.html">Track</a>
+          <a class="btn btn-sm btn-outline-secondary" href="admin-rules.html">Admin Rules</a>
+          <button id="logout-btn" class="btn btn-sm btn-danger">Logout</button>
+        </div>
+      </div>
+
+      <div id="approvals-alert" class="alert d-none" role="alert"></div>
+
+      <button id="load-approvals" class="btn btn-info mb-3">Load Pending Approvals</button>
+
+      <div class="table-responsive">
+        <table class="table table-bordered table-hover bg-white" id="approvals-table">
+          <thead class="thead-light">
+            <tr>
+              <th>Request ID</th>
+              <th>Request Type</th>
+              <th>Amount</th>
+              <th>Description</th>
+              <th>Approve</th>
+              <th>Reject</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <script src="approvals.js"></script>
+  </body>
+</html>

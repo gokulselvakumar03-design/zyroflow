@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Workflow Builder</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #4facfe 75%, #00f2fe 100%);
+            background-size: 400% 400%;
+            animation: gradient-shift 15s ease infinite;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        @keyframes gradient-shift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            padding: 20px 24px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar-title {
+            color: white;
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .navbar-user {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .user-info {
+            color: rgba(255, 255, 255, 0.92);
+            font-size: 14px;
+            text-align: right;
+        }
+
+        .user-role {
+            font-weight: 700;
+            text-transform: capitalize;
+        }
+
+        .welcome-text {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 13px;
+        }
+
+        .logout-button {
+            padding: 10px 16px;
+            background: rgba(255, 107, 107, 0.85);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .logout-button:hover {
+            transform: scale(1.04);
+            background: rgba(255, 107, 107, 1);
+        }
+
+        .container {
+            max-width: 1250px;
+            margin: 0 auto;
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: 1.15fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 24px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .card-title {
+            color: white;
+            font-size: 19px;
+            font-weight: 700;
+            margin-bottom: 18px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        .form-label {
+            display: block;
+            color: rgba(255, 255, 255, 0.92);
+            font-size: 12px;
+            font-weight: 700;
+            margin-bottom: 7px;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+
+        .form-input,
+        .form-select {
+            width: 100%;
+            padding: 11px 13px;
+            border: 2px solid rgba(255, 255, 255, 0.22);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+
+        .form-input::placeholder {
+            color: rgba(255, 255, 255, 0.65);
+        }
+
+        .form-select option {
+            color: #222;
+        }
+
+        .form-input:focus,
+        .form-select:focus {
+            outline: none;
+            border-color: rgba(255, 255, 255, 0.6);
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+        }
+
+        .button-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 10px 14px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: scale(1.03);
+            box-shadow: 0 4px 16px rgba(102, 126, 234, 0.45);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.18);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+        }
+
+        .btn-danger {
+            background: rgba(244, 67, 54, 0.82);
+            color: #fff;
+        }
+
+        .btn-danger:hover {
+            transform: scale(1.03);
+        }
+
+        .levels-box {
+            margin-top: 12px;
+            min-height: 46px;
+            padding: 12px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px dashed rgba(255, 255, 255, 0.28);
+        }
+
+        .flow-chain {
+            color: rgba(255, 255, 255, 0.95);
+            font-weight: 600;
+            line-height: 1.6;
+        }
+
+        .templates-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 12px;
+        }
+
+        .template-card {
+            padding: 14px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        .template-name {
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .template-range {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.78);
+            margin-bottom: 8px;
+        }
+
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+
+        .summary-card {
+            background: rgba(255, 255, 255, 0.11);
+            border-radius: 10px;
+            padding: 14px;
+            text-align: center;
+            color: white;
+            border-left: 4px solid;
+        }
+
+        .summary-card.total { border-left-color: #7ca2ff; }
+        .summary-card.pending { border-left-color: #ffc107; }
+        .summary-card.approved { border-left-color: #4caf50; }
+        .summary-card.rejected { border-left-color: #f44336; }
+
+        .summary-number {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .summary-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: rgba(255, 255, 255, 0.75);
+        }
+
+        .requests-table {
+            width: 100%;
+            border-collapse: collapse;
+            color: white;
+        }
+
+        .requests-table th,
+        .requests-table td {
+            padding: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: left;
+            font-size: 13px;
+        }
+
+        .requests-table thead {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .badge {
+            display: inline-block;
+            border-radius: 999px;
+            padding: 4px 9px;
+            font-size: 11px;
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+
+        .badge-pending { background: rgba(255, 193, 7, 0.25); color: #ffd966; }
+        .badge-approved { background: rgba(76, 175, 80, 0.25); color: #78e27b; }
+        .badge-rejected { background: rgba(244, 67, 54, 0.25); color: #ff8c85; }
+
+        .msg {
+            display: none;
+            margin-bottom: 12px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            font-size: 13px;
+        }
+
+        .msg.show { display: block; }
+        .msg.ok { background: rgba(76, 175, 80, 0.2); color: #8de592; }
+        .msg.err { background: rgba(244, 67, 54, 0.2); color: #ff9f99; }
+
+        .empty {
+            color: rgba(255, 255, 255, 0.7);
+            text-align: center;
+            padding: 14px;
+        }
+
+        @media (max-width: 1040px) {
+            .layout { grid-template-columns: 1fr; }
+            .form-grid { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 760px) {
+            .navbar {
+                flex-direction: column;
+                gap: 12px;
+                text-align: center;
+            }
+
+            .navbar-user {
+                flex-direction: column;
+            }
+
+            .summary { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <div class="navbar-title">Admin Dashboard</div>
+        <div class="navbar-user">
+            <div class="user-info">
+                <div>Workflow Builder</div>
+                <div id="welcomeText" class="welcome-text"></div>
+            </div>
+            <button class="logout-button" onclick="logout()">Logout</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="layout">
+            <div class="card">
+                <h2 class="card-title">Create Workflow Template</h2>
+                <div id="workflow-msg" class="msg"></div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label" for="workflow-name">Workflow Name</label>
+                        <input id="workflow-name" class="form-input" type="text" placeholder="Expense Approval">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="min-amount">Min Amount</label>
+                        <input id="min-amount" class="form-input" type="number" min="0" step="0.01" placeholder="0">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="max-amount">Max Amount</label>
+                        <input id="max-amount" class="form-input" type="number" min="0" step="0.01" placeholder="50000">
+                    </div>
+                </div>
+
+                <div class="button-row">
+                    <select id="level-role" class="form-select">
+                        <option value="Accounts">Accounts</option>
+                        <option value="Manager">Manager</option>
+                        <option value="CFO">CFO</option>
+                        <option value="MD">MD</option>
+                    </select>
+                    <button id="add-level-btn" class="btn btn-secondary" type="button">Add Level</button>
+                    <button id="clear-levels-btn" class="btn btn-danger" type="button">Clear Levels</button>
+                    <button id="save-workflow-btn" class="btn btn-primary" type="button">Save Workflow</button>
+                </div>
+
+                <div class="levels-box">
+                    <div id="levels-preview" class="flow-chain">No levels added yet.</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2 class="card-title">Workflow Templates</h2>
+                <div id="templates-grid" class="templates-grid">
+                    <div class="empty">No templates yet</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2 class="card-title">Approvals Overview</h2>
+            <div class="summary">
+                <div class="summary-card total">
+                    <div class="summary-number" id="total-count">0</div>
+                    <div class="summary-label">Total Requests</div>
+                </div>
+                <div class="summary-card pending">
+                    <div class="summary-number" id="pending-count">0</div>
+                    <div class="summary-label">Pending</div>
+                </div>
+                <div class="summary-card approved">
+                    <div class="summary-number" id="approved-count">0</div>
+                    <div class="summary-label">Approved</div>
+                </div>
+                <div class="summary-card rejected">
+                    <div class="summary-number" id="rejected-count">0</div>
+                    <div class="summary-label">Rejected</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2 class="card-title">All Requests</h2>
+            <div id="requests-container">
+                <div class="empty">No requests yet</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const workflowLevels = [];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAuthentication();
+            displayUserRole();
+            wireWorkflowActions();
+            renderWorkflowTemplates();
+            updateDashboard();
+        });
+
+        function normalizeRole(role) {
+            return String(role || '').trim().toLowerCase();
+        }
+
+        function checkAuthentication() {
+            const role = normalizeRole(localStorage.getItem('role') || localStorage.getItem('userRole'));
+            if (role !== 'admin') {
+                window.location.href = 'login.html';
+            }
+            localStorage.setItem('role', 'admin');
+            localStorage.setItem('userRole', 'admin');
+        }
+
+        function displayUserRole() {
+            const role = localStorage.getItem('role') || localStorage.getItem('userRole') || 'admin';
+            const prettyRole = canonicalRole(role);
+            const welcomeText = document.getElementById('welcomeText');
+            if (welcomeText) {
+                welcomeText.textContent = `Welcome ${prettyRole}`;
+            }
+        }
+
+        function canonicalRole(roleValue) {
+            const raw = String(roleValue || '').trim().toLowerCase();
+            if (raw === 'accounts') return 'Accounts';
+            if (raw === 'manager') return 'Manager';
+            if (raw === 'cfo') return 'CFO';
+            if (raw === 'md') return 'MD';
+            if (raw === 'admin') return 'Admin';
+            return 'Employee';
+        }
+
+        function wireWorkflowActions() {
+            document.getElementById('add-level-btn').addEventListener('click', addLevel);
+            document.getElementById('clear-levels-btn').addEventListener('click', clearLevels);
+            document.getElementById('save-workflow-btn').addEventListener('click', saveWorkflow);
+        }
+
+        function addLevel() {
+            const role = document.getElementById('level-role').value;
+            workflowLevels.push(role);
+            renderLevelPreview();
+        }
+
+        function clearLevels() {
+            workflowLevels.length = 0;
+            renderLevelPreview();
+        }
+
+        function renderLevelPreview() {
+            const el = document.getElementById('levels-preview');
+            el.textContent = workflowLevels.length ? workflowLevels.join(' -> ') : 'No levels added yet.';
+        }
+
+        function getWorkflows() {
+            return JSON.parse(localStorage.getItem('workflows') || '[]');
+        }
+
+        function setWorkflows(workflows) {
+            localStorage.setItem('workflows', JSON.stringify(workflows));
+        }
+
+        function saveWorkflow() {
+            const name = document.getElementById('workflow-name').value.trim();
+            const minAmount = Number(document.getElementById('min-amount').value);
+            const maxAmount = Number(document.getElementById('max-amount').value);
+
+            if (!name || Number.isNaN(minAmount) || Number.isNaN(maxAmount)) {
+                showWorkflowMessage('Please fill all workflow fields.', 'err');
+                return;
+            }
+
+            if (minAmount < 0 || maxAmount < 0 || maxAmount < minAmount) {
+                showWorkflowMessage('Amount range is invalid.', 'err');
+                return;
+            }
+
+            if (!workflowLevels.length) {
+                showWorkflowMessage('Add at least one approval level.', 'err');
+                return;
+            }
+
+            const workflows = getWorkflows();
+            workflows.push({
+                id: Date.now(),
+                name,
+                minAmount,
+                maxAmount,
+                levels: [...workflowLevels]
+            });
+
+            setWorkflows(workflows);
+            showWorkflowMessage('Workflow saved successfully.', 'ok');
+
+            document.getElementById('workflow-name').value = '';
+            document.getElementById('min-amount').value = '';
+            document.getElementById('max-amount').value = '';
+            clearLevels();
+            renderWorkflowTemplates();
+        }
+
+        function showWorkflowMessage(text, type) {
+            const el = document.getElementById('workflow-msg');
+            el.textContent = text;
+            el.className = `msg show ${type}`;
+            setTimeout(() => el.classList.remove('show'), 2400);
+        }
+
+        function renderWorkflowTemplates() {
+            const workflows = getWorkflows();
+            const container = document.getElementById('templates-grid');
+
+            if (!workflows.length) {
+                container.innerHTML = '<div class="empty">No templates yet</div>';
+                return;
+            }
+
+            container.innerHTML = workflows.map((wf) => `
+                <div class="template-card">
+                    <div class="template-name">${escapeHtml(wf.name)}</div>
+                    <div class="template-range">${formatCurrency(wf.minAmount)} - ${formatCurrency(wf.maxAmount)}</div>
+                    <div class="flow-chain">${wf.levels.map(escapeHtml).join(' -> ')}</div>
+                </div>
+            `).join('');
+        }
+
+        function updateDashboard() {
+            const requests = JSON.parse(localStorage.getItem('requests') || '[]');
+            const total = requests.length;
+            const pending = requests.filter((r) => normalizeStatus(r.status) === 'pending').length;
+            const approved = requests.filter((r) => normalizeStatus(r.status) === 'approved').length;
+            const rejected = requests.filter((r) => normalizeStatus(r.status) === 'rejected').length;
+
+            document.getElementById('total-count').textContent = total;
+            document.getElementById('pending-count').textContent = pending;
+            document.getElementById('approved-count').textContent = approved;
+            document.getElementById('rejected-count').textContent = rejected;
+
+            renderRequestsTable(requests);
+        }
+
+        function normalizeStatus(status) {
+            return String(status || '').trim().toLowerCase();
+        }
+
+        function renderRequestsTable(requests) {
+            const container = document.getElementById('requests-container');
+            if (!requests.length) {
+                container.innerHTML = '<div class="empty">No requests yet</div>';
+                return;
+            }
+
+            container.innerHTML = `
+                <table class="requests-table">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Amount</th>
+                            <th>Workflow</th>
+                            <th>Current Level</th>
+                            <th>Status</th>
+                            <th>Last Action</th>
+                            <th>Updated</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${requests.map((req) => {
+                            const current = getCurrentLevelName(req);
+                            const status = normalizeStatus(req.status);
+                            const last = Array.isArray(req.history) && req.history.length ? req.history[req.history.length - 1] : null;
+                            return `
+                                <tr>
+                                    <td>${escapeHtml(req.title || '-')}</td>
+                                    <td>${formatCurrency(req.amount || 0)}</td>
+                                    <td>${(req.workflow || []).map(escapeHtml).join(' -> ')}</td>
+                                    <td>${escapeHtml(current)}</td>
+                                    <td><span class="badge badge-${status}">${status}</span></td>
+                                    <td>${last ? `${escapeHtml(last.role)} ${escapeHtml(String(last.status || '').toLowerCase())}` : 'No action yet'}</td>
+                                    <td>${timeAgo(req.updatedAt || req.createdAt)}</td>
+                                </tr>
+                            `;
+                        }).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        function getCurrentLevelName(request) {
+            const status = normalizeStatus(request.status);
+            if (status === 'approved') return 'Completed';
+            if (status === 'rejected') return 'Rejected';
+            const idx = Number(request.currentLevel || 0);
+            const levels = Array.isArray(request.workflow) ? request.workflow : [];
+            return levels[idx] || 'N/A';
+        }
+
+        function formatCurrency(amount) {
+            return `$${Number(amount || 0).toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
+        }
+
+        function timeAgo(timestamp) {
+            let time = Number(timestamp);
+            if (!Number.isFinite(time)) {
+                const parsed = Date.parse(String(timestamp || ''));
+                time = Number.isFinite(parsed) ? parsed : Date.now();
+            }
+            const diffSeconds = Math.max(0, Math.floor((Date.now() - time) / 1000));
+            if (diffSeconds < 60) return `${diffSeconds}s ago`;
+            const mins = Math.floor(diffSeconds / 60);
+            if (mins < 60) return `${mins} min${mins === 1 ? '' : 's'} ago`;
+            const hours = Math.floor(mins / 60);
+            if (hours < 24) return `${hours} hour${hours === 1 ? '' : 's'} ago`;
+            const days = Math.floor(hours / 24);
+            return `${days} day${days === 1 ? '' : 's'} ago`;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = String(text || '');
+            return div.innerHTML;
+        }
+
+        function logout() {
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('role');
+            localStorage.removeItem('userRole');
+            localStorage.removeItem('userEmail');
+            window.location.href = 'login.html';
+        }
+
+        setInterval(updateDashboard, 4000);
+    </script>
+</body>
+</html>

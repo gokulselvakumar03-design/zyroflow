@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Employee Dashboard - Approval Workflow</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body class="bg-light">
+    <div class="container mt-4">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Employee Request Submission</h2>
+        <div>
+          <a class="btn btn-sm btn-outline-secondary" href="approver.html">Approver</a>
+          <a class="btn btn-sm btn-outline-secondary" href="track.html">Track</a>
+          <a class="btn btn-sm btn-outline-secondary" href="admin-rules.html">Admin Rules</a>
+          <button id="logout-btn" class="btn btn-sm btn-danger">Logout</button>
+        </div>
+      </div>
+
+      <div id="employee-alert" class="alert d-none" role="alert"></div>
+      <form id="request-form" class="card p-3 shadow-sm bg-white">
+        <div class="form-row">
+          <div class="form-group col-md-4">
+            <label for="request_type">Request Type</label>
+            <input type="text" id="request_type" class="form-control" placeholder="expense" required>
+          </div>
+          <div class="form-group col-md-4">
+            <label for="amount">Amount</label>
+            <input type="number" id="amount" class="form-control" placeholder="100000" required>
+          </div>
+          <div class="form-group col-md-4">
+            <label for="description">Description</label>
+            <input type="text" id="description" class="form-control" placeholder="Brief description" required>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary">Submit Request</button>
+      </form>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+      checkAuth();
+      document.getElementById('logout-btn').addEventListener('click', logout);
+
+      document.getElementById('request-form').addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const request_type = document.getElementById('request_type').value.trim();
+        const amount = Number(document.getElementById('amount').value);
+        const description = document.getElementById('description').value.trim();
+
+        const result = await submitRequest(request_type, amount, description);
+        const alert = document.getElementById('employee-alert');
+
+        if (result.success) {
+          alert.className = 'alert alert-success';
+          alert.innerHTML = 'Request submitted successfully. ID: ' + result.request_id;
+          document.getElementById('request-form').reset();
+        } else {
+          alert.className = 'alert alert-danger';
+          alert.innerText = result.message || 'Request submission failed';
+        }
+        alert.classList.remove('d-none');
+      });
+    </script>
+  </body>
+</html>

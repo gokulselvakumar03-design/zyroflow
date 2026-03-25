@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Dashboard - Approval Workflow</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #4facfe 75%, #00f2fe 100%);
+            background-size: 400% 400%;
+            animation: gradient-shift 15s ease infinite;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        @keyframes gradient-shift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Top Navigation */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 20px 30px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar-title {
+            color: white;
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .navbar-user {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .user-info {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 14px;
+            text-align: right;
+        }
+
+        .user-role {
+            font-weight: 600;
+            text-transform: capitalize;
+        }
+
+        .welcome-text {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 13px;
+        }
+
+        .logout-button {
+            padding: 10px 20px;
+            background: rgba(255, 107, 107, 0.8);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .logout-button:hover {
+            background: rgba(255, 107, 107, 1);
+            transform: scale(1.05);
+        }
+
+        /* Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        /* Card Style */
+        .card {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-title {
+            color: white;
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-input,
+        .form-textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            font-size: 14px;
+            font-family: inherit;
+            transition: all 0.3s ease;
+        }
+
+        .form-input::placeholder,
+        .form-textarea::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .form-input:focus,
+        .form-textarea:focus {
+            outline: none;
+            border-color: rgba(255, 255, 255, 0.6);
+            background: rgba(255, 255, 255, 0.25);
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        /* Button */
+        .submit-button {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .submit-button:hover {
+            transform: scale(1.02);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .submit-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* Request List */
+        .requests-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .request-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            color: white;
+        }
+
+        .request-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .request-status {
+            font-size: 12px;
+            text-transform: uppercase;
+            margin-top: 10px;
+            padding: 5px 10px;
+            border-radius: 5px;
+            display: inline-block;
+            font-weight: 600;
+        }
+
+        .status-pending {
+            background: rgba(255, 193, 7, 0.3);
+            color: #ffc107;
+        }
+
+        .status-approved {
+            background: rgba(76, 175, 80, 0.3);
+            color: #4caf50;
+        }
+
+        .status-rejected {
+            background: rgba(244, 67, 54, 0.3);
+            color: #f44336;
+        }
+
+        .request-meta-line {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.74);
+            margin-top: 8px;
+        }
+
+        .workflow-tracker {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.08);
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        .timeline {
+            margin-top: 10px;
+            border-left: 2px solid rgba(255, 255, 255, 0.2);
+            padding-left: 10px;
+        }
+
+        .timeline-item {
+            margin-bottom: 8px;
+            color: rgba(255, 255, 255, 0.88);
+            font-size: 12px;
+        }
+
+        .timeline-time {
+            color: rgba(255, 255, 255, 0.6);
+            margin-left: 6px;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.6);
+            padding: 30px 0;
+        }
+
+        /* Message */
+        .message {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .message.show {
+            display: block;
+        }
+
+        .success {
+            background: rgba(76, 175, 80, 0.2);
+            color: #4caf50;
+            border: 1px solid rgba(76, 175, 80, 0.4);
+        }
+
+        .error {
+            background: rgba(244, 67, 54, 0.2);
+            color: #f44336;
+            border: 1px solid rgba(244, 67, 54, 0.4);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+
+            .navbar {
+                flex-direction: column;
+                text-align: center;
+                gap: 15px;
+            }
+
+            .navbar-user {
+                width: 100%;
+                gap: 10px;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <div class="navbar">
+        <div class="navbar-title">Employee Dashboard</div>
+        <div class="navbar-user">
+            <div class="user-info">
+                <div id="welcomeText" class="welcome-text"></div>
+            </div>
+            <button class="logout-button" onclick="logout()">Logout</button>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container">
+        <!-- Submit Request Card -->
+        <div class="card">
+            <h2 class="card-title">Submit Request</h2>
+            <div id="message" class="message"></div>
+
+            <form id="request-form">
+                <div class="form-group">
+                    <label class="form-label" for="title">Request Title</label>
+                    <input type="text" id="title" class="form-input" placeholder="e.g., Leave Request, Budget Approval" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="description">Description</label>
+                    <textarea id="description" class="form-textarea" placeholder="Provide details about your request..." required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="amount">Amount</label>
+                    <input type="number" id="amount" min="0" step="0.01" class="form-input" placeholder="e.g., 15000" required>
+                </div>
+
+                <button type="submit" class="submit-button">Submit Request</button>
+            </form>
+        </div>
+
+        <!-- My Requests Card -->
+        <div class="card">
+            <h2 class="card-title">My Requests</h2>
+            <div class="requests-list" id="requests-list">
+                <div class="empty-state">No requests yet. Submit one to get started!</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAuthentication();
+            displayUserRole();
+            loadRequests();
+        });
+
+        function normalizeRole(role) {
+            const raw = String(role || '').trim().toLowerCase();
+            if (raw === 'accounts') return 'Accounts';
+            if (raw === 'manager') return 'Manager';
+            if (raw === 'cfo') return 'CFO';
+            if (raw === 'md') return 'MD';
+            if (raw === 'admin') return 'Admin';
+            return 'Employee';
+        }
+
+        function normalizeStatus(status) {
+            return String(status || '').trim().toLowerCase();
+        }
+
+        // Check if user is logged in
+        function checkAuthentication() {
+            const userRole = localStorage.getItem('role') || localStorage.getItem('userRole');
+            if (!userRole) {
+                window.location.href = 'login.html';
+            }
+            if (!localStorage.getItem('role')) {
+                localStorage.setItem('role', String(userRole));
+            }
+        }
+
+        // Display user role
+        function displayUserRole() {
+            const userRole = normalizeRole(localStorage.getItem('role') || localStorage.getItem('userRole'));
+            const welcomeText = document.getElementById('welcomeText');
+            if (welcomeText) {
+                welcomeText.textContent = `Welcome ${userRole}`;
+            }
+        }
+
+        function getWorkflows() {
+            return JSON.parse(localStorage.getItem('workflows') || '[]');
+        }
+
+        function findWorkflowByAmount(amount) {
+            const workflows = getWorkflows()
+                .filter(wf => Number(wf.minAmount) <= amount && amount <= Number(wf.maxAmount))
+                .sort((a, b) => (Number(a.maxAmount) - Number(a.minAmount)) - (Number(b.maxAmount) - Number(b.minAmount)));
+            return workflows[0] || null;
+        }
+
+        function normalizeRequest(request) {
+            const workflow = Array.isArray(request.workflow) ? request.workflow : [];
+            const createdAt = request.createdAt || Date.now();
+            return {
+                ...request,
+                amount: Number(request.amount || 0),
+                status: normalizeStatus(request.status || 'pending'),
+                currentLevel: Number(request.currentLevel || 0),
+                workflow,
+                createdAt,
+                updatedAt: request.updatedAt || createdAt,
+                history: Array.isArray(request.history) ? request.history : [],
+                comments: Array.isArray(request.comments) ? request.comments : []
+            };
+        }
+
+        // Handle form submission
+        document.getElementById('request-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const title = document.getElementById('title').value.trim();
+            const description = document.getElementById('description').value.trim();
+            const amount = Number(document.getElementById('amount').value);
+
+            if (!title || !description || Number.isNaN(amount) || amount < 0) {
+                showMessage('Please fill all fields', 'error');
+                return;
+            }
+
+            const matchedWorkflow = findWorkflowByAmount(amount);
+            if (!matchedWorkflow || !Array.isArray(matchedWorkflow.levels) || !matchedWorkflow.levels.length) {
+                showMessage('No workflow found for this amount. Ask admin to configure one.', 'error');
+                return;
+            }
+
+            // Create request object
+            const request = {
+                id: Date.now(),
+                title,
+                description,
+                amount,
+                status: 'pending',
+                currentLevel: 0,
+                workflow: [...matchedWorkflow.levels],
+                createdAt: Date.now(),
+                updatedAt: Date.now(),
+                history: [],
+                comments: [],
+                email: localStorage.getItem('userEmail'),
+                workflowName: matchedWorkflow.name
+            };
+
+            // Save to localStorage
+            let requests = JSON.parse(localStorage.getItem('requests') || '[]');
+            requests.push(request);
+            localStorage.setItem('requests', JSON.stringify(requests));
+
+            showMessage('Request submitted successfully!', 'success');
+            document.getElementById('request-form').reset();
+            loadRequests();
+
+            // Clear message after 3 seconds
+            setTimeout(() => {
+                document.getElementById('message').classList.remove('show');
+            }, 3000);
+        });
+
+        // Load requests from localStorage
+        function loadRequests() {
+            const requests = JSON.parse(localStorage.getItem('requests') || '[]');
+            const userEmail = localStorage.getItem('userEmail');
+            const userRequests = requests
+                .filter(r => r.email === userEmail)
+                .map(normalizeRequest)
+                .sort((a, b) => Number(b.createdAt) - Number(a.createdAt));
+
+            const requestsList = document.getElementById('requests-list');
+            
+            if (userRequests.length === 0) {
+                requestsList.innerHTML = '<div class="empty-state">No requests yet. Submit one to get started!</div>';
+                return;
+            }
+
+            requestsList.innerHTML = userRequests.map(request => `
+                <div class="request-item">
+                    <div class="request-title">${escapeHtml(request.title)}</div>
+                    <div style="font-size: 13px; color: rgba(255,255,255,0.78); margin-bottom: 8px;">
+                        ${escapeHtml(request.description)}
+                    </div>
+                    <div class="request-meta-line">Amount: ${formatCurrency(request.amount)} | Template: ${escapeHtml(request.workflowName || 'N/A')}</div>
+                    <div class="request-meta-line">Created ${timeAgo(request.createdAt)} | Updated ${timeAgo(request.updatedAt)}</div>
+                    <div class="request-meta-line">${statusText(request)}</div>
+                    <div class="workflow-tracker">
+                        <strong>Workflow:</strong> ${renderWorkflowTracker(request)}
+                    </div>
+                    <div class="timeline">
+                        ${renderTimeline(request)}
+                    </div>
+                    <span class="request-status status-${request.status}">${request.status}</span>
+                </div>
+            `).join('');
+        }
+
+        function statusText(request) {
+            const status = normalizeStatus(request.status);
+            if (status === 'approved') {
+                return `Approved ${timeAgo(request.updatedAt)}`;
+            }
+            if (status === 'rejected') {
+                return `Rejected ${timeAgo(request.updatedAt)}`;
+            }
+            return `Pending for ${timeAgo(request.createdAt)}`;
+        }
+
+        function renderWorkflowTracker(request) {
+            const status = normalizeStatus(request.status);
+            return request.workflow.map((level, index) => {
+                let mark = '⭕';
+                if (status === 'approved') {
+                    mark = '✔';
+                } else if (status === 'rejected') {
+                    mark = index < request.currentLevel ? '✔' : (index === request.currentLevel ? '⏳' : '⭕');
+                } else if (index < request.currentLevel) {
+                    mark = '✔';
+                } else if (index === request.currentLevel) {
+                    mark = '⏳';
+                }
+                return `${mark} ${escapeHtml(level)}`;
+            }).join(' -> ');
+        }
+
+        function renderTimeline(request) {
+            const history = Array.isArray(request.history) ? request.history : [];
+            const lines = [];
+
+            history.forEach((item) => {
+                const itemStatus = normalizeStatus(item.status || 'pending');
+                lines.push(`<div class="timeline-item">${escapeHtml(item.role)} ${escapeHtml(itemStatus)}<span class="timeline-time">${timeAgo(item.time)}</span>${item.comment ? `<div>${escapeHtml(item.comment)}</div>` : ''}</div>`);
+            });
+
+            const status = normalizeStatus(request.status);
+            request.workflow.forEach((level, index) => {
+                if (index < request.currentLevel) return;
+                if (status === 'approved') return;
+                if (status === 'rejected' && index > request.currentLevel) {
+                    lines.push(`<div class="timeline-item">${escapeHtml(level)} waiting</div>`);
+                    return;
+                }
+                if (index === request.currentLevel) {
+                    const label = status === 'rejected' ? 'rejected' : 'pending';
+                    lines.push(`<div class="timeline-item">${escapeHtml(level)} ${label}</div>`);
+                } else {
+                    lines.push(`<div class="timeline-item">${escapeHtml(level)} waiting</div>`);
+                }
+            });
+
+            if (!lines.length) {
+                return '<div class="timeline-item">No actions yet. Waiting for first approver.</div>';
+            }
+
+            return lines.join('');
+        }
+
+        function timeAgo(timestamp) {
+            let time = Number(timestamp);
+            if (!Number.isFinite(time)) {
+                const parsed = Date.parse(String(timestamp || ''));
+                time = Number.isFinite(parsed) ? parsed : Date.now();
+            }
+            const diffSeconds = Math.max(0, Math.floor((Date.now() - time) / 1000));
+            if (diffSeconds < 60) return `${diffSeconds}s ago`;
+            const mins = Math.floor(diffSeconds / 60);
+            if (mins < 60) return `${mins} min${mins === 1 ? '' : 's'} ago`;
+            const hours = Math.floor(mins / 60);
+            if (hours < 24) return `${hours} hour${hours === 1 ? '' : 's'} ago`;
+            const days = Math.floor(hours / 24);
+            return `${days} day${days === 1 ? '' : 's'} ago`;
+        }
+
+        function formatCurrency(amount) {
+            return `$${Number(amount || 0).toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
+        }
+
+        // Show message
+        function showMessage(text, type) {
+            const messageEl = document.getElementById('message');
+            messageEl.textContent = text;
+            messageEl.className = `message show ${type}`;
+        }
+
+        // Escape HTML to prevent XSS
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Logout
+        function logout() {
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('role');
+            localStorage.removeItem('userRole');
+            localStorage.removeItem('userEmail');
+            window.location.href = 'login.html';
+        }
+    </script>
+</body>
+</html>

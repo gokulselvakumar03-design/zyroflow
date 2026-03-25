@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Approver Dashboard - Approval Workflow</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body class="bg-light">
+    <div class="container mt-4">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Pending Approvals</h2>
+        <div>
+          <a class="btn btn-sm btn-outline-secondary" href="employee.html">Employee</a>
+          <a class="btn btn-sm btn-outline-secondary" href="track.html">Track</a>
+          <a class="btn btn-sm btn-outline-secondary" href="admin-rules.html">Admin Rules</a>
+          <button id="logout-btn" class="btn btn-sm btn-danger">Logout</button>
+        </div>
+      </div>
+
+      <div id="approvals-alert" class="alert d-none" role="alert"></div>
+
+      <button id="load-approvals" class="btn btn-info mb-3">Load Pending Approvals</button>
+
+      <table class="table table-bordered table-striped bg-white" id="approvals-table">
+        <thead>
+          <tr>
+            <th>Request ID</th>
+            <th>Employee ID</th>
+            <th>Type</th>
+            <th>Amount</th>
+            <th>Description</th>
+            <th>Step</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <script src="approvals.js"></script>
+    <script>
+      checkAuth();
+      document.getElementById('logout-btn').addEventListener('click', logout);
+      document.getElementById('load-approvals').addEventListener('click', loadApprovals);
+      loadApprovals();
+    </script>
+  </body>
+</html>

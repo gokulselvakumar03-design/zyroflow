@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Submit Request - Approval Workflow</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body class="bg-light">
+    <div class="container mt-4">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Submit Request</h2>
+        <div>
+          <a class="btn btn-sm btn-outline-secondary" href="employee.html">Employee</a>
+          <a class="btn btn-sm btn-outline-secondary" href="approver.html">Approver</a>
+          <a class="btn btn-sm btn-outline-secondary" href="track.html">Track</a>
+          <a class="btn btn-sm btn-outline-secondary" href="admin-rules.html">Admin Rules</a>
+          <button id="logout-btn" class="btn btn-sm btn-danger">Logout</button>
+        </div>
+      </div>
+
+      <div id="request-alert" class="alert d-none" role="alert"></div>
+
+      <div class="card p-3 shadow-sm bg-white">
+        <form id="request-form">
+          <div class="form-group">
+            <label for="request_type">Request Type</label>
+            <input type="text" id="request_type" class="form-control" placeholder="expense" required>
+          </div>
+          <div class="form-group">
+            <label for="amount">Amount</label>
+            <input type="number" id="amount" class="form-control" placeholder="100000" required>
+          </div>
+          <div class="form-group">
+            <label for="description">Description</label>
+            <textarea id="description" class="form-control" rows="3" placeholder="Describe the request" required></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+      </div>
+    </div>
+
+    <script src="request.js"></script>
+  </body>
+</html>

@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manager Dashboard - Approval Workflow</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #4facfe 75%, #00f2fe 100%);
+            background-size: 400% 400%;
+            animation: gradient-shift 15s ease infinite;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        @keyframes gradient-shift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Top Navigation */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 20px 30px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar-title {
+            color: white;
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .navbar-user {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .user-info {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 14px;
+            text-align: right;
+        }
+
+        .user-role {
+            font-weight: 600;
+            text-transform: capitalize;
+        }
+
+        .welcome-text {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 13px;
+        }
+
+        .logout-button {
+            padding: 10px 20px;
+            background: rgba(255, 107, 107, 0.8);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .logout-button:hover {
+            background: rgba(255, 107, 107, 1);
+            transform: scale(1.05);
+        }
+
+        /* Container */
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        /* Card Style */
+        .card {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+
+        .card-title {
+            color: white;
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+        /* Requests List */
+        .requests-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .request-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #ffc107;
+        }
+
+        .request-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .request-title {
+            color: white;
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .request-email {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        .request-description {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 14px;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+
+        .request-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .request-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .action-button {
+            padding: 10px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .approve-button {
+            background: rgba(76, 175, 80, 0.8);
+            color: white;
+        }
+
+        .approve-button:hover {
+            background: rgba(76, 175, 80, 1);
+            transform: scale(1.05);
+        }
+
+        .reject-button {
+            background: rgba(244, 67, 54, 0.8);
+            color: white;
+        }
+
+        .reject-button:hover {
+            background: rgba(244, 67, 54, 1);
+            transform: scale(1.05);
+        }
+
+        .empty-state {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.6);
+            padding: 50px 20px;
+        }
+
+        /* Message */
+        .message {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .message.show {
+            display: block;
+        }
+
+        .success {
+            background: rgba(76, 175, 80, 0.2);
+            color: #4caf50;
+            border: 1px solid rgba(76, 175, 80, 0.4);
+        }
+
+        /* Summary Cards */
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .summary-card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            color: white;
+        }
+
+        .summary-number {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .summary-label {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.7);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .workflow-chain {
+            margin: 10px 0;
+            padding: 8px 10px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.08);
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .request-comment {
+            width: 100%;
+            margin-top: 8px;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            background: rgba(255, 255, 255, 0.18);
+            color: white;
+            font-size: 13px;
+        }
+
+        .request-comment::placeholder {
+            color: rgba(255, 255, 255, 0.65);
+        }
+
+        .history-preview {
+            margin-top: 8px;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.75);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .navbar {
+                flex-direction: column;
+                text-align: center;
+                gap: 15px;
+            }
+
+            .navbar-user {
+                width: 100%;
+                gap: 10px;
+                justify-content: center;
+            }
+
+            .request-header {
+                flex-direction: column;
+            }
+
+            .request-actions {
+                flex-direction: column;
+            }
+
+            .action-button {
+                width: 100%;
+            }
+
+            .summary {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <div class="navbar">
+        <div class="navbar-title" id="approver-title">Approver Dashboard</div>
+        <div class="navbar-user">
+            <div class="user-info">
+                <div id="welcomeText" class="welcome-text"></div>
+            </div>
+            <button class="logout-button" onclick="logout()">Logout</button>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container">
+        <!-- Summary -->
+        <div class="card">
+            <div class="summary">
+                <div class="summary-card">
+                    <div class="summary-number" id="pending-count">0</div>
+                    <div class="summary-label">Pending Approvals</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-number" id="approved-count">0</div>
+                    <div class="summary-label">Approved</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-number" id="rejected-count">0</div>
+                    <div class="summary-label">Rejected</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pending Requests -->
+        <div class="card">
+            <h2 class="card-title">Pending Approvals</h2>
+            <div id="message" class="message"></div>
+            <div class="requests-list" id="requests-list">
+                <div class="empty-state">No pending requests</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentRole = 'Manager';
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAuthentication();
+            displayUserRole();
+            loadPendingRequests();
+        });
+
+        function normalizeStatus(status) {
+            return String(status || '').trim().toLowerCase();
+        }
+
+        function canonicalRole(roleValue) {
+            const raw = String(roleValue || '').trim().toLowerCase();
+            if (raw === 'accounts') return 'Accounts';
+            if (raw === 'manager') return 'Manager';
+            if (raw === 'cfo') return 'CFO';
+            if (raw === 'md') return 'MD';
+            if (raw === 'admin') return 'Admin';
+            return 'Employee';
+        }
+
+        function normalizeRequest(request) {
+            const workflow = Array.isArray(request.workflow) ? request.workflow : [];
+            const createdAt = Number(request.createdAt || Date.now());
+            return {
+                ...request,
+                amount: Number(request.amount || 0),
+                workflow,
+                currentLevel: Number(request.currentLevel || 0),
+                status: normalizeStatus(request.status || 'pending'),
+                createdAt,
+                updatedAt: Number(request.updatedAt || createdAt),
+                history: Array.isArray(request.history) ? request.history : [],
+                comments: Array.isArray(request.comments) ? request.comments : []
+            };
+        }
+
+        // Check if user is logged in and is an approver
+        function checkAuthentication() {
+            const userRole = localStorage.getItem('role') || localStorage.getItem('userRole');
+            currentRole = canonicalRole(userRole);
+            const approverRoles = ['Accounts', 'Manager', 'CFO', 'MD'];
+
+            if (!approverRoles.includes(currentRole)) {
+                window.location.href = 'login.html';
+            }
+
+            localStorage.setItem('role', currentRole);
+            localStorage.setItem('userRole', String(currentRole).toLowerCase());
+        }
+
+        // Display user role
+        function displayUserRole() {
+            const titleElement = document.getElementById('approver-title');
+            const welcomeText = document.getElementById('welcomeText');
+            if (titleElement) {
+                titleElement.textContent = `${currentRole} Dashboard`;
+            }
+            if (welcomeText) {
+                welcomeText.textContent = `Welcome ${currentRole}`;
+            }
+        }
+
+        // Load pending requests
+        function loadPendingRequests() {
+            const requests = JSON.parse(localStorage.getItem('requests') || '[]').map(normalizeRequest);
+            const pendingRequests = requests.filter((r) => {
+                if (normalizeStatus(r.status) !== 'pending') return false;
+                const currentStepRole = canonicalRole((r.workflow || [])[r.currentLevel]);
+                return currentStepRole === currentRole;
+            });
+
+            // Update summary
+            updateSummary(requests, pendingRequests);
+
+            const requestsList = document.getElementById('requests-list');
+
+            if (pendingRequests.length === 0) {
+                requestsList.innerHTML = '<div class="empty-state">No pending requests. All requests have been reviewed.</div>';
+                return;
+            }
+
+            requestsList.innerHTML = pendingRequests.map((request) => {
+                const previous = request.history.length ? request.history[request.history.length - 1] : null;
+                const currentLevel = (request.workflow || [])[request.currentLevel] || 'N/A';
+                return `
+                <div class="request-item">
+                    <div class="request-header">
+                        <div>
+                            <div class="request-title">${escapeHtml(request.title)}</div>
+                            <div class="request-email">From: ${escapeHtml(request.email)}</div>
+                        </div>
+                    </div>
+                    <div class="request-description">${escapeHtml(request.description)}</div>
+                    <div class="request-meta">
+                        <span>Amount: ${formatCurrency(request.amount)}</span>
+                        <span>Current: ${escapeHtml(currentLevel)}</span>
+                    </div>
+                    <div class="workflow-chain">
+                        ${renderChain(request.workflow, request.currentLevel)}
+                    </div>
+                    <div class="history-preview">
+                        ${previous ? `Previous: ${escapeHtml(previous.role)} ${escapeHtml(previous.status)} ${timeAgo(previous.time)}` : 'Previous: No prior approvals'}
+                    </div>
+                    <textarea id="comment-${request.id}" class="request-comment" placeholder="Add comment before action (optional)"></textarea>
+                    <div class="request-actions">
+                        <button class="action-button approve-button" onclick="approveRequest(${request.id})">
+                            ✓ Approve
+                        </button>
+                        <button class="action-button reject-button" onclick="rejectRequest(${request.id})">
+                            ✕ Reject
+                        </button>
+                    </div>
+                </div>
+            `;
+            }).join('');
+        }
+
+        // Approve request
+        function approveRequest(requestId) {
+            updateRequestStatus(requestId, 'approved');
+        }
+
+        // Reject request
+        function rejectRequest(requestId) {
+            updateRequestStatus(requestId, 'rejected');
+        }
+
+        // Update request status
+        function updateRequestStatus(requestId, status) {
+            const requests = JSON.parse(localStorage.getItem('requests') || '[]').map(normalizeRequest);
+            const requestIndex = requests.findIndex(r => Number(r.id) === Number(requestId));
+            if (requestIndex === -1) return;
+
+            const request = requests[requestIndex];
+            const assignedRole = canonicalRole((request.workflow || [])[request.currentLevel]);
+
+            if (assignedRole !== currentRole || normalizeStatus(request.status) !== 'pending') {
+                showMessage('This request is no longer assigned to your role.', 'success');
+                loadPendingRequests();
+                return;
+            }
+
+            const commentEl = document.getElementById(`comment-${request.id}`);
+            const comment = commentEl ? commentEl.value.trim() : '';
+            const now = Date.now();
+            const actionStatus = normalizeStatus(status) === 'approved' ? 'Approved' : 'Rejected';
+
+            request.history.push({
+                role: currentRole,
+                status: actionStatus,
+                time: now,
+                comment: comment || actionStatus
+            });
+            request.comments.push({ role: currentRole, comment: comment || actionStatus, time: now });
+            request.updatedAt = now;
+
+            if (normalizeStatus(status) === 'approved') {
+                request.currentLevel += 1;
+                if (request.currentLevel >= request.workflow.length) {
+                    request.status = 'approved';
+                    request.currentLevel = Math.max(0, request.workflow.length - 1);
+                } else {
+                    request.status = 'pending';
+                }
+            } else {
+                request.status = 'rejected';
+            }
+
+            requests[requestIndex] = request;
+            localStorage.setItem('requests', JSON.stringify(requests));
+
+            showMessage(`Request ${normalizeStatus(status)} successfully!`, 'success');
+            loadPendingRequests();
+
+            setTimeout(() => {
+                document.getElementById('message').classList.remove('show');
+            }, 3000);
+        }
+
+        // Update summary counts
+        function updateSummary(requests, assignedPending) {
+            const pending = assignedPending.length;
+            const approved = requests.filter(r => normalizeStatus(r.status) === 'approved').length;
+            const rejected = requests.filter(r => normalizeStatus(r.status) === 'rejected').length;
+
+            document.getElementById('pending-count').textContent = pending;
+            document.getElementById('approved-count').textContent = approved;
+            document.getElementById('rejected-count').textContent = rejected;
+        }
+
+        function renderChain(levels, currentLevel) {
+            return (levels || []).map((level, idx) => {
+                const marker = idx < currentLevel ? '✔' : (idx === currentLevel ? '⏳' : '⭕');
+                return `${marker} ${escapeHtml(level)}`;
+            }).join(' -> ');
+        }
+
+        function timeAgo(timestamp) {
+            const diffSeconds = Math.max(0, Math.floor((Date.now() - Number(timestamp || Date.now())) / 1000));
+            if (diffSeconds < 60) return `${diffSeconds}s ago`;
+            const mins = Math.floor(diffSeconds / 60);
+            if (mins < 60) return `${mins} min${mins === 1 ? '' : 's'} ago`;
+            const hours = Math.floor(mins / 60);
+            if (hours < 24) return `${hours} hour${hours === 1 ? '' : 's'} ago`;
+            const days = Math.floor(hours / 24);
+            return `${days} day${days === 1 ? '' : 's'} ago`;
+        }
+
+        function formatCurrency(amount) {
+            return `$${Number(amount || 0).toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
+        }
+
+        // Show message
+        function showMessage(text, type) {
+            const messageEl = document.getElementById('message');
+            messageEl.textContent = text;
+            messageEl.className = `message show ${type}`;
+        }
+
+        // Escape HTML to prevent XSS
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Logout
+        function logout() {
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('role');
+            localStorage.removeItem('userRole');
+            localStorage.removeItem('userEmail');
+            window.location.href = 'login.html';
+        }
+    </script>
+</body>
+</html>
