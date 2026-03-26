@@ -194,6 +194,25 @@
             transform: scale(1.05);
         }
 
+        .undo-button {
+            background: rgba(255, 152, 0, 0.9);
+            color: #fff;
+            padding: 8px 12px;
+            font-size: 12px;
+        }
+
+        .undo-button:hover {
+            background: rgba(255, 152, 0, 1);
+            transform: scale(1.04);
+        }
+
+        .undo-info {
+            margin-top: 8px;
+            color: #ffd180;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
         .empty-state {
             text-align: center;
             color: rgba(255, 255, 255, 0.6);
@@ -216,6 +235,12 @@
             background: rgba(76, 175, 80, 0.2);
             color: #4caf50;
             border: 1px solid rgba(76, 175, 80, 0.4);
+        }
+
+        .warning {
+            background: rgba(255, 152, 0, 0.2);
+            color: #ffd180;
+            border: 1px solid rgba(255, 152, 0, 0.4);
         }
 
         /* Summary Cards */
@@ -354,11 +379,14 @@
 
     <script>
         let currentRole = 'Manager';
+        const UNDO_WINDOW_MS = 25000;
+        const undoTimers = new Map();
 
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
             checkAuthentication();
             displayUserRole();
+            scheduleUndoExpiryForAll();
             loadPendingRequests();
         });
 
@@ -388,7 +416,14 @@
                 createdAt,
                 updatedAt: Number(request.updatedAt || createdAt),
                 history: Array.isArray(request.history) ? request.history : [],
-                comments: Array.isArray(request.comments) ? request.comments : []
+                comments: Array.isArray(request.comments) ? request.comments : [],
+                lastActionTime: Number(request.lastActionTime || 0),
+                undoAvailable: Boolean(request.undoAvailable),
+                undoUsed: Boolean(request.undoUsed),
+                lastAction: request.lastAction || null,
+                lastActionType: String(request.lastActionType || ''),
+                lastActionBy: String(request.lastActionBy || ''),
+                lastActionSnapshot: request.lastActionSnapshot || null
             };
         }
 
@@ -427,19 +462,29 @@
                 return currentStepRole === currentRole;
             });
 
+            const undoRequests = requests.filter((r) => isUndoWindowOpen(r));
+            const combinedRequests = [...pendingRequests];
+            undoRequests.forEach((r) => {
+                if (!combinedRequests.some((x) => Number(x.id) === Number(r.id))) {
+                    combinedRequests.push(r);
+                }
+            });
+
             // Update summary
             updateSummary(requests, pendingRequests);
 
             const requestsList = document.getElementById('requests-list');
 
-            if (pendingRequests.length === 0) {
+            if (combinedRequests.length === 0) {
                 requestsList.innerHTML = '<div class="empty-state">No pending requests. All requests have been reviewed.</div>';
                 return;
             }
 
-            requestsList.innerHTML = pendingRequests.map((request) => {
+            requestsList.innerHTML = combinedRequests.map((request) => {
                 const previous = request.history.length ? request.history[request.history.length - 1] : null;
                 const currentLevel = (request.workflow || [])[request.currentLevel] || 'N/A';
+                const undoOpen = isUndoWindowOpen(request);
+                const countdown = getUndoSecondsLeft(request);
                 return `
                 <div class="request-item">
                     <div class="request-header">
@@ -467,7 +512,9 @@
                         <button class="action-button reject-button" onclick="rejectRequest(${request.id})">
                             ✕ Reject
                         </button>
+                        ${undoOpen ? `<button class="action-button undo-button" onclick="undoAction(${request.id})">Undo (${countdown}s)</button>` : ''}
                     </div>
+                    ${undoOpen ? `<div class="undo-info">Action applied. Undo available for ${countdown} seconds</div>` : ''}
                 </div>
             `;
             }).join('');
@@ -475,11 +522,17 @@
 
         // Approve request
         function approveRequest(requestId) {
+            if (!confirm('Are you sure you want to approve?')) {
+                return;
+            }
             updateRequestStatus(requestId, 'approved');
         }
 
         // Reject request
         function rejectRequest(requestId) {
+            if (!confirm('Are you sure you want to reject?')) {
+                return;
+            }
             updateRequestStatus(requestId, 'rejected');
         }
 
@@ -502,6 +555,13 @@
             const comment = commentEl ? commentEl.value.trim() : '';
             const now = Date.now();
             const actionStatus = normalizeStatus(status) === 'approved' ? 'Approved' : 'Rejected';
+            const snapshot = {
+                status: request.status,
+                currentLevel: request.currentLevel,
+                updatedAt: request.updatedAt,
+                historyLength: request.history.length,
+                commentsLength: request.comments.length
+            };
 
             request.history.push({
                 role: currentRole,
@@ -524,15 +584,144 @@
                 request.status = 'rejected';
             }
 
+            request.lastActionTime = now;
+            request.lastAction = normalizeStatus(status);
+            request.undoAvailable = request.undoUsed === false;
+            request.lastActionType = normalizeStatus(status);
+            request.lastActionBy = currentRole;
+            request.lastActionSnapshot = snapshot;
+
             requests[requestIndex] = request;
             localStorage.setItem('requests', JSON.stringify(requests));
+            scheduleUndoExpiryForRequest(request.id, now);
 
-            showMessage(`Request ${normalizeStatus(status)} successfully!`, 'success');
+            showMessage(`Action applied. Undo available for 25 seconds.`, 'warning');
             loadPendingRequests();
 
             setTimeout(() => {
                 document.getElementById('message').classList.remove('show');
             }, 3000);
+        }
+
+        function isUndoWindowOpen(request) {
+            if (!request.undoAvailable || !request.lastActionTime) return false;
+            if (request.undoUsed) return false;
+            if (canonicalRole(request.lastActionBy) !== currentRole) return false;
+            if ((Date.now() - Number(request.lastActionTime)) > UNDO_WINDOW_MS) return false;
+            if (hasNextLevelStarted(request)) return false;
+            return true;
+        }
+
+        function hasNextLevelStarted(request) {
+            return (request.history || []).some((h) => Number(h.time || 0) > Number(request.lastActionTime || 0) && canonicalRole(h.role) !== currentRole);
+        }
+
+        function getUndoSecondsLeft(request) {
+            const elapsed = Date.now() - Number(request.lastActionTime || 0);
+            return Math.max(0, Math.ceil((UNDO_WINDOW_MS - elapsed) / 1000));
+        }
+
+        function undoAction(requestId) {
+            const requests = JSON.parse(localStorage.getItem('requests') || '[]').map(normalizeRequest);
+            const index = requests.findIndex((r) => Number(r.id) === Number(requestId));
+            if (index === -1) return;
+
+            const request = requests[index];
+            if (request.undoUsed) {
+                alert('Undo already used');
+                return;
+            }
+            if (!isUndoWindowOpen(request)) {
+                alert('Undo time expired');
+                request.undoAvailable = false;
+                requests[index] = request;
+                localStorage.setItem('requests', JSON.stringify(requests));
+                loadPendingRequests();
+                return;
+            }
+
+            const snapshot = request.lastActionSnapshot;
+            if (!snapshot) {
+                request.undoAvailable = false;
+                requests[index] = request;
+                localStorage.setItem('requests', JSON.stringify(requests));
+                loadPendingRequests();
+                return;
+            }
+
+            request.status = normalizeStatus(snapshot.status || 'pending');
+            request.currentLevel = Number(snapshot.currentLevel || 0);
+            request.updatedAt = Date.now();
+            request.history = request.history.slice(0, Number(snapshot.historyLength || 0));
+            request.comments = request.comments.slice(0, Number(snapshot.commentsLength || 0));
+            request.undoAvailable = false;
+            request.undoUsed = true;
+            request.lastActionTime = 0;
+            request.lastAction = null;
+            request.lastActionType = '';
+            request.lastActionBy = '';
+            request.lastActionSnapshot = null;
+
+            requests[index] = request;
+            localStorage.setItem('requests', JSON.stringify(requests));
+            clearUndoTimer(request.id);
+            showMessage('Action was undone successfully.', 'success');
+            loadPendingRequests();
+        }
+
+        function clearUndoTimer(requestId) {
+            if (undoTimers.has(requestId)) {
+                clearTimeout(undoTimers.get(requestId));
+                undoTimers.delete(requestId);
+            }
+        }
+
+        function scheduleUndoExpiryForRequest(requestId, actionTime) {
+            clearUndoTimer(requestId);
+            const remaining = UNDO_WINDOW_MS - (Date.now() - Number(actionTime || 0));
+            if (remaining <= 0) {
+                expireUndo(requestId, actionTime);
+                return;
+            }
+
+            const timer = setTimeout(() => {
+                expireUndo(requestId, actionTime);
+            }, remaining);
+            undoTimers.set(requestId, timer);
+        }
+
+        function expireUndo(requestId, actionTime) {
+            const requests = JSON.parse(localStorage.getItem('requests') || '[]').map(normalizeRequest);
+            const index = requests.findIndex((r) => Number(r.id) === Number(requestId));
+            if (index === -1) return;
+
+            const request = requests[index];
+            if (Number(request.lastActionTime || 0) !== Number(actionTime || 0)) return;
+            if (!request.undoAvailable) return;
+
+            request.undoAvailable = false;
+            requests[index] = request;
+            localStorage.setItem('requests', JSON.stringify(requests));
+            clearUndoTimer(requestId);
+            loadPendingRequests();
+        }
+
+        function scheduleUndoExpiryForAll() {
+            const requests = JSON.parse(localStorage.getItem('requests') || '[]').map(normalizeRequest);
+            requests.forEach((request) => {
+                if (request.undoUsed) {
+                    request.undoAvailable = false;
+                    return;
+                }
+                if (request.undoAvailable && request.lastActionTime) {
+                    if (hasNextLevelStarted(request)) {
+                        request.undoAvailable = false;
+                    } else {
+                        scheduleUndoExpiryForRequest(request.id, request.lastActionTime);
+                    }
+                }
+            });
+            localStorage.setItem('requests', JSON.stringify(requests));
         }
 
         // Update summary counts

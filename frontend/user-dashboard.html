@@ -126,6 +126,7 @@
         }
 
         .form-input,
+        .form-select,
         .form-textarea {
             width: 100%;
             padding: 12px 16px;
@@ -143,7 +144,12 @@
             color: rgba(255, 255, 255, 0.6);
         }
 
+        .form-select option {
+            color: #1a1a1a;
+        }
+
         .form-input:focus,
+        .form-select:focus,
         .form-textarea:focus {
             outline: none;
             border-color: rgba(255, 255, 255, 0.6);
@@ -228,6 +234,45 @@
         .status-rejected {
             background: rgba(244, 67, 54, 0.3);
             color: #f44336;
+        }
+
+        .status-cancelled {
+            background: rgba(148, 163, 184, 0.3);
+            color: #e2e8f0;
+        }
+
+        .request-actions {
+            margin-top: 10px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .cancel-btn {
+            border: 1px solid rgba(244, 67, 54, 0.4);
+            background: rgba(244, 67, 54, 0.2);
+            color: #fecaca;
+            border-radius: 8px;
+            padding: 6px 10px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .cancel-btn:hover {
+            background: rgba(244, 67, 54, 0.3);
+        }
+
+        .cancel-hint {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .smart-warning {
+            margin-top: 8px;
+            font-size: 12px;
+            color: #fde68a;
         }
 
         .request-meta-line {
@@ -333,19 +378,18 @@
 
             <form id="request-form">
                 <div class="form-group">
-                    <label class="form-label" for="title">Request Title</label>
-                    <input type="text" id="title" class="form-input" placeholder="e.g., Leave Request, Budget Approval" required>
+                    <label class="form-label" for="requestType">Request Type</label>
+                    <select id="requestType" class="form-select" required>
+                        <option value="">Select Request Type</option>
+                        <option value="leave">Leave Request</option>
+                        <option value="budget">Budget Approval</option>
+                        <option value="equipment">Equipment Request</option>
+                        <option value="travel">Travel Request</option>
+                        <option value="reimbursement">Reimbursement</option>
+                    </select>
                 </div>
 
-                <div class="form-group">
-                    <label class="form-label" for="description">Description</label>
-                    <textarea id="description" class="form-textarea" placeholder="Provide details about your request..." required></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label" for="amount">Amount</label>
-                    <input type="number" id="amount" min="0" step="0.01" class="form-input" placeholder="e.g., 15000" required>
-                </div>
+                <div id="dynamicFields"></div>
 
                 <button type="submit" class="submit-button">Submit Request</button>
             </form>
@@ -365,6 +409,8 @@
         document.addEventListener('DOMContentLoaded', () => {
             checkAuthentication();
             displayUserRole();
+            setupDynamicRequestFields();
+            scheduleCancelWindowExpiryForAll();
             loadRequests();
         });
 
@@ -406,72 +452,355 @@
             return JSON.parse(localStorage.getItem('workflows') || '[]');
         }
 
-        function findWorkflowByAmount(amount) {
-            const workflows = getWorkflows()
-                .filter(wf => Number(wf.minAmount) <= amount && amount <= Number(wf.maxAmount))
-                .sort((a, b) => (Number(a.maxAmount) - Number(a.minAmount)) - (Number(b.maxAmount) - Number(b.minAmount)));
-            return workflows[0] || null;
+        const defaultWorkflowMap = {
+            leave: ['Manager'],
+            budget: ['Accounts', 'Manager', 'CFO', 'MD'],
+            travel: ['Manager', 'Accounts'],
+            reimbursement: ['Accounts', 'CFO'],
+            equipment: ['Manager', 'Accounts']
+        };
+
+        function getRequestTypeLabel(type) {
+            const labels = {
+                leave: 'Leave Request',
+                budget: 'Budget Approval',
+                equipment: 'Equipment Request',
+                travel: 'Travel Request',
+                reimbursement: 'Reimbursement',
+                legacy: 'Legacy Request'
+            };
+            return labels[type] || 'General Request';
+        }
+
+        function setupDynamicRequestFields() {
+            const requestTypeEl = document.getElementById('requestType');
+            if (!requestTypeEl) return;
+
+            requestTypeEl.addEventListener('change', () => {
+                renderDynamicFields(requestTypeEl.value);
+            });
+        }
+
+        function renderDynamicFields(type) {
+            const dynamicFields = document.getElementById('dynamicFields');
+            if (!dynamicFields) return;
+
+            dynamicFields.innerHTML = '';
+
+            if (type === 'leave') {
+                dynamicFields.innerHTML = `
+                    <div class="form-group">
+                        <label class="form-label" for="desc">Description</label>
+                        <textarea id="desc" class="form-textarea" placeholder="Describe your leave request" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="startDate">Start Date</label>
+                        <input type="date" id="startDate" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="endDate">End Date</label>
+                        <input type="date" id="endDate" class="form-input" required>
+                    </div>
+                `;
+            }
+
+            if (type === 'budget') {
+                dynamicFields.innerHTML = `
+                    <div class="form-group">
+                        <label class="form-label" for="amount">Amount</label>
+                        <input type="number" id="amount" min="0" step="0.01" class="form-input" placeholder="Enter amount" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="desc">Description</label>
+                        <textarea id="desc" class="form-textarea" placeholder="Budget purpose" required></textarea>
+                    </div>
+                `;
+            }
+
+            if (type === 'equipment') {
+                dynamicFields.innerHTML = `
+                    <div class="form-group">
+                        <label class="form-label" for="item">Item Name</label>
+                        <input id="item" class="form-input" placeholder="Laptop, Monitor, etc." required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="qty">Quantity</label>
+                        <input id="qty" type="number" min="1" class="form-input" placeholder="Quantity" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="desc">Reason</label>
+                        <textarea id="desc" class="form-textarea" placeholder="Why this is needed" required></textarea>
+                    </div>
+                `;
+            }
+
+            if (type === 'travel') {
+                dynamicFields.innerHTML = `
+                    <div class="form-group">
+                        <label class="form-label" for="destination">Destination</label>
+                        <input id="destination" class="form-input" placeholder="City / Country" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="travelDate">Travel Date</label>
+                        <input type="date" id="travelDate" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="amount">Estimated Cost</label>
+                        <input id="amount" type="number" min="0" step="0.01" class="form-input" placeholder="Estimated cost" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="desc">Description</label>
+                        <textarea id="desc" class="form-textarea" placeholder="Travel details" required></textarea>
+                    </div>
+                `;
+            }
+
+            if (type === 'reimbursement') {
+                dynamicFields.innerHTML = `
+                    <div class="form-group">
+                        <label class="form-label" for="amount">Amount</label>
+                        <input id="amount" type="number" min="0" step="0.01" class="form-input" placeholder="Claim amount" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="bill">Bill Details</label>
+                        <textarea id="bill" class="form-textarea" placeholder="Bill / invoice details" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="desc">Description</label>
+                        <textarea id="desc" class="form-textarea" placeholder="Additional details" required></textarea>
+                    </div>
+                `;
+            }
+        }
+
+        function getDefaultWorkflow(type) {
+            const base = defaultWorkflowMap[type] || [];
+            return [...base];
+        }
+
+        function collectDynamicData(type) {
+            const data = {};
+            const addIfPresent = (id) => {
+                const el = document.getElementById(id);
+                if (el) data[id] = String(el.value || '').trim();
+            };
+
+            addIfPresent('desc');
+            addIfPresent('startDate');
+            addIfPresent('endDate');
+            addIfPresent('item');
+            addIfPresent('qty');
+            addIfPresent('destination');
+            addIfPresent('travelDate');
+            addIfPresent('bill');
+
+            const amountEl = document.getElementById('amount');
+            if (amountEl) {
+                data.amount = Number(amountEl.value || 0);
+            }
+
+            return data;
         }
 
         function normalizeRequest(request) {
             const workflow = Array.isArray(request.workflow) ? request.workflow : [];
             const createdAt = request.createdAt || Date.now();
+            const normalizedType = request.type || 'legacy';
+            const fallbackWorkflow = workflow.length ? workflow : getDefaultWorkflow(normalizedType);
+            const cancelWindowActive = request.cancelWindowActive === true && (Date.now() - Number(createdAt) < 25000);
             return {
                 ...request,
+                type: normalizedType,
+                dynamicData: request.dynamicData || null,
                 amount: Number(request.amount || 0),
                 status: normalizeStatus(request.status || 'pending'),
                 currentLevel: Number(request.currentLevel || 0),
-                workflow,
+                workflow: fallbackWorkflow,
                 createdAt,
                 updatedAt: request.updatedAt || createdAt,
                 history: Array.isArray(request.history) ? request.history : [],
-                comments: Array.isArray(request.comments) ? request.comments : []
+                comments: Array.isArray(request.comments) ? request.comments : [],
+                cancelWindowActive
             };
+        }
+
+        function persistRequestWindowFlag(requestId, isActive) {
+            const requests = JSON.parse(localStorage.getItem('requests') || '[]');
+            const nextRequests = requests.map((r) => {
+                if (Number(r.id) !== Number(requestId)) return r;
+                return { ...r, cancelWindowActive: Boolean(isActive) };
+            });
+            localStorage.setItem('requests', JSON.stringify(nextRequests));
+        }
+
+        function startCancelWindowTimer(requestId) {
+            setTimeout(() => {
+                persistRequestWindowFlag(requestId, false);
+                loadRequests();
+            }, 25000);
+        }
+
+        function scheduleCancelWindowExpiryForAll() {
+            const requests = JSON.parse(localStorage.getItem('requests') || '[]');
+            requests.forEach((r) => {
+                if (normalizeStatus(r.status) !== 'pending' || r.cancelWindowActive !== true) {
+                    return;
+                }
+
+                const createdAt = Number(r.createdAt || 0);
+                const ageMs = Date.now() - createdAt;
+                const remainingMs = 25000 - ageMs;
+
+                if (remainingMs <= 0) {
+                    persistRequestWindowFlag(r.id, false);
+                    return;
+                }
+
+                setTimeout(() => {
+                    persistRequestWindowFlag(r.id, false);
+                    loadRequests();
+                }, remainingMs);
+            });
+        }
+
+        function getTimeAgo(timestamp) {
+            const now = Date.now();
+            const diff = Math.floor((now - Number(timestamp || now)) / 1000);
+
+            if (diff < 60) return 'Just now';
+
+            const minutes = Math.floor(diff / 60);
+            if (minutes < 60) return `${minutes} minutes`;
+
+            const hours = Math.floor(minutes / 60);
+            if (hours < 24) return `${hours} hours`;
+
+            const days = Math.floor(hours / 24);
+            return `${days} days`;
+        }
+
+        function shouldShowLongPendingSuggestion(request) {
+            const status = normalizeStatus(request.status);
+            if (status !== 'pending') return false;
+            const createdAt = Number(request.createdAt || Date.now());
+            const timePassed = (Date.now() - createdAt) / (1000 * 60 * 60 * 24);
+            return timePassed >= 1;
+        }
+
+        function cancelRequest(requestId) {
+            const requests = JSON.parse(localStorage.getItem('requests') || '[]');
+            const requestIndex = requests.findIndex((r) => Number(r.id) === Number(requestId));
+
+            if (requestIndex === -1) {
+                showMessage('Request not found', 'error');
+                return;
+            }
+
+            const request = normalizeRequest(requests[requestIndex]);
+            if (normalizeStatus(request.status) !== 'pending') {
+                alert('Cannot cancel this request');
+                return;
+            }
+
+            requests[requestIndex] = {
+                ...requests[requestIndex],
+                status: 'Cancelled',
+                cancelledAt: Date.now(),
+                updatedAt: Date.now(),
+                cancelWindowActive: false
+            };
+
+            localStorage.setItem('requests', JSON.stringify(requests));
+            showMessage('Request cancelled successfully', 'success');
+            loadRequests();
         }
 
         // Handle form submission
         document.getElementById('request-form').addEventListener('submit', (e) => {
             e.preventDefault();
 
-            const title = document.getElementById('title').value.trim();
-            const description = document.getElementById('description').value.trim();
-            const amount = Number(document.getElementById('amount').value);
-
-            if (!title || !description || Number.isNaN(amount) || amount < 0) {
-                showMessage('Please fill all fields', 'error');
+            const typeEl = document.getElementById('requestType');
+            const type = typeEl ? typeEl.value : '';
+            if (!type) {
+                showMessage('Please select request type', 'error');
                 return;
             }
 
-            const matchedWorkflow = findWorkflowByAmount(amount);
-            if (!matchedWorkflow || !Array.isArray(matchedWorkflow.levels) || !matchedWorkflow.levels.length) {
-                showMessage('No workflow found for this amount. Ask admin to configure one.', 'error');
+            const details = collectDynamicData(type);
+            const amount = Number(details.amount || 0);
+            const description = String(details.desc || '').trim();
+            const title = getRequestTypeLabel(type);
+
+            if (!description) {
+                showMessage('Please fill required details for selected type', 'error');
                 return;
             }
+
+            if (amount < 0) {
+                showMessage('Amount cannot be negative', 'error');
+                return;
+            }
+
+            const adminWorkflows = getWorkflows();
+            const matchedWorkflow = adminWorkflows.find((w) => w && w.type === type);
+
+            let chosenWorkflow;
+
+            if (matchedWorkflow && Array.isArray(matchedWorkflow.levels) && matchedWorkflow.levels.length) {
+                chosenWorkflow = [...matchedWorkflow.levels];
+            } else {
+                chosenWorkflow = getDefaultWorkflow(type);
+            }
+
+            if (type === 'budget') {
+                if (amount < 50000) {
+                    chosenWorkflow = ['Accounts'];
+                } else if (amount <= 100000) {
+                    chosenWorkflow = ['Accounts', 'Manager'];
+                } else {
+                    chosenWorkflow = ['Accounts', 'Manager', 'CFO', 'MD'];
+                }
+            }
+
+            if (!chosenWorkflow.length) {
+                showMessage('No workflow available for this request. Ask admin to configure one.', 'error');
+                return;
+            }
+
+            console.log('Request Type:', type);
+            console.log('Workflow Applied:', chosenWorkflow);
 
             // Create request object
             const request = {
                 id: Date.now(),
+                type,
                 title,
                 description,
                 amount,
+                dynamicData: details,
                 status: 'pending',
                 currentLevel: 0,
-                workflow: [...matchedWorkflow.levels],
+                workflow: chosenWorkflow,
                 createdAt: Date.now(),
                 updatedAt: Date.now(),
                 history: [],
                 comments: [],
+                undoUsed: false,
+                undoAvailable: false,
+                cancelWindowActive: true,
                 email: localStorage.getItem('userEmail'),
-                workflowName: matchedWorkflow.name
+                workflowName: matchedWorkflow ? matchedWorkflow.name : 'Default Workflow'
             };
 
             // Save to localStorage
             let requests = JSON.parse(localStorage.getItem('requests') || '[]');
             requests.push(request);
             localStorage.setItem('requests', JSON.stringify(requests));
+            startCancelWindowTimer(request.id);
 
             showMessage('Request submitted successfully!', 'success');
             document.getElementById('request-form').reset();
+            renderDynamicFields('');
             loadRequests();
 
             // Clear message after 3 seconds
@@ -502,9 +831,13 @@
                     <div style="font-size: 13px; color: rgba(255,255,255,0.78); margin-bottom: 8px;">
                         ${escapeHtml(request.description)}
                     </div>
+                    <div class="request-meta-line">Type: ${escapeHtml(getRequestTypeLabel(request.type))}</div>
                     <div class="request-meta-line">Amount: ${formatCurrency(request.amount)} | Template: ${escapeHtml(request.workflowName || 'N/A')}</div>
+                    ${renderDynamicData(request)}
                     <div class="request-meta-line">Created ${timeAgo(request.createdAt)} | Updated ${timeAgo(request.updatedAt)}</div>
                     <div class="request-meta-line">${statusText(request)}</div>
+                    ${shouldShowLongPendingSuggestion(request) ? '<div class="smart-warning">⚠️ This request is pending for long time. You may cancel if not needed.</div>' : ''}
+                    ${normalizeStatus(request.status) === 'pending' ? `<div class="request-actions"><button class="cancel-btn" onclick="cancelRequest(${Number(request.id)})">Cancel</button>${request.cancelWindowActive ? '<span class="cancel-hint">Quick cancel available (25s)</span>' : ''}</div>` : ''}
                     <div class="workflow-tracker">
                         <strong>Workflow:</strong> ${renderWorkflowTracker(request)}
                     </div>
@@ -516,6 +849,29 @@
             `).join('');
         }
 
+        function renderDynamicData(request) {
+            const data = request.dynamicData;
+            if (!data || typeof data !== 'object') {
+                return '';
+            }
+
+            const map = [
+                ['startDate', 'Start Date'],
+                ['endDate', 'End Date'],
+                ['item', 'Item'],
+                ['qty', 'Quantity'],
+                ['destination', 'Destination'],
+                ['travelDate', 'Travel Date'],
+                ['bill', 'Bill']
+            ];
+
+            const lines = map
+                .filter(([key]) => data[key])
+                .map(([key, label]) => `<div class="request-meta-line">${label}: ${escapeHtml(String(data[key]))}</div>`);
+
+            return lines.join('');
+        }
+
         function statusText(request) {
             const status = normalizeStatus(request.status);
             if (status === 'approved') {
@@ -524,7 +880,10 @@
             if (status === 'rejected') {
                 return `Rejected ${timeAgo(request.updatedAt)}`;
             }
-            return `Pending for ${timeAgo(request.createdAt)}`;
+            if (status === 'cancelled') {
+                return `Cancelled ${timeAgo(request.cancelledAt || request.updatedAt)}`;
+            }
+            return `Pending for ${getTimeAgo(request.createdAt)}`;
         }
 
         function renderWorkflowTracker(request) {
@@ -533,6 +892,8 @@
                 let mark = '⭕';
                 if (status === 'approved') {
                     mark = '✔';
+                } else if (status === 'cancelled') {
+                    mark = index < request.currentLevel ? '✔' : '⏹';
                 } else if (status === 'rejected') {
                     mark = index < request.currentLevel ? '✔' : (index === request.currentLevel ? '⏳' : '⭕');
                 } else if (index < request.currentLevel) {
@@ -557,6 +918,7 @@
             request.workflow.forEach((level, index) => {
                 if (index < request.currentLevel) return;
                 if (status === 'approved') return;
+                if (status === 'cancelled') return;
                 if (status === 'rejected' && index > request.currentLevel) {
                     lines.push(`<div class="timeline-item">${escapeHtml(level)} waiting</div>`);
                     return;
@@ -570,6 +932,9 @@
             });
 
             if (!lines.length) {
+                if (status === 'cancelled') {
+                    return '<div class="timeline-item">Request cancelled by requester.</div>';
+                }
                 return '<div class="timeline-item">No actions yet. Waiting for first approver.</div>';
             }
 

@@ -370,6 +370,16 @@
                         <input id="workflow-name" class="form-input" type="text" placeholder="Expense Approval">
                     </div>
                     <div class="form-group">
+                        <label class="form-label" for="workflow-type">Request Type</label>
+                        <select id="workflow-type" class="form-select">
+                            <option value="leave">Leave Request</option>
+                            <option value="budget">Budget Approval</option>
+                            <option value="travel">Travel Request</option>
+                            <option value="reimbursement">Reimbursement</option>
+                            <option value="equipment">Equipment Request</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
                         <label class="form-label" for="min-amount">Min Amount</label>
                         <input id="min-amount" class="form-input" type="number" min="0" step="0.01" placeholder="0">
                     </div>
@@ -509,10 +519,11 @@
 
         function saveWorkflow() {
             const name = document.getElementById('workflow-name').value.trim();
+            const type = document.getElementById('workflow-type').value;
             const minAmount = Number(document.getElementById('min-amount').value);
             const maxAmount = Number(document.getElementById('max-amount').value);
 
-            if (!name || Number.isNaN(minAmount) || Number.isNaN(maxAmount)) {
+            if (!name || !type || Number.isNaN(minAmount) || Number.isNaN(maxAmount)) {
                 showWorkflowMessage('Please fill all workflow fields.', 'err');
                 return;
             }
@@ -531,6 +542,7 @@
             workflows.push({
                 id: Date.now(),
                 name,
+                type,
                 minAmount,
                 maxAmount,
                 levels: [...workflowLevels]
@@ -540,10 +552,22 @@
             showWorkflowMessage('Workflow saved successfully.', 'ok');
 
             document.getElementById('workflow-name').value = '';
+            document.getElementById('workflow-type').value = 'leave';
             document.getElementById('min-amount').value = '';
             document.getElementById('max-amount').value = '';
             clearLevels();
             renderWorkflowTemplates();
+        }
+
+        function getRequestTypeLabel(type) {
+            const labels = {
+                leave: 'Leave Request',
+                budget: 'Budget Approval',
+                travel: 'Travel Request',
+                reimbursement: 'Reimbursement',
+                equipment: 'Equipment Request'
+            };
+            return labels[type] || 'General';
         }
 
         function showWorkflowMessage(text, type) {
@@ -565,6 +589,7 @@
             container.innerHTML = workflows.map((wf) => `
                 <div class="template-card">
                     <div class="template-name">${escapeHtml(wf.name)}</div>
+                    <div class="template-range">Type: ${escapeHtml(getRequestTypeLabel(wf.type))}</div>
                     <div class="template-range">${formatCurrency(wf.minAmount)} - ${formatCurrency(wf.maxAmount)}</div>
                     <div class="flow-chain">${wf.levels.map(escapeHtml).join(' -> ')}</div>
                 </div>
