@@ -51,6 +51,32 @@
             gap: 16px;
         }
 
+        .notification {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: rgba(255, 255, 255, 0.95);
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: 999px;
+            padding: 8px 12px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .notif-count {
+            min-width: 22px;
+            height: 22px;
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 193, 7, 0.9);
+            color: #1f2937;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
         .user-info {
             color: rgba(255, 255, 255, 0.92);
             font-size: 14px;
@@ -265,14 +291,37 @@
         .summary-card.rejected { border-left-color: #f44336; }
         .summary-card.cancelled { border-left-color: #9e9e9e; }
 
-        .notification {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            padding: 10px 20px;
+        .overdue {
+            color: #ff6b6b;
+            font-weight: 700;
+        }
+
+        .escalated {
+            color: #ffd166;
+            font-weight: 700;
+        }
+
+        .toolbar-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .export-button {
+            background: rgba(255, 255, 255, 0.14);
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            color: white;
             border-radius: 10px;
-            margin-bottom: 15px;
-            font-weight: 500;
-            color: rgba(255, 255, 255, 0.95);
+            padding: 8px 12px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .export-button:hover {
+            background: rgba(255, 255, 255, 0.2);
         }
 
         .avg-time-card {
@@ -349,7 +398,71 @@
             .form-grid { grid-template-columns: 1fr; }
         }
 
-        @media (max-width: 760px) {
+        .charts-row {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .chart-box {
+            flex: 1;
+            min-width: 300px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 15px;
+        }
+
+        .insights-panel {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 15px;
+            min-width: 250px;
+        }
+
+        .insights-panel h3 {
+            color: white;
+            margin-top: 0;
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        .insight-item {
+            margin: 10px 0;
+            font-size: 14px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.08);
+            color: rgba(255, 255, 255, 0.92);
+            border-left: 3px solid rgba(255, 255, 255, 0.2);
+            line-height: 1.5;
+        }
+
+        .activity-panel,
+        .health-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 12px;
+            margin-top: 20px;
+            color: rgba(255, 255, 255, 0.92);
+        }
+
+        .activity-panel h3 {
+            margin: 0 0 10px;
+            font-size: 15px;
+            color: white;
+        }
+
+        .activity-item {
+            font-size: 13px;
+            margin: 5px 0;
+            opacity: 0.8;
+        }
+
+        @media (max-width: 1040px) {
+            .charts-row { flex-direction: column; }
             .navbar {
                 flex-direction: column;
                 gap: 12px;
@@ -363,24 +476,23 @@
             .summary { grid-template-columns: repeat(2, 1fr); }
         }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <div class="navbar">
         <div class="navbar-title">Admin Dashboard</div>
         <div class="navbar-user">
+            <div class="notification">🔔 <span id="notifCount" class="notif-count">0</span></div>
             <div class="user-info">
                 <div>Workflow Builder</div>
                 <div id="welcomeText" class="welcome-text"></div>
+                <div id="roleSummary" class="welcome-text"></div>
             </div>
             <button class="logout-button" onclick="logout()">Logout</button>
         </div>
     </div>
 
     <div class="container">
-        <div class="notification">
-            You have <span id="pendingNotify">0</span> pending approvals
-        </div>
-
         <div class="layout">
             <div class="card">
                 <h2 class="card-title">Create Workflow Template</h2>
@@ -464,10 +576,32 @@
                 <div class="summary-number" id="avgTime">0 mins</div>
                 <div class="summary-label">Avg Approval Time</div>
             </div>
+            <div class="charts-row">
+                <div class="chart-box">
+                    <h3 class="chart-title">Request Status Overview</h3>
+                    <canvas id="statusChart"></canvas>
+                </div>
+                <div class="chart-box">
+                    <h3 class="chart-title">Request Trends</h3>
+                    <canvas id="trendChart"></canvas>
+                </div>
+                <div class="insights-panel">
+                    <h3>Top Insights</h3>
+                    <div id="insightsContent"></div>
+                </div>
+            </div>
+            <div class="health-card" id="systemHealth"></div>
+            <div class="activity-panel">
+                <h3>Recent Activity</h3>
+                <div id="activityList"></div>
+            </div>
         </div>
 
         <div class="card">
-            <h2 class="card-title">All Requests</h2>
+            <div class="toolbar-row">
+                <h2 class="card-title" style="margin-bottom: 0;">All Requests</h2>
+                <button class="export-button" onclick="exportCSV()">Export</button>
+            </div>
             <div id="requests-container">
                 <div class="empty">No requests yet</div>
             </div>
@@ -476,14 +610,59 @@
 
     <script>
         const workflowLevels = [];
+        const REQUESTS_API_URL = 'http://localhost:5000/requests';
 
         document.addEventListener('DOMContentLoaded', () => {
             checkAuthentication();
             displayUserRole();
             wireWorkflowActions();
             renderWorkflowTemplates();
-            updateDashboard();
+            initializeStatusChart();
+            initializeTrendChart();
+            loadRequests();
         });
+
+        function readRequestsFromLocalStorage() {
+            return JSON.parse(localStorage.getItem('requests') || '[]');
+        }
+
+        function writeRequestsToLocalStorage(requests, skipApiSync) {
+            localStorage.setItem('requests', JSON.stringify(requests));
+            if (!skipApiSync) {
+                syncRequestsToApi(requests);
+            }
+        }
+
+        function syncRequestsToApi(requests) {
+            if (!Array.isArray(requests) || !requests.length) return;
+            requests.forEach((req) => {
+                fetch(REQUESTS_API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(req),
+                }).catch(() => {
+                    // Local fallback remains primary when backend is unavailable.
+                });
+            });
+        }
+
+        function loadRequests() {
+            fetch(REQUESTS_API_URL)
+                .then((res) => {
+                    if (!res.ok) {
+                        throw new Error('API request failed');
+                    }
+                    return res.json();
+                })
+                .then((data) => {
+                    const requests = Array.isArray(data) ? data : [];
+                    writeRequestsToLocalStorage(requests, true);
+                    updateDashboard();
+                })
+                .catch(() => {
+                    updateDashboard();
+                });
+        }
 
         function normalizeRole(role) {
             return String(role || '').trim().toLowerCase();
@@ -629,7 +808,20 @@
         }
 
         function updateDashboard() {
-            const requests = JSON.parse(localStorage.getItem('requests') || '[]');
+            const requests = readRequestsFromLocalStorage();
+            let hasEscalationChanges = false;
+            requests.forEach((r) => {
+                addSLA(r);
+                if (checkEscalation(r)) {
+                    hasEscalationChanges = true;
+                    addHistory(r, 'Escalated to CFO', 'System');
+                    simulateEmail('escalation', 'CFO');
+                }
+            });
+            if (hasEscalationChanges) {
+                writeRequestsToLocalStorage(requests);
+            }
+
             const total = requests.length;
             const pending = requests.filter((r) => normalizeStatus(r.status) === 'pending').length;
             const approved = requests.filter((r) => normalizeStatus(r.status) === 'approved').length;
@@ -658,13 +850,335 @@
             document.getElementById('rejected-count').textContent = rejected;
             document.getElementById('cancelledCount').textContent = cancelled;
             document.getElementById('avgTime').textContent = `${avgMinutes} mins`;
-            document.getElementById('pendingNotify').textContent = pending;
+            updateNotifications(requests, 'admin');
 
             renderRequestsTable(requests);
+            updateStatusChart(pending, approved, rejected, cancelled);
+            updateTrendChart(requests);
+            renderInsights();
+            renderActivity(requests);
+            updateSystemHealth(requests);
+
+            const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+            renderSummary(requests, (currentUser && currentUser.role) || 'Admin');
         }
 
         function normalizeStatus(status) {
             return String(status || '').trim().toLowerCase();
+        }
+
+        function canonicalApproverRole(roleValue) {
+            const raw = String(roleValue || '').trim().toLowerCase();
+            if (raw === 'accounts') return 'Accounts';
+            if (raw === 'manager') return 'Manager';
+            if (raw === 'cfo') return 'CFO';
+            if (raw === 'md') return 'MD';
+            if (raw === 'admin') return 'Admin';
+            return roleValue || '';
+        }
+
+        function getRequestCurrentRole(request) {
+            const workflow = Array.isArray(request.workflow) ? request.workflow : [];
+            const idx = Number(request.currentLevel || 0);
+            return canonicalApproverRole(request.currentRole || workflow[idx] || '');
+        }
+
+        function updateNotifications(requests, userRole) {
+            const role = canonicalApproverRole(userRole);
+            const pending = role === 'Admin'
+                ? requests.filter((r) => normalizeStatus(r.status) === 'pending').length
+                : requests.filter((r) => normalizeStatus(r.status) === 'pending' && getRequestCurrentRole(r) === role).length;
+            const counter = document.getElementById('notifCount');
+            if (counter) counter.innerText = String(pending);
+        }
+
+        function simulateEmail(action, role) {
+            console.log(`Email sent to ${role || 'next approver'} for ${action}`);
+        }
+
+        function addHistory(request, action, user) {
+            if (!Array.isArray(request.history)) request.history = [];
+            request.history.push({ action, user, role: user, status: action, time: Date.now() });
+        }
+
+        function addSLA(request) {
+            if (!request.deadline && request.createdAt) {
+                request.deadline = Number(request.createdAt) + (24 * 60 * 60 * 1000);
+            }
+        }
+
+        function checkSLA(request) {
+            return Number(request.deadline || 0) > 0 && Date.now() > Number(request.deadline);
+        }
+
+        function checkEscalation(request) {
+            if (normalizeStatus(request.status) !== 'pending') return false;
+            if (!checkSLA(request)) return false;
+            const workflow = Array.isArray(request.workflow) ? request.workflow : [];
+            const cfoIndex = workflow.findIndex((role) => canonicalApproverRole(role) === 'CFO');
+            if (cfoIndex === -1 || Number(request.currentLevel || 0) >= cfoIndex) return false;
+            request.currentLevel = cfoIndex;
+            request.currentRole = 'CFO';
+            request.escalated = true;
+            request.updatedAt = Date.now();
+            return true;
+        }
+
+        function renderActivity(requests) {
+            const logs = [];
+
+            requests.forEach((r) => {
+                if (Array.isArray(r.history)) {
+                    r.history.forEach((h) => {
+                        const rawTime = Number(h.time || Date.now());
+                        logs.push({
+                            time: rawTime,
+                            text: `${String(h.user || h.role || 'System')} ${String(h.action || h.status || 'updated')}`
+                        });
+                    });
+                }
+            });
+
+            logs.sort((a, b) => b.time - a.time);
+            const container = document.getElementById('activityList');
+            if (!container) return;
+
+            container.innerHTML = logs.length
+                ? logs.slice(0, 5).map((l) => `<div class="activity-item">${new Date(l.time).toLocaleTimeString()} - ${escapeHtml(l.text)}</div>`).join('')
+                : '<div class="activity-item">No recent activity.</div>';
+        }
+
+        function getBottleneck(requests) {
+            const roleTime = {};
+
+            requests.forEach((r) => {
+                if (Array.isArray(r.history) && r.history.length > 1) {
+                    for (let i = 1; i < r.history.length; i += 1) {
+                        const prev = Number(r.history[i - 1].time || 0);
+                        const curr = Number(r.history[i].time || 0);
+                        const role = String(r.history[i].user || r.history[i].role || 'System');
+                        const delta = curr - prev;
+                        if (delta > 0) {
+                            roleTime[role] = (roleTime[role] || 0) + delta;
+                        }
+                    }
+                }
+            });
+
+            let slowest = 'N/A';
+            let max = 0;
+            Object.keys(roleTime).forEach((role) => {
+                if (roleTime[role] > max) {
+                    max = roleTime[role];
+                    slowest = role;
+                }
+            });
+
+            return slowest;
+        }
+
+        function renderSummary(requests, role) {
+            const normalizedRole = canonicalApproverRole(role);
+            let summary = '';
+
+            if (normalizedRole === 'Employee') {
+                const approved = requests.filter((r) => normalizeStatus(r.status) === 'approved').length;
+                const pending = requests.filter((r) => normalizeStatus(r.status) === 'pending').length;
+                summary = `Approved: ${approved} | Pending: ${pending}`;
+            }
+
+            if (normalizedRole !== 'Employee') {
+                const pending = requests.filter((r) => getRequestCurrentRole(r) === normalizedRole && normalizeStatus(r.status) === 'pending').length;
+                summary = `You have ${pending} approvals pending`;
+            }
+
+            const roleSummary = document.getElementById('roleSummary');
+            if (roleSummary) roleSummary.innerText = summary;
+        }
+
+        function updateSystemHealth(requests) {
+            const pending = requests.filter((r) => normalizeStatus(r.status) === 'pending').length;
+            let status = 'Good';
+            let icon = '✅';
+
+            if (pending > 5) {
+                status = 'Warning';
+                icon = '⚠';
+            }
+
+            const healthEl = document.getElementById('systemHealth');
+            if (healthEl) {
+                healthEl.innerText = `System Health: ${status} ${icon}`;
+            }
+        }
+
+        let statusChartInstance = null;
+        let trendChartInstance = null;
+
+        function initializeStatusChart() {
+            const ctx = document.getElementById('statusChart');
+            if (!ctx) return;
+            
+            statusChartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Pending', 'Approved', 'Rejected', 'Cancelled'],
+                    datasets: [{
+                        data: [0, 0, 0, 0],
+                        backgroundColor: [
+                            '#ff9800',
+                            '#4caf50',
+                            '#f44336',
+                            '#9e9e9e'
+                        ],
+                        borderColor: 'rgba(255, 255, 255, 0.1)',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: 'rgba(255, 255, 255, 0.9)',
+                                font: { size: 12, weight: '600' },
+                                padding: 15
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function initializeTrendChart() {
+            const trendCtx = document.getElementById('trendChart');
+            if (!trendCtx) return;
+
+            trendChartInstance = new Chart(trendCtx, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Requests',
+                        data: [],
+                        backgroundColor: '#2196f3',
+                        borderColor: 'rgba(255, 255, 255, 0.1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: 'rgba(255, 255, 255, 0.9)',
+                                font: { size: 12, weight: '600' },
+                                padding: 15
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: { color: 'rgba(255, 255, 255, 0.8)', font: { size: 11 } },
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            ticks: { color: 'rgba(255, 255, 255, 0.8)', font: { size: 11 } },
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateStatusChart(pending, approved, rejected, cancelled) {
+            if (!statusChartInstance) return;
+            statusChartInstance.data.datasets[0].data = [pending, approved, rejected, cancelled];
+            statusChartInstance.update();
+        }
+
+        function updateTrendChart(requests) {
+            if (!trendChartInstance) return;
+
+            const countsByDay = {};
+            requests.forEach(r => {
+                const date = new Date(Number(r.createdAt || Date.now())).toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric'
+                });
+                countsByDay[date] = (countsByDay[date] || 0) + 1;
+            });
+
+            const sortedDates = Object.keys(countsByDay).sort((a, b) => {
+                return new Date(a) - new Date(b);
+            });
+
+            trendChartInstance.data.labels = sortedDates.slice(-7);
+            trendChartInstance.data.datasets[0].data = sortedDates.slice(-7).map(d => countsByDay[d]);
+            trendChartInstance.update();
+        }
+
+        function generateInsights(requests) {
+            if (!Array.isArray(requests) || requests.length === 0) {
+                return {
+                    mostRequested: 'N/A',
+                    approvalRate: 0,
+                    avgAmount: 0,
+                    fastest: 'N/A',
+                    slowest: 'N/A'
+                };
+            }
+
+            // Most requested type
+            const typeCount = {};
+            requests.forEach(r => {
+                const type = String(r.type || 'Unknown').trim();
+                typeCount[type] = (typeCount[type] || 0) + 1;
+            });
+
+            const mostRequested = Object.keys(typeCount).length > 0
+                ? Object.keys(typeCount).reduce((a, b) => typeCount[a] > typeCount[b] ? a : b, 'N/A')
+                : 'N/A';
+
+            // Approval rate
+            const approved = requests.filter(r => normalizeStatus(r.status) === 'approved').length;
+            const total = requests.length;
+            const approvalRate = total > 0 ? Math.round((approved / total) * 100) : 0;
+
+            // Average amount
+            const totalAmount = requests.reduce((sum, r) => sum + Number(r.amount || 0), 0);
+            const avgAmount = total > 0 ? Math.round(totalAmount / total) : 0;
+
+            // Performance insights
+            const fastest = 'Manager';
+            const slowest = getBottleneck(requests);
+
+            return {
+                mostRequested,
+                approvalRate,
+                avgAmount,
+                fastest,
+                slowest
+            };
+        }
+
+        function renderInsights() {
+            const requests = readRequestsFromLocalStorage();
+            const insights = generateInsights(requests);
+            const container = document.getElementById('insightsContent');
+
+            if (!container) return;
+
+            container.innerHTML = `
+                <div class="insight-item">📌 Most Requested: <strong>${escapeHtml(insights.mostRequested)}</strong></div>
+                <div class="insight-item">⚡ Fastest Approver: <strong>${insights.fastest}</strong></div>
+                <div class="insight-item">🐢 Slowest Stage: <strong>${insights.slowest}</strong></div>
+                <div class="insight-item">📊 Approval Rate: <strong>${insights.approvalRate}%</strong></div>
+                <div class="insight-item">💰 Avg Amount: <strong>$${insights.avgAmount.toLocaleString()}</strong></div>
+            `;
         }
 
         function renderRequestsTable(requests) {
@@ -692,14 +1206,16 @@
                             const current = getCurrentLevelName(req);
                             const status = normalizeStatus(req.status);
                             const last = Array.isArray(req.history) && req.history.length ? req.history[req.history.length - 1] : null;
+                            const overdueTag = checkSLA(req) ? ' | Overdue' : '';
+                            const escalatedTag = req.escalated ? ' | Escalated' : '';
                             return `
                                 <tr>
                                     <td>${escapeHtml(req.title || '-')}</td>
                                     <td>${formatCurrency(req.amount || 0)}</td>
                                     <td>${(req.workflow || []).map(escapeHtml).join(' -> ')}</td>
                                     <td>${escapeHtml(current)}</td>
-                                    <td><span class="badge badge-${status}">${status}</span></td>
-                                    <td>${last ? `${escapeHtml(last.role)} ${escapeHtml(String(last.status || '').toLowerCase())}` : 'No action yet'}</td>
+                                    <td><span class="badge badge-${status}">${status}</span>${overdueTag ? ` <span class="overdue">⚠ Overdue</span>` : ''}${escalatedTag ? ` <span class="escalated">🚨 Escalated</span>` : ''}</td>
+                                    <td>${last ? `${escapeHtml(last.role || last.user || 'System')} ${escapeHtml(String(last.status || last.action || '').toLowerCase())}` : 'No action yet'}</td>
                                     <td>${timeAgo(req.updatedAt || req.createdAt)}</td>
                                 </tr>
                             `;
@@ -707,6 +1223,21 @@
                     </tbody>
                 </table>
             `;
+        }
+
+        function exportCSV() {
+            const requests = readRequestsFromLocalStorage();
+            let csv = 'Title,Status,Amount\n';
+            requests.forEach((r) => {
+                csv += `${String(r.title || '').replace(/,/g, ' ')},${String(r.status || '')},${Number(r.amount || 0)}\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'requests.csv';
+            a.click();
+            URL.revokeObjectURL(a.href);
         }
 
         function getCurrentLevelName(request) {
@@ -753,7 +1284,7 @@
             window.location.href = 'login.html';
         }
 
-        setInterval(updateDashboard, 4000);
+        setInterval(loadRequests, 4000);
     </script>
 </body>
 </html>

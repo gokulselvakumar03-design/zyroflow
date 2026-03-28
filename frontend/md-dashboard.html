@@ -52,6 +52,32 @@
             gap: 20px;
         }
 
+        .notification {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: rgba(255, 255, 255, 0.95);
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: 999px;
+            padding: 8px 12px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .notif-count {
+            min-width: 22px;
+            height: 22px;
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 193, 7, 0.9);
+            color: #1f2937;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
         .user-info {
             color: rgba(255, 255, 255, 0.9);
             font-size: 14px;
@@ -66,6 +92,12 @@
         .welcome-text {
             color: rgba(255, 255, 255, 0.9);
             font-size: 13px;
+        }
+
+        .role-summary {
+            color: rgba(255, 255, 255, 0.82);
+            font-size: 12px;
+            margin-top: 2px;
         }
 
         .logout-button {
@@ -115,12 +147,70 @@
             gap: 20px;
         }
 
+        .list-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 16px;
+            align-items: center;
+        }
+
+        .filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .filter-button {
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.16);
+            color: white;
+            border-radius: 999px;
+            padding: 7px 12px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+
+        .filter-button:hover,
+        .filter-button.active {
+            background: rgba(255, 255, 255, 0.28);
+            border-color: rgba(255, 255, 255, 0.55);
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 220px;
+            padding: 10px 14px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            font-size: 13px;
+        }
+
+        .search-box::placeholder {
+            color: rgba(255, 255, 255, 0.65);
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: rgba(255, 255, 255, 0.6);
+            box-shadow: 0 0 12px rgba(255, 255, 255, 0.15);
+        }
+
         .request-item {
             background: rgba(255, 255, 255, 0.1);
             padding: 20px;
             border-radius: 10px;
             border-left: 4px solid #ffc107;
         }
+
+        .request-card.pending { border-left: 4px solid #ff9800; }
+        .request-card.approved { border-left: 4px solid #4caf50; }
+        .request-card.rejected { border-left: 4px solid #f44336; }
+        .request-card.cancelled { border-left: 4px solid #9ca3af; }
 
         .request-header {
             display: flex;
@@ -282,6 +372,40 @@
             line-height: 1.5;
         }
 
+        .step {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            margin-right: 5px;
+            margin-bottom: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .step.done { background: #4caf50; color: white; }
+        .step.current { background: #ff9800; color: white; }
+        .step.pending { background: #d1d5db; color: #111827; }
+
+        .priority {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            margin-left: 10px;
+            font-weight: 700;
+            letter-spacing: 0.4px;
+        }
+
+        .priority.high { background: #ef4444; color: white; }
+        .priority.medium { background: #f59e0b; color: white; }
+        .priority.low { background: #22c55e; color: white; }
+
+        .status-message {
+            margin-top: 10px;
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.92);
+            font-weight: 600;
+        }
+
         .request-comment {
             width: 100%;
             margin-top: 8px;
@@ -301,6 +425,55 @@
             margin-top: 8px;
             font-size: 12px;
             color: rgba(255, 255, 255, 0.75);
+        }
+
+        .history-wrap {
+            margin-top: 10px;
+            padding-top: 8px;
+            border-top: 1px dashed rgba(255, 255, 255, 0.2);
+        }
+
+        .history-item {
+            font-size: 12px;
+            margin: 3px 0;
+            opacity: 0.85;
+            color: rgba(255, 255, 255, 0.88);
+        }
+
+        .overdue {
+            color: #ff6b6b;
+            font-weight: 700;
+            margin-left: 8px;
+        }
+
+        .escalated {
+            color: #ffd166;
+            font-size: 12px;
+            margin-left: 8px;
+            font-weight: 700;
+        }
+
+        .toolbar-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .export-button {
+            background: rgba(255, 255, 255, 0.14);
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            color: white;
+            border-radius: 10px;
+            padding: 8px 12px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .export-button:hover {
+            background: rgba(255, 255, 255, 0.2);
         }
 
         /* Responsive */
@@ -340,8 +513,10 @@
     <div class="navbar">
         <div class="navbar-title" id="approver-title">Approver Dashboard</div>
         <div class="navbar-user">
+            <div class="notification">🔔 <span id="notifCount" class="notif-count">0</span></div>
             <div class="user-info">
                 <div id="welcomeText" class="welcome-text"></div>
+                <div id="roleSummary" class="role-summary"></div>
             </div>
             <button class="logout-button" onclick="logout()">Logout</button>
         </div>
@@ -369,8 +544,21 @@
 
         <!-- Pending Requests -->
         <div class="card">
-            <h2 class="card-title">Pending Approvals</h2>
+            <div class="toolbar-row">
+                <h2 class="card-title" style="margin-bottom: 0;">Pending Approvals</h2>
+                <button class="export-button" onclick="exportCSV()">Export</button>
+            </div>
             <div id="message" class="message"></div>
+            <div class="list-controls">
+                <div class="filters">
+                    <button class="filter-button active" data-filter="ALL" onclick="filterRequests('ALL')">All</button>
+                    <button class="filter-button" data-filter="Pending" onclick="filterRequests('Pending')">Pending</button>
+                    <button class="filter-button" data-filter="Approved" onclick="filterRequests('Approved')">Approved</button>
+                    <button class="filter-button" data-filter="Rejected" onclick="filterRequests('Rejected')">Rejected</button>
+                    <button class="filter-button" data-filter="Cancelled" onclick="filterRequests('Cancelled')">Cancelled</button>
+                </div>
+                <input type="text" id="searchBox" class="search-box" placeholder="Search requests..." oninput="renderRequests()" />
+            </div>
             <div class="requests-list" id="requests-list">
                 <div class="empty-state">No pending requests</div>
             </div>
@@ -379,16 +567,60 @@
 
     <script>
         let currentRole = 'Manager';
+        let currentFilter = 'ALL';
         const UNDO_WINDOW_MS = 25000;
         const undoTimers = new Map();
+        const REQUESTS_API_URL = 'http://localhost:5000/requests';
 
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
             checkAuthentication();
             displayUserRole();
             scheduleUndoExpiryForAll();
-            loadPendingRequests();
+            loadRequests();
         });
+
+        function readRequestsFromLocalStorage() {
+            return JSON.parse(localStorage.getItem('requests') || '[]');
+        }
+
+        function writeRequestsToLocalStorage(requests, skipApiSync) {
+            localStorage.setItem('requests', JSON.stringify(requests));
+            if (!skipApiSync) {
+                syncRequestsToApi(requests);
+            }
+        }
+
+        function syncRequestsToApi(requests) {
+            if (!Array.isArray(requests) || !requests.length) return;
+            requests.forEach((req) => {
+                fetch(REQUESTS_API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(req),
+                }).catch(() => {
+                    // Keep local fallback behavior if backend is unavailable.
+                });
+            });
+        }
+
+        function loadRequests() {
+            fetch(REQUESTS_API_URL)
+                .then((res) => {
+                    if (!res.ok) {
+                        throw new Error('API request failed');
+                    }
+                    return res.json();
+                })
+                .then((data) => {
+                    const requests = Array.isArray(data) ? data : [];
+                    writeRequestsToLocalStorage(requests, true);
+                    renderRequests();
+                })
+                .catch(() => {
+                    renderRequests();
+                });
+        }
 
         function normalizeStatus(status) {
             return String(status || '').trim().toLowerCase();
@@ -407,11 +639,12 @@
         function normalizeRequest(request) {
             const workflow = Array.isArray(request.workflow) ? request.workflow : [];
             const createdAt = Number(request.createdAt || Date.now());
+            const currentLevel = Number(request.currentLevel || 0);
             return {
                 ...request,
                 amount: Number(request.amount || 0),
                 workflow,
-                currentLevel: Number(request.currentLevel || 0),
+                currentLevel,
                 status: normalizeStatus(request.status || 'pending'),
                 createdAt,
                 updatedAt: Number(request.updatedAt || createdAt),
@@ -423,8 +656,76 @@
                 lastAction: request.lastAction || null,
                 lastActionType: String(request.lastActionType || ''),
                 lastActionBy: String(request.lastActionBy || ''),
-                lastActionSnapshot: request.lastActionSnapshot || null
+                lastActionSnapshot: request.lastActionSnapshot || null,
+                deadline: Number(request.deadline || (createdAt + (24 * 60 * 60 * 1000))),
+                escalated: Boolean(request.escalated),
+                currentRole: request.currentRole || workflow[currentLevel] || '',
+                fileName: request.fileName || null
             };
+        }
+
+        function getRequestCurrentRole(request) {
+            const workflow = Array.isArray(request.workflow) ? request.workflow : [];
+            const idx = Number(request.currentLevel || 0);
+            return canonicalRole(request.currentRole || workflow[idx] || '');
+        }
+
+        function updateNotifications(requests, userRole) {
+            const role = canonicalRole(userRole);
+            const pending = requests.filter((r) => normalizeStatus(r.status) === 'pending' && getRequestCurrentRole(r) === role).length;
+            const counter = document.getElementById('notifCount');
+            if (counter) counter.innerText = String(pending);
+        }
+
+        function renderSummary(requests, role) {
+            const normalizedRole = canonicalRole(role);
+            let summary = '';
+
+            if (normalizedRole === 'Employee') {
+                const approved = requests.filter((r) => normalizeStatus(r.status) === 'approved').length;
+                const pending = requests.filter((r) => normalizeStatus(r.status) === 'pending').length;
+                summary = `Approved: ${approved} | Pending: ${pending}`;
+            }
+
+            if (normalizedRole !== 'Employee') {
+                const pending = requests.filter((r) => getRequestCurrentRole(r) === normalizedRole && normalizeStatus(r.status) === 'pending').length;
+                summary = `You have ${pending} approvals pending`;
+            }
+
+            const roleSummary = document.getElementById('roleSummary');
+            if (roleSummary) roleSummary.innerText = summary;
+        }
+
+        function simulateEmail(action, role) {
+            console.log(`Email sent to ${role || 'next approver'} for ${action}`);
+        }
+
+        function checkSLA(request) {
+            return Number(request.deadline || 0) > 0 && Date.now() > Number(request.deadline);
+        }
+
+        function checkEscalation(request) {
+            if (normalizeStatus(request.status) !== 'pending') return false;
+            if (!checkSLA(request)) return false;
+            const workflow = Array.isArray(request.workflow) ? request.workflow : [];
+            const cfoIndex = workflow.findIndex((role) => canonicalRole(role) === 'CFO');
+            if (cfoIndex === -1 || Number(request.currentLevel || 0) >= cfoIndex) return false;
+            request.currentLevel = cfoIndex;
+            request.currentRole = 'CFO';
+            request.escalated = true;
+            request.updatedAt = Date.now();
+            return true;
+        }
+
+        function addHistory(request, action, user) {
+            if (!Array.isArray(request.history)) request.history = [];
+            request.history.push({
+                action,
+                user,
+                role: user,
+                status: action,
+                time: Date.now()
+            });
         }
 
         // Check if user is logged in and is an approver
@@ -463,8 +764,22 @@
         }
 
         // Load pending requests
-        function loadPendingRequests() {
-            const requests = JSON.parse(localStorage.getItem('requests') || '[]').map(normalizeRequest);
+        function renderRequests() {
+            const requests = readRequestsFromLocalStorage().map(normalizeRequest);
+            let hasEscalationChanges = false;
+            requests.forEach((r) => {
+                if (checkEscalation(r)) {
+                    hasEscalationChanges = true;
+                    addHistory(r, 'Escalated to CFO', 'System');
+                    simulateEmail('escalation', 'CFO');
+                }
+            });
+            if (hasEscalationChanges) {
+                writeRequestsToLocalStorage(requests);
+            }
+
+            updateNotifications(requests, currentRole);
+            renderSummary(requests, currentRole);
             const pendingRequests = requests.filter((r) => {
                 if (normalizeStatus(r.status) !== 'pending') return false;
                 const currentStepRole = canonicalRole((r.workflow || [])[r.currentLevel]);
@@ -484,21 +799,33 @@
 
             const requestsList = document.getElementById('requests-list');
 
+            const filteredRequests = combinedRequests
+                .filter((r) => currentFilter === 'ALL' || toStatusLabel(r.status) === currentFilter)
+                .filter(matchesSearch);
+
+            updateActiveFilterButtons();
+
             if (combinedRequests.length === 0) {
                 requestsList.innerHTML = '<div class="empty-state">No pending requests. All requests have been reviewed.</div>';
                 return;
             }
 
-            requestsList.innerHTML = combinedRequests.map((request) => {
-                const previous = request.history.length ? request.history[request.history.length - 1] : null;
+            if (filteredRequests.length === 0) {
+                requestsList.innerHTML = '<div class="empty-state">No requests match current filter/search.</div>';
+                return;
+            }
+
+            requestsList.innerHTML = filteredRequests.map((request) => {
                 const currentLevel = (request.workflow || [])[request.currentLevel] || 'N/A';
+                const assignedRole = canonicalRole((request.workflow || [])[request.currentLevel]);
+                const canAct = normalizeStatus(request.status) === 'pending' && assignedRole === currentRole;
                 const undoOpen = isUndoWindowOpen(request);
                 const countdown = getUndoSecondsLeft(request);
                 return `
-                <div class="request-item">
+                <div class="request-item request-card ${normalizeStatus(request.status)}">
                     <div class="request-header">
                         <div>
-                            <div class="request-title">${escapeHtml(request.title)}</div>
+                            <div class="request-title">${escapeHtml(request.title)} ${renderPriority(request.amount)}</div>
                             <div class="request-email">From: ${escapeHtml(request.email)}</div>
                         </div>
                     </div>
@@ -507,25 +834,116 @@
                         <span>Amount: ${formatCurrency(request.amount)}</span>
                         <span>Current: ${escapeHtml(currentLevel)}</span>
                     </div>
+                    ${request.fileName ? `<div class="request-meta"><span>📎 ${escapeHtml(request.fileName)}</span></div>` : ''}
+                    <div class="status-message">${escapeHtml(getStatusMessage(request))}</div>
+                    <div class="request-meta">${checkSLA(request) ? '<span class="overdue">⚠ Overdue</span>' : ''}${request.escalated ? '<span class="escalated">🚨 Escalated to CFO</span>' : ''}</div>
                     <div class="workflow-chain">
-                        ${renderChain(request.workflow, request.currentLevel)}
+                        ${renderWorkflowTimeline(request.workflow, request.currentLevel, request.status)}
                     </div>
-                    <div class="history-preview">
-                        ${previous ? `Previous: ${escapeHtml(previous.role)} ${escapeHtml(previous.status)} ${timeAgo(previous.time)}` : 'Previous: No prior approvals'}
+                    <div class="history-wrap">
+                        ${renderHistory(request.history)}
                     </div>
                     <textarea id="comment-${request.id}" class="request-comment" placeholder="Add comment before action (optional)"></textarea>
                     <div class="request-actions">
-                        <button class="action-button approve-button" onclick="approveRequest(${request.id})">
+                        ${canAct ? `<button class="action-button approve-button" onclick="approveRequest(${request.id})">
                             ✓ Approve
-                        </button>
-                        <button class="action-button reject-button" onclick="rejectRequest(${request.id})">
+                        </button>` : ''}
+                        ${canAct ? `<button class="action-button reject-button" onclick="rejectRequest(${request.id})">
                             ✕ Reject
-                        </button>
+                        </button>` : ''}
                         ${undoOpen ? `<button class="action-button undo-button" onclick="undoAction(${request.id})">Undo (${countdown}s)</button>` : ''}
                     </div>
                     ${undoOpen ? `<div class="undo-info">Action applied. Undo available for ${countdown} seconds</div>` : ''}
                 </div>
             `;
+            }).join('');
+
+        }
+
+        function loadPendingRequests() {
+            renderRequests();
+        }
+
+        function filterRequests(status) {
+            currentFilter = status;
+            renderRequests();
+        }
+
+        function matchesSearch(request) {
+            const input = document.getElementById('searchBox');
+            const q = String(input ? input.value : '').toLowerCase().trim();
+            if (!q) return true;
+            const title = String(request.title || '').toLowerCase();
+            const type = String(request.type || '').toLowerCase();
+            const email = String(request.email || '').toLowerCase();
+            return title.includes(q) || type.includes(q) || email.includes(q);
+        }
+
+        function updateActiveFilterButtons() {
+            const buttons = document.querySelectorAll('.filter-button');
+            buttons.forEach((btn) => {
+                if (btn.dataset.filter === currentFilter) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+        }
+
+        function toStatusLabel(status) {
+            const n = normalizeStatus(status);
+            if (!n) return 'Pending';
+            return `${n.charAt(0).toUpperCase()}${n.slice(1)}`;
+        }
+
+        function getPriority(amount) {
+            if (!amount) return 'LOW';
+            if (Number(amount) > 100000) return 'HIGH';
+            if (Number(amount) > 50000) return 'MEDIUM';
+            return 'LOW';
+        }
+
+        function renderPriority(amount) {
+            const p = getPriority(amount);
+            return `<span class="priority ${p.toLowerCase()}">${p}</span>`;
+        }
+
+        function getStatusMessage(request) {
+            const status = toStatusLabel(request.status);
+            if (status === 'Approved') return 'Fully Approved';
+            if (status === 'Rejected') return 'Rejected';
+            if (status === 'Cancelled') return 'Cancelled';
+            const workflow = Array.isArray(request.workflow) ? request.workflow : [];
+            const waitingRole = workflow[request.currentLevel] || 'next approver';
+            return `Waiting for ${waitingRole}`;
+        }
+
+        function renderWorkflowTimeline(workflow, currentIndex, status) {
+            const normalizedWorkflow = Array.isArray(workflow) ? workflow : [];
+            const normalizedStatus = normalizeStatus(status);
+            return normalizedWorkflow.map((role, index) => {
+                const doneByStatus = normalizedStatus === 'approved' || (normalizedStatus === 'cancelled' && index < currentIndex);
+                if (index < currentIndex || doneByStatus) {
+                    return `<span class="step done">✔ ${escapeHtml(role)}</span>`;
+                }
+                if (index === currentIndex && normalizedStatus === 'pending') {
+                    return `<span class="step current">⏳ ${escapeHtml(role)}</span>`;
+                }
+                if (index === currentIndex && normalizedStatus === 'rejected') {
+                    return `<span class="step current">✕ ${escapeHtml(role)}</span>`;
+                }
+                return `<span class="step pending">○ ${escapeHtml(role)}</span>`;
+            }).join(' → ');
+        }
+
+        function renderHistory(history) {
+            if (!Array.isArray(history) || history.length === 0) {
+                return '<div class="history-item">No approval history yet.</div>';
+            }
+            return history.map((h) => {
+                const action = String(h.status || h.action || 'Updated');
+                const actor = h.role || h.user || 'System';
+                return `<div class="history-item">✔ ${escapeHtml(actor)} ${escapeHtml(action)} (${timeAgo(h.time)})</div>`;
             }).join('');
         }
 
@@ -547,7 +965,7 @@
 
         // Update request status
         function updateRequestStatus(requestId, status) {
-            const requests = JSON.parse(localStorage.getItem('requests') || '[]').map(normalizeRequest);
+            const requests = readRequestsFromLocalStorage().map(normalizeRequest);
             const requestIndex = requests.findIndex(r => Number(r.id) === Number(requestId));
             if (requestIndex === -1) return;
 
@@ -556,7 +974,7 @@
 
             if (assignedRole !== currentRole || normalizeStatus(request.status) !== 'pending') {
                 showMessage('This request is no longer assigned to your role.', 'success');
-                loadPendingRequests();
+                renderRequests();
                 return;
             }
 
@@ -572,12 +990,6 @@
                 commentsLength: request.comments.length
             };
 
-            request.history.push({
-                role: currentRole,
-                status: actionStatus,
-                time: now,
-                comment: comment || actionStatus
-            });
             request.comments.push({ role: currentRole, comment: comment || actionStatus, time: now });
             request.updatedAt = now;
 
@@ -588,10 +1000,14 @@
                     request.currentLevel = Math.max(0, request.workflow.length - 1);
                 } else {
                     request.status = 'pending';
+                    request.currentRole = (request.workflow || [])[request.currentLevel] || request.currentRole;
+                    simulateEmail('approval', request.currentRole);
                 }
             } else {
                 request.status = 'rejected';
             }
+
+            addHistory(request, actionStatus, currentRole);
 
             request.lastActionTime = now;
             request.lastAction = normalizeStatus(status);
@@ -601,11 +1017,11 @@
             request.lastActionSnapshot = snapshot;
 
             requests[requestIndex] = request;
-            localStorage.setItem('requests', JSON.stringify(requests));
+            writeRequestsToLocalStorage(requests);
             scheduleUndoExpiryForRequest(request.id, now);
 
             showMessage(`Action applied. Undo available for 25 seconds.`, 'warning');
-            loadPendingRequests();
+            renderRequests();
 
             setTimeout(() => {
                 document.getElementById('message').classList.remove('show');
@@ -631,7 +1047,7 @@
         }
 
         function undoAction(requestId) {
-            const requests = JSON.parse(localStorage.getItem('requests') || '[]').map(normalizeRequest);
+            const requests = readRequestsFromLocalStorage().map(normalizeRequest);
             const index = requests.findIndex((r) => Number(r.id) === Number(requestId));
             if (index === -1) return;
 
@@ -644,8 +1060,8 @@
                 alert('Undo time expired');
                 request.undoAvailable = false;
                 requests[index] = request;
-                localStorage.setItem('requests', JSON.stringify(requests));
-                loadPendingRequests();
+                writeRequestsToLocalStorage(requests);
+                renderRequests();
                 return;
             }
 
@@ -653,8 +1069,8 @@
             if (!snapshot) {
                 request.undoAvailable = false;
                 requests[index] = request;
-                localStorage.setItem('requests', JSON.stringify(requests));
-                loadPendingRequests();
+                writeRequestsToLocalStorage(requests);
+                renderRequests();
                 return;
             }
 
@@ -672,10 +1088,10 @@
             request.lastActionSnapshot = null;
 
             requests[index] = request;
-            localStorage.setItem('requests', JSON.stringify(requests));
+            writeRequestsToLocalStorage(requests);
             clearUndoTimer(request.id);
             showMessage('Action was undone successfully.', 'success');
-            loadPendingRequests();
+            renderRequests();
         }
 
         function clearUndoTimer(requestId) {
@@ -700,7 +1116,7 @@
         }
 
         function expireUndo(requestId, actionTime) {
-            const requests = JSON.parse(localStorage.getItem('requests') || '[]').map(normalizeRequest);
+            const requests = readRequestsFromLocalStorage().map(normalizeRequest);
             const index = requests.findIndex((r) => Number(r.id) === Number(requestId));
             if (index === -1) return;
 
@@ -710,13 +1126,13 @@
 
             request.undoAvailable = false;
             requests[index] = request;
-            localStorage.setItem('requests', JSON.stringify(requests));
+            writeRequestsToLocalStorage(requests);
             clearUndoTimer(requestId);
-            loadPendingRequests();
+            renderRequests();
         }
 
         function scheduleUndoExpiryForAll() {
-            const requests = JSON.parse(localStorage.getItem('requests') || '[]').map(normalizeRequest);
+            const requests = readRequestsFromLocalStorage().map(normalizeRequest);
             requests.forEach((request) => {
                 if (request.undoUsed) {
                     request.undoAvailable = false;
@@ -730,7 +1146,7 @@
                     }
                 }
             });
-            localStorage.setItem('requests', JSON.stringify(requests));
+            writeRequestsToLocalStorage(requests);
         }
 
         // Update summary counts
@@ -742,13 +1158,6 @@
             document.getElementById('pending-count').textContent = pending;
             document.getElementById('approved-count').textContent = approved;
             document.getElementById('rejected-count').textContent = rejected;
-        }
-
-        function renderChain(levels, currentLevel) {
-            return (levels || []).map((level, idx) => {
-                const marker = idx < currentLevel ? '✔' : (idx === currentLevel ? '⏳' : '⭕');
-                return `${marker} ${escapeHtml(level)}`;
-            }).join(' -> ');
         }
 
         function timeAgo(timestamp) {
@@ -764,6 +1173,21 @@
 
         function formatCurrency(amount) {
             return `$${Number(amount || 0).toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
+        }
+
+        function exportCSV() {
+            const requests = readRequestsFromLocalStorage().map(normalizeRequest);
+            let csv = 'Title,Status,Amount\n';
+            requests.forEach((r) => {
+                csv += `${String(r.title || '').replace(/,/g, ' ')},${toStatusLabel(r.status)},${Number(r.amount || 0)}\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'requests.csv';
+            a.click();
+            URL.revokeObjectURL(a.href);
         }
 
         // Show message

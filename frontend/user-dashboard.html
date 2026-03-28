@@ -52,6 +52,32 @@
             gap: 20px;
         }
 
+        .notification {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: rgba(255, 255, 255, 0.95);
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: 999px;
+            padding: 8px 12px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .notif-count {
+            min-width: 22px;
+            height: 22px;
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 193, 7, 0.9);
+            color: #1f2937;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
         .user-info {
             color: rgba(255, 255, 255, 0.9);
             font-size: 14px;
@@ -66,6 +92,12 @@
         .welcome-text {
             color: rgba(255, 255, 255, 0.9);
             font-size: 13px;
+        }
+
+        .role-summary {
+            color: rgba(255, 255, 255, 0.82);
+            font-size: 12px;
+            margin-top: 2px;
         }
 
         .logout-button {
@@ -198,6 +230,59 @@
             overflow-y: auto;
         }
 
+        .list-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 14px;
+            align-items: center;
+        }
+
+        .filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .filter-button {
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            background: rgba(255, 255, 255, 0.14);
+            color: white;
+            border-radius: 999px;
+            padding: 7px 11px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+
+        .filter-button:hover,
+        .filter-button.active {
+            background: rgba(255, 255, 255, 0.28);
+            border-color: rgba(255, 255, 255, 0.6);
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 220px;
+            padding: 10px 14px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            font-size: 13px;
+        }
+
+        .search-box::placeholder {
+            color: rgba(255, 255, 255, 0.62);
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: rgba(255, 255, 255, 0.6);
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+        }
+
         .request-item {
             background: rgba(255, 255, 255, 0.1);
             padding: 15px;
@@ -205,6 +290,11 @@
             border-left: 4px solid #667eea;
             color: white;
         }
+
+        .request-card.pending { border-left: 4px solid #ff9800; }
+        .request-card.approved { border-left: 4px solid #4caf50; }
+        .request-card.rejected { border-left: 4px solid #f44336; }
+        .request-card.cancelled { border-left: 4px solid #9ca3af; }
 
         .request-title {
             font-weight: 600;
@@ -290,6 +380,40 @@
             line-height: 1.6;
         }
 
+        .step {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            margin-right: 5px;
+            margin-bottom: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .step.done { background: #4caf50; color: white; }
+        .step.current { background: #ff9800; color: white; }
+        .step.pending { background: #d1d5db; color: #111827; }
+
+        .priority {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            margin-left: 10px;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+        }
+
+        .priority.high { background: #ef4444; color: white; }
+        .priority.medium { background: #f59e0b; color: white; }
+        .priority.low { background: #22c55e; color: white; }
+
+        .status-message {
+            margin-top: 8px;
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.92);
+            font-weight: 600;
+        }
+
         .timeline {
             margin-top: 10px;
             border-left: 2px solid rgba(255, 255, 255, 0.2);
@@ -300,6 +424,48 @@
             margin-bottom: 8px;
             color: rgba(255, 255, 255, 0.88);
             font-size: 12px;
+        }
+
+        .history-item {
+            font-size: 12px;
+            margin: 3px 0;
+            opacity: 0.85;
+        }
+
+        .overdue {
+            color: #ff6b6b;
+            font-weight: 700;
+            margin-left: 8px;
+        }
+
+        .escalated {
+            color: #ffd166;
+            font-size: 12px;
+            margin-left: 8px;
+            font-weight: 700;
+        }
+
+        .toolbar-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .export-button {
+            background: rgba(255, 255, 255, 0.14);
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            color: white;
+            border-radius: 10px;
+            padding: 8px 12px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .export-button:hover {
+            background: rgba(255, 255, 255, 0.2);
         }
 
         .timeline-time {
@@ -362,8 +528,10 @@
     <div class="navbar">
         <div class="navbar-title">Employee Dashboard</div>
         <div class="navbar-user">
+            <div class="notification">🔔 <span id="notifCount" class="notif-count">0</span></div>
             <div class="user-info">
                 <div id="welcomeText" class="welcome-text"></div>
+                <div id="roleSummary" class="role-summary"></div>
             </div>
             <button class="logout-button" onclick="logout()">Logout</button>
         </div>
@@ -391,13 +559,31 @@
 
                 <div id="dynamicFields"></div>
 
+                <div class="form-group">
+                    <label class="form-label" for="fileUpload">Attachment (optional)</label>
+                    <input type="file" id="fileUpload" class="form-input">
+                </div>
+
                 <button type="submit" class="submit-button">Submit Request</button>
             </form>
         </div>
 
         <!-- My Requests Card -->
         <div class="card">
-            <h2 class="card-title">My Requests</h2>
+            <div class="toolbar-row">
+                <h2 class="card-title" style="margin-bottom: 0;">My Requests</h2>
+                <button class="export-button" onclick="exportCSV()">Export</button>
+            </div>
+            <div class="list-controls">
+                <div class="filters">
+                    <button class="filter-button active" data-filter="ALL" onclick="filterRequests('ALL')">All</button>
+                    <button class="filter-button" data-filter="Pending" onclick="filterRequests('Pending')">Pending</button>
+                    <button class="filter-button" data-filter="Approved" onclick="filterRequests('Approved')">Approved</button>
+                    <button class="filter-button" data-filter="Rejected" onclick="filterRequests('Rejected')">Rejected</button>
+                    <button class="filter-button" data-filter="Cancelled" onclick="filterRequests('Cancelled')">Cancelled</button>
+                </div>
+                <input type="text" id="searchBox" class="search-box" placeholder="Search requests..." oninput="renderRequests()" />
+            </div>
             <div class="requests-list" id="requests-list">
                 <div class="empty-state">No requests yet. Submit one to get started!</div>
             </div>
@@ -405,6 +591,9 @@
     </div>
 
     <script>
+        let currentFilter = 'ALL';
+        const REQUESTS_API_URL = 'http://localhost:5000/requests';
+
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
             checkAuthentication();
@@ -413,6 +602,48 @@
             scheduleCancelWindowExpiryForAll();
             loadRequests();
         });
+
+        function readRequestsFromLocalStorage() {
+            return JSON.parse(localStorage.getItem('requests') || '[]');
+        }
+
+        function writeRequestsToLocalStorage(requests, skipApiSync) {
+            localStorage.setItem('requests', JSON.stringify(requests));
+            if (!skipApiSync) {
+                syncRequestsToApi(requests);
+            }
+        }
+
+        function syncRequestsToApi(requests) {
+            if (!Array.isArray(requests) || !requests.length) return;
+            requests.forEach((req) => {
+                fetch(REQUESTS_API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(req),
+                }).catch(() => {
+                    // Keep local fallback behavior unchanged if backend is down.
+                });
+            });
+        }
+
+        function loadRequests() {
+            fetch(REQUESTS_API_URL)
+                .then((res) => {
+                    if (!res.ok) {
+                        throw new Error('API request failed');
+                    }
+                    return res.json();
+                })
+                .then((data) => {
+                    const requests = Array.isArray(data) ? data : [];
+                    writeRequestsToLocalStorage(requests, true);
+                    renderRequests();
+                })
+                .catch(() => {
+                    renderRequests();
+                });
+        }
 
         function normalizeRole(role) {
             const raw = String(role || '').trim().toLowerCase();
@@ -426,6 +657,94 @@
 
         function normalizeStatus(status) {
             return String(status || '').trim().toLowerCase();
+        }
+
+        function getRequestCurrentRole(request) {
+            const workflow = Array.isArray(request.workflow) ? request.workflow : [];
+            const idx = Number(request.currentLevel || 0);
+            return canonicalRole(request.currentRole || workflow[idx] || '');
+        }
+
+        function canonicalRole(roleValue) {
+            const raw = String(roleValue || '').trim().toLowerCase();
+            if (raw === 'accounts') return 'Accounts';
+            if (raw === 'manager') return 'Manager';
+            if (raw === 'cfo') return 'CFO';
+            if (raw === 'md') return 'MD';
+            if (raw === 'admin') return 'Admin';
+            if (raw === 'employee') return 'Employee';
+            return roleValue || '';
+        }
+
+        function updateNotifications(requests, userRole) {
+            const role = canonicalRole(userRole);
+            const userEmail = localStorage.getItem('userEmail');
+            let pending = requests.filter((r) => normalizeStatus(r.status) === 'pending' && getRequestCurrentRole(r) === role).length;
+
+            if (role === 'Employee' && userEmail) {
+                pending = requests.filter((r) => normalizeStatus(r.status) === 'pending' && String(r.email || '') === userEmail).length;
+            }
+
+            const counter = document.getElementById('notifCount');
+            if (counter) counter.innerText = String(pending);
+        }
+
+        function renderSummary(requests, role) {
+            const normalizedRole = canonicalRole(role);
+            const userEmail = localStorage.getItem('userEmail');
+            let summary = '';
+
+            if (normalizedRole === 'Employee') {
+                const approved = requests.filter((r) => normalizeStatus(r.status) === 'approved' && String(r.email || '') === String(userEmail || '')).length;
+                const pending = requests.filter((r) => normalizeStatus(r.status) === 'pending' && String(r.email || '') === String(userEmail || '')).length;
+                summary = `Approved: ${approved} | Pending: ${pending}`;
+            }
+
+            if (normalizedRole !== 'Employee') {
+                const pending = requests.filter((r) => getRequestCurrentRole(r) === normalizedRole && normalizeStatus(r.status) === 'pending').length;
+                summary = `You have ${pending} approvals pending`;
+            }
+
+            const roleSummary = document.getElementById('roleSummary');
+            if (roleSummary) roleSummary.innerText = summary;
+        }
+
+        function simulateEmail(action, role) {
+            console.log(`Email sent to ${role || 'next approver'} for ${action}`);
+        }
+
+        function addSLA(request) {
+            if (!request.deadline && request.createdAt) {
+                request.deadline = Number(request.createdAt) + (24 * 60 * 60 * 1000);
+            }
+        }
+
+        function checkSLA(request) {
+            return Number(request.deadline || 0) > 0 && Date.now() > Number(request.deadline);
+        }
+
+        function checkEscalation(request) {
+            if (normalizeStatus(request.status) !== 'pending') return false;
+            if (!checkSLA(request)) return false;
+            const workflow = Array.isArray(request.workflow) ? request.workflow : [];
+            const cfoIndex = workflow.findIndex((role) => canonicalRole(role) === 'CFO');
+            if (cfoIndex === -1 || Number(request.currentLevel || 0) >= cfoIndex) return false;
+            request.currentLevel = cfoIndex;
+            request.currentRole = 'CFO';
+            request.escalated = true;
+            request.updatedAt = Date.now();
+            return true;
+        }
+
+        function addHistory(request, action, user) {
+            if (!Array.isArray(request.history)) request.history = [];
+            request.history.push({
+                action,
+                user,
+                role: user,
+                status: action,
+                time: Date.now()
+            });
         }
 
         // Check if user is logged in
@@ -625,28 +944,32 @@
                 updatedAt: request.updatedAt || createdAt,
                 history: Array.isArray(request.history) ? request.history : [],
                 comments: Array.isArray(request.comments) ? request.comments : [],
-                cancelWindowActive
+                cancelWindowActive,
+                deadline: Number(request.deadline || (Number(createdAt) + (24 * 60 * 60 * 1000))),
+                currentRole: request.currentRole || fallbackWorkflow[Number(request.currentLevel || 0)] || '',
+                escalated: Boolean(request.escalated),
+                fileName: request.fileName || null
             };
         }
 
         function persistRequestWindowFlag(requestId, isActive) {
-            const requests = JSON.parse(localStorage.getItem('requests') || '[]');
+            const requests = readRequestsFromLocalStorage();
             const nextRequests = requests.map((r) => {
                 if (Number(r.id) !== Number(requestId)) return r;
                 return { ...r, cancelWindowActive: Boolean(isActive) };
             });
-            localStorage.setItem('requests', JSON.stringify(nextRequests));
+            writeRequestsToLocalStorage(nextRequests);
         }
 
         function startCancelWindowTimer(requestId) {
             setTimeout(() => {
                 persistRequestWindowFlag(requestId, false);
-                loadRequests();
+                renderRequests();
             }, 25000);
         }
 
         function scheduleCancelWindowExpiryForAll() {
-            const requests = JSON.parse(localStorage.getItem('requests') || '[]');
+            const requests = readRequestsFromLocalStorage();
             requests.forEach((r) => {
                 if (normalizeStatus(r.status) !== 'pending' || r.cancelWindowActive !== true) {
                     return;
@@ -663,7 +986,7 @@
 
                 setTimeout(() => {
                     persistRequestWindowFlag(r.id, false);
-                    loadRequests();
+                    renderRequests();
                 }, remainingMs);
             });
         }
@@ -693,7 +1016,7 @@
         }
 
         function cancelRequest(requestId) {
-            const requests = JSON.parse(localStorage.getItem('requests') || '[]');
+            const requests = readRequestsFromLocalStorage();
             const requestIndex = requests.findIndex((r) => Number(r.id) === Number(requestId));
 
             if (requestIndex === -1) {
@@ -714,8 +1037,9 @@
                 updatedAt: Date.now(),
                 cancelWindowActive: false
             };
+            addHistory(requests[requestIndex], 'Cancelled', 'Employee');
 
-            localStorage.setItem('requests', JSON.stringify(requests));
+            writeRequestsToLocalStorage(requests);
             showMessage('Request cancelled successfully', 'success');
             loadRequests();
         }
@@ -735,6 +1059,8 @@
             const amount = Number(details.amount || 0);
             const description = String(details.desc || '').trim();
             const title = getRequestTypeLabel(type);
+            const fileEl = document.getElementById('fileUpload');
+            const file = fileEl && fileEl.files ? fileEl.files[0] : null;
 
             if (!description) {
                 showMessage('Please fill required details for selected type', 'error');
@@ -794,13 +1120,28 @@
                 undoAvailable: false,
                 cancelWindowActive: true,
                 email: localStorage.getItem('userEmail'),
-                workflowName: matchedWorkflow ? matchedWorkflow.name : 'Default Workflow'
+                workflowName: matchedWorkflow ? matchedWorkflow.name : 'Default Workflow',
+                fileName: file ? file.name : null,
+                escalated: false
             };
 
+            addSLA(request);
+            addHistory(request, 'Submitted', 'Employee');
+            simulateEmail('submission', chosenWorkflow[0]);
+
             // Save to localStorage
-            let requests = JSON.parse(localStorage.getItem('requests') || '[]');
+            let requests = readRequestsFromLocalStorage();
             requests.push(request);
-            localStorage.setItem('requests', JSON.stringify(requests));
+            writeRequestsToLocalStorage(requests);
+            fetch(REQUESTS_API_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(request)
+            }).catch(() => {
+                // localStorage fallback remains active
+            });
             startCancelWindowTimer(request.id);
 
             showMessage('Request submitted successfully!', 'success');
@@ -814,44 +1155,121 @@
             }, 3000);
         });
 
-        // Load requests from localStorage
-        function loadRequests() {
-            const requests = JSON.parse(localStorage.getItem('requests') || '[]');
+        function renderRequests() {
+            const requests = readRequestsFromLocalStorage().map(normalizeRequest);
+            let hasEscalationChanges = false;
+            requests.forEach((r) => {
+                if (checkEscalation(r)) {
+                    hasEscalationChanges = true;
+                    addHistory(r, 'Escalated to CFO', 'System');
+                    simulateEmail('escalation', 'CFO');
+                }
+            });
+            if (hasEscalationChanges) {
+                writeRequestsToLocalStorage(requests);
+            }
+
+            const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+            updateNotifications(requests, (currentUser && currentUser.role) || 'employee');
+            renderSummary(requests, (currentUser && currentUser.role) || 'Employee');
+
             const userEmail = localStorage.getItem('userEmail');
             const userRequests = requests
                 .filter(r => r.email === userEmail)
-                .map(normalizeRequest)
                 .sort((a, b) => Number(b.createdAt) - Number(a.createdAt));
 
+            const filteredRequests = userRequests
+                .filter(r => currentFilter === 'ALL' || toStatusLabel(r.status) === currentFilter)
+                .filter(matchesSearch);
+
             const requestsList = document.getElementById('requests-list');
+
+            updateActiveFilterButtons();
             
             if (userRequests.length === 0) {
                 requestsList.innerHTML = '<div class="empty-state">No requests yet. Submit one to get started!</div>';
                 return;
             }
 
-            requestsList.innerHTML = userRequests.map(request => `
-                <div class="request-item">
-                    <div class="request-title">${escapeHtml(request.title)}</div>
+            if (filteredRequests.length === 0) {
+                requestsList.innerHTML = '<div class="empty-state">No requests match your current filter/search.</div>';
+                return;
+            }
+
+            requestsList.innerHTML = filteredRequests.map(request => `
+                <div class="request-item request-card ${normalizeStatus(request.status)}">
+                    <div class="request-title">${escapeHtml(request.title)} ${renderPriority(request.amount)}</div>
                     <div style="font-size: 13px; color: rgba(255,255,255,0.78); margin-bottom: 8px;">
                         ${escapeHtml(request.description)}
                     </div>
                     <div class="request-meta-line">Type: ${escapeHtml(getRequestTypeLabel(request.type))}</div>
                     <div class="request-meta-line">Amount: ${formatCurrency(request.amount)} | Template: ${escapeHtml(request.workflowName || 'N/A')}</div>
+                    ${request.fileName ? `<div class="request-meta-line">📎 ${escapeHtml(request.fileName)}</div>` : ''}
+                    <div class="status-message">${escapeHtml(getStatusMessage(request))}</div>
                     ${renderDynamicData(request)}
                     <div class="request-meta-line">Created ${timeAgo(request.createdAt)} | Updated ${timeAgo(request.updatedAt)}</div>
-                    <div class="request-meta-line">${statusText(request)}</div>
+                    <div class="request-meta-line">${statusText(request)}${checkSLA(request) ? '<span class="overdue">⚠ Overdue</span>' : ''}${request.escalated ? '<span class="escalated">🚨 Escalated to CFO</span>' : ''}</div>
                     ${shouldShowLongPendingSuggestion(request) ? '<div class="smart-warning">⚠️ This request is pending for long time. You may cancel if not needed.</div>' : ''}
                     ${normalizeStatus(request.status) === 'pending' ? `<div class="request-actions"><button class="cancel-btn" onclick="cancelRequest(${Number(request.id)})">Cancel</button>${request.cancelWindowActive ? '<span class="cancel-hint">Quick cancel available (25s)</span>' : ''}</div>` : ''}
                     <div class="workflow-tracker">
-                        <strong>Workflow:</strong> ${renderWorkflowTracker(request)}
+                        <strong>Workflow:</strong> ${renderWorkflowTimeline(request.workflow, request.currentLevel, request.status)}
                     </div>
                     <div class="timeline">
-                        ${renderTimeline(request)}
+                        ${renderHistory(request.history)}
                     </div>
                     <span class="request-status status-${request.status}">${request.status}</span>
                 </div>
             `).join('');
+        }
+
+        function filterRequests(status) {
+            currentFilter = status;
+            renderRequests();
+        }
+
+        function matchesSearch(request) {
+            const q = String((document.getElementById('searchBox') || {}).value || '').toLowerCase().trim();
+            if (!q) return true;
+            const title = String(request.title || '').toLowerCase();
+            const type = String(request.type || '').toLowerCase();
+            return title.includes(q) || type.includes(q);
+        }
+
+        function updateActiveFilterButtons() {
+            const buttons = document.querySelectorAll('.filter-button');
+            buttons.forEach((btn) => {
+                if (btn.dataset.filter === currentFilter) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+        }
+
+        function toStatusLabel(status) {
+            const normalized = normalizeStatus(status);
+            if (!normalized) return 'Pending';
+            return `${normalized.charAt(0).toUpperCase()}${normalized.slice(1)}`;
+        }
+
+        function getPriority(amount) {
+            if (!amount) return 'LOW';
+            if (Number(amount) > 100000) return 'HIGH';
+            if (Number(amount) > 50000) return 'MEDIUM';
+            return 'LOW';
+        }
+
+        function renderPriority(amount) {
+            const p = getPriority(amount);
+            return `<span class="priority ${p.toLowerCase()}">${p}</span>`;
+        }
+
+        function getStatusMessage(request) {
+            const status = toStatusLabel(request.status);
+            if (status === 'Approved') return 'Fully Approved';
+            if (status === 'Rejected') return 'Rejected';
+            if (status === 'Cancelled') return 'Cancelled';
+            return `Waiting for ${(request.workflow || [])[request.currentLevel] || 'next approver'}`;
         }
 
         function renderDynamicData(request) {
@@ -891,59 +1309,50 @@
             return `Pending for ${getTimeAgo(request.createdAt)}`;
         }
 
-        function renderWorkflowTracker(request) {
-            const status = normalizeStatus(request.status);
-            return request.workflow.map((level, index) => {
-                let mark = '⭕';
-                if (status === 'approved') {
-                    mark = '✔';
-                } else if (status === 'cancelled') {
-                    mark = index < request.currentLevel ? '✔' : '⏹';
-                } else if (status === 'rejected') {
-                    mark = index < request.currentLevel ? '✔' : (index === request.currentLevel ? '⏳' : '⭕');
-                } else if (index < request.currentLevel) {
-                    mark = '✔';
-                } else if (index === request.currentLevel) {
-                    mark = '⏳';
+        function renderWorkflowTimeline(workflow, currentIndex, status) {
+            const normalizedWorkflow = Array.isArray(workflow) ? workflow : [];
+            const normalizedStatus = normalizeStatus(status);
+            return normalizedWorkflow.map((role, index) => {
+                const doneByStatus = normalizedStatus === 'approved' || (normalizedStatus === 'cancelled' && index < currentIndex);
+                if (index < currentIndex || doneByStatus) {
+                    return `<span class="step done">✔ ${escapeHtml(role)}</span>`;
                 }
-                return `${mark} ${escapeHtml(level)}`;
-            }).join(' -> ');
+                if (index === currentIndex && normalizedStatus === 'pending') {
+                    return `<span class="step current">⏳ ${escapeHtml(role)}</span>`;
+                }
+                if (index === currentIndex && normalizedStatus === 'rejected') {
+                    return `<span class="step current">✕ ${escapeHtml(role)}</span>`;
+                }
+                return `<span class="step pending">○ ${escapeHtml(role)}</span>`;
+            }).join(' → ');
         }
 
-        function renderTimeline(request) {
-            const history = Array.isArray(request.history) ? request.history : [];
-            const lines = [];
-
-            history.forEach((item) => {
-                const itemStatus = normalizeStatus(item.status || 'pending');
-                lines.push(`<div class="timeline-item">${escapeHtml(item.role)} ${escapeHtml(itemStatus)}<span class="timeline-time">${timeAgo(item.time)}</span>${item.comment ? `<div>${escapeHtml(item.comment)}</div>` : ''}</div>`);
-            });
-
-            const status = normalizeStatus(request.status);
-            request.workflow.forEach((level, index) => {
-                if (index < request.currentLevel) return;
-                if (status === 'approved') return;
-                if (status === 'cancelled') return;
-                if (status === 'rejected' && index > request.currentLevel) {
-                    lines.push(`<div class="timeline-item">${escapeHtml(level)} waiting</div>`);
-                    return;
-                }
-                if (index === request.currentLevel) {
-                    const label = status === 'rejected' ? 'rejected' : 'pending';
-                    lines.push(`<div class="timeline-item">${escapeHtml(level)} ${label}</div>`);
-                } else {
-                    lines.push(`<div class="timeline-item">${escapeHtml(level)} waiting</div>`);
-                }
-            });
-
-            if (!lines.length) {
-                if (status === 'cancelled') {
-                    return '<div class="timeline-item">Request cancelled by requester.</div>';
-                }
-                return '<div class="timeline-item">No actions yet. Waiting for first approver.</div>';
+        function renderHistory(history) {
+            if (!Array.isArray(history) || history.length === 0) {
+                return '<div class="history-item">No approval history yet.</div>';
             }
+            return history.map((h) => {
+                const action = String(h.status || h.action || 'Updated');
+                const actor = h.role || h.user || 'System';
+                return `<div class="history-item">✔ ${escapeHtml(actor)} ${escapeHtml(action)} (${timeAgo(h.time)})</div>`;
+            }).join('');
+        }
 
-            return lines.join('');
+        function exportCSV() {
+            const requests = readRequestsFromLocalStorage().map(normalizeRequest);
+            const userEmail = localStorage.getItem('userEmail');
+            const ownRequests = requests.filter((r) => String(r.email || '') === String(userEmail || ''));
+            let csv = 'Title,Status,Amount\n';
+            ownRequests.forEach((r) => {
+                csv += `${String(r.title || '').replace(/,/g, ' ')},${toStatusLabel(r.status)},${Number(r.amount || 0)}\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'requests.csv';
+            a.click();
+            URL.revokeObjectURL(a.href);
         }
 
         function timeAgo(timestamp) {
