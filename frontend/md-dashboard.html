@@ -429,12 +429,19 @@
 
         // Check if user is logged in and is an approver
         function checkAuthentication() {
-            const userRole = localStorage.getItem('role') || localStorage.getItem('userRole');
+            const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+            const userRole = (currentUser && currentUser.role) || localStorage.getItem('role') || localStorage.getItem('userRole');
             currentRole = canonicalRole(userRole);
             const approverRoles = ['Accounts', 'Manager', 'CFO', 'MD'];
 
+            if (!currentUser && !userRole) {
+                window.location.href = 'login.html';
+                return;
+            }
+
             if (!approverRoles.includes(currentRole)) {
                 window.location.href = 'login.html';
+                return;
             }
 
             localStorage.setItem('role', currentRole);
@@ -443,13 +450,15 @@
 
         // Display user role
         function displayUserRole() {
+            const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+            const roleForDisplay = currentUser && currentUser.role ? canonicalRole(currentUser.role) : currentRole;
             const titleElement = document.getElementById('approver-title');
             const welcomeText = document.getElementById('welcomeText');
             if (titleElement) {
-                titleElement.textContent = `${currentRole} Dashboard`;
+                titleElement.textContent = `${roleForDisplay} Dashboard`;
             }
             if (welcomeText) {
-                welcomeText.textContent = `Welcome ${currentRole}`;
+                welcomeText.textContent = `Welcome ${roleForDisplay}`;
             }
         }
 

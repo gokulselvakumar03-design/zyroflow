@@ -461,8 +461,9 @@
                     localStorage.setItem('authToken', response.token);
                     localStorage.setItem('userRole', response.role.toLowerCase());
                     localStorage.setItem('role', response.role);
-                    localStorage.setItem('email', email);
-                    localStorage.setItem('userEmail', email);
+                    localStorage.setItem('email', response.user.email);
+                    localStorage.setItem('userEmail', response.user.email);
+                    localStorage.setItem('currentUser', JSON.stringify(response.user));
 
                     // Redirect based on role after 1.5 seconds
                     setTimeout(() => {
@@ -508,38 +509,35 @@
             errorMsg.classList.remove('show');
         }
 
-        function getRole(email) {
-            const lowerEmail = String(email || '').toLowerCase();
-            if (lowerEmail.includes('admin')) return 'Admin';
-            if (lowerEmail.includes('accounts')) return 'Accounts';
-            if (lowerEmail.includes('manager')) return 'Manager';
-            if (lowerEmail.includes('cfo')) return 'CFO';
-            if (lowerEmail.includes('md')) return 'MD';
-            return 'Employee';
-        }
+        const users = [
+            { email: 'admin@zyroflow.com', password: '123456', role: 'Admin' },
+            { email: 'accounts@zyroflow.com', password: '123456', role: 'Accounts' },
+            { email: 'manager@zyroflow.com', password: '123456', role: 'Manager' },
+            { email: 'cfo@zyroflow.com', password: '123456', role: 'CFO' },
+            { email: 'md@zyroflow.com', password: '123456', role: 'MD' },
+            { email: 'employee1@zyroflow.com', password: '123456', role: 'Employee' }
+        ];
 
         async function validateLogin(email, password) {
             // Simulate network delay
             await new Promise(resolve => setTimeout(resolve, 1500));
 
-            // Password validation (accept only "123456" for all users)
-            if (password !== '123456') {
-                return { 
-                    success: false, 
-                    message: 'Invalid email or password.' 
+            const user = users.find((u) => u.email.toLowerCase() === String(email || '').toLowerCase() && u.password === password);
+            if (!user) {
+                return {
+                    success: false,
+                    message: 'Invalid email or password.'
                 };
             }
 
-            // Determine role dynamically from email
-            const role = getRole(email);
-
             // Simulate JWT token generation
-            const token = btoa(JSON.stringify({ email, role, timestamp: Date.now() }));
+            const token = btoa(JSON.stringify({ email: user.email, role: user.role, timestamp: Date.now() }));
 
             return {
                 success: true,
                 token: token,
-                role: role,
+                role: user.role,
+                user: user,
                 message: 'Login successful'
             };
         }

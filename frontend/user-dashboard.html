@@ -430,18 +430,23 @@
 
         // Check if user is logged in
         function checkAuthentication() {
-            const userRole = localStorage.getItem('role') || localStorage.getItem('userRole');
-            if (!userRole) {
+            const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+            const userRole = (currentUser && currentUser.role) || localStorage.getItem('role') || localStorage.getItem('userRole');
+            if (!currentUser && !userRole) {
                 window.location.href = 'login.html';
             }
             if (!localStorage.getItem('role')) {
                 localStorage.setItem('role', String(userRole));
             }
+            if (!localStorage.getItem('userRole')) {
+                localStorage.setItem('userRole', String(userRole).toLowerCase());
+            }
         }
 
         // Display user role
         function displayUserRole() {
-            const userRole = normalizeRole(localStorage.getItem('role') || localStorage.getItem('userRole'));
+            const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+            const userRole = normalizeRole((currentUser && currentUser.role) || localStorage.getItem('role') || localStorage.getItem('userRole'));
             const welcomeText = document.getElementById('welcomeText');
             if (welcomeText) {
                 welcomeText.textContent = `Welcome ${userRole}`;

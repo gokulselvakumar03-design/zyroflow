@@ -263,6 +263,23 @@
         .summary-card.pending { border-left-color: #ffc107; }
         .summary-card.approved { border-left-color: #4caf50; }
         .summary-card.rejected { border-left-color: #f44336; }
+        .summary-card.cancelled { border-left-color: #9e9e9e; }
+
+        .notification {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 10px 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.95);
+        }
+
+        .avg-time-card {
+            margin-top: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border-left-color: #7c4dff;
+        }
 
         .summary-number {
             font-size: 28px;
@@ -307,6 +324,7 @@
         .badge-pending { background: rgba(255, 193, 7, 0.25); color: #ffd966; }
         .badge-approved { background: rgba(76, 175, 80, 0.25); color: #78e27b; }
         .badge-rejected { background: rgba(244, 67, 54, 0.25); color: #ff8c85; }
+        .badge-cancelled { background: rgba(158, 158, 158, 0.25); color: #eceff1; }
 
         .msg {
             display: none;
@@ -359,6 +377,10 @@
     </div>
 
     <div class="container">
+        <div class="notification">
+            You have <span id="pendingNotify">0</span> pending approvals
+        </div>
+
         <div class="layout">
             <div class="card">
                 <h2 class="card-title">Create Workflow Template</h2>
@@ -433,6 +455,14 @@
                     <div class="summary-number" id="rejected-count">0</div>
                     <div class="summary-label">Rejected</div>
                 </div>
+                <div class="summary-card cancelled">
+                    <div class="summary-number" id="cancelledCount">0</div>
+                    <div class="summary-label">Cancelled</div>
+                </div>
+            </div>
+            <div class="summary-card avg-time-card">
+                <div class="summary-number" id="avgTime">0 mins</div>
+                <div class="summary-label">Avg Approval Time</div>
             </div>
         </div>
 
@@ -460,7 +490,8 @@
         }
 
         function checkAuthentication() {
-            const role = normalizeRole(localStorage.getItem('role') || localStorage.getItem('userRole'));
+            const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+            const role = normalizeRole((currentUser && currentUser.role) || localStorage.getItem('role') || localStorage.getItem('userRole'));
             if (role !== 'admin') {
                 window.location.href = 'login.html';
             }
@@ -469,7 +500,8 @@
         }
 
         function displayUserRole() {
-            const role = localStorage.getItem('role') || localStorage.getItem('userRole') || 'admin';
+            const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+            const role = (currentUser && currentUser.role) || localStorage.getItem('role') || localStorage.getItem('userRole') || 'admin';
             const prettyRole = canonicalRole(role);
             const welcomeText = document.getElementById('welcomeText');
             if (welcomeText) {
@@ -602,11 +634,31 @@
             const pending = requests.filter((r) => normalizeStatus(r.status) === 'pending').length;
             const approved = requests.filter((r) => normalizeStatus(r.status) === 'approved').length;
             const rejected = requests.filter((r) => normalizeStatus(r.status) === 'rejected').length;
+            const cancelled = requests.filter((r) => normalizeStatus(r.status) === 'cancelled').length;
+
+            const approvedRequests = requests.filter((r) => {
+                return normalizeStatus(r.status) === 'approved' && r.createdAt && r.updatedAt;
+            });
+
+            let totalTime = 0;
+            approvedRequests.forEach((r) => {
+                const created = new Date(r.createdAt).getTime();
+                const updated = new Date(r.updatedAt).getTime();
+                if (Number.isFinite(created) && Number.isFinite(updated) && updated >= created) {
+                    totalTime += (updated - created);
+                }
+            });
+
+            const avgTimeMs = approvedRequests.length ? totalTime / approvedRequests.length : 0;
+            const avgMinutes = Math.floor(avgTimeMs / 60000);
 
             document.getElementById('total-count').textContent = total;
             document.getElementById('pending-count').textContent = pending;
             document.getElementById('approved-count').textContent = approved;
             document.getElementById('rejected-count').textContent = rejected;
+            document.getElementById('cancelledCount').textContent = cancelled;
+            document.getElementById('avgTime').textContent = `${avgMinutes} mins`;
+            document.getElementById('pendingNotify').textContent = pending;
 
             renderRequestsTable(requests);
         }
@@ -661,6 +713,7 @@
             const status = normalizeStatus(request.status);
             if (status === 'approved') return 'Completed';
             if (status === 'rejected') return 'Rejected';
+            if (status === 'cancelled') return 'Cancelled';
             const idx = Number(request.currentLevel || 0);
             const levels = Array.isArray(request.workflow) ? request.workflow : [];
             return levels[idx] || 'N/A';
