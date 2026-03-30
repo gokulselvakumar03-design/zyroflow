@@ -456,26 +456,27 @@
 
                 if (response.success) {
                     successMessage.classList.add('show');
+                    const normalizedRole = String(response.role || '').toLowerCase();
                     
                     // Store authentication data
                     localStorage.setItem('authToken', response.token);
-                    localStorage.setItem('userRole', response.role.toLowerCase());
-                    localStorage.setItem('role', response.role);
+                    localStorage.setItem('userRole', normalizedRole);
+                    localStorage.setItem('role', normalizedRole);
                     localStorage.setItem('email', response.user.email);
                     localStorage.setItem('userEmail', response.user.email);
                     localStorage.setItem('currentUser', JSON.stringify(response.user));
 
                     // Redirect based on role after 1.5 seconds
                     setTimeout(() => {
-                        if (response.role === 'Admin') {
+                        if (normalizedRole === 'admin') {
                             window.location.href = 'admin-dashboard.html';
-                        } else if (response.role === 'Accounts') {
+                        } else if (normalizedRole === 'accounts') {
                             window.location.href = 'accounts-dashboard.html';
-                        } else if (response.role === 'Manager') {
+                        } else if (normalizedRole === 'manager') {
                             window.location.href = 'manager-dashboard.html';
-                        } else if (response.role === 'CFO') {
+                        } else if (normalizedRole === 'cfo') {
                             window.location.href = 'cfo-dashboard.html';
-                        } else if (response.role === 'MD') {
+                        } else if (normalizedRole === 'md') {
                             window.location.href = 'md-dashboard.html';
                         } else {
                             window.location.href = 'user-dashboard.html';
@@ -509,37 +510,44 @@
             errorMsg.classList.remove('show');
         }
 
-        const users = [
-            { email: 'admin@zyroflow.com', password: '123456', role: 'Admin' },
-            { email: 'accounts@zyroflow.com', password: '123456', role: 'Accounts' },
-            { email: 'manager@zyroflow.com', password: '123456', role: 'Manager' },
-            { email: 'cfo@zyroflow.com', password: '123456', role: 'CFO' },
-            { email: 'md@zyroflow.com', password: '123456', role: 'MD' },
-            { email: 'employee1@zyroflow.com', password: '123456', role: 'Employee' }
-        ];
-
         async function validateLogin(email, password) {
-            // Simulate network delay
-            await new Promise(resolve => setTimeout(resolve, 1500));
+            const payload = { email, password };
+            const endpoints = ['http://localhost:4000/login', 'http://localhost:5000/login'];
+            let lastError = null;
 
-            const user = users.find((u) => u.email.toLowerCase() === String(email || '').toLowerCase() && u.password === password);
-            if (!user) {
-                return {
-                    success: false,
-                    message: 'Invalid email or password.'
-                };
+            for (const endpoint of endpoints) {
+                try {
+                    const res = await fetch(endpoint, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(payload)
+                    });
+
+                    const data = await res.json();
+                    if (!res.ok || !data.success || !data.user) {
+                        return {
+                            success: false,
+                            message: data.message || 'Invalid login'
+                        };
+                    }
+
+                    const user = data.user;
+                    const token = btoa(JSON.stringify({ email: user.email, role: user.role, timestamp: Date.now() }));
+                    return {
+                        success: true,
+                        token,
+                        role: String(user.role || ''),
+                        user,
+                        message: 'Login successful'
+                    };
+                } catch (error) {
+                    lastError = error;
+                }
             }
 
-            // Simulate JWT token generation
-            const token = btoa(JSON.stringify({ email: user.email, role: user.role, timestamp: Date.now() }));
-
-            return {
-                success: true,
-                token: token,
-                role: user.role,
-                user: user,
-                message: 'Login successful'
-            };
+            throw lastError || new Error('Login failed');
         }
     </script>
 </body>

@@ -627,6 +627,45 @@
             });
         }
 
+        async function saveRequestToBackend(request) {
+            try {
+                await fetch('http://localhost:4000/requests', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(request)
+                });
+                console.log('Saved to DB');
+            } catch (error) {
+                console.log('API failed, fallback to localStorage');
+            }
+        }
+
+        async function saveHistory(requestId, action, user) {
+            if (!requestId) return;
+            try {
+                await fetch('http://localhost:4000/history', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        request_id: requestId,
+                        action: action,
+                        performed_by: user
+                    })
+                });
+                console.log('History saved to DB');
+            } catch (error) {
+                console.log('History API failed, fallback only local history');
+            }
+        }
+
+        function getCurrentLevel(request) {
+            return Number(request.current_level ?? request.currentLevel ?? 0);
+        }
+
         function loadRequests() {
             fetch(REQUESTS_API_URL)
                 .then((res) => {
@@ -636,7 +675,21 @@
                     return res.json();
                 })
                 .then((data) => {
-                    const requests = Array.isArray(data) ? data : [];
+                    const requests = (Array.isArray(data) ? data : []).map((request) => {
+                        const parsedRequest = { ...request };
+                        if (typeof parsedRequest.workflow === 'string') {
+                            try {
+                                parsedRequest.workflow = JSON.parse(parsedRequest.workflow);
+                            } catch (error) {
+                                parsedRequest.workflow = [];
+                            }
+                        }
+                        if (!Array.isArray(parsedRequest.workflow)) {
+                            parsedRequest.workflow = [];
+                        }
+                        parsedRequest.current_level = getCurrentLevel(parsedRequest);
+                        return parsedRequest;
+                    });
                     writeRequestsToLocalStorage(requests, true);
                     renderRequests();
                 })
@@ -661,7 +714,7 @@
 
         function getRequestCurrentRole(request) {
             const workflow = Array.isArray(request.workflow) ? request.workflow : [];
-            const idx = Number(request.currentLevel || 0);
+            const idx = getCurrentLevel(request);
             return canonicalRole(request.currentRole || workflow[idx] || '');
         }
 
@@ -728,8 +781,9 @@
             if (!checkSLA(request)) return false;
             const workflow = Array.isArray(request.workflow) ? request.workflow : [];
             const cfoIndex = workflow.findIndex((role) => canonicalRole(role) === 'CFO');
-            if (cfoIndex === -1 || Number(request.currentLevel || 0) >= cfoIndex) return false;
-            request.currentLevel = cfoIndex;
+            if (cfoIndex === -1 || getCurrentLevel(request) >= cfoIndex) return false;
+            request.current_level = cfoIndex;
+            delete request.currentLevel;
             request.currentRole = 'CFO';
             request.escalated = true;
             request.updatedAt = Date.now();
@@ -931,6 +985,7 @@
             const createdAt = request.createdAt || Date.now();
             const normalizedType = request.type || 'legacy';
             const fallbackWorkflow = workflow.length ? workflow : getDefaultWorkflow(normalizedType);
+            const currentLevel = getCurrentLevel(request);
             const cancelWindowActive = request.cancelWindowActive === true && (Date.now() - Number(createdAt) < 25000);
             return {
                 ...request,
@@ -938,7 +993,7 @@
                 dynamicData: request.dynamicData || null,
                 amount: Number(request.amount || 0),
                 status: normalizeStatus(request.status || 'pending'),
-                currentLevel: Number(request.currentLevel || 0),
+                current_level: currentLevel,
                 workflow: fallbackWorkflow,
                 createdAt,
                 updatedAt: request.updatedAt || createdAt,
@@ -946,7 +1001,7 @@
                 comments: Array.isArray(request.comments) ? request.comments : [],
                 cancelWindowActive,
                 deadline: Number(request.deadline || (Number(createdAt) + (24 * 60 * 60 * 1000))),
-                currentRole: request.currentRole || fallbackWorkflow[Number(request.currentLevel || 0)] || '',
+                currentRole: request.currentRole || fallbackWorkflow[currentLevel] || '',
                 escalated: Boolean(request.escalated),
                 fileName: request.fileName || null
             };
@@ -1015,7 +1070,7 @@
             return timePassed >= 1;
         }
 
-        function cancelRequest(requestId) {
+        async function cancelRequest(requestId) {
             const requests = readRequestsFromLocalStorage();
             const requestIndex = requests.findIndex((r) => Number(r.id) === Number(requestId));
 
@@ -1038,6 +1093,7 @@
                 cancelWindowActive: false
             };
             addHistory(requests[requestIndex], 'Cancelled', 'Employee');
+            await saveHistory(requestId, 'Cancelled', localStorage.getItem('userEmail'));
 
             writeRequestsToLocalStorage(requests);
             showMessage('Request cancelled successfully', 'success');
@@ -1045,7 +1101,7 @@
         }
 
         // Handle form submission
-        document.getElementById('request-form').addEventListener('submit', (e) => {
+        document.getElementById('request-form').addEventListener('submit', async (e) => {
             e.preventDefault();
 
             const typeEl = document.getElementById('requestType');
@@ -1110,7 +1166,7 @@
                 amount,
                 dynamicData: details,
                 status: 'pending',
-                currentLevel: 0,
+                current_level: 0,
                 workflow: chosenWorkflow,
                 createdAt: Date.now(),
                 updatedAt: Date.now(),
@@ -1125,6 +1181,18 @@
                 escalated: false
             };
 
+            const requestToSend = {
+                title: request.title,
+                type: request.type,
+                description: request.description,
+                amount: request.amount,
+                status: request.status,
+                workflow: JSON.stringify(request.workflow),
+                current_level: request.current_level
+            };
+
+            await saveRequestToBackend(requestToSend);
+
             addSLA(request);
             addHistory(request, 'Submitted', 'Employee');
             simulateEmail('submission', chosenWorkflow[0]);
@@ -1133,6 +1201,7 @@
             let requests = readRequestsFromLocalStorage();
             requests.push(request);
             writeRequestsToLocalStorage(requests);
+            await saveHistory(request.id, 'Request Created', localStorage.getItem('userEmail'));
             fetch(REQUESTS_API_URL, {
                 method: 'POST',
                 headers: {
@@ -1155,16 +1224,17 @@
             }, 3000);
         });
 
-        function renderRequests() {
+        async function renderRequests() {
             const requests = readRequestsFromLocalStorage().map(normalizeRequest);
             let hasEscalationChanges = false;
-            requests.forEach((r) => {
+            for (const r of requests) {
                 if (checkEscalation(r)) {
                     hasEscalationChanges = true;
                     addHistory(r, 'Escalated to CFO', 'System');
+                    await saveHistory(r.id, 'Escalated', 'System');
                     simulateEmail('escalation', 'CFO');
                 }
-            });
+            }
             if (hasEscalationChanges) {
                 writeRequestsToLocalStorage(requests);
             }
@@ -1212,7 +1282,7 @@
                     ${shouldShowLongPendingSuggestion(request) ? '<div class="smart-warning">⚠️ This request is pending for long time. You may cancel if not needed.</div>' : ''}
                     ${normalizeStatus(request.status) === 'pending' ? `<div class="request-actions"><button class="cancel-btn" onclick="cancelRequest(${Number(request.id)})">Cancel</button>${request.cancelWindowActive ? '<span class="cancel-hint">Quick cancel available (25s)</span>' : ''}</div>` : ''}
                     <div class="workflow-tracker">
-                        <strong>Workflow:</strong> ${renderWorkflowTimeline(request.workflow, request.currentLevel, request.status)}
+                        <strong>Workflow:</strong> ${renderWorkflowTimeline(request.workflow, getCurrentLevel(request), request.status)}
                     </div>
                     <div class="timeline">
                         ${renderHistory(request.history)}
@@ -1269,7 +1339,7 @@
             if (status === 'Approved') return 'Fully Approved';
             if (status === 'Rejected') return 'Rejected';
             if (status === 'Cancelled') return 'Cancelled';
-            return `Waiting for ${(request.workflow || [])[request.currentLevel] || 'next approver'}`;
+            return `Waiting for ${(request.workflow || [])[getCurrentLevel(request)] || 'next approver'}`;
         }
 
         function renderDynamicData(request) {

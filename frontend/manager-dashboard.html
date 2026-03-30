@@ -604,6 +604,26 @@
             });
         }
 
+        async function saveHistory(requestId, action, user) {
+            if (!requestId) return;
+            try {
+                await fetch('http://localhost:4000/history', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        request_id: requestId,
+                        action: action,
+                        performed_by: user
+                    })
+                });
+                console.log('History saved to DB');
+            } catch (error) {
+                console.log('History API failed, fallback only local history');
+            }
+        }
+
         function loadRequests() {
             fetch(REQUESTS_API_URL)
                 .then((res) => {
@@ -764,16 +784,17 @@
         }
 
         // Load pending requests
-        function renderRequests() {
+        async function renderRequests() {
             const requests = readRequestsFromLocalStorage().map(normalizeRequest);
             let hasEscalationChanges = false;
-            requests.forEach((r) => {
+            for (const r of requests) {
                 if (checkEscalation(r)) {
                     hasEscalationChanges = true;
                     addHistory(r, 'Escalated to CFO', 'System');
+                    await saveHistory(r.id, 'Escalated', 'System');
                     simulateEmail('escalation', 'CFO');
                 }
-            });
+            }
             if (hasEscalationChanges) {
                 writeRequestsToLocalStorage(requests);
             }
@@ -964,7 +985,7 @@
         }
 
         // Update request status
-        function updateRequestStatus(requestId, status) {
+        async function updateRequestStatus(requestId, status) {
             const requests = readRequestsFromLocalStorage().map(normalizeRequest);
             const requestIndex = requests.findIndex(r => Number(r.id) === Number(requestId));
             if (requestIndex === -1) return;
@@ -1008,6 +1029,7 @@
             }
 
             addHistory(request, actionStatus, currentRole);
+            await saveHistory(request.id, actionStatus, currentRole);
 
             request.lastActionTime = now;
             request.lastAction = normalizeStatus(status);

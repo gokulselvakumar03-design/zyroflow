@@ -70,6 +70,33 @@ async function initializeMysqlStorage() {
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
       )
     `);
+    await db.promise().query(`
+      CREATE TABLE IF NOT EXISTS users (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(100),
+        email VARCHAR(100) UNIQUE,
+        password VARCHAR(100),
+        role VARCHAR(50)
+      )
+    `);
+    await db.promise().query(`
+      INSERT IGNORE INTO users (name, email, password, role) VALUES
+      ('Admin', 'admin@zyroflow.com', 'admin123', 'admin'),
+      ('Accounts', 'accounts@zyroflow.com', 'acc123', 'accounts'),
+      ('Manager', 'manager@zyroflow.com', 'man123', 'manager'),
+      ('CFO', 'cfo@zyroflow.com', 'cfo123', 'cfo'),
+      ('MD', 'md@zyroflow.com', 'md123', 'md'),
+      ('Employee One', 'employee1@zyroflow.com', 'emp123', 'employee')
+    `);
+    await db.promise().query(`
+      CREATE TABLE IF NOT EXISTS request_history (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        request_id INT,
+        action VARCHAR(100),
+        performed_by VARCHAR(100),
+        timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
 
     dbPool = mysql.createPool({
       host,
@@ -197,6 +224,61 @@ app.post('/requests', async (req, res) => {
   } catch (error) {
     console.error('POST /requests failed:', error.message);
     res.status(500).json({ message: 'Failed to save request' });
+  }
+});
+
+app.post('/history', async (req, res) => {
+  if (!dbPool) {
+    return res.status(500).json({ error: 'Database unavailable' });
+  }
+
+  try {
+    const { request_id, action, performed_by } = req.body || {};
+
+    await dbPool.execute(
+      `INSERT INTO request_history (request_id, action, performed_by)
+       VALUES (?, ?, ?)`,
+      [request_id ? Number(request_id) : null, action || null, performed_by || null]
+    );
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error('History insert error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/login', async (req, res) => {
+  if (!dbPool) {
+    return res.status(500).json({ success: false, error: 'Database unavailable' });
+  }
+
+  try {
+    const { email, password } = req.body || {};
+
+    const [rows] = await dbPool.execute(
+      'SELECT * FROM users WHERE email = ? AND password = ?',
+      [email, password]
+    );
+
+    if (rows.length === 0) {
+      return res.status(401).json({ success: false, message: 'Invalid credentials' });
+    }
+
+    const user = rows[0];
+
+    res.json({
+      success: true,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
+    });
+  } catch (err) {
+    console.error('Login error:', err.message);
+    res.status(500).json({ success: false, error: err.message });
   }
 });
 
