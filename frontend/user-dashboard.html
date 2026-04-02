@@ -629,21 +629,25 @@
 
         async function saveRequestToBackend(request) {
             try {
-                await fetch('http://localhost:4000/requests', {
+                const response = await fetch('http://localhost:4000/requests', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify(request)
                 });
+                const data = await response.json();
                 console.log('Saved to DB');
-            } catch (error) {
-                console.log('API failed, fallback to localStorage');
+                return data && data.id ? Number(data.id) : null;
+            } catch (err) {
+                console.log('API failed, using localStorage fallback');
+                return null;
             }
         }
 
         async function saveHistory(requestId, action, user) {
-            if (!requestId) return;
+            const normalizedRequestId = Number(requestId);
+            if (!Number.isInteger(normalizedRequestId) || normalizedRequestId <= 0) return;
             try {
                 await fetch('http://localhost:4000/history', {
                     method: 'POST',
@@ -651,7 +655,7 @@
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        request_id: requestId,
+                        request_id: normalizedRequestId,
                         action: action,
                         performed_by: user
                     })
@@ -659,6 +663,17 @@
                 console.log('History saved to DB');
             } catch (error) {
                 console.log('History API failed, fallback only local history');
+            }
+        }
+
+        async function fetchApprovalSteps(requestId) {
+            try {
+                const res = await fetch(`http://localhost:4000/approvals/${requestId}`);
+                if (!res.ok) return [];
+                const steps = await res.json();
+                return Array.isArray(steps) ? steps : [];
+            } catch (err) {
+                return [];
             }
         }
 
@@ -674,7 +689,7 @@
                     }
                     return res.json();
                 })
-                .then((data) => {
+                .then(async (data) => {
                     const requests = (Array.isArray(data) ? data : []).map((request) => {
                         const parsedRequest = { ...request };
                         if (typeof parsedRequest.workflow === 'string') {
@@ -690,7 +705,21 @@
                         parsedRequest.current_level = getCurrentLevel(parsedRequest);
                         return parsedRequest;
                     });
-                    writeRequestsToLocalStorage(requests, true);
+                    const withSteps = await Promise.all(requests.map(async (request) => {
+                        const steps = await fetchApprovalSteps(request.id);
+                        if (!steps.length) return request;
+                        const workflow = steps.map((step) => step.approver_role);
+                        const pending = steps.find((step) => String(step.status || '').toLowerCase() === 'pending');
+                        const hasRejected = steps.some((step) => String(step.status || '').toLowerCase() === 'rejected');
+                        const allApproved = steps.length > 0 && steps.every((step) => String(step.status || '').toLowerCase() === 'approved');
+                        return {
+                            ...request,
+                            workflow,
+                            current_level: pending ? Number(pending.step || 0) : Math.max(0, workflow.length - 1),
+                            status: hasRejected ? 'rejected' : (allApproved ? 'approved' : (request.status || 'pending'))
+                        };
+                    }));
+                    writeRequestsToLocalStorage(withSteps, true);
                     renderRequests();
                 })
                 .catch(() => {
@@ -1191,7 +1220,10 @@
                 current_level: request.current_level
             };
 
-            await saveRequestToBackend(requestToSend);
+            const dbRequestId = await saveRequestToBackend(requestToSend);
+            if (dbRequestId) {
+                request.id = dbRequestId;
+            }
 
             addSLA(request);
             addHistory(request, 'Submitted', 'Employee');
@@ -1200,17 +1232,10 @@
             // Save to localStorage
             let requests = readRequestsFromLocalStorage();
             requests.push(request);
-            writeRequestsToLocalStorage(requests);
-            await saveHistory(request.id, 'Request Created', localStorage.getItem('userEmail'));
-            fetch(REQUESTS_API_URL, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(request)
-            }).catch(() => {
-                // localStorage fallback remains active
-            });
+            writeRequestsToLocalStorage(requests, true);
+            if (dbRequestId) {
+                await saveHistory(dbRequestId, 'Request Created', localStorage.getItem('userEmail'));
+            }
             startCancelWindowTimer(request.id);
 
             showMessage('Request submitted successfully!', 'success');

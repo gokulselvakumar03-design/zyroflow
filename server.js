@@ -54,22 +54,41 @@ async function initializeMysqlStorage() {
 
     await db.promise().query('CREATE DATABASE IF NOT EXISTS zyroflow');
     await db.promise().query('USE zyroflow');
-    await db.promise().query(`
-      CREATE TABLE IF NOT EXISTS workflow_requests (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        title VARCHAR(255),
-        type VARCHAR(100),
-        amount INT,
-        status VARCHAR(50),
-        currentRole VARCHAR(50),
-        createdAt BIGINT,
-        deadline BIGINT,
-        escalated BOOLEAN DEFAULT FALSE,
-        fileName VARCHAR(255),
-        payload JSON NULL,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-      )
-    `);
+    try {
+      console.log('Initializing DB...');
+      await db.promise().execute('SET FOREIGN_KEY_CHECKS = 0');
+      await db.promise().execute('DROP TABLE IF EXISTS approvals');
+      await db.promise().execute('DROP TABLE IF EXISTS workflow_requests');
+      await db.promise().execute('SET FOREIGN_KEY_CHECKS = 1');
+      await db.promise().execute(`
+        CREATE TABLE workflow_requests (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          title VARCHAR(255),
+          type VARCHAR(100),
+          description TEXT,
+          amount INT,
+          status VARCHAR(50),
+          workflow TEXT,
+          current_level INT DEFAULT 0,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+      await db.promise().execute(`
+        CREATE TABLE IF NOT EXISTS approvals (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          request_id INT,
+          approver_role VARCHAR(50),
+          step INT,
+          status VARCHAR(50),
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (request_id) REFERENCES workflow_requests(id)
+        )
+      `);
+      console.log('Table ready');
+    } catch (err) {
+      await db.promise().execute('SET FOREIGN_KEY_CHECKS = 1');
+      console.error('DB Init Error:', err.message);
+    }
     await db.promise().query(`
       CREATE TABLE IF NOT EXISTS users (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -91,12 +110,13 @@ async function initializeMysqlStorage() {
     await db.promise().query(`
       CREATE TABLE IF NOT EXISTS request_history (
         id INT AUTO_INCREMENT PRIMARY KEY,
-        request_id INT,
+        request_id BIGINT,
         action VARCHAR(100),
         performed_by VARCHAR(100),
         timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
+    await db.promise().query('ALTER TABLE request_history MODIFY request_id BIGINT');
 
     dbPool = mysql.createPool({
       host,
@@ -130,36 +150,27 @@ app.get('/requests', async (req, res) => {
   try {
     const [rows] = await dbPool.query('SELECT * FROM workflow_requests ORDER BY id DESC');
     const data = rows.map((row) => {
-      if (row.payload) {
+      let workflow = [];
+      if (typeof row.workflow === 'string') {
         try {
-          return typeof row.payload === 'string' ? JSON.parse(row.payload) : row.payload;
+          workflow = JSON.parse(row.workflow);
         } catch (e) {
-          return {
-            id: row.id,
-            title: row.title,
-            type: row.type,
-            amount: Number(row.amount || 0),
-            status: row.status,
-            currentRole: row.currentRole,
-            createdAt: row.createdAt,
-            deadline: row.deadline,
-            escalated: Boolean(row.escalated),
-            fileName: row.fileName,
-          };
+          workflow = [];
         }
+      } else if (Array.isArray(row.workflow)) {
+        workflow = row.workflow;
       }
 
       return {
         id: row.id,
         title: row.title,
         type: row.type,
+        description: row.description,
         amount: Number(row.amount || 0),
         status: row.status,
-        currentRole: row.currentRole,
-        createdAt: row.createdAt,
-        deadline: row.deadline,
-        escalated: Boolean(row.escalated),
-        fileName: row.fileName,
+        workflow,
+        current_level: Number(row.current_level || 0),
+        createdAt: row.created_at ? new Date(row.created_at).getTime() : Date.now(),
       };
     });
 
@@ -172,58 +183,132 @@ app.get('/requests', async (req, res) => {
 
 app.post('/requests', async (req, res) => {
   if (!dbPool) {
-    return res.status(500).json({ message: 'Database unavailable' });
+    return res.status(500).json({ success: false, error: 'Database unavailable' });
   }
 
   try {
-    const request = req.body || {};
     const {
-      id,
       title,
       type,
+      description,
       amount,
       status,
-      currentRole,
-      createdAt,
-      deadline,
-      escalated,
-      fileName,
-    } = request;
+      workflow,
+      current_level
+    } = req.body || {};
 
-    await dbPool.query(
+    const [result] = await dbPool.execute(
       `INSERT INTO workflow_requests
-       (id, title, type, amount, status, currentRole, createdAt, deadline, escalated, fileName, payload)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-       ON DUPLICATE KEY UPDATE
-         title = VALUES(title),
-         type = VALUES(type),
-         amount = VALUES(amount),
-         status = VALUES(status),
-         currentRole = VALUES(currentRole),
-         createdAt = VALUES(createdAt),
-         deadline = VALUES(deadline),
-         escalated = VALUES(escalated),
-         fileName = VALUES(fileName),
-         payload = VALUES(payload)`,
+       (title, type, description, amount, status, workflow, current_level)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
       [
-        id ? Number(id) : null,
         title || null,
         type || null,
+        description || null,
         Number(amount || 0),
-        status || null,
-        currentRole || null,
-        createdAt ? Number(createdAt) : null,
-        deadline ? Number(deadline) : null,
-        Boolean(escalated),
-        fileName || null,
-        JSON.stringify(request),
+        status || 'pending',
+        workflow || '[]',
+        Number(current_level || 0)
       ]
     );
 
-    res.status(201).json({ success: true });
-  } catch (error) {
-    console.error('POST /requests failed:', error.message);
-    res.status(500).json({ message: 'Failed to save request' });
+    const requestId = result.insertId;
+    let workflowArray = [];
+    try {
+      workflowArray = JSON.parse(workflow || '[]');
+    } catch (e) {
+      workflowArray = [];
+    }
+
+    for (let i = 0; i < workflowArray.length; i += 1) {
+      await dbPool.execute(
+        `INSERT INTO approvals (request_id, approver_role, step, status)
+         VALUES (?, ?, ?, ?)`,
+        [
+          requestId,
+          workflowArray[i],
+          i,
+          i === 0 ? 'pending' : 'waiting'
+        ]
+      );
+    }
+
+    res.json({ success: true, id: requestId });
+  } catch (err) {
+    console.error('INSERT ERROR:', err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.get('/approvals/:requestId', async (req, res) => {
+  if (!dbPool) {
+    return res.status(500).json({ error: 'Database unavailable' });
+  }
+
+  try {
+    const { requestId } = req.params;
+
+    const [rows] = await dbPool.execute(
+      `SELECT approver_role, step, status
+       FROM approvals
+       WHERE request_id = ?
+       ORDER BY step ASC`,
+      [requestId]
+    );
+
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/approve', async (req, res) => {
+  if (!dbPool) {
+    return res.status(500).json({ error: 'Database unavailable' });
+  }
+
+  try {
+    const { requestId, role, action } = req.body || {};
+
+    await dbPool.execute(
+      `UPDATE approvals
+       SET status = ?
+       WHERE request_id = ? AND approver_role = ?`,
+      [action, requestId, role]
+    );
+
+    if (action === 'approved') {
+      await dbPool.execute(
+        `UPDATE approvals
+         SET status = 'pending'
+         WHERE request_id = ? AND step = (
+           SELECT step + 1 FROM (
+             SELECT step FROM approvals
+             WHERE request_id = ? AND approver_role = ?
+           ) as temp
+         )`,
+        [requestId, requestId, role]
+      );
+
+      const [pendingRows] = await dbPool.execute(
+        `SELECT step FROM approvals WHERE request_id = ? AND status = 'pending' ORDER BY step ASC LIMIT 1`,
+        [requestId]
+      );
+
+      if (pendingRows.length === 0) {
+        await dbPool.execute('UPDATE workflow_requests SET status = ?, current_level = current_level WHERE id = ?', ['approved', requestId]);
+      } else {
+        await dbPool.execute('UPDATE workflow_requests SET status = ?, current_level = ? WHERE id = ?', ['pending', Number(pendingRows[0].step || 0), requestId]);
+      }
+    }
+
+    if (action === 'rejected') {
+      await dbPool.execute('UPDATE workflow_requests SET status = ? WHERE id = ?', ['rejected', requestId]);
+    }
+
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 
@@ -234,11 +319,23 @@ app.post('/history', async (req, res) => {
 
   try {
     const { request_id, action, performed_by } = req.body || {};
+    const normalizedRequestId = Number(request_id);
+    if (!Number.isInteger(normalizedRequestId) || normalizedRequestId <= 0) {
+      return res.status(400).json({ error: 'Invalid request_id' });
+    }
+
+    const [requestRows] = await dbPool.execute(
+      'SELECT id FROM workflow_requests WHERE id = ? LIMIT 1',
+      [normalizedRequestId]
+    );
+    if (!Array.isArray(requestRows) || requestRows.length === 0) {
+      return res.status(400).json({ error: 'request_id must be a valid workflow_requests.id' });
+    }
 
     await dbPool.execute(
       `INSERT INTO request_history (request_id, action, performed_by)
        VALUES (?, ?, ?)`,
-      [request_id ? Number(request_id) : null, action || null, performed_by || null]
+      [Number.isFinite(normalizedRequestId) ? normalizedRequestId : null, action || null, performed_by || null]
     );
 
     res.json({ success: true });
@@ -273,8 +370,8 @@ app.post('/login', async (req, res) => {
         id: user.id,
         name: user.name,
         email: user.email,
-        role: user.role,
-      },
+        role: user.role
+      }
     });
   } catch (err) {
     console.error('Login error:', err.message);
@@ -309,4 +406,11 @@ initializeMysqlStorage().finally(() => {
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
   });
+
+  const LOGIN_PORT = 4000;
+  if (PORT !== LOGIN_PORT) {
+    app.listen(LOGIN_PORT, () => {
+      console.log(`Login/API mirror running on port ${LOGIN_PORT}`);
+    });
+  }
 });

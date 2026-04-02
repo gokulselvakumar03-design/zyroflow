@@ -451,7 +451,6 @@
             loginBtn.innerHTML = '<span class="spinner"></span>Signing in...';
 
             try {
-                // Simulate API call with 1.5 second delay
                 const response = await validateLogin(email, password);
 
                 if (response.success) {
@@ -511,43 +510,33 @@
         }
 
         async function validateLogin(email, password) {
-            const payload = { email, password };
-            const endpoints = ['http://localhost:4000/login', 'http://localhost:5000/login'];
-            let lastError = null;
+            const res = await fetch('http://localhost:4000/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ email, password })
+            });
 
-            for (const endpoint of endpoints) {
-                try {
-                    const res = await fetch(endpoint, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(payload)
-                    });
+            const data = await res.json();
 
-                    const data = await res.json();
-                    if (!res.ok || !data.success || !data.user) {
-                        return {
-                            success: false,
-                            message: data.message || 'Invalid login'
-                        };
-                    }
-
-                    const user = data.user;
-                    const token = btoa(JSON.stringify({ email: user.email, role: user.role, timestamp: Date.now() }));
-                    return {
-                        success: true,
-                        token,
-                        role: String(user.role || ''),
-                        user,
-                        message: 'Login successful'
-                    };
-                } catch (error) {
-                    lastError = error;
-                }
+            if (!res.ok || !data.success || !data.user) {
+                return {
+                    success: false,
+                    message: data.message || 'Invalid login'
+                };
             }
 
-            throw lastError || new Error('Login failed');
+            const user = data.user;
+            const token = btoa(JSON.stringify({ email: user.email, role: user.role, timestamp: Date.now() }));
+
+            return {
+                success: true,
+                token,
+                role: String(user.role || ''),
+                user,
+                message: 'Login successful'
+            };
         }
     </script>
 </body>

@@ -605,7 +605,8 @@
         }
 
         async function saveHistory(requestId, action, user) {
-            if (!requestId) return;
+            const normalizedRequestId = Number(requestId);
+            if (!Number.isInteger(normalizedRequestId) || normalizedRequestId <= 0) return;
             try {
                 await fetch('http://localhost:4000/history', {
                     method: 'POST',
@@ -613,7 +614,7 @@
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        request_id: requestId,
+                        request_id: normalizedRequestId,
                         action: action,
                         performed_by: user
                     })
@@ -621,6 +622,24 @@
                 console.log('History saved to DB');
             } catch (error) {
                 console.log('History API failed, fallback only local history');
+            }
+        }
+
+        async function saveApprovalAction(requestId, role, action) {
+            try {
+                await fetch('http://localhost:4000/approve', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        requestId,
+                        role,
+                        action
+                    })
+                });
+            } catch (err) {
+                // Keep existing local flow as fallback.
             }
         }
 
@@ -1030,6 +1049,7 @@
 
             addHistory(request, actionStatus, currentRole);
             await saveHistory(request.id, actionStatus, currentRole);
+            await saveApprovalAction(request.id, currentRole, normalizeStatus(status));
 
             request.lastActionTime = now;
             request.lastAction = normalizeStatus(status);
