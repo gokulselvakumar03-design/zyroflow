@@ -7,6 +7,7 @@ const rulesRoutes = require('./routes/rulesRoutes');
 const requestsRoutes = require('./routes/requestsRoutes');
 const approvalsRoutes = require('./routes/approvalsRoutes');
 const trackRoutes = require('./routes/trackRoutes');
+const profileRoutes = require('./routes/profileRoutes');
 
 dotenv.config();
 
@@ -95,17 +96,32 @@ async function initializeMysqlStorage() {
         name VARCHAR(100),
         email VARCHAR(100) UNIQUE,
         password VARCHAR(100),
-        role VARCHAR(50)
+        role VARCHAR(50),
+        phone VARCHAR(20),
+        department VARCHAR(100),
+        profile_image VARCHAR(255)
       )
     `);
+    // ensure new profile columns exist for older databases
+    try {
+      await db.promise().query("ALTER TABLE users ADD COLUMN IF NOT EXISTS phone VARCHAR(20)");
+      await db.promise().query("ALTER TABLE users ADD COLUMN IF NOT EXISTS department VARCHAR(100)");
+      await db.promise().query("ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_image VARCHAR(255)");
+    } catch (e) {
+      // Some MySQL versions do not support IF NOT EXISTS for ADD COLUMN - attempt guarded add
+      try { await db.promise().query("ALTER TABLE users ADD COLUMN phone VARCHAR(20)"); } catch (e2) {}
+      try { await db.promise().query("ALTER TABLE users ADD COLUMN department VARCHAR(100)"); } catch (e2) {}
+      try { await db.promise().query("ALTER TABLE users ADD COLUMN profile_image VARCHAR(255)"); } catch (e2) {}
+    }
+
     await db.promise().query(`
-      INSERT IGNORE INTO users (name, email, password, role) VALUES
-      ('Admin', 'admin@zyroflow.com', 'admin123', 'admin'),
-      ('Accounts', 'accounts@zyroflow.com', 'acc123', 'accounts'),
-      ('Manager', 'manager@zyroflow.com', 'man123', 'manager'),
-      ('CFO', 'cfo@zyroflow.com', 'cfo123', 'cfo'),
-      ('MD', 'md@zyroflow.com', 'md123', 'md'),
-      ('Employee One', 'employee1@zyroflow.com', 'emp123', 'employee')
+      INSERT IGNORE INTO users (name, email, password, role, phone, department, profile_image) VALUES
+      ('Admin', 'admin@zyroflow.com', 'admin123', 'admin', '', '', ''),
+      ('Accounts', 'accounts@zyroflow.com', 'acc123', 'accounts', '', '', ''),
+      ('Manager', 'manager@zyroflow.com', 'man123', 'manager', '', '', ''),
+      ('CFO', 'cfo@zyroflow.com', 'cfo123', 'cfo', '', '', ''),
+      ('MD', 'md@zyroflow.com', 'md123', 'md', '', '', ''),
+      ('Employee One', 'employee1@zyroflow.com', 'emp123', 'employee', '', '', '')
     `);
     await db.promise().query(`
       CREATE TABLE IF NOT EXISTS request_history (
@@ -141,6 +157,7 @@ app.use('/api/rules', rulesRoutes);
 app.use('/api/requests', requestsRoutes);
 app.use('/api', approvalsRoutes); // /api/approve, /api/reject, /api/pending-approvals
 app.use('/api', trackRoutes); // /api/track/:requestId
+app.use('/api', profileRoutes); // /api/profile, /api/change-password
 
 app.get('/requests', async (req, res) => {
   if (!dbPool) {

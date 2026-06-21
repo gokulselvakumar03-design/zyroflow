@@ -55,19 +55,22 @@ id INT AUTO_INCREMENT PRIMARY KEY,
 name VARCHAR(100),
 email VARCHAR(100) UNIQUE,
 password VARCHAR(100),
-role VARCHAR(50)
+role VARCHAR(50),
+phone VARCHAR(20),
+department VARCHAR(100),
+profile_image VARCHAR(255)
 );
 
 ALTER TABLE workflow_requests
 MODIFY id INT AUTO_INCREMENT;
 
-INSERT IGNORE INTO users (name, email, password, role) VALUES
-('Admin', 'admin@zyroflow.com', 'admin123', 'admin'),
-('Accounts', 'accounts@zyroflow.com', 'acc123', 'accounts'),
-('Manager', 'manager@zyroflow.com', 'man123', 'manager'),
-('CFO', 'cfo@zyroflow.com', 'cfo123', 'cfo'),
-('MD', 'md@zyroflow.com', 'md123', 'md'),
-('Employee One', 'employee1@zyroflow.com', 'emp123', 'employee');
+INSERT IGNORE INTO users (name, email, password, role, phone, department, profile_image) VALUES
+('Admin', 'admin@zyroflow.com', 'admin123', 'admin', '', '', ''),
+('Accounts', 'accounts@zyroflow.com', 'acc123', 'accounts', '', '', ''),
+('Manager', 'manager@zyroflow.com', 'man123', 'manager', '', '', ''),
+('CFO', 'cfo@zyroflow.com', 'cfo123', 'cfo', '', '', ''),
+('MD', 'md@zyroflow.com', 'md123', 'md', '', '', ''),
+('Employee One', 'employee1@zyroflow.com', 'emp123', 'employee', '', '', '');
 
 SELECT * FROM users;
 SELECT * FROM workflow_requests;

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>User Profile</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .profile-card { max-width:800px; margin:40px auto; padding:24px; background: rgba(255,255,255,0.06); border-radius:12px; backdrop-filter: blur(8px); border:1px solid rgba(255,255,255,0.12); }
+    .profile-row { display:flex; gap:16px; align-items:center; }
+    .avatar { width:96px; height:96px; border-radius:12px; background:rgba(255,255,255,0.06); display:flex; align-items:center; justify-content:center; font-weight:700; color:#fff; }
+    .field { margin-bottom:12px; }
+    .label { color: #e6eef8; font-size:12px; margin-bottom:6px; display:block; }
+    .input { width:100%; padding:10px 12px; border-radius:8px; border:1px solid rgba(255,255,255,0.12); background:rgba(255,255,255,0.03); color:#fff; }
+    .row { display:flex; gap:12px; }
+    .btn { padding:10px 14px; border-radius:8px; border:none; cursor:pointer; background:linear-gradient(135deg,#667eea,#764ba2); color:#fff; font-weight:700; }
+    .muted { color:rgba(255,255,255,0.7); font-size:13px; }
+  </style>
+</head>
+<body>
+  <div class="profile-card">
+    <h2 style="color:#fff;margin-bottom:12px;">My Profile</h2>
+    <div class="profile-row">
+      <div class="avatar" id="avatar">U</div>
+      <div style="flex:1;">
+        <div class="field">
+          <label class="label">Name</label>
+          <input id="name" class="input" />
+        </div>
+        <div class="field">
+          <label class="label">Email (read-only)</label>
+          <input id="email" class="input" readonly />
+        </div>
+        <div class="field">
+          <label class="label">Role (read-only)</label>
+          <input id="role" class="input" readonly />
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:18px;">
+      <div class="field">
+        <label class="label">Phone</label>
+        <input id="phone" class="input" placeholder="+1-555-555-5555" />
+      </div>
+      <div class="field">
+        <label class="label">Department</label>
+        <input id="department" class="input" placeholder="Department" />
+      </div>
+      <div class="field">
+        <label class="label">Profile Image URL</label>
+        <input id="profile_image" class="input" placeholder="https://..." />
+      </div>
+
+      <div style="display:flex; gap:12px; margin-top:12px;">
+        <button id="saveBtn" class="btn">Save Profile</button>
+        <button id="changePwdBtn" class="btn" style="background:linear-gradient(135deg,#ff7a7a,#ffb677);">Change Password</button>
+      </div>
+    </div>
+
+    <hr style="border:none; border-top:1px solid rgba(255,255,255,0.06); margin:18px 0;" />
+
+    <div>
+      <h3 style="color:#fff;margin-bottom:10px;">Change Password</h3>
+      <div class="field">
+        <label class="label">Current Password</label>
+        <input id="oldPassword" type="password" class="input" />
+      </div>
+      <div class="field">
+        <label class="label">New Password</label>
+        <input id="newPassword" type="password" class="input" />
+      </div>
+      <div class="field">
+        <label class="label">Confirm New Password</label>
+        <input id="confirmPassword" type="password" class="input" />
+      </div>
+      <div style="margin-top:12px;"><button id="doChangePwd" class="btn" style="background:linear-gradient(135deg,#10b981,#06b6d4);">Update Password</button></div>
+      <div id="msg" class="muted" style="margin-top:10px;"></div>
+    </div>
+  </div>
+
+  <script src="profile.js"></script>
+</body>
+</html>
