@@ -13,37 +13,667 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #4facfe 75%, #00f2fe 100%);
-            background-size: 400% 400%;
-            animation: gradient-shift 15s ease infinite;
+            background: radial-gradient(circle at top left, rgba(18, 40, 90, 0.95), transparent 32%),
+                        radial-gradient(circle at bottom right, rgba(7, 20, 50, 0.95), transparent 26%),
+                        #071328;
             min-height: 100vh;
-            padding: 20px;
+            padding: 24px;
+            color: #E7F1FF;
         }
 
-        @keyframes gradient-shift {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
+        .page-shell {
+            max-width: 1300px;
+            margin: 0 auto;
         }
 
-        /* Top Navigation */
+        .page-title {
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            color: white;
+        }
+
+        .page-subtitle {
+            color: rgba(231, 241, 255, 0.72);
+            font-size: 14px;
+            margin-top: 6px;
+            max-width: 760px;
+            line-height: 1.7;
+        }
+
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 18px rgba(96, 232, 255, 0.08); }
+            50% { box-shadow: 0 0 28px rgba(96, 232, 255, 0.18); }
+        }
+
         .navbar {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 18px;
             margin-bottom: 30px;
-            padding: 20px 30px;
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            padding: 22px 24px;
+            background: rgba(9, 24, 63, 0.86);
+            border-radius: 22px;
+            border: 1px solid rgba(65, 138, 255, 0.12);
+            box-shadow: 0 22px 70px rgba(0, 13, 44, 0.22);
         }
 
         .navbar-title {
-            color: white;
+            color: #EFF7FF;
             font-size: 24px;
+            font-weight: 800;
+        }
+
+        .navbar-user {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .notification {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            color: #E5F4FF;
+            padding: 10px 14px;
+            border-radius: 999px;
+            border: 1px solid rgba(96, 232, 255, 0.15);
+            background: rgba(96, 232, 255, 0.08);
+            font-size: 13px;
             font-weight: 700;
+        }
+
+        .notif-count {
+            min-width: 24px;
+            height: 24px;
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: #60E8FF;
+            color: #0f172a;
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .user-info {
+            text-align: right;
+            color: rgba(231, 241, 255, 0.88);
+            font-size: 13px;
+        }
+
+        .user-role {
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+        }
+
+        .welcome-text {
+            font-size: 13px;
+            color: rgba(231, 241, 255, 0.9);
+        }
+
+        .role-summary {
+            color: rgba(231, 241, 255, 0.68);
+            font-size: 12px;
+            margin-top: 4px;
+        }
+
+        .logout-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 18px;
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            background: linear-gradient(135deg, rgba(255, 107, 107, 0.85), rgba(255, 78, 81, 0.95));
+            color: #ffffff;
+            cursor: pointer;
+            font-weight: 700;
+            transition: transform .2s ease, box-shadow .2s ease;
+        }
+
+        .logout-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 12px 32px rgba(255, 78, 81, 0.22);
+        }
+
+        .container {
+            width: 100%;
+            margin: 0 auto;
+            display: grid;
+            gap: 22px;
+        }
+
+        .card {
+            background: rgba(11, 27, 68, 0.86);
+            border-radius: 24px;
+            border: 1px solid rgba(97, 206, 255, 0.11);
+            box-shadow: 0 28px 60px rgba(0, 0, 0, 0.20);
+            padding: 28px;
+        }
+
+        .card-title {
+            color: #FFFFFF;
+            font-size: 20px;
+            font-weight: 800;
+            margin-bottom: 18px;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            gap: 18px;
+        }
+
+        .summary-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 20px;
+            padding: 22px;
+            min-height: 118px;
+            display: grid;
+            gap: 10px;
+        }
+
+        .summary-number {
+            color: #FFFFFF;
+            font-size: 34px;
+            font-weight: 800;
+            line-height: 1;
+        }
+
+        .summary-label {
+            font-size: 12px;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: rgba(231, 241, 255, 0.68);
+        }
+
+        .quick-action-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .quick-action-button {
+            min-width: 170px;
+            padding: 14px 18px;
+            border-radius: 14px;
+            border: 1px solid rgba(96, 232, 255, 0.18);
+            background: rgba(255, 255, 255, 0.08);
+            color: white;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform .2s ease, background .2s ease;
+        }
+
+        .quick-action-button:hover {
+            background: rgba(255, 255, 255, 0.14);
+            transform: translateY(-1px);
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1.9fr 1fr;
+            gap: 22px;
+        }
+
+        .insights-grid {
+            display: grid;
+            gap: 18px;
+        }
+
+        .insight-card {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 18px;
+            padding: 18px;
+            display: grid;
+            gap: 10px;
+        }
+
+        .insight-title {
+            color: #A5F3FC;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.14em;
+            font-weight: 700;
+        }
+
+        .insight-value {
+            color: #FFFFFF;
+            font-size: 26px;
+            font-weight: 800;
+        }
+
+        .insight-note {
+            color: rgba(231, 241, 255, 0.66);
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .action-center-list {
+            display: grid;
+            gap: 14px;
+        }
+
+        .action-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+            gap: 12px;
+            align-items: center;
+            padding: 14px 16px;
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: rgba(231, 241, 255, 0.92);
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .action-row.header {
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: rgba(231, 241, 255, 0.72);
+            border-color: rgba(96, 232, 255, 0.12);
+        }
+
+        .action-row .action-name {
+            grid-column: span 1;
+        }
+
+        .action-row .action-buttons {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+            grid-column: span 2;
+        }
+
+        .card .small-pill {
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #FFF;
+        }
+
+        .pill-pending { background: rgba(255, 152, 0, 0.18); }
+        .pill-approve { background: rgba(52, 211, 153, 0.17); }
+        .pill-reject { background: rgba(248, 113, 113, 0.18); }
+
+        .chart-card {
+            display: grid;
+            gap: 18px;
+        }
+
+        .chart-wrapper {
+            padding: 14px;
+            border-radius: 22px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .timeline-list {
+            display: grid;
+            gap: 14px;
+        }
+
+        .timeline-item {
+            padding: 16px 18px;
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border-left: 4px solid rgba(96, 232, 255, 0.55);
+        }
+
+        .timeline-item span {
+            display: block;
+            color: rgba(231, 241, 255, 0.88);
+            font-size: 13px;
+        }
+
+        .timeline-item .timeline-title {
+            color: #FFFFFF;
+            font-weight: 700;
+            margin-bottom: 6px;
+            font-size: 14px;
+        }
+
+        .summary-divider {
+            height: 1px;
+            margin: 18px 0;
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .controls-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 14px;
+            flex-wrap: wrap;
+            margin-bottom: 18px;
+        }
+
+        .export-button {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            color: white;
+            border-radius: 14px;
+            padding: 12px 16px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .export-button:hover {
+            background: rgba(255, 255, 255, 0.14);
+        }
+
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 999px;
+            font-size: 11px;
+            letter-spacing: 0.06em;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .status-pending { background: rgba(255, 159, 67, 0.16); color: #FFB84D; }
+        .status-approved { background: rgba(52, 211, 153, 0.16); color: #9AE6B4; }
+        .status-rejected { background: rgba(248, 113, 113, 0.16); color: #FCA5A5; }
+        .status-escalated { background: rgba(245, 158, 11, 0.16); color: #FACC15; }
+
+        .empty-state {
+            text-align: center;
+            color: rgba(231, 241, 255, 0.68);
+            padding: 48px 20px;
+        }
+
+        .message {
+            padding: 14px 18px;
+            border-radius: 14px;
+            margin-bottom: 18px;
+            display: none;
+            font-weight: 700;
+        }
+
+        .message.show {
+            display: block;
+        }
+
+        .success {
+            background: rgba(56, 189, 248, 0.12);
+            color: #BAE6FD;
+            border: 1px solid rgba(56, 189, 248, 0.18);
+        }
+
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 200;
+            background: rgba(7, 15, 32, 0.82);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .modal-card {
+            width: min(980px, 100%);
+            max-height: min(90vh, 860px);
+            overflow: auto;
+            background: rgba(10, 22, 52, 0.98);
+            border: 1px solid rgba(96, 232, 255, 0.15);
+            border-radius: 24px;
+            padding: 28px;
+            box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 16px;
+            margin-bottom: 18px;
+        }
+
+        .modal-title {
+            color: #FFFFFF;
+            font-size: 20px;
+            font-weight: 800;
+        }
+
+        .modal-subtitle {
+            color: rgba(231, 241, 255, 0.72);
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .modal-close {
+            border: none;
+            background: transparent;
+            color: #FFFFFF;
+            font-size: 24px;
+            line-height: 1;
+            cursor: pointer;
+        }
+
+        .modal-body {
+            display: grid;
+            gap: 18px;
+        }
+
+        .modal-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 18px;
+        }
+
+        .modal-section {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 18px;
+            padding: 18px;
+        }
+
+        .modal-body p,
+        .modal-body li {
+            color: rgba(231, 241, 255, 0.82);
+        }
+
+        .modal-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+        }
+
+        .modal-table th,
+        .modal-table td {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 10px 12px;
+            font-size: 13px;
+            color: rgba(231, 241, 255, 0.88);
+        }
+
+        .modal-table th {
+            color: rgba(231, 241, 255, 0.68);
+            text-align: left;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .modal-action-button {
+            padding: 12px 18px;
+            color: white;
+            border: 1px solid rgba(96, 232, 255, 0.22);
+            background: rgba(96, 232, 255, 0.1);
+            border-radius: 14px;
+            cursor: pointer;
+            font-weight: 700;
+        }
+
+        .modal-action-button:hover {
+            background: rgba(96, 232, 255, 0.16);
+        }
+
+        .modal-empty {
+            color: rgba(231, 241, 255, 0.74);
+            padding: 26px 18px;
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.04);
+            text-align: center;
+        }
+
+        .warning {
+            background: rgba(251, 191, 36, 0.12);
+            color: #FACC15;
+            border: 1px solid rgba(251, 191, 36, 0.2);
+        }
+
+        .filter-button,
+        .search-box {
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            background: rgba(255, 255, 255, 0.06);
+            color: #E7F1FF;
+        }
+
+        .filter-button {
+            padding: 10px 14px;
+            font-size: 12px;
+            min-width: 120px;
+        }
+
+        .filter-button.active,
+        .filter-button:hover {
+            background: rgba(255, 255, 255, 0.14);
+            border-color: rgba(255, 255, 255, 0.25);
+        }
+
+        .search-box {
+            padding: 12px 16px;
+            width: 100%;
+            min-width: 240px;
+        }
+
+        .action-button,
+        .quick-action-button,
+        .export-button,
+        .logout-button {
+            font-family: inherit;
+        }
+
+        .chart-card canvas {
+            width: 100% !important;
+            height: auto !important;
+        }
+
+        /* Team Performance sizing */
+        .team-performance {
+            max-height: 400px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .team-chart-wrapper {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .team-chart-container {
+            width: 100%;
+            height: 300px; /* target height between 280-320px */
+            max-height: 320px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px;
+        }
+
+        .team-chart-canvas {
+            max-height: 100%;
+            max-width: 100%;
+            width: auto !important;
+            height: auto !important;
+        }
+
+        .team-summary {
+            display: flex;
+            gap: 24px;
+            justify-content: center;
+            align-items: baseline;
+            width: 100%;
+            padding: 8px 12px 4px 12px;
+        }
+
+        .team-stat {
+            text-align: center;
+        }
+
+        .team-stat-label {
+            color: rgba(231, 241, 255, 0.72);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            font-weight: 700;
+        }
+
+        .team-stat-value {
+            color: #FFFFFF;
+            font-size: 18px;
+            font-weight: 900;
+            margin-top: 4px;
+        }
+
+        @media (max-width: 1120px) {
+            .summary-grid,
+            .dashboard-grid,
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .navbar {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .navbar-user {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .action-row {
+                grid-template-columns: 1fr;
+                text-align: left;
+            }
+
+            .action-row .action-buttons {
+                justify-content: flex-start;
+            }
         }
 
         .navbar-user {
@@ -509,69 +1139,186 @@
     </style>
 </head>
 <body>
-    <!-- Navigation Bar -->
-    <div class="navbar">
-        <div class="navbar-title" id="approver-title">Approver Dashboard</div>
-        <div class="navbar-user">
-            <div class="notification">🔔 <span id="notifCount" class="notif-count">0</span></div>
-            <div class="user-info">
-                <div id="welcomeText" class="welcome-text"></div>
-                <div id="roleSummary" class="role-summary"></div>
+    <div class="page-shell">
+        <div class="navbar">
+            <div>
+                <div class="page-title">Manager Approval Center</div>
+                <div class="page-subtitle">Monitor critical approvals, act on high-impact requests, and stay ahead of escalations with clear enterprise-grade insights.</div>
+                <div id="message" class="message"></div>
             </div>
-            <a href="profile.html" class="profile-link" style="color:white; margin-right:8px; font-weight:600; text-decoration:none;">Profile</a>
-            <button class="logout-button" onclick="logout()">Logout</button>
+            <div class="navbar-user">
+                <div class="notification">🔔 <span id="notifCount" class="notif-count">0</span></div>
+                <div class="user-info">
+                    <div id="welcomeText" class="welcome-text"></div>
+                    <div id="roleSummary" class="role-summary"></div>
+                </div>
+                <a href="profile.html" class="export-button">Profile</a>
+                <button class="logout-button" onclick="logout()">Logout</button>
+            </div>
         </div>
-    </div>
 
-    <!-- Main Content -->
-    <div class="container">
-        <!-- Summary -->
-        <div class="card">
-            <div class="summary">
+        <section class="card">
+            <div class="summary-grid">
                 <div class="summary-card">
-                    <div class="summary-number" id="pending-count">0</div>
                     <div class="summary-label">Pending Approvals</div>
+                    <div class="summary-number" id="pending-count">0</div>
                 </div>
                 <div class="summary-card">
-                    <div class="summary-number" id="approved-count">0</div>
-                    <div class="summary-label">Approved</div>
+                    <div class="summary-label">High Priority Requests</div>
+                    <div class="summary-number" id="highPriority-count">0</div>
                 </div>
                 <div class="summary-card">
-                    <div class="summary-number" id="rejected-count">0</div>
-                    <div class="summary-label">Rejected</div>
+                    <div class="summary-label">Approval Rate</div>
+                    <div class="summary-number" id="approvalRate-count">0%</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-label">Average Decision Time</div>
+                    <div class="summary-number" id="avgDecisionTime-count">0 mins</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-label">Escalated Requests</div>
+                    <div class="summary-number" id="escalated-count">0</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="card">
+            <div class="controls-row">
+                <div>
+                    <div class="card-title">Manager Action Center</div>
+                    <div class="role-summary">Top 5 requests awaiting your review</div>
+                </div>
+                <div class="quick-action-row">
+                    <button class="quick-action-button" onclick="openExportModal()">Export Decisions</button>
+                    <button class="quick-action-button" onclick="openApprovalHistoryModal()">Approval History</button>
+                    <button class="quick-action-button" onclick="openTeamAnalyticsModal()">Team Analytics</button>
+                </div>
+            </div>
+            <div class="action-center-list" id="action-center-list"></div>
+        </section>
+
+        <div class="dashboard-grid">
+            <section class="card chart-card">
+                <div class="card-title">Approval Trend</div>
+                <div class="chart-wrapper"><canvas id="trendChart"></canvas></div>
+            </section>
+            <section class="card insights-grid">
+                <div class="insight-card">
+                    <div class="insight-title">Overdue Requests</div>
+                    <div class="insight-value" id="insight-overdue">0</div>
+                    <div class="insight-note">Requests that exceeded SLA and require immediate attention.</div>
+                </div>
+                <div class="insight-card">
+                    <div class="insight-title">Approval Speed</div>
+                    <div class="insight-value" id="insight-speed">0 hrs</div>
+                    <div class="insight-note">Average time taken to complete approvals.</div>
+                </div>
+                <div class="insight-card">
+                    <div class="insight-title">Department Activity</div>
+                    <div class="insight-value" id="insight-dept">Finance</div>
+                    <div class="insight-note">Most active department by request volume.</div>
+                </div>
+                <div class="insight-card">
+                    <div class="insight-title">Escalation Alerts</div>
+                    <div class="insight-value" id="insight-escalations">0</div>
+                    <div class="insight-note">Requests that have moved to the next approval tier.</div>
+                </div>
+            </section>
+        </div>
+
+        <section class="card">
+            <div class="card-title">Recent Decisions</div>
+            <div class="timeline-list" id="recent-decisions-list">
+                <div class="empty-state">No decisions recorded yet.</div>
+            </div>
+        </section>
+
+        <section class="card chart-card team-performance">
+            <div class="card-title">Team Performance</div>
+            <div class="team-chart-wrapper">
+                <div class="chart-wrapper team-chart-container">
+                    <canvas id="teamChart" class="team-chart-canvas"></canvas>
+                </div>
+                <div class="team-summary" id="teamSummary">
+                    <div class="team-stat">
+                        <div class="team-stat-label">Approved</div>
+                        <div class="team-stat-value" id="team-approved">0</div>
+                    </div>
+                    <div class="team-stat">
+                        <div class="team-stat-label">Pending</div>
+                        <div class="team-stat-value" id="team-pending">0</div>
+                    </div>
+                    <div class="team-stat">
+                        <div class="team-stat-label">Rejected</div>
+                        <div class="team-stat-value" id="team-rejected">0</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <div id="requests-list" class="requests-list" style="display:none;"></div>
+
+        <div id="exportModal" class="modal-overlay">
+            <div class="modal-card">
+                <div class="modal-header">
+                    <div>
+                        <div class="modal-title">Export Decisions</div>
+                        <div class="modal-subtitle">Download the current approval dataset for offline review.</div>
+                    </div>
+                    <button class="modal-close" onclick="closeModal('exportModal')">×</button>
+                </div>
+                <div class="modal-body">
+                    <div class="modal-section">
+                        <h3>Export summary</h3>
+                        <p>Export all workflow requests with current status and amount. The export includes approved, rejected and pending decisions.</p>
+                        <div class="modal-actions">
+                            <button class="modal-action-button" onclick="downloadCSV()">Download CSV</button>
+                            <button class="modal-action-button" onclick="closeModal('exportModal')">Close</button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Pending Requests -->
-        <div class="card">
-            <div class="toolbar-row">
-                <h2 class="card-title" style="margin-bottom: 0;">Pending Approvals</h2>
-                <button class="export-button" onclick="exportCSV()">Export</button>
-            </div>
-            <div id="message" class="message"></div>
-            <div class="list-controls">
-                <div class="filters">
-                    <button class="filter-button active" data-filter="ALL" onclick="filterRequests('ALL')">All</button>
-                    <button class="filter-button" data-filter="Pending" onclick="filterRequests('Pending')">Pending</button>
-                    <button class="filter-button" data-filter="Approved" onclick="filterRequests('Approved')">Approved</button>
-                    <button class="filter-button" data-filter="Rejected" onclick="filterRequests('Rejected')">Rejected</button>
-                    <button class="filter-button" data-filter="Cancelled" onclick="filterRequests('Cancelled')">Cancelled</button>
+        <div id="approvalHistoryModal" class="modal-overlay">
+            <div class="modal-card">
+                <div class="modal-header">
+                    <div>
+                        <div class="modal-title">Approval History</div>
+                        <div class="modal-subtitle">Review the manager approval and rejection timeline for completed workflow actions.</div>
+                    </div>
+                    <button class="modal-close" onclick="closeModal('approvalHistoryModal')">×</button>
                 </div>
-                <input type="text" id="searchBox" class="search-box" placeholder="Search requests..." oninput="renderRequests()" />
+                <div class="modal-body" id="approvalHistoryBody">
+                    <div class="modal-empty">Loading history…</div>
+                </div>
             </div>
-            <div class="requests-list" id="requests-list">
-                <div class="empty-state">No pending requests</div>
+        </div>
+
+        <div id="teamAnalyticsModal" class="modal-overlay">
+            <div class="modal-card">
+                <div class="modal-header">
+                    <div>
+                        <div class="modal-title">Team Analytics</div>
+                        <div class="modal-subtitle">A quick view of workflow volume and department activity across the team.</div>
+                    </div>
+                    <button class="modal-close" onclick="closeModal('teamAnalyticsModal')">×</button>
+                </div>
+                <div class="modal-body" id="teamAnalyticsBody">
+                    <div class="modal-empty">Loading analytics…</div>
+                </div>
             </div>
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         let currentRole = 'Manager';
         let currentFilter = 'ALL';
         const UNDO_WINDOW_MS = 25000;
         const undoTimers = new Map();
         const REQUESTS_API_URL = 'http://localhost:5000/requests';
+        let trendChartInstance = null;
+        let teamChartInstance = null;
 
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
@@ -821,6 +1568,11 @@
 
             updateNotifications(requests, currentRole);
             renderSummary(requests, currentRole);
+            renderActionCenter(requests);
+            renderInsights(requests);
+            renderTrendChart(requests);
+            renderTeamChart(requests);
+            renderRecentDecisions(requests);
             const pendingRequests = requests.filter((r) => {
                 if (normalizeStatus(r.status) !== 'pending') return false;
                 const currentStepRole = canonicalRole((r.workflow || [])[r.currentLevel]);
@@ -942,6 +1694,22 @@
             if (Number(amount) > 100000) return 'HIGH';
             if (Number(amount) > 50000) return 'MEDIUM';
             return 'LOW';
+        }
+
+        function getDepartmentLabel(request) {
+            if (!request) return 'Unknown';
+            const dept = request.department || request.team || request.departmentName || request.departmentLabel || request.departmentName;
+            if (dept) return String(dept).trim();
+            if (request.payload) {
+                try {
+                    const payload = typeof request.payload === 'string' ? JSON.parse(request.payload) : request.payload;
+                    if (payload && payload.department) return String(payload.department).trim();
+                } catch (e) {
+                    // ignore invalid payload
+                }
+            }
+            if (request.type) return String(request.type).trim();
+            return 'Unknown';
         }
 
         function renderPriority(amount) {
@@ -1195,12 +1963,263 @@
         // Update summary counts
         function updateSummary(requests, assignedPending) {
             const pending = assignedPending.length;
+            const highPriority = requests.filter(r => getPriority(r.amount) === 'HIGH').length;
             const approved = requests.filter(r => normalizeStatus(r.status) === 'approved').length;
-            const rejected = requests.filter(r => normalizeStatus(r.status) === 'rejected').length;
+            const total = requests.length;
+            const approvalRate = total ? Math.round((approved / total) * 100) : 0;
+            const escalated = requests.filter(r => Boolean(r.escalated)).length;
+            const approvedRequests = requests.filter(r => normalizeStatus(r.status) === 'approved' && Number(r.createdAt) && Number(r.updatedAt));
+            let avgMinutes = 0;
+            if (approvedRequests.length) {
+                let totalTime = 0;
+                approvedRequests.forEach((r) => {
+                    const created = Number(r.createdAt);
+                    const updated = Number(r.updatedAt);
+                    if (Number.isFinite(created) && Number.isFinite(updated) && updated >= created) {
+                        totalTime += updated - created;
+                    }
+                });
+                avgMinutes = Math.round((totalTime / approvedRequests.length) / 60000);
+            }
 
             document.getElementById('pending-count').textContent = pending;
-            document.getElementById('approved-count').textContent = approved;
-            document.getElementById('rejected-count').textContent = rejected;
+            document.getElementById('highPriority-count').textContent = highPriority;
+            document.getElementById('approvalRate-count').textContent = `${approvalRate}%`;
+            document.getElementById('avgDecisionTime-count').textContent = `${avgMinutes} mins`;
+            document.getElementById('escalated-count').textContent = escalated;
+        }
+
+        function renderActionCenter(requests) {
+            const listEl = document.getElementById('action-center-list');
+            if (!listEl) return;
+
+            const pendingRequests = requests.filter((r) => {
+                if (normalizeStatus(r.status) !== 'pending') return false;
+                const currentStepRole = canonicalRole((r.workflow || [])[r.currentLevel]);
+                return currentStepRole === currentRole;
+            });
+
+            const topRequests = pendingRequests
+                .sort((a, b) => Number(a.createdAt || 0) - Number(b.createdAt || 0))
+                .slice(0, 5);
+
+            if (!topRequests.length) {
+                listEl.innerHTML = '<div class="empty-state">No approvals pending for your role at the moment.</div>';
+                return;
+            }
+
+            listEl.innerHTML = `
+                <div class="action-row header">
+                    <div>Employee</div>
+                    <div>Request Type</div>
+                    <div>Amount</div>
+                    <div>Waiting Time</div>
+                    <div>Actions</div>
+                </div>
+                ${topRequests.map((request) => {
+                    const employee = escapeHtml(request.createdBy || request.created_by || request.email || 'Employee');
+                    const requestType = escapeHtml(request.type || request.requestType || request.category || 'General');
+                    const amount = formatCurrency(request.amount);
+                    const waitingTime = timeAgo(request.createdAt);
+                    return `
+                        <div class="action-row">
+                            <div class="action-name">${employee}</div>
+                            <div>${requestType}</div>
+                            <div>${amount}</div>
+                            <div>${waitingTime}</div>
+                            <div class="action-buttons">
+                                <button class="action-button approve-button" onclick="approveRequest(${request.id})">Approve</button>
+                                <button class="action-button reject-button" onclick="rejectRequest(${request.id})">Reject</button>
+                                <button class="action-button export-button" onclick="viewRequest(${request.id})">View</button>
+                            </div>
+                        </div>
+                    `;
+                }).join('')}
+            `;
+        }
+
+        function renderInsights(requests) {
+            const overdue = requests.filter((r) => normalizeStatus(r.status) === 'pending' && checkSLA(r)).length;
+            const escalations = requests.filter((r) => Boolean(r.escalated)).length;
+            const approvedRequests = requests.filter((r) => normalizeStatus(r.status) === 'approved' && Number(r.createdAt) && Number(r.updatedAt));
+            let avgHours = 0;
+            if (approvedRequests.length) {
+                let totalHours = 0;
+                approvedRequests.forEach((r) => {
+                    const created = Number(r.createdAt);
+                    const updated = Number(r.updatedAt);
+                    if (Number.isFinite(created) && Number.isFinite(updated) && updated >= created) {
+                        totalHours += (updated - created) / 3600000;
+                    }
+                });
+                avgHours = Math.round((totalHours / approvedRequests.length) * 10) / 10;
+            }
+
+            const departmentCounts = {};
+            requests.forEach((r) => {
+                const dept = String(r.department || r.team || r.departmentName || 'Unknown').trim() || 'Unknown';
+                departmentCounts[dept] = (departmentCounts[dept] || 0) + 1;
+            });
+            const topDepartment = Object.keys(departmentCounts).sort((a, b) => departmentCounts[b] - departmentCounts[a])[0] || 'N/A';
+
+            const overdueEl = document.getElementById('insight-overdue');
+            const speedEl = document.getElementById('insight-speed');
+            const deptEl = document.getElementById('insight-dept');
+            const escalationsEl = document.getElementById('insight-escalations');
+            if (overdueEl) overdueEl.textContent = overdue;
+            if (speedEl) speedEl.textContent = `${avgHours} hrs`;
+            if (deptEl) deptEl.textContent = escapeHtml(topDepartment);
+            if (escalationsEl) escalationsEl.textContent = escalations;
+        }
+
+        function renderTrendChart(requests) {
+            const ctx = document.getElementById('trendChart');
+            if (!ctx) return;
+            const countsByDay = {};
+            const labels = [];
+            for (let i = 6; i >= 0; i -= 1) {
+                const date = new Date();
+                date.setDate(date.getDate() - i);
+                const key = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                labels.push(key);
+                countsByDay[key] = 0;
+            }
+            requests.forEach((r) => {
+                const dateKey = new Date(Number(r.createdAt || Date.now())).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                if (Object.prototype.hasOwnProperty.call(countsByDay, dateKey)) {
+                    countsByDay[dateKey] += 1;
+                }
+            });
+            const data = labels.map((label) => countsByDay[label] || 0);
+            if (!trendChartInstance) {
+                trendChartInstance = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels,
+                        datasets: [{
+                            label: 'Requests',
+                            data,
+                            borderColor: '#60E8FF',
+                            backgroundColor: 'rgba(96, 232, 255, 0.15)',
+                            pointRadius: 4,
+                            pointBackgroundColor: '#60E8FF',
+                            tension: 0.35,
+                            fill: true,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                        },
+                        scales: {
+                            x: { ticks: { color: 'rgba(231, 241, 255, 0.72)' }, grid: { color: 'rgba(255,255,255,0.08)' } },
+                            y: { ticks: { color: 'rgba(231, 241, 255, 0.72)' }, grid: { color: 'rgba(255,255,255,0.08)' }, beginAtZero: true }
+                        }
+                    }
+                });
+            } else {
+                trendChartInstance.data.labels = labels;
+                trendChartInstance.data.datasets[0].data = data;
+                trendChartInstance.update();
+            }
+        }
+
+        function renderTeamChart(requests) {
+            const ctx = document.getElementById('teamChart');
+            if (!ctx) return;
+            const statusCounts = { approved: 0, rejected: 0, pending: 0 };
+            requests.forEach((r) => {
+                const status = normalizeStatus(r.status);
+                if (Object.prototype.hasOwnProperty.call(statusCounts, status)) {
+                    statusCounts[status] += 1;
+                } else {
+                    statusCounts.pending += 1;
+                }
+            });
+            const labels = ['Approved', 'Rejected', 'Pending'];
+            const data = [statusCounts.approved, statusCounts.rejected, statusCounts.pending];
+
+            // Update summary stats below chart
+            const approvedEl = document.getElementById('team-approved');
+            const pendingEl = document.getElementById('team-pending');
+            const rejectedEl = document.getElementById('team-rejected');
+            if (approvedEl) approvedEl.textContent = String(statusCounts.approved);
+            if (pendingEl) pendingEl.textContent = String(statusCounts.pending);
+            if (rejectedEl) rejectedEl.textContent = String(statusCounts.rejected);
+
+            if (!teamChartInstance) {
+                teamChartInstance = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels,
+                        datasets: [{
+                            label: 'Status Distribution',
+                            data,
+                            backgroundColor: ['rgba(52, 211, 153, 0.85)', 'rgba(248, 113, 113, 0.85)', 'rgba(255, 159, 67, 0.85)'],
+                            borderColor: ['#32D599', '#F87171', '#FF9F43'],
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        aspectRatio: 1.6,
+                        plugins: {
+                            legend: {
+                                position: 'right',
+                                labels: { color: 'rgba(231, 241, 255, 0.9)' }
+                            },
+                            tooltip: { enabled: true }
+                        }
+                    }
+                });
+            } else {
+                teamChartInstance.data.labels = labels;
+                teamChartInstance.data.datasets[0].data = data;
+                teamChartInstance.update();
+            }
+        }
+
+        function renderRecentDecisions(requests) {
+            const list = document.getElementById('recent-decisions-list');
+            if (!list) return;
+            const entries = [];
+            requests.forEach((request) => {
+                (request.history || []).forEach((entry) => {
+                    const actor = String(entry.role || entry.user || 'System');
+                    const action = String(entry.status || entry.action || 'Updated');
+                    const normalizedAction = action.toLowerCase();
+                    if (actor !== currentRole || (normalizedAction !== 'approved' && normalizedAction !== 'rejected' && normalizedAction !== 'approved' && normalizedAction !== 'rejected')) {
+                        return;
+                    }
+                    const time = Number(entry.time || request.updatedAt || Date.now());
+                    entries.push({
+                        time,
+                        title: request.title || request.type || 'Request',
+                        action,
+                        actor
+                    });
+                });
+            });
+            entries.sort((a, b) => b.time - a.time);
+            if (!entries.length) {
+                list.innerHTML = '<div class="empty-state">No manager decisions recorded yet.</div>';
+                return;
+            }
+            list.innerHTML = entries.slice(0, 5).map((entry) => `
+                <div class="timeline-item">
+                    <div class="timeline-title">${escapeHtml(entry.title)}</div>
+                    <span>${escapeHtml(entry.action)} by ${escapeHtml(entry.actor)}</span>
+                    <span>${timeAgo(entry.time)}</span>
+                </div>
+            `).join('');
+        }
+
+        function viewRequest(requestId) {
+            localStorage.setItem('selectedRequestId', String(requestId));
+            window.location.href = `approvals.html?requestId=${requestId}`;
         }
 
         function timeAgo(timestamp) {
@@ -1219,6 +2238,10 @@
         }
 
         function exportCSV() {
+            downloadCSV();
+        }
+
+        function downloadCSV() {
             const requests = readRequestsFromLocalStorage().map(normalizeRequest);
             let csv = 'Title,Status,Amount\n';
             requests.forEach((r) => {
@@ -1231,6 +2254,132 @@
             a.download = 'requests.csv';
             a.click();
             URL.revokeObjectURL(a.href);
+        }
+
+        function openModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.classList.add('show');
+            }
+        }
+
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.classList.remove('show');
+            }
+        }
+
+        function openExportModal() {
+            openModal('exportModal');
+        }
+
+        function openApprovalHistoryModal() {
+            const body = document.getElementById('approvalHistoryBody');
+            if (!body) return;
+            const requests = readRequestsFromLocalStorage().map(normalizeRequest);
+            const historyEntries = [];
+            requests.forEach((request) => {
+                (request.history || []).forEach((entry) => {
+                    const actor = String(entry.role || entry.user || 'System');
+                    const action = String(entry.status || entry.action || 'Updated');
+                    const normalizedAction = action.toLowerCase();
+                    if (actor !== currentRole || (normalizedAction !== 'approved' && normalizedAction !== 'rejected')) {
+                        return;
+                    }
+                    historyEntries.push({
+                        time: Number(entry.time || request.updatedAt || Date.now()),
+                        requestId: request.id,
+                        title: request.title || request.type || 'Request',
+                        action,
+                        actor
+                    });
+                });
+            });
+            historyEntries.sort((a, b) => b.time - a.time);
+            if (!historyEntries.length) {
+                body.innerHTML = '<div class="modal-empty">No manager approval history available yet.</div>';
+            } else {
+                body.innerHTML = `
+                    <div class="modal-grid">
+                        <div class="modal-section">
+                            <table class="modal-table">
+                                <thead>
+                                    <tr><th>Request</th><th>Action</th><th>Time</th></tr>
+                                </thead>
+                                <tbody>
+                                    ${historyEntries.slice(0, 10).map((entry) => `
+                                        <tr>
+                                            <td>${escapeHtml(entry.title)} #${escapeHtml(String(entry.requestId))}</td>
+                                            <td>${escapeHtml(entry.action)}</td>
+                                            <td>${escapeHtml(new Date(entry.time).toLocaleString())}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="modal-section">
+                            <h3>Recent Manager Decisions</h3>
+                            <p>Showing the latest 10 manager actions from current stored workflow history.</p>
+                            <p>Total actions: ${historyEntries.length}</p>
+                        </div>
+                    </div>
+                `;
+            }
+            openModal('approvalHistoryModal');
+        }
+
+        function openTeamAnalyticsModal() {
+            const body = document.getElementById('teamAnalyticsBody');
+            if (!body) return;
+            const requests = readRequestsFromLocalStorage().map(normalizeRequest);
+            const statusCounts = { approved: 0, rejected: 0, pending: 0 };
+            const departmentCounts = {};
+            const roleCounts = {};
+            requests.forEach((request) => {
+                const status = normalizeStatus(request.status);
+                if (Object.prototype.hasOwnProperty.call(statusCounts, status)) {
+                    statusCounts[status] += 1;
+                } else {
+                    statusCounts.pending += 1;
+                }
+                const department = getDepartmentLabel(request) || 'Unknown';
+                departmentCounts[department] = (departmentCounts[department] || 0) + 1;
+                const role = getRequestCurrentRole(request) || 'Unknown';
+                roleCounts[role] = (roleCounts[role] || 0) + 1;
+            });
+            const topDepartments = Object.entries(departmentCounts)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 4);
+            body.innerHTML = `
+                <div class="modal-grid">
+                    <div class="modal-section">
+                        <h3>Workflow Status</h3>
+                        <ul>
+                            <li>Approved: ${statusCounts.approved}</li>
+                            <li>Rejected: ${statusCounts.rejected}</li>
+                            <li>Pending: ${statusCounts.pending}</li>
+                        </ul>
+                    </div>
+                    <div class="modal-section">
+                        <h3>Top Departments</h3>
+                        <ul>
+                            ${topDepartments.map(([label, count]) => `<li>${escapeHtml(label)}: ${count}</li>`).join('')}
+                        </ul>
+                    </div>
+                    <div class="modal-section">
+                        <h3>Approver Load</h3>
+                        <ul>
+                            ${Object.entries(roleCounts).sort((a, b) => b[1] - a[1]).map(([role, count]) => `<li>${escapeHtml(role)}: ${count}</li>`).join('')}
+                        </ul>
+                    </div>
+                    <div class="modal-section">
+                        <h3>Data Notes</h3>
+                        <p>Analytics derived from current workflow request rows and stored history.</p>
+                    </div>
+                </div>
+            `;
+            openModal('teamAnalyticsModal');
         }
 
         // Show message

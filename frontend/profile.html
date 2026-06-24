@@ -3,82 +3,155 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>User Profile</title>
+  <title>Profile | ZyroFlow Admin</title>
   <link rel="stylesheet" href="style.css">
   <style>
-    .profile-card { max-width:800px; margin:40px auto; padding:24px; background: rgba(255,255,255,0.06); border-radius:12px; backdrop-filter: blur(8px); border:1px solid rgba(255,255,255,0.12); }
-    .profile-row { display:flex; gap:16px; align-items:center; }
-    .avatar { width:96px; height:96px; border-radius:12px; background:rgba(255,255,255,0.06); display:flex; align-items:center; justify-content:center; font-weight:700; color:#fff; }
-    .field { margin-bottom:12px; }
-    .label { color: #e6eef8; font-size:12px; margin-bottom:6px; display:block; }
-    .input { width:100%; padding:10px 12px; border-radius:8px; border:1px solid rgba(255,255,255,0.12); background:rgba(255,255,255,0.03); color:#fff; }
-    .row { display:flex; gap:12px; }
-    .btn { padding:10px 14px; border-radius:8px; border:none; cursor:pointer; background:linear-gradient(135deg,#667eea,#764ba2); color:#fff; font-weight:700; }
-    .muted { color:rgba(255,255,255,0.7); font-size:13px; }
+    :root { color-scheme: dark; }
+    body { margin: 0; min-height: 100vh; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: radial-gradient(circle at top left, rgba(59,130,246,0.16), transparent 32%), radial-gradient(circle at bottom right, rgba(30,77,161,0.14), transparent 26%), #081B45; color: #E5F4FF; }
+    button, input, select { font: inherit; }
+    .page-shell { max-width: 1200px; margin: 0 auto; padding: 24px 22px 34px; }
+    .profile-header { display: flex; align-items: center; justify-content: space-between; gap: 18px; flex-wrap: wrap; margin-bottom: 28px; }
+    .page-title { margin: 0; font-size: 32px; font-weight: 900; letter-spacing: -0.03em; }
+    .page-subtitle { margin: 8px 0 0; color: rgba(229,244,255,0.72); font-size: 14px; max-width: 620px; line-height: 1.65; }
+    .back-link { display: inline-flex; align-items: center; gap: 10px; padding: 11px 18px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.16); background: rgba(255,255,255,0.04); color: #ffffff; text-decoration: none; transition: background .2s ease, transform .2s ease; }
+    .back-link:hover { background: rgba(255,255,255,0.08); transform: translateY(-1px); }
+    .profile-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 22px; }
+    .card { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 24px; backdrop-filter: blur(18px); box-shadow: 0 24px 60px rgba(0,0,0,0.2); padding: 28px; }
+    .section-title { color: #60E8FF; font-size: 15px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.4px; margin: 0 0 18px; }
+    .profile-top { display: flex; gap: 22px; align-items: center; margin-bottom: 28px; flex-wrap: wrap; }
+    .profile-avatar { width: 116px; height: 116px; min-width: 116px; border-radius: 50%; background: linear-gradient(135deg, rgba(96,232,255,0.16), rgba(59,130,246,0.18)); color: #ffffff; display: grid; place-items: center; font-size: 40px; font-weight: 800; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.12); overflow: hidden; }
+    .profile-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .profile-meta { flex: 1; min-width: 240px; display: grid; gap: 12px; }
+    .profile-name { margin: 0; font-size: 24px; font-weight: 800; }
+    .profile-role-badge { display: inline-flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.04); color: #D9F8FF; font-size: 13px; font-weight: 700; }
+    .profile-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 8px; }
+    .btn { border: none; border-radius: 14px; cursor: pointer; transition: transform .2s ease, box-shadow .2s ease, background .2s ease; font-weight: 700; color: #fff; }
+    .btn:hover { transform: translateY(-1px); }
+    .btn-primary { background: linear-gradient(135deg, #1E4DA1, #60E8FF); box-shadow: 0 12px 24px rgba(30,77,161,0.28); padding: 14px 22px; }
+    .btn-secondary { background: rgba(255,255,255,0.08); color: #F8FBFF; padding: 14px 22px; border: 1px solid rgba(255,255,255,0.12); }
+    .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+    .form-group { display: grid; gap: 8px; }
+    .form-label { color: rgba(229,244,255,0.72); font-size: 13px; font-weight: 600; letter-spacing: 0.02em; }
+    .form-input, .form-select { width: 100%; border-radius: 16px; border: 1px solid rgba(255,255,255,0.14); background: rgba(255,255,255,0.04); color: #F8FBFF; padding: 14px 16px; outline: none; min-height: 46px; }
+    .form-input:focus, .form-select:focus { border-color: rgba(96,232,255,0.5); box-shadow: 0 0 0 4px rgba(96,232,255,0.1); }
+    .form-input[readonly] { background: rgba(255,255,255,0.03); color: rgba(255,255,255,0.78); }
+    .profile-note { color: rgba(229,244,255,0.68); font-size: 13px; margin-top: 4px; max-width: 560px; }
+    .account-info, .security-info { display: grid; gap: 16px; }
+    .info-row, .security-row { display: flex; justify-content: space-between; gap: 12px; align-items: center; padding: 16px 18px; border-radius: 18px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); }
+    .info-row span:first-child, .security-row span:first-child { color: rgba(229,244,255,0.72); font-size: 13px; font-weight: 600; }
+    .info-row span:last-child, .security-row span:last-child { color: #F8FBFF; font-size: 14px; font-weight: 700; }
+    .password-strength { display: grid; gap: 10px; margin-top: 10px; }
+    .strength-track { width: 100%; height: 10px; border-radius: 999px; background: rgba(255,255,255,0.08); overflow: hidden; }
+    .strength-fill { height: 100%; width: 0%; border-radius: 999px; background: linear-gradient(90deg, #f97316, #60e8ff); transition: width .3s ease; }
+    .strength-label { display: flex; justify-content: space-between; align-items: center; color: rgba(229,244,255,0.72); font-size: 13px; }
+    .profile-message { margin-top: 18px; padding: 12px 16px; border-radius: 16px; border: 1px solid transparent; background: rgba(255,255,255,0.05); color: #E5F4FF; font-size: 13px; }
+    .profile-message.ok { border-color: rgba(96,232,255,0.28); background: rgba(96,232,255,0.08); }
+    .profile-message.err { border-color: rgba(248,113,113,0.28); background: rgba(248,113,113,0.08); }
+    .hidden { display: none !important; }
+    @media (max-width: 920px) {
+      .profile-grid { grid-template-columns: 1fr; }
+      .form-grid { grid-template-columns: 1fr; }
+      .profile-top { justify-content: center; text-align: center; }
+      .profile-meta { align-items: center; }
+      .profile-actions { justify-content: center; }
+      .info-row, .security-row { flex-direction: column; align-items: flex-start; }
+    }
   </style>
 </head>
 <body>
-  <div class="profile-card">
-    <h2 style="color:#fff;margin-bottom:12px;">My Profile</h2>
-    <div class="profile-row">
-      <div class="avatar" id="avatar">U</div>
-      <div style="flex:1;">
-        <div class="field">
-          <label class="label">Name</label>
-          <input id="name" class="input" />
+  <div class="page-shell">
+    <header class="profile-header">
+      <div>
+        <h1 class="page-title">Profile</h1>
+        <p class="page-subtitle">Manage your ZyroFlow account details, security settings, and activity from one polished dashboard experience.</p>
+      </div>
+      <a class="back-link" href="admin-dashboard.html">← Back to Dashboard</a>
+    </header>
+    <main class="profile-grid">
+      <section class="card">
+        <div class="section-title">Profile</div>
+        <div class="profile-top">
+          <div class="profile-avatar" id="avatar">U</div>
+          <div class="profile-meta">
+            <div style="display:grid; gap:8px;">
+              <p class="profile-name" id="profileNamePreview">User Name</p>
+              <div class="profile-role-badge" id="profileRoleBadge">Admin</div>
+            </div>
+            <div class="profile-actions">
+              <button id="changePictureBtn" class="btn btn-secondary">Change Profile Picture</button>
+              <button id="changePwdBtn" class="btn btn-secondary">Change Password</button>
+            </div>
+            <input type="file" id="profileImageInput" accept="image/*" hidden>
+            <p class="profile-note">Editable fields update your profile and contact information, while security settings remain protected.</p>
+          </div>
         </div>
-        <div class="field">
-          <label class="label">Email (read-only)</label>
-          <input id="email" class="input" readonly />
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label" for="name">Full Name</label>
+            <input id="name" class="form-input" type="text" placeholder="Jane Doe" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="email">Email</label>
+            <input id="email" class="form-input" type="email" readonly />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="role">Role</label>
+            <input id="role" class="form-input" readonly />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="department">Department</label>
+            <input id="department" class="form-input" readonly />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="phone">Phone Number</label>
+            <input id="phone" class="form-input" type="tel" placeholder="+1 555 555 5555" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="profile_image">Profile Image URL</label>
+            <input id="profile_image" class="form-input" type="url" placeholder="https://example.com/avatar.jpg" />
+          </div>
         </div>
-        <div class="field">
-          <label class="label">Role (read-only)</label>
-          <input id="role" class="input" readonly />
+        <div class="profile-actions" style="margin-top:28px; justify-content:flex-start;">
+          <button id="saveBtn" class="btn btn-primary">Save Changes</button>
         </div>
-      </div>
-    </div>
-
-    <div style="margin-top:18px;">
-      <div class="field">
-        <label class="label">Phone</label>
-        <input id="phone" class="input" placeholder="+1-555-555-5555" />
-      </div>
-      <div class="field">
-        <label class="label">Department</label>
-        <input id="department" class="input" placeholder="Department" />
-      </div>
-      <div class="field">
-        <label class="label">Profile Image URL</label>
-        <input id="profile_image" class="input" placeholder="https://..." />
-      </div>
-
-      <div style="display:flex; gap:12px; margin-top:12px;">
-        <button id="saveBtn" class="btn">Save Profile</button>
-        <button id="changePwdBtn" class="btn" style="background:linear-gradient(135deg,#ff7a7a,#ffb677);">Change Password</button>
-      </div>
-    </div>
-
-    <hr style="border:none; border-top:1px solid rgba(255,255,255,0.06); margin:18px 0;" />
-
-    <div>
-      <h3 style="color:#fff;margin-bottom:10px;">Change Password</h3>
-      <div class="field">
-        <label class="label">Current Password</label>
-        <input id="oldPassword" type="password" class="input" />
-      </div>
-      <div class="field">
-        <label class="label">New Password</label>
-        <input id="newPassword" type="password" class="input" />
-      </div>
-      <div class="field">
-        <label class="label">Confirm New Password</label>
-        <input id="confirmPassword" type="password" class="input" />
-      </div>
-      <div style="margin-top:12px;"><button id="doChangePwd" class="btn" style="background:linear-gradient(135deg,#10b981,#06b6d4);">Update Password</button></div>
-      <div id="msg" class="muted" style="margin-top:10px;"></div>
-    </div>
+        <div id="profileMsg" class="profile-message hidden"></div>
+      </section>
+      <section class="card">
+        <div class="section-title">Account Information</div>
+        <div class="account-info">
+          <div class="info-row"><span>Account Created</span><span id="accountCreated">—</span></div>
+          <div class="info-row"><span>Last Login</span><span id="lastLogin">—</span></div>
+          <div class="info-row"><span>Role</span><span id="accountRole">—</span></div>
+          <div class="info-row"><span>Status</span><span id="accountStatus">Active</span></div>
+        </div>
+      </section>
+      <section class="card security-card">
+        <div class="section-title">Security</div>
+        <div class="security-info">
+          <div class="security-row">
+            <span>Password update controls</span>
+            <button id="doChangePwd" class="btn btn-primary">Update Password</button>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="oldPassword">Current Password</label>
+            <input id="oldPassword" class="form-input" type="password" placeholder="••••••••" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="newPassword">New Password</label>
+            <input id="newPassword" class="form-input" type="password" placeholder="Create a strong password" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="confirmPassword">Confirm New Password</label>
+            <input id="confirmPassword" class="form-input" type="password" placeholder="Confirm new password" />
+          </div>
+          <div class="password-strength">
+            <div class="strength-label"><span>Password strength</span><span id="strengthText">Very weak</span></div>
+            <div class="strength-track"><div id="strengthFill" class="strength-fill"></div></div>
+          </div>
+        </div>
+      </section>
+    </main>
   </div>
-
   <script src="profile.js"></script>
 </body>
 </html>

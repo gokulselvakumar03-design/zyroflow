@@ -5,152 +5,346 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Approval Workflow System - Login</title>
     <style>
+        :root {
+            color-scheme: dark;
+            font-family: 'Inter',sans-serif;
+            font-size: 16px;
+            --bg-left-start: #071A3D;
+            --bg-left-end: #0E2A5C;
+            --text-primary: #F8FAFC;
+            --text-secondary: #A8B5CC;
+            --surface: #FFFFFF;
+            --surface-soft: #F8FAFC;
+            --border: #E2E8F0;
+            --primary: #2563EB;
+            --shadow: 0 32px 80px rgba(15, 23, 42, .12);
+        }
+
         * {
-            margin: 0;
-            padding: 0;
             box-sizing: border-box;
         }
 
+        html,
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
+            height: 100vh;
             overflow: hidden;
+        }
+
+        body {
+            background: #F5F8FF;
+            color: #102A43;
+        }
+
+        a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        button,
+        input {
+            font: inherit;
+        }
+
+        .app-shell {
             height: 100vh;
             display: flex;
-            justify-content: center;
-            align-items: center;
-            position: relative;
+            overflow: hidden;
         }
 
-        /* Gradient Background */
-        .background {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
+        .panel-left,
+        .panel-right {
+            position: relative;
             height: 100%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #4facfe 75%, #00f2fe 100%);
-            background-size: 400% 400%;
-            animation: gradient-shift 15s ease infinite;
-            z-index: -1;
-        }
-
-        @keyframes gradient-shift {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-
-        /* Main Container */
-        .main-container {
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 15px;
-            padding: 20px;
-            width: 100%;
+        }
+
+        .panel-left {
+            flex: 6;
+            padding: 42px 40px;
+            background: linear-gradient(135deg, var(--bg-left-start), var(--bg-left-end));
+            color: var(--text-primary);
+        }
+
+        .panel-left::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.12), transparent 24%), radial-gradient(circle at 80% 15%, rgba(255, 255, 255, 0.08), transparent 22%);
+            pointer-events: none;
+        }
+
+        .panel-left::after {
+            content: '';
+            position: absolute;
+            top: 12%;
+            right: -120px;
+            width: 420px;
+            height: 420px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.06);
+            filter: blur(40px);
+            pointer-events: none;
+        }
+
+        .panel-left .panel-inner {
             position: relative;
+            width: 100%;
+            max-width: 580px;
             z-index: 1;
         }
 
-        .brand-container {
-            text-align: center;
-            margin-bottom: 0;
-            animation: fadeDown 1s ease;
+        .brand-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 20px;
         }
 
-        .brand-title {
-            font-size: 30px;
-            font-weight: bold;
-            background: linear-gradient(90deg, #ffffff, #00f2fe);
-            background-clip: text;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            letter-spacing: 1px;
+        .logo-mark {
+            width: 46px;
+            height: 46px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, #2F67F5, #59A4FF);
+            display: grid;
+            place-items: center;
+            font-size: 0.98rem;
+            font-weight: 800;
+            color: #fff;
+            letter-spacing: -0.04em;
         }
 
-        .brand-tagline {
-            font-size: 13px;
-            opacity: 0.8;
-            color: #ffffff;
-            margin-top: 4px;
+        .brand-label {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
         }
 
-        @keyframes fadeDown {
-            from {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        .brand-name {
+            font-size: 1.82rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
         }
 
-        /* Login Card - Glassmorphism */
-        .login-container {
-            width: 100%;
-            max-width: 350px;
-            padding: 25px;
-            border-radius: 15px;
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-            text-align: center;
-            animation: slide-up 0.6s ease-out;
-            transition: all 0.3s ease;
-        }
-
-        .login-container:hover {
-            transform: translateY(-5px);
-        }
-
-        @keyframes slide-up {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* Title */
-        .login-title {
-            color: #ffffff;
-            font-size: 28px;
+        .brand-tag {
+            font-size: 0.72rem;
             font-weight: 700;
-            text-align: center;
-            margin-bottom: 10px;
-            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.75);
         }
 
-        .login-subtitle {
-            color: rgba(255, 255, 255, 0.8);
-            font-size: 14px;
-            text-align: center;
-            margin-bottom: 30px;
-            font-weight: 300;
-            letter-spacing: 0.5px;
+        .hero-title {
+            margin: 0 0 18px;
+            font-size: clamp(2.2rem, 3vw, 3rem);
+            line-height: 1.02;
+            font-weight: 800;
+            max-width: 500px;
         }
 
-        /* Form Container */
+        .hero-copy {
+            margin: 0 0 24px;
+            max-width: 500px;
+            color: rgba(248, 250, 252, 0.88);
+            font-size: 0.96rem;
+            line-height: 1.7;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+            margin-bottom: 22px;
+        }
+
+        .feature-card {
+            display: flex;
+            gap: 12px;
+            padding: 14px 16px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            backdrop-filter: blur(10px);
+            min-height: 82px;
+        }
+
+        .feature-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.14);
+            display: grid;
+            place-items: center;
+            font-size: 0.95rem;
+            color: #fff;
+        }
+
+        .feature-text {
+            display: grid;
+            gap: 4px;
+        }
+
+        .feature-title {
+            margin: 0;
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: #fff;
+        }
+
+        .feature-desc {
+            margin: 0;
+            color: rgba(248, 250, 252, 0.74);
+            font-size: 0.84rem;
+            line-height: 1.45;
+        }
+
+        .trust-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 16px 18px;
+            border-radius: 22px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            box-shadow: 0 18px 48px rgba(0, 0, 0, 0.10);
+        }
+
+        .trust-copy {
+            display: grid;
+            gap: 6px;
+        }
+
+        .trust-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .trust-subtitle {
+            margin: 0;
+            font-size: 0.95rem;
+            color: rgba(248, 250, 252, 0.76);
+            line-height: 1.65;
+        }
+
+        .trust-badge {
+            padding: 10px 16px;
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.12);
+            color: #fff;
+            font-size: 0.92rem;
+            font-weight: 700;
+        }
+
+        .panel-right {
+            flex: 4;
+            height: 100%;
+            padding: 36px;
+            background-image: linear-gradient(rgba(5, 16, 44, 0.72), rgba(5, 16, 44, 0.34)), url('https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=1200&q=80');
+            background-size: cover;
+            background-position: center;
+            justify-content: center;
+        }
+
+        .panel-right::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(5, 16, 44, 0.85), rgba(5, 16, 44, 0.45));
+            pointer-events: none;
+        }
+
+        .panel-right::after {
+            content: '';
+            position: absolute;
+            top: 18%;
+            left: 14%;
+            width: 88px;
+            height: 88px;
+            border-radius: 28px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 24px 52px rgba(0, 0, 0, 0.16);
+            opacity: 0.45;
+            pointer-events: none;
+        }
+
+        .login-shell {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            max-width: 400px;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            align-items: center;
+        }
+
+        .login-card {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 24px;
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            padding: 22px 20px;
+            backdrop-filter: blur(12px);
+            max-height: calc(100vh - 84px);
+        }
+
+        .login-head {
+            display: grid;
+            gap: 7px;
+            margin-bottom: 16px;
+        }
+
+        .login-head h1 {
+            margin: 0;
+            font-size: 1.68rem;
+            font-weight: 800;
+            color: #102A43;
+        }
+
+        .login-head p {
+            margin: 0;
+            font-size: 0.98rem;
+            line-height: 1.75;
+            color: #475569;
+        }
+
         .form-group {
             margin-bottom: 20px;
-            position: relative;
         }
 
         .form-label {
             display: block;
-            color: rgba(255, 255, 255, 0.9);
-            font-size: 13px;
-            font-weight: 600;
-            margin-bottom: 8px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            margin-bottom: 10px;
+            font-size: 0.92rem;
+            font-weight: 700;
+            color: #334155;
+        }
+
+        .form-input {
+            width: 100%;
+            border: 1px solid #CBD5E1;
+            border-radius: 16px;
+            padding: 10px 14px;
+            min-height: 46px;
+            font-size: 0.96rem;
+            background: #fff;
+            color: #0F172A;
+            transition: border-color 0.25s ease, box-shadow 0.25s ease;
+        }
+
+        .form-input::placeholder {
+            color: #94A3B8;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
         }
 
         .input-wrapper {
@@ -159,236 +353,275 @@
             align-items: center;
         }
 
-        .form-input {
-            width: 100%;
-            padding: 12px 16px;
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            border-radius: 10px;
-            background: rgba(255, 255, 255, 0.2);
-            color: #ffffff;
-            font-size: 14px;
-            transition: all 0.3s ease;
-            backdrop-filter: blur(10px);
-        }
-
-        .form-input::placeholder {
-            color: rgba(255, 255, 255, 0.6);
-        }
-
-        .form-input:focus {
-            outline: none;
-            border-color: rgba(255, 255, 255, 0.6);
-            background: rgba(255, 255, 255, 0.25);
-            box-shadow: 0 0 20px rgba(255, 255, 255, 0.3), inset 0 0 20px rgba(255, 255, 255, 0.1);
-        }
-
-        /* Password Toggle */
         .password-toggle {
             position: absolute;
             right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
             background: none;
             border: none;
-            color: rgba(255, 255, 255, 0.7);
+            color: #64748B;
+            font-size: 1.05rem;
             cursor: pointer;
-            font-size: 18px;
-            padding: 5px;
+            padding: 0;
+        }
+
+        .options-row {
             display: flex;
             align-items: center;
-            justify-content: center;
-            transition: color 0.2s ease;
+            justify-content: space-between;
+            gap: 14px;
+            margin-bottom: 16px;
+            font-size: 0.95rem;
+            color: #475569;
         }
 
-        .password-toggle:hover {
-            color: rgba(255, 255, 255, 0.95);
+        .options-row label {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            color: #334155;
+            font-weight: 500;
+            cursor: pointer;
         }
 
-        /* Error Message */
-        .error-message {
-            display: none;
-            color: #ff6b6b;
-            font-size: 13px;
-            margin-top: 6px;
-            animation: shake 0.4s ease;
+        .options-row input[type='checkbox'] {
+            width: 18px;
+            height: 18px;
+            border: 1px solid #CBD5E1;
+            border-radius: 6px;
+            background: #fff;
+            accent-color: var(--primary);
         }
 
-        .error-message.show {
-            display: block;
+        .forgot-link {
+            color: var(--primary);
+            font-weight: 700;
         }
 
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-5px); }
-            75% { transform: translateX(5px); }
-        }
-
-        /* Login Button */
         .login-button {
             width: 100%;
-            padding: 13px;
-            margin-top: 25px;
+            padding: 13px 0;
             border: none;
-            border-radius: 10px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            font-size: 15px;
-            font-weight: 600;
+            border-radius: 16px;
+            background: linear-gradient(135deg, #2563EB, #1D4ED8);
+            color: #fff;
+            font-size: 0.98rem;
+            font-weight: 700;
             cursor: pointer;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-            position: relative;
-            overflow: hidden;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 16px 32px rgba(37, 99, 235, 0.22);
         }
 
-        .login-button:hover:not(:disabled) {
-            transform: scale(1.02);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
-        }
-
-        .login-button:active:not(:disabled) {
-            transform: scale(0.98);
+        .login-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 22px 40px rgba(37, 99, 235, 0.28);
         }
 
         .login-button:disabled {
-            opacity: 0.8;
+            opacity: 0.75;
             cursor: not-allowed;
         }
 
-        /* Success Message */
-        .success-message {
-            display: none;
-            color: #4ade80;
-            font-size: 13px;
-            margin-top: 10px;
+        .footer-copy {
+            margin-top: 14px;
             text-align: center;
-            font-weight: 500;
-            animation: fade-in 0.4s ease;
+            font-size: 0.88rem;
+            color: #64748B;
         }
 
-        .success-message.show {
+        .message-strip {
+            display: none;
+            padding: 12px 14px;
+            border-radius: 16px;
+            font-size: 0.92rem;
+            margin-bottom: 16px;
+        }
+
+        .message-strip.show {
             display: block;
         }
 
-        @keyframes fade-in {
-            from {
-                opacity: 0;
+        .error-message {
+            color: #B91C1C;
+            background: #FEE2E2;
+            border: 1px solid #FECACA;
+        }
+
+        .success-message {
+            color: #15803D;
+            background: #DCFCE7;
+            border: 1px solid #BBF7D0;
+        }
+
+        @media (max-width: 1100px) {
+            .app-shell {
+                flex-direction: column;
             }
-            to {
-                opacity: 1;
+
+            .panel-left,
+            .panel-right {
+                width: 100%;
+                min-height: auto;
+                padding: 32px;
+            }
+
+            .panel-right {
+                min-height: 620px;
+            }
+
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .trust-card {
+                flex-direction: column;
+                align-items: flex-start;
             }
         }
 
-        /* Responsive Design */
-        @media (max-width: 480px) {
-            .brand-title {
-                font-size: 28px;
+        @media (max-width: 720px) {
+            body {
+                background: #fff;
             }
 
-            .login-container {
-                max-width: 340px;
-                padding: 22px;
-                border-radius: 15px;
+            .panel-left,
+            .panel-right {
+                padding: 28px;
             }
 
-            .login-title {
-                font-size: 24px;
+            .hero-title {
+                font-size: 2.6rem;
             }
 
-            .login-subtitle {
-                font-size: 12px;
+            .login-card {
+                border-radius: 22px;
+                padding: 30px;
             }
 
-            .form-input {
-                padding: 11px 14px;
-                font-size: 13px;
+            .brand-badge {
+                gap: 12px;
             }
-
-            .login-button {
-                padding: 12px;
-                font-size: 14px;
-            }
-        }
-
-        /* Loading Animation */
-        .spinner {
-            display: inline-block;
-            width: 14px;
-            height: 14px;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-top-color: white;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-            margin-right: 8px;
-            vertical-align: middle;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
         }
     </style>
 </head>
 <body>
-    <div class="background"></div>
-    <div class="main-container">
-        <div class="brand-container">
-            <h1 class="brand-title">⚡ ZyroFlow</h1>
-            <p class="brand-tagline">Zero Effort. Maximum Flow.</p>
-        </div>
+    <div class="app-shell">
+        <section class="panel-left">
+            <div class="panel-inner">
+                <div class="brand-badge">
+                    <div class="logo-mark">ZF</div>
+                    <div class="brand-label">
+                        <div class="brand-name">ZyroFlow</div>
+                        <div class="brand-tag">ENTERPRISE SOLUTION</div>
+                    </div>
+                </div>
 
-        <div class="login-container">
-            <h1 class="login-title">Approval Workflow System</h1>
-            <p class="login-subtitle">Secure Multi-Level Approval Platform</p>
+                <h1 class="hero-title">Multi-Level Approval Workflow</h1>
+                <p class="hero-copy">Streamline approval processes with secure, scalable and intelligent workflow automation.</p>
 
-            <form id="login-form">
-                    <!-- Email Field -->
-                    <div class="form-group">
-                        <label class="form-label" for="email">Email Address</label>
-                        <div class="input-wrapper">
-                            <input
-                                type="email"
-                                id="email"
-                                class="form-input"
-                                placeholder="Enter your email"
-                                required
-                            >
+                <div class="feature-grid">
+                    <article class="feature-card">
+                        <span class="feature-icon">🔒</span>
+                        <div class="feature-text">
+                            <h3 class="feature-title">Secure & Reliable</h3>
+                            <p class="feature-desc">Enterprise-grade role-based access control.</p>
                         </div>
+                    </article>
+                    <article class="feature-card">
+                        <span class="feature-icon">⚙️</span>
+                        <div class="feature-text">
+                            <h3 class="feature-title">Multi-Level Approval</h3>
+                            <p class="feature-desc">Dynamic approval routing across departments.</p>
+                        </div>
+                    </article>
+                    <article class="feature-card">
+                        <span class="feature-icon">📊</span>
+                        <div class="feature-text">
+                            <h3 class="feature-title">Real-Time Analytics</h3>
+                            <p class="feature-desc">Track requests and workflow performance.</p>
+                        </div>
+                    </article>
+                    <article class="feature-card">
+                        <span class="feature-icon">⚡</span>
+                        <div class="feature-text">
+                            <h3 class="feature-title">Increase Efficiency</h3>
+                            <p class="feature-desc">Reduce manual approval effort.</p>
+                        </div>
+                    </article>
+                </div>
+
+                <div class="trust-card">
+                    <div class="trust-copy">
+                        <span class="trust-title">Trusted by Organizations</span>
+                        <span class="trust-subtitle">Powering enterprise workflow automation.</span>
+                    </div>
+                    <div class="trust-badge">Enterprise Ready</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="panel-right">
+            <div class="login-shell">
+                <div class="login-card">
+                    <div class="login-head">
+                        <h1>Welcome Back</h1>
+                        <p>Sign in to continue to your ZyroFlow workspace.</p>
                     </div>
 
-                    <!-- Password Field -->
-                    <div class="form-group">
-                        <label class="form-label" for="password">Password</label>
-                        <div class="input-wrapper">
-                            <input
-                                type="password"
-                                id="password"
-                                class="form-input"
-                                placeholder="Enter your password"
-                                required
-                            >
-                            <button
-                                type="button"
-                                id="password-toggle"
-                                class="password-toggle"
-                                aria-label="Toggle password visibility"
-                            >
-                                👁️
-                            </button>
+                    <div id="errorMsg" class="message-strip error-message"></div>
+                    <div id="success-message" class="message-strip success-message">Login successful. Redirecting...</div>
+
+                    <form id="login-form">
+                        <div class="form-group">
+                            <label class="form-label" for="email">Email Address</label>
+                            <div class="input-wrapper">
+                                <input
+                                    type="email"
+                                    id="email"
+                                    class="form-input"
+                                    placeholder="Enter your email"
+                                    required
+                                >
+                            </div>
                         </div>
-                    </div>
 
-                    <!-- Error Message -->
-                    <div id="errorMsg" class="error-message"></div>
+                        <div class="form-group">
+                            <label class="form-label" for="password">Password</label>
+                            <div class="input-wrapper">
+                                <input
+                                    type="password"
+                                    id="password"
+                                    class="form-input"
+                                    placeholder="Enter your password"
+                                    required
+                                >
+                                <button
+                                    type="button"
+                                    id="password-toggle"
+                                    class="password-toggle"
+                                    aria-label="Toggle password visibility"
+                                >
+                                    👁️
+                                </button>
+                            </div>
+                        </div>
 
-                    <!-- Success Message -->
-                    <div id="success-message" class="success-message">Login successful. Redirecting...</div>
+                        <div class="options-row">
+                            <label>
+                                <input type="checkbox" id="rememberMe">
+                                Remember Me
+                            </label>
+                            <a href="#" class="forgot-link">Forgot Password?</a>
+                        </div>
 
-                    <!-- Login Button -->
-                    <button type="submit" id="loginBtn" class="login-button">
-                        Sign In
-                    </button>
-            </form>
-        </div>
+                        <button type="submit" id="loginBtn" class="login-button">Sign In</button>
+                    </form>
+
+                    <p class="footer-copy">© ZyroFlow. All rights reserved.</p>
+                </div>
+            </div>
+        </section>
     </div>
 
     <script>
@@ -424,6 +657,8 @@
             await handleLogin();
         });
 
+        const API_BASE = 'http://localhost:4000/api';
+
         // Main Login Handler
         async function handleLogin() {
             // Clear previous messages
@@ -445,6 +680,9 @@
                 return;
             }
 
+            console.log('[LOGIN] email entered:', email);
+            console.log('[LOGIN] password entered:', password);
+
             // Disable button and show loading state
             loginBtn.disabled = true;
             const originalText = loginBtn.textContent;
@@ -452,41 +690,65 @@
 
             try {
                 const response = await validateLogin(email, password);
+                console.log('[LOGIN] backend response:', response);
 
                 if (response.success) {
                     successMessage.classList.add('show');
-                    const normalizedRole = String(response.role || '').toLowerCase();
                     
                     // Store authentication data
                     localStorage.setItem('authToken', response.token);
-                    localStorage.setItem('userRole', normalizedRole);
-                    localStorage.setItem('role', normalizedRole);
+                    localStorage.setItem('userRole', response.role.toLowerCase());
+                    localStorage.setItem('role', response.role);
                     localStorage.setItem('email', response.user.email);
                     localStorage.setItem('userEmail', response.user.email);
+                    localStorage.setItem('userId', response.userId);
                     localStorage.setItem('currentUser', JSON.stringify(response.user));
+
+                    console.log('[LOGIN REDIRECT] ========== REDIRECT LOGIC START ==========');
+                    console.log('[LOGIN REDIRECT] Role from backend:', response.role);
+                    console.log('[LOGIN REDIRECT] Stored to localStorage - role:', response.role, 'userRole:', response.role.toLowerCase());
 
                     // Redirect based on role after 1.5 seconds
                     setTimeout(() => {
-                        if (normalizedRole === 'admin') {
-                            window.location.href = 'admin-dashboard.html';
-                        } else if (normalizedRole === 'accounts') {
-                            window.location.href = 'accounts-dashboard.html';
-                        } else if (normalizedRole === 'manager') {
-                            window.location.href = 'manager-dashboard.html';
-                        } else if (normalizedRole === 'cfo') {
-                            window.location.href = 'cfo-dashboard.html';
-                        } else if (normalizedRole === 'md') {
-                            window.location.href = 'md-dashboard.html';
+                        const roleNormalized = response.role.toLowerCase().trim();
+                        console.log('[LOGIN REDIRECT] Normalized role (lowercase, trimmed):', roleNormalized);
+
+                        let dashboardUrl = 'user-dashboard.html'; // default
+                        console.log('[LOGIN REDIRECT] Default dashboard: user-dashboard.html');
+
+                        if (roleNormalized === 'admin') {
+                            dashboardUrl = 'admin-dashboard.html';
+                            console.log('[LOGIN REDIRECT] ✓ Role matched: admin → admin-dashboard.html');
+                        } else if (roleNormalized === 'accounts') {
+                            dashboardUrl = 'accounts-dashboard.html';
+                            console.log('[LOGIN REDIRECT] ✓ Role matched: accounts → accounts-dashboard.html');
+                        } else if (roleNormalized === 'manager') {
+                            dashboardUrl = 'manager-dashboard.html';
+                            console.log('[LOGIN REDIRECT] ✓ Role matched: manager → manager-dashboard.html');
+                        } else if (roleNormalized === 'cfo') {
+                            dashboardUrl = 'cfo-dashboard.html';
+                            console.log('[LOGIN REDIRECT] ✓ Role matched: cfo → cfo-dashboard.html');
+                        } else if (roleNormalized === 'md') {
+                            dashboardUrl = 'md-dashboard.html';
+                            console.log('[LOGIN REDIRECT] ✓ Role matched: md → md-dashboard.html');
+                        } else if (roleNormalized === 'employee') {
+                            dashboardUrl = 'user-dashboard.html';
+                            console.log('[LOGIN REDIRECT] ✓ Role matched: employee → user-dashboard.html');
                         } else {
-                            window.location.href = 'user-dashboard.html';
+                            console.log('[LOGIN REDIRECT] ⚠ Role did not match any condition, using default: user-dashboard.html');
                         }
+
+                        console.log('[LOGIN REDIRECT] Final redirect URL:', dashboardUrl);
+                        console.log('[LOGIN REDIRECT] ========== REDIRECT LOGIC END ==========\n');
+                        window.location.href = dashboardUrl;
                     }, 1500);
                 } else {
-                    showError(response.message);
+                    showError(response.message || 'Invalid email or password.');
                     loginBtn.disabled = false;
                     loginBtn.textContent = originalText;
                 }
             } catch (error) {
+                console.error('[LOGIN] unexpected error:', error);
                 showError('An error occurred. Please try again.');
                 loginBtn.disabled = false;
                 loginBtn.textContent = originalText;
@@ -510,32 +772,60 @@
         }
 
         async function validateLogin(email, password) {
-            const res = await fetch('http://localhost:4000/login', {
+            const loginUrl = `${API_BASE}/auth/login`;
+            console.log('[LOGIN FRONTEND] ========== LOGIN REQUEST START ==========');
+            console.log('[LOGIN FRONTEND] Request URL:', loginUrl);
+            console.log('[LOGIN FRONTEND] Request method: POST');
+            console.log('[LOGIN FRONTEND] Email:', email);
+            console.log('[LOGIN FRONTEND] Password:', password ? '***' : 'MISSING');
+
+            const response = await fetch(loginUrl, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ email, password })
+                body: JSON.stringify({ email, password }),
             });
 
-            const data = await res.json();
-
-            if (!res.ok || !data.success || !data.user) {
+            let data;
+            try {
+                data = await response.json();
+            } catch (err) {
+                console.error('[LOGIN FRONTEND] ❌ Failed to parse JSON response:', err);
+                console.error('[LOGIN FRONTEND] Response status:', response.status);
                 return {
                     success: false,
-                    message: data.message || 'Invalid login'
+                    message: response.status === 404 ? 'Login endpoint not found.' : 'Invalid response from server.',
                 };
             }
 
-            const user = data.user;
-            const token = btoa(JSON.stringify({ email: user.email, role: user.role, timestamp: Date.now() }));
+            console.log('[LOGIN FRONTEND] Response status:', response.status);
+            console.log('[LOGIN FRONTEND] Response data:', data);
+
+            if (!response.ok) {
+                let message = 'Invalid email or password.';
+                if (response.status === 400) message = data.message || 'Email and password are required.';
+                if (response.status === 401) message = data.message || 'Invalid email or password.';
+                if (response.status === 404) message = data.message || 'Login endpoint not found.';
+                if (response.status === 500) message = data.message || 'Server error. Please try again later.';
+                console.log('[LOGIN FRONTEND] ❌ Login failed:', message);
+                console.log('[LOGIN FRONTEND] ========== LOGIN REQUEST END (FAILED) ==========\n');
+                return { success: false, message };
+            }
+
+            console.log('[LOGIN FRONTEND] ✓ Login successful');
+            console.log('[LOGIN FRONTEND] Token received:', data.token ? 'YES' : 'NO');
+            console.log('[LOGIN FRONTEND] Role from backend:', data.role);
+            console.log('[LOGIN FRONTEND] UserId from backend:', data.userId);
+            console.log('[LOGIN FRONTEND] ========== LOGIN REQUEST END (SUCCESS) ==========\n');
 
             return {
                 success: true,
-                token,
-                role: String(user.role || ''),
-                user,
-                message: 'Login successful'
+                token: data.token,
+                role: data.role,
+                userId: data.userId,
+                user: { email, userId: data.userId },
+                message: 'Login successful',
             };
         }
     </script>

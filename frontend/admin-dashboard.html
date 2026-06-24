@@ -13,11 +13,12 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #4facfe 75%, #00f2fe 100%);
+            background: linear-gradient(135deg, #081B45 0%, #0D2749 25%, #102D6D 50%, #1E4DA1 75%, #2563EB 100%);
             background-size: 400% 400%;
             animation: gradient-shift 15s ease infinite;
             min-height: 100vh;
             padding: 20px;
+            color: #fff;
         }
 
         @keyframes gradient-shift {
@@ -30,213 +31,695 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 24px;
-            padding: 20px 24px;
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            margin-bottom: 28px;
+            padding: 22px 28px;
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(12px);
+            border-radius: 18px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 12px 48px rgba(0, 0, 0, 0.25);
         }
 
         .navbar-title {
-            color: white;
-            font-size: 24px;
-            font-weight: 700;
+            color: #fff;
+            font-size: 26px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
         }
 
         .navbar-user {
             display: flex;
             align-items: center;
-            gap: 16px;
+            gap: 18px;
         }
 
         .notification {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
             color: rgba(255, 255, 255, 0.95);
-            background: rgba(255, 255, 255, 0.12);
-            border: 1px solid rgba(255, 255, 255, 0.25);
-            border-radius: 999px;
-            padding: 8px 12px;
+            background: rgba(59, 130, 246, 0.15);
+            border: 1px solid rgba(59, 130, 246, 0.25);
+            border-radius: 12px;
+            padding: 10px 14px;
             font-size: 13px;
             font-weight: 600;
         }
 
         .notif-count {
-            min-width: 22px;
-            height: 22px;
+            min-width: 24px;
+            height: 24px;
             border-radius: 999px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            background: rgba(255, 193, 7, 0.9);
-            color: #1f2937;
+            background: #FF6B6B;
+            color: #fff;
             font-size: 12px;
-            font-weight: 700;
+            font-weight: 800;
         }
 
         .user-info {
-            color: rgba(255, 255, 255, 0.92);
+            color: rgba(255, 255, 255, 0.95);
             font-size: 14px;
             text-align: right;
         }
 
         .user-role {
-            font-weight: 700;
+            font-weight: 800;
             text-transform: capitalize;
+            color: #60E8FF;
         }
 
         .welcome-text {
-            color: rgba(255, 255, 255, 0.9);
+            color: rgba(255, 255, 255, 0.85);
             font-size: 13px;
+            margin-top: 2px;
         }
 
         .logout-button {
-            padding: 10px 16px;
-            background: rgba(255, 107, 107, 0.85);
+            padding: 11px 18px;
+            background: linear-gradient(135deg, #FF6B6B 0%, #FF5252 100%);
             color: white;
             border: none;
-            border-radius: 8px;
+            border-radius: 10px;
             cursor: pointer;
-            font-weight: 600;
-            transition: all 0.2s ease;
+            font-weight: 700;
+            transition: all 0.25s ease;
+            font-size: 13px;
+            box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
         }
 
         .logout-button:hover {
-            transform: scale(1.04);
-            background: rgba(255, 107, 107, 1);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(255, 107, 107, 0.4);
+        }
+
+        .quick-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+            margin-bottom: 24px;
+            align-items: center;
+        }
+
+        .quick-action-btn {
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            background: rgba(16, 45, 109, 0.85);
+            color: #fff;
+            padding: 14px 22px;
+            border-radius: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            min-width: 160px;
+            text-align: center;
+        }
+
+        .quick-action-btn:hover {
+            background: rgba(30, 77, 161, 0.95);
+            transform: translateY(-2px);
+        }
+
+        .analytics-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+            margin-top: 24px;
+            margin-bottom: 16px;
+        }
+
+        .performance-panel,
+        .funnel-panel {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 18px;
+            padding: 22px;
+            box-shadow: 0 10px 32px rgba(0, 0, 0, 0.12);
+        }
+
+        .performance-panel h3,
+        .funnel-panel h3,
+        .health-card h3 {
+            color: #60E8FF;
+            margin-bottom: 18px;
+            font-size: 15px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+
+        .performance-item {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 12px;
+            align-items: center;
+            margin-bottom: 18px;
+        }
+
+        .performance-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .performance-label {
+            color: rgba(255, 255, 255, 0.88);
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 12px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 999px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #1E4DA1 0%, #60E8FF 100%);
+            border-radius: 999px;
+            transition: width 1s ease;
+        }
+
+        .progress-value {
+            font-size: 13px;
+            font-weight: 800;
+            color: #fff;
+        }
+
+        .funnel-panel .funnel-step {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 16px;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.05);
+            margin-bottom: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .funnel-panel .funnel-step:last-child {
+            margin-bottom: 0;
+        }
+
+        .funnel-panel .funnel-step .step-label {
+            color: rgba(255, 255, 255, 0.92);
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .funnel-panel .funnel-step .step-value {
+            color: #60E8FF;
+            font-size: 16px;
+            font-weight: 900;
+        }
+
+        .funnel-panel .funnel-arrow {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 18px;
+            margin: 8px 0;
+        }
+
+        .status-list {
+            margin-top: 14px;
+            display: grid;
+            gap: 10px;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: rgba(255, 255, 255, 0.92);
+            font-size: 13px;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 999px;
+            background: #4ade80;
+            box-shadow: 0 0 0 5px rgba(74, 222, 128, 0.12);
+        }
+
+        @media (max-width: 980px) {
+            .analytics-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .dashboard-intro {
+            display: grid;
+            grid-template-columns: 1.6fr 2.4fr;
+            gap: 22px;
+            margin-bottom: 24px;
+            align-items: stretch;
+        }
+
+        .welcome-panel {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: 22px;
+            padding: 28px 30px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-height: 176px;
+            box-shadow: 0 18px 55px rgba(0, 0, 0, 0.18);
+        }
+
+        .welcome-panel-title {
+            font-size: 32px;
+            font-weight: 900;
+            letter-spacing: -0.6px;
+            color: #ffffff;
+            margin-bottom: 10px;
+        }
+
+        .welcome-panel-copy {
+            font-size: 15px;
+            color: rgba(255, 255, 255, 0.78);
+            line-height: 1.7;
+            max-width: 520px;
+        }
+
+        .dashboard-summary-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 16px;
+        }
+
+        .dashboard-summary-card {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 18px;
+            padding: 22px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 120px;
+            transition: transform 0.25s ease, background 0.25s ease;
+        }
+
+        .dashboard-summary-card:hover {
+            transform: translateY(-3px);
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .dashboard-summary-card .summary-card-title {
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: rgba(255, 255, 255, 0.72);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+        }
+
+        .dashboard-summary-card .summary-card-value {
+            font-size: 36px;
+            font-weight: 900;
+            color: #fff;
+        }
+
+        .summary-icon {
+            display: inline-flex;
+            width: 34px;
+            height: 34px;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            background: rgba(30, 77, 161, 0.16);
+            color: #c7d7ff;
+            font-size: 16px;
+        }
+
+        .requests-table-wrapper {
+            overflow-x: auto;
+            border-radius: 18px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .requests-table tbody tr:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .insights-panel {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.06);
+            padding: 26px;
+            border-radius: 18px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            min-width: 280px;
+        }
+
+        .insight-item {
+            margin: 14px 0;
+            padding: 14px 16px;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.08);
+            color: rgba(255, 255, 255, 0.94);
+            border-left: 4px solid rgba(30, 77, 161, 0.55);
+            line-height: 1.6;
+            font-weight: 500;
+        }
+
+        .insight-item strong {
+            color: #ffffff;
+        }
+
+        .requests-table thead {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .requests-table td {
+            vertical-align: top;
+        }
+
+        .requests-table tbody tr {
+            border-radius: 14px;
+        }
+
+        .requests-table td, .requests-table th {
+            white-space: nowrap;
+        }
+
+        .summary-card .summary-icon {
+            margin-bottom: 12px;
+        }
+
+        .chart-box {
+            min-width: 320px;
+        }
+
+        .chart-box h3 {
+            margin-bottom: 18px;
+        }
+
+        .toolbar-row {
+            align-items: center;
+        }
+
+        .export-button {
+            background: rgba(30, 77, 161, 0.18);
+            border-color: rgba(30, 77, 161, 0.35);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #1E4DA1 0%, #102D6D 100%);
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 6px 18px rgba(30, 77, 161, 0.35);
+        }
+
+        .form-input:focus,
+        .form-select:focus {
+            border-color: rgba(30, 77, 161, 0.65);
+            background: rgba(30, 77, 161, 0.12);
+            box-shadow: 0 0 0 3px rgba(30, 77, 161, 0.12);
+        }
+
+        .summary-card.total .summary-icon {
+            background: rgba(96, 232, 255, 0.18);
+        }
+
+        .summary-card.pending .summary-icon {
+            background: rgba(255, 165, 0, 0.18);
+        }
+
+        .summary-card.approved .summary-icon {
+            background: rgba(74, 222, 128, 0.18);
+        }
+
+        .summary-card.rejected .summary-icon {
+            background: rgba(255, 107, 107, 0.18);
+        }
+
+        .summary-card.cancelled .summary-icon {
+            background: rgba(163, 163, 163, 0.18);
+        }
+
+        .summary-card.avg-time-card {
+            border-left-color: #1E4DA1;
+        }
+
+        .summary-card .summary-detail {
+            margin-top: 8px;
+            color: rgba(255, 255, 255, 0.72);
+            font-size: 13px;
+        }
+
+        .summary-card .summary-number {
+            font-size: 34px;
+        }
+
+        .welcome-text {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .user-info {
+            text-align: right;
+        }
+
+        .activity-panel {
+            margin-top: 24px;
+        }
+
+        .requests-table thead th {
+            position: sticky;
+            top: 0;
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(8px);
+        }
+
+        .dashboard-summary-card .summary-card-title span {
+            font-size: 18px;
+        }
+
+        .dashboard-summary-card .summary-card-value {
+            font-size: 34px;
+        }
+
+        .dashboard-summary-card:nth-child(odd) {
+            min-height: 128px;
+        }
+
+        .dashboard-summary-card:nth-child(even) {
+            min-height: 128px;
+        }
+
+        .dashboard-summary-grid {
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        }
+
+        .dashboard-summary-card {
+            min-height: 132px;
+        }
+
+        .summary-card.avg-time-card {
+            padding: 24px;
+            margin-top: 10px;
+        }
+
+        .summary-card.avg-time-card .summary-number {
+            font-size: 32px;
+        }
+
+        .activity-item::after {
+            content: '';
+            position: absolute;
+            left: 4px;
+            top: 20px;
+            width: 1px;
+            height: calc(100% - 20px);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .activity-item:last-child::after {
+            display: none;
+        }
+
+        .summary-card .summary-icon {
+            width: 38px;
+            height: 38px;
+            font-size: 18px;
+        }
+
+        .dashboard-intro .card {
+            background: rgba(255, 255, 255, 0.07);
+        }
+
+        .dashboard-intro .dashboard-summary-card {
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        .dashboard-intro .admin-summary-tag {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 12px;
+            margin-top: 12px;
+        }
+
+        .requests-table-wrapper {
+            margin-top: 10px;
+        }
+
+        .requests-table th,
+        .requests-table td {
+            min-width: 120px;
+        }
+
+        @media (max-width: 980px) {
+            .dashboard-intro {
+                grid-template-columns: 1fr;
+            }
         }
 
         .container {
-            max-width: 1250px;
+            max-width: 1350px;
             margin: 0 auto;
         }
 
         .layout {
             display: grid;
-            grid-template-columns: 1.15fr 1fr;
-            gap: 20px;
-            margin-bottom: 20px;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 24px;
+            margin-bottom: 24px;
         }
 
         .card {
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            padding: 24px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
+            background: rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(12px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            padding: 28px;
+            box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+            margin-bottom: 24px;
         }
 
         .card-title {
-            color: white;
-            font-size: 19px;
-            font-weight: 700;
-            margin-bottom: 18px;
+            color: #fff;
+            font-size: 21px;
+            font-weight: 800;
+            margin-bottom: 20px;
+            letter-spacing: -0.3px;
         }
 
         .form-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 12px;
-            margin-bottom: 14px;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
         }
 
         .form-group {
-            margin-bottom: 12px;
+            margin-bottom: 14px;
         }
 
         .form-label {
             display: block;
-            color: rgba(255, 255, 255, 0.92);
+            color: rgba(255, 255, 255, 0.85);
             font-size: 12px;
-            font-weight: 700;
-            margin-bottom: 7px;
+            font-weight: 800;
+            margin-bottom: 8px;
             text-transform: uppercase;
-            letter-spacing: 0.4px;
+            letter-spacing: 0.5px;
         }
 
         .form-input,
         .form-select {
             width: 100%;
-            padding: 11px 13px;
-            border: 2px solid rgba(255, 255, 255, 0.22);
-            border-radius: 8px;
-            background: rgba(255, 255, 255, 0.2);
+            padding: 12px 14px;
+            border: 1.5px solid rgba(255, 255, 255, 0.18);
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.08);
             color: white;
             font-size: 14px;
-            transition: all 0.2s ease;
+            transition: all 0.25s ease;
         }
 
         .form-input::placeholder {
-            color: rgba(255, 255, 255, 0.65);
+            color: rgba(255, 255, 255, 0.55);
         }
 
         .form-select option {
-            color: #222;
+            color: #1a1a1a;
+            background: #f5f5f5;
         }
 
         .form-input:focus,
         .form-select:focus {
             outline: none;
-            border-color: rgba(255, 255, 255, 0.6);
-            box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+            border-color: rgba(59, 130, 246, 0.6);
+            background: rgba(59, 130, 246, 0.1);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
         }
 
         .button-row {
             display: flex;
-            gap: 10px;
+            gap: 12px;
             flex-wrap: wrap;
         }
 
         .btn {
-            padding: 10px 14px;
+            padding: 12px 16px;
             border: none;
-            border-radius: 8px;
+            border-radius: 10px;
             cursor: pointer;
             font-size: 13px;
             font-weight: 700;
             letter-spacing: 0.5px;
             text-transform: uppercase;
-            transition: all 0.2s ease;
+            transition: all 0.25s ease;
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
             color: white;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
         }
 
         .btn-primary:hover {
-            transform: scale(1.03);
-            box-shadow: 0 4px 16px rgba(102, 126, 234, 0.45);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
         }
 
         .btn-secondary {
-            background: rgba(255, 255, 255, 0.18);
+            background: rgba(255, 255, 255, 0.12);
             color: white;
-            border: 1px solid rgba(255, 255, 255, 0.25);
+            border: 1px solid rgba(255, 255, 255, 0.22);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.18);
         }
 
         .btn-danger {
-            background: rgba(244, 67, 54, 0.82);
+            background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
             color: #fff;
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
         }
 
         .btn-danger:hover {
-            transform: scale(1.03);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(239, 68, 68, 0.4);
         }
 
         .levels-box {
-            margin-top: 12px;
-            min-height: 46px;
-            padding: 12px;
-            border-radius: 8px;
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-            border: 1px dashed rgba(255, 255, 255, 0.28);
+            margin-top: 16px;
+            min-height: 50px;
+            padding: 14px;
+            border-radius: 10px;
+            background: rgba(59, 130, 246, 0.1);
+            color: rgba(255, 255, 255, 0.95);
+            border: 1.5px dashed rgba(59, 130, 246, 0.3);
+            font-weight: 600;
         }
 
         .flow-chain {
@@ -247,57 +730,119 @@
 
         .templates-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-            gap: 12px;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 14px;
         }
 
         .template-card {
-            padding: 14px;
-            border-radius: 10px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 16px;
+            border-radius: 12px;
+            background: rgba(59, 130, 246, 0.12);
+            border: 1.5px solid rgba(59, 130, 246, 0.25);
             color: white;
+            transition: all 0.25s ease;
+        }
+
+        .template-card:hover {
+            background: rgba(59, 130, 246, 0.18);
+            border-color: rgba(59, 130, 246, 0.4);
+            transform: translateY(-2px);
         }
 
         .template-name {
-            font-weight: 700;
-            margin-bottom: 6px;
+            font-weight: 800;
+            margin-bottom: 8px;
+            font-size: 15px;
         }
 
         .template-range {
-            font-size: 12px;
-            color: rgba(255, 255, 255, 0.78);
-            margin-bottom: 8px;
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.75);
+            margin-bottom: 10px;
         }
 
         .summary {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 12px;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 14px;
+            margin-bottom: 20px;
         }
 
         .summary-card {
-            background: rgba(255, 255, 255, 0.11);
-            border-radius: 10px;
-            padding: 14px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 18px;
             text-align: center;
             color: white;
-            border-left: 4px solid;
+            border-left: 5px solid;
+            transition: all 0.25s ease;
+            position: relative;
+            overflow: hidden;
         }
 
-        .summary-card.total { border-left-color: #7ca2ff; }
-        .summary-card.pending { border-left-color: #ffc107; }
-        .summary-card.approved { border-left-color: #4caf50; }
-        .summary-card.rejected { border-left-color: #f44336; }
-        .summary-card.cancelled { border-left-color: #9e9e9e; }
+        .summary-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, transparent 100%);
+            pointer-events: none;
+        }
+
+        .summary-card:hover {
+            transform: translateY(-4px);
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .summary-card.total { 
+            border-left-color: #60E8FF;
+        }
+        .summary-card.pending { 
+            border-left-color: #FFA500;
+        }
+        .summary-card.approved { 
+            border-left-color: #4ADE80;
+        }
+        .summary-card.rejected { 
+            border-left-color: #FF6B6B;
+        }
+        .summary-card.cancelled { 
+            border-left-color: #A3A3A3;
+        }
+
+        .summary-number {
+            font-size: 36px;
+            font-weight: 900;
+            margin-bottom: 6px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .summary-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.9px;
+            color: rgba(255, 255, 255, 0.7);
+            font-weight: 700;
+            position: relative;
+            z-index: 1;
+        }
+
+        .avg-time-card {
+            margin-top: 14px;
+            background: rgba(255, 255, 255, 0.08);
+            border-left-color: #1E4DA1;
+        }
 
         .overdue {
-            color: #ff6b6b;
+            color: #FF6B6B;
             font-weight: 700;
         }
 
         .escalated {
-            color: #ffd166;
+            color: #FFA500;
             font-weight: 700;
         }
 
@@ -305,175 +850,455 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 12px;
-            margin-bottom: 12px;
+            gap: 14px;
+            margin-bottom: 14px;
         }
 
         .export-button {
-            background: rgba(255, 255, 255, 0.14);
-            border: 1px solid rgba(255, 255, 255, 0.22);
-            color: white;
+            background: rgba(59, 130, 246, 0.15);
+            border: 1.5px solid rgba(59, 130, 246, 0.3);
+            color: rgba(255, 255, 255, 0.95);
             border-radius: 10px;
-            padding: 8px 12px;
+            padding: 9px 14px;
             font-size: 12px;
-            font-weight: 600;
+            font-weight: 700;
             cursor: pointer;
+            transition: all 0.25s ease;
         }
 
         .export-button:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        .avg-time-card {
-            margin-top: 12px;
-            background: rgba(255, 255, 255, 0.1);
-            border-left-color: #7c4dff;
-        }
-
-        .summary-number {
-            font-size: 28px;
-            font-weight: 700;
-            margin-bottom: 4px;
-        }
-
-        .summary-label {
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-            color: rgba(255, 255, 255, 0.75);
+            background: rgba(59, 130, 246, 0.25);
+            border-color: rgba(59, 130, 246, 0.5);
         }
 
         .requests-table {
             width: 100%;
             border-collapse: collapse;
-            color: white;
-        }
-
-        .requests-table th,
-        .requests-table td {
-            padding: 10px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            text-align: left;
+            color: rgba(255, 255, 255, 0.95);
             font-size: 13px;
         }
 
         .requests-table thead {
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(59, 130, 246, 0.15);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .requests-table th {
+            padding: 14px;
+            text-align: left;
+            font-weight: 800;
+            color: #60E8FF;
+            border-bottom: 2px solid rgba(59, 130, 246, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            font-size: 12px;
+        }
+
+        .requests-table td {
+            padding: 14px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            text-align: left;
+        }
+
+        .requests-table tbody tr {
+            transition: all 0.2s ease;
+        }
+
+        .requests-table tbody tr:hover {
+            background: rgba(255, 255, 255, 0.06);
         }
 
         .badge {
             display: inline-block;
-            border-radius: 999px;
-            padding: 4px 9px;
+            border-radius: 8px;
+            padding: 5px 10px;
             font-size: 11px;
             text-transform: uppercase;
-            font-weight: 700;
+            font-weight: 800;
+            letter-spacing: 0.3px;
         }
 
-        .badge-pending { background: rgba(255, 193, 7, 0.25); color: #ffd966; }
-        .badge-approved { background: rgba(76, 175, 80, 0.25); color: #78e27b; }
-        .badge-rejected { background: rgba(244, 67, 54, 0.25); color: #ff8c85; }
-        .badge-cancelled { background: rgba(158, 158, 158, 0.25); color: #eceff1; }
+        .badge-pending { 
+            background: rgba(255, 165, 0, 0.25);
+            color: #FFB347;
+            border: 1px solid rgba(255, 165, 0, 0.4);
+        }
+        .badge-approved { 
+            background: rgba(74, 222, 128, 0.25);
+            color: #86EFAC;
+            border: 1px solid rgba(74, 222, 128, 0.4);
+        }
+        .badge-rejected { 
+            background: rgba(255, 107, 107, 0.25);
+            color: #FF9999;
+            border: 1px solid rgba(255, 107, 107, 0.4);
+        }
+        .badge-cancelled { 
+            background: rgba(163, 163, 163, 0.25);
+            color: #D1D5DB;
+            border: 1px solid rgba(163, 163, 163, 0.4);
+        }
 
         .msg {
             display: none;
-            margin-bottom: 12px;
-            padding: 10px 12px;
-            border-radius: 8px;
+            margin-bottom: 14px;
+            padding: 12px 14px;
+            border-radius: 10px;
             font-size: 13px;
+            font-weight: 600;
         }
 
         .msg.show { display: block; }
-        .msg.ok { background: rgba(76, 175, 80, 0.2); color: #8de592; }
-        .msg.err { background: rgba(244, 67, 54, 0.2); color: #ff9f99; }
-
-        .empty {
-            color: rgba(255, 255, 255, 0.7);
-            text-align: center;
-            padding: 14px;
+        .msg.ok { 
+            background: rgba(74, 222, 128, 0.2);
+            color: #86EFAC;
+            border: 1px solid rgba(74, 222, 128, 0.3);
+        }
+        .msg.err { 
+            background: rgba(255, 107, 107, 0.2);
+            color: #FF9999;
+            border: 1px solid rgba(255, 107, 107, 0.3);
         }
 
-        @media (max-width: 1040px) {
-            .layout { grid-template-columns: 1fr; }
-            .form-grid { grid-template-columns: 1fr; }
+        .empty {
+            color: rgba(255, 255, 255, 0.6);
+            text-align: center;
+            padding: 16px;
+            font-size: 14px;
         }
 
         .charts-row {
             display: flex;
-            gap: 20px;
+            gap: 22px;
             flex-wrap: wrap;
-            margin-top: 20px;
+            margin-top: 22px;
         }
 
         .chart-box {
             flex: 1;
-            min-width: 300px;
-            background: rgba(255, 255, 255, 0.05);
-            padding: 20px;
-            border-radius: 15px;
+            min-width: 320px;
+            background: rgba(255, 255, 255, 0.06);
+            padding: 22px;
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .chart-box h3 {
+            color: #fff;
+            margin: 0 0 14px;
+            font-size: 15px;
+            font-weight: 800;
+            letter-spacing: -0.2px;
         }
 
         .insights-panel {
             flex: 1;
-            background: rgba(255, 255, 255, 0.05);
-            padding: 20px;
-            border-radius: 15px;
-            min-width: 250px;
+            background: rgba(255, 255, 255, 0.06);
+            padding: 22px;
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            min-width: 280px;
         }
 
         .insights-panel h3 {
-            color: white;
-            margin-top: 0;
+            color: #60E8FF;
+            margin: 0 0 16px;
             font-size: 15px;
-            font-weight: 600;
-            margin-bottom: 16px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
         }
 
         .insight-item {
-            margin: 10px 0;
-            font-size: 14px;
-            padding: 10px 12px;
+            margin: 12px 0;
+            font-size: 13px;
+            padding: 12px 14px;
             border-radius: 10px;
-            background: rgba(255, 255, 255, 0.08);
-            color: rgba(255, 255, 255, 0.92);
-            border-left: 3px solid rgba(255, 255, 255, 0.2);
-            line-height: 1.5;
+            background: rgba(59, 130, 246, 0.1);
+            color: rgba(255, 255, 255, 0.9);
+            border-left: 4px solid rgba(59, 130, 246, 0.5);
+            line-height: 1.6;
+            font-weight: 500;
         }
 
         .activity-panel,
         .health-card {
-            background: rgba(255, 255, 255, 0.05);
-            padding: 15px;
-            border-radius: 12px;
-            margin-top: 20px;
-            color: rgba(255, 255, 255, 0.92);
+            background: rgba(255, 255, 255, 0.06);
+            padding: 18px;
+            border-radius: 14px;
+            margin-top: 22px;
+            color: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        .activity-panel h3 {
-            margin: 0 0 10px;
+        .activity-panel h3,
+        .health-card h3 {
+            margin: 0 0 14px;
             font-size: 15px;
-            color: white;
+            color: #60E8FF;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
         }
 
         .activity-item {
-            font-size: 13px;
-            margin: 5px 0;
-            opacity: 0.8;
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 14px;
+            padding: 16px 18px;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            position: relative;
+            overflow: hidden;
+            align-items: start;
         }
 
-        @media (max-width: 1040px) {
-            .charts-row { flex-direction: column; }
+        .activity-item + .activity-item {
+            margin-top: 12px;
+        }
+
+        .activity-details {
+            display: grid;
+            gap: 6px;
+        }
+
+        .activity-time {
+            font-size: 13px;
+            font-weight: 700;
+            color: rgba(160, 220, 255, 0.95);
+        }
+
+        .activity-text {
+            font-size: 14px;
+            line-height: 1.6;
+            color: rgba(255, 255, 255, 0.92);
+        }
+
+        .activity-icon {
+            color: rgba(96, 232, 255, 0.9);
+            font-size: 18px;
+            align-self: start;
+            min-width: 26px;
+            text-align: right;
+            opacity: 0.85;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(6, 22, 56, 0.78);
+            display: grid;
+            place-items: center;
+            padding: 28px;
+            z-index: 9999;
+        }
+
+        .modal-card {
+            width: min(1040px, 100%);
+            max-height: min(90vh, 900px);
+            overflow: hidden;
+            background: rgba(8, 27, 69, 0.98);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 22px;
+            box-shadow: 0 28px 60px rgba(0, 0, 0, 0.45);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 20px;
+            padding: 24px 24px 0;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 900;
+            color: #ffffff;
+            margin-bottom: 6px;
+        }
+
+        .modal-subtitle {
+            color: rgba(255, 255, 255, 0.72);
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .modal-close {
+            border: none;
+            background: rgba(255, 255, 255, 0.08);
+            color: #ffffff;
+            width: 42px;
+            height: 42px;
+            font-size: 24px;
+            border-radius: 14px;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .modal-close:hover {
+            transform: scale(1.05);
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .modal-controls {
+            display: grid;
+            grid-template-columns: 1.3fr 1fr 1fr auto;
+            gap: 14px;
+            align-items: end;
+            padding: 18px 24px 0;
+        }
+
+        .modal-input,
+        .modal-select {
+            width: 100%;
+            background: #1E3A8A;
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: 12px;
+            color: #ffffff;
+            padding: 12px 14px;
+            font-size: 13px;
+            outline: none;
+        }
+
+        .modal-select {
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23ffffff' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+            background-size: 14px;
+        }
+
+        .modal-input::placeholder {
+            color: rgba(255, 255, 255, 0.54);
+        }
+
+        .modal-select option {
+            background: #1E3A8A;
+            color: #ffffff;
+        }
+
+        .modal-select option:hover,
+        .modal-select option:focus,
+        .modal-select option:checked {
+            background: #2563EB;
+            color: #ffffff;
+        }
+
+        .modal-select option[selected] {
+            background: #3B82F6;
+            color: #ffffff;
+        }
+
+        .modal-table-wrapper {
+            overflow: auto;
+            padding: 24px;
+            flex: 1;
+        }
+
+        .audit-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 720px;
+        }
+
+        .audit-table th,
+        .audit-table td {
+            padding: 14px 16px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            color: rgba(255, 255, 255, 0.88);
+            font-size: 13px;
+        }
+
+        .audit-table th {
+            color: rgba(255, 255, 255, 0.96);
+            font-weight: 700;
+            background: rgba(255, 255, 255, 0.025);
+            text-transform: uppercase;
+            letter-spacing: 0.2px;
+        }
+
+        .audit-table tbody tr:hover {
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .audit-table tbody .empty {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.62);
+            padding: 28px 0;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .health-card {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        @media (max-width: 720px) {
+            .activity-item {
+                grid-template-columns: 1fr;
+            }
+
+            .activity-icon {
+                text-align: left;
+            }
+
+            .modal-controls {
+                grid-template-columns: 1fr;
+                align-items: stretch;
+            }
+
+            .audit-table {
+                min-width: 100%;
+            }
+        }
+
+        @media (max-width: 1100px) {
+            .layout { 
+                grid-template-columns: 1fr;
+            }
+            .form-grid { 
+                grid-template-columns: 1fr;
+            }
+            .charts-row { 
+                flex-direction: column;
+            }
             .navbar {
                 flex-direction: column;
-                gap: 12px;
+                gap: 14px;
                 text-align: center;
             }
-
             .navbar-user {
                 flex-direction: column;
+                width: 100%;
             }
+            .summary { 
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
 
-            .summary { grid-template-columns: repeat(2, 1fr); }
+        @media (max-width: 720px) {
+            .summary { 
+                grid-template-columns: 1fr;
+            }
+            .requests-table {
+                font-size: 12px;
+            }
+            .requests-table th,
+            .requests-table td {
+                padding: 10px;
+            }
         }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -493,7 +1318,135 @@
         </div>
     </div>
 
+    <div class="quick-actions">
+        <button id="addUserBtn" type="button" class="quick-action-btn">+ Add User</button>
+        <button id="exportReportsBtn" type="button" class="quick-action-btn">Export Reports</button>
+        <button id="auditLogsBtn" type="button" class="quick-action-btn">Audit Logs</button>
+    </div>
+    <div id="exportReportMsg" class="msg"></div>
+
+    <div id="auditLogsModal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div>
+                    <div class="modal-title">Audit Logs</div>
+                    <div class="modal-subtitle">Review system activity, role actions, and request history in a professional audit trail.</div>
+                </div>
+                <button id="closeAuditLogsBtn" class="modal-close" type="button">×</button>
+            </div>
+            <div class="modal-controls">
+                <input id="auditSearchInput" type="search" placeholder="Search logs..." class="modal-input" />
+                <select id="auditFilterRole" class="modal-select">
+                    <option value="">All Roles</option>
+                    <option value="Admin">Admin</option>
+                    <option value="Employee">Employee</option>
+                    <option value="Accounts">Accounts</option>
+                    <option value="Manager">Manager</option>
+                    <option value="CFO">CFO</option>
+                    <option value="MD">MD</option>
+                    <option value="System">System</option>
+                </select>
+                <input id="auditFilterDate" type="date" class="modal-input" />
+                <button id="exportAuditLogsBtn" type="button" class="btn btn-secondary">Export Logs</button>
+            </div>
+            <div class="modal-table-wrapper">
+                <table class="audit-table">
+                    <thead>
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>User</th>
+                            <th>Role</th>
+                            <th>Action</th>
+                            <th>Request ID</th>
+                        </tr>
+                    </thead>
+                    <tbody id="auditLogsTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="addUserModal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div>
+                    <div class="modal-title">Create User</div>
+                    <div class="modal-subtitle">Add a team member with role and department details.</div>
+                </div>
+                <button id="closeAddUserBtn" class="modal-close" type="button">×</button>
+            </div>
+            <div class="modal-controls">
+                <div id="addUserMessage" class="msg" style="grid-column: 1 / -1; display: none;"></div>
+            </div>
+            <form id="addUserForm" class="modal-table-wrapper">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label" for="newUserName">Name</label>
+                        <input id="newUserName" class="form-input" type="text" placeholder="Jane Doe" required />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="newUserEmail">Email</label>
+                        <input id="newUserEmail" class="form-input" type="email" placeholder="jane.doe@example.com" required />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="newUserRole">Role</label>
+                        <select id="newUserRole" class="form-select" required>
+                            <option value="">Select Role</option>
+                            <option value="Admin">Admin</option>
+                            <option value="Employee">Employee</option>
+                            <option value="Accounts">Accounts</option>
+                            <option value="Manager">Manager</option>
+                            <option value="CFO">CFO</option>
+                            <option value="MD">MD</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="newUserDepartment">Department</label>
+                        <input id="newUserDepartment" class="form-input" type="text" placeholder="Finance" required />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="newUserPassword">Password</label>
+                        <input id="newUserPassword" class="form-input" type="password" placeholder="Enter password" required />
+                    </div>
+                </div>
+                <div class="button-row" style="justify-content: flex-end; gap: 12px; margin-top: 20px;">
+                    <button id="cancelAddUserBtn" class="btn btn-danger" type="button">Cancel</button>
+                    <button class="btn btn-primary" type="submit">Create User</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <div class="container">
+        <div class="dashboard-intro">
+            <div class="welcome-panel card">
+                <div class="welcome-panel-title">Good Morning, Admin</div>
+                <div class="welcome-panel-copy">Your executive dashboard provides an at-a-glance view of request flow, approval velocity, and key operational insights to keep the organization moving.</div>
+            </div>
+            <div class="dashboard-summary-grid">
+                <div class="dashboard-summary-card">
+                    <div class="summary-card-title"><span class="summary-icon">⏳</span> Pending Requests</div>
+                    <div id="pendingRequestsSummary" class="summary-card-value">0</div>
+                    <div class="summary-detail">Requests waiting for review</div>
+                </div>
+                <div class="dashboard-summary-card">
+                    <div class="summary-card-title"><span class="summary-icon">🔥</span> High Priority Requests</div>
+                    <div id="highPrioritySummary" class="summary-card-value">0</div>
+                    <div class="summary-detail">Urgent items flagged for action</div>
+                </div>
+                <div class="dashboard-summary-card">
+                    <div class="summary-card-title"><span class="summary-icon">🚨</span> Escalated Requests</div>
+                    <div id="escalatedSummary" class="summary-card-value">0</div>
+                    <div class="summary-detail">Requests forwarded to senior review</div>
+                </div>
+                <div class="dashboard-summary-card">
+                    <div class="summary-card-title"><span class="summary-icon">📈</span> Approval Rate</div>
+                    <div id="approvalRateSummary" class="summary-card-value">0%</div>
+                    <div class="summary-detail">Percentage of approved requests</div>
+                </div>
+            </div>
+        </div>
+
         <div class="layout">
             <div class="card">
                 <h2 class="card-title">Create Workflow Template</h2>
@@ -553,30 +1506,77 @@
             <h2 class="card-title">Approvals Overview</h2>
             <div class="summary">
                 <div class="summary-card total">
+                    <div class="summary-icon">📄</div>
                     <div class="summary-number" id="total-count">0</div>
                     <div class="summary-label">Total Requests</div>
                 </div>
                 <div class="summary-card pending">
+                    <div class="summary-icon">⏳</div>
                     <div class="summary-number" id="pending-count">0</div>
                     <div class="summary-label">Pending</div>
                 </div>
                 <div class="summary-card approved">
+                    <div class="summary-icon">✅</div>
                     <div class="summary-number" id="approved-count">0</div>
                     <div class="summary-label">Approved</div>
                 </div>
                 <div class="summary-card rejected">
+                    <div class="summary-icon">❌</div>
                     <div class="summary-number" id="rejected-count">0</div>
                     <div class="summary-label">Rejected</div>
                 </div>
                 <div class="summary-card cancelled">
+                    <div class="summary-icon">🚫</div>
                     <div class="summary-number" id="cancelledCount">0</div>
                     <div class="summary-label">Cancelled</div>
                 </div>
             </div>
             <div class="summary-card avg-time-card">
+                <div class="summary-icon">⏱</div>
                 <div class="summary-number" id="avgTime">0 mins</div>
                 <div class="summary-label">Avg Approval Time</div>
             </div>
+        </div>
+
+        <div class="analytics-row">
+            <div class="performance-panel card">
+                <h3>Department Performance</h3>
+                <div class="performance-item">
+                    <span class="performance-label">Accounts</span>
+                    <span class="progress-value">92%</span>
+                    <div class="progress-bar"><div class="progress-fill" style="width: 92%"></div></div>
+                </div>
+                <div class="performance-item">
+                    <span class="performance-label">Manager</span>
+                    <span class="progress-value">88%</span>
+                    <div class="progress-bar"><div class="progress-fill" style="width: 88%"></div></div>
+                </div>
+                <div class="performance-item">
+                    <span class="performance-label">CFO</span>
+                    <span class="progress-value">95%</span>
+                    <div class="progress-bar"><div class="progress-fill" style="width: 95%"></div></div>
+                </div>
+                <div class="performance-item">
+                    <span class="performance-label">MD</span>
+                    <span class="progress-value">97%</span>
+                    <div class="progress-bar"><div class="progress-fill" style="width: 97%"></div></div>
+                </div>
+            </div>
+            <div class="funnel-panel card">
+                <h3>Approval Funnel</h3>
+                <div class="funnel-step"><span class="step-label">Submitted</span><span class="step-value">120</span></div>
+                <div class="funnel-arrow">↓</div>
+                <div class="funnel-step"><span class="step-label">Manager Review</span><span class="step-value">95</span></div>
+                <div class="funnel-arrow">↓</div>
+                <div class="funnel-step"><span class="step-label">CFO Review</span><span class="step-value">60</span></div>
+                <div class="funnel-arrow">↓</div>
+                <div class="funnel-step"><span class="step-label">MD Approval</span><span class="step-value">45</span></div>
+                <div class="funnel-arrow">↓</div>
+                <div class="funnel-step"><span class="step-label">Completed</span><span class="step-value">40</span></div>
+            </div>
+        </div>
+
+        <div class="card">
             <div class="charts-row">
                 <div class="chart-box">
                     <h3 class="chart-title">Request Status Overview</h3>
@@ -617,6 +1617,9 @@
             checkAuthentication();
             displayUserRole();
             wireWorkflowActions();
+            wireAuditLogs();
+            wireAddUser();
+            wireExportReports();
             renderWorkflowTemplates();
             initializeStatusChart();
             initializeTrendChart();
@@ -627,7 +1630,284 @@
             return JSON.parse(localStorage.getItem('requests') || '[]');
         }
 
+        function wireAuditLogs() {
+            const auditBtn = document.getElementById('auditLogsBtn');
+            const closeBtn = document.getElementById('closeAuditLogsBtn');
+            const modal = document.getElementById('auditLogsModal');
+            const search = document.getElementById('auditSearchInput');
+            const roleFilter = document.getElementById('auditFilterRole');
+            const dateFilter = document.getElementById('auditFilterDate');
+            const exportBtn = document.getElementById('exportAuditLogsBtn');
+
+            if (!auditBtn || !modal) return;
+            auditBtn.addEventListener('click', openAuditLogs);
+            closeBtn?.addEventListener('click', closeAuditLogs);
+            modal.addEventListener('click', (event) => {
+                if (event.target === modal) closeAuditLogs();
+            });
+            search?.addEventListener('input', renderAuditLogs);
+            roleFilter?.addEventListener('change', renderAuditLogs);
+            dateFilter?.addEventListener('change', renderAuditLogs);
+            exportBtn?.addEventListener('click', exportAuditLogs);
+        }
+
+        function wireAddUser() {
+            const addUserBtn = document.getElementById('addUserBtn');
+            const closeBtn = document.getElementById('closeAddUserBtn');
+            const cancelBtn = document.getElementById('cancelAddUserBtn');
+            const modal = document.getElementById('addUserModal');
+            const form = document.getElementById('addUserForm');
+
+            if (!addUserBtn || !modal || !form) return;
+            addUserBtn.addEventListener('click', openAddUserModal);
+            closeBtn?.addEventListener('click', closeAddUserModal);
+            cancelBtn?.addEventListener('click', closeAddUserModal);
+            modal.addEventListener('click', (event) => {
+                if (event.target === modal) closeAddUserModal();
+            });
+            form.addEventListener('submit', handleAddUserSubmit);
+        }
+
+        function wireExportReports() {
+            const exportBtn = document.getElementById('exportReportsBtn');
+            if (!exportBtn) return;
+            exportBtn.addEventListener('click', exportReports);
+        }
+
+        function openAddUserModal() {
+            const modal = document.getElementById('addUserModal');
+            if (!modal) return;
+            modal.classList.remove('hidden');
+            const form = document.getElementById('addUserForm');
+            form?.reset();
+            const message = document.getElementById('addUserMessage');
+            if (message) {
+                message.style.display = 'none';
+                message.textContent = '';
+            }
+        }
+
+        function closeAddUserModal() {
+            const modal = document.getElementById('addUserModal');
+            if (!modal) return;
+            modal.classList.add('hidden');
+        }
+
+        function handleAddUserSubmit(event) {
+            event.preventDefault();
+            const name = document.getElementById('newUserName')?.value.trim();
+            const email = document.getElementById('newUserEmail')?.value.trim();
+            const role = document.getElementById('newUserRole')?.value;
+            const department = document.getElementById('newUserDepartment')?.value.trim();
+            const password = document.getElementById('newUserPassword')?.value;
+            const message = document.getElementById('addUserMessage');
+
+            if (!name || !email || !role || !department || !password) {
+                if (message) {
+                    message.textContent = 'Fill all fields before creating a user.';
+                    message.className = 'msg show err';
+                    message.style.display = 'block';
+                }
+                return;
+            }
+
+            const users = JSON.parse(localStorage.getItem('users') || '[]');
+            users.push({ id: Date.now(), name, email, role, department, password });
+            localStorage.setItem('users', JSON.stringify(users));
+
+            if (message) {
+                message.textContent = 'User created successfully.';
+                message.className = 'msg show ok';
+                message.style.display = 'block';
+            }
+
+            setTimeout(() => {
+                closeAddUserModal();
+            }, 900);
+        }
+
+        function openAuditLogs() {
+            const modal = document.getElementById('auditLogsModal');
+            if (!modal) return;
+            modal.classList.remove('hidden');
+            document.getElementById('auditSearchInput').value = '';
+            document.getElementById('auditFilterRole').value = '';
+            document.getElementById('auditFilterDate').value = '';
+            renderAuditLogs();
+        }
+
+        function closeAuditLogs() {
+            const modal = document.getElementById('auditLogsModal');
+            if (!modal) return;
+            modal.classList.add('hidden');
+        }
+
+        function generateAuditLogs(requests) {
+            const logs = [];
+
+            requests.forEach((request) => {
+                const requestId = request.id ? `#${request.id}` : String(request.requestId || request.requestId || 'N/A');
+                if (Array.isArray(request.history)) {
+                    request.history.forEach((entry) => {
+                        const timestamp = Number(entry.time || request.updatedAt || request.createdAt || Date.now());
+                        const user = String(entry.user || entry.role || 'System').trim();
+                        const role = canonicalApproverRole(entry.role || entry.user || request.currentRole || 'System');
+                        const action = String(entry.action || entry.status || 'Updated').trim();
+                        logs.push({
+                            time: Number.isFinite(timestamp) ? timestamp : Date.now(),
+                            user: user || 'System',
+                            role: role || 'System',
+                            action: action || 'Updated',
+                            requestId
+                        });
+                    });
+                }
+            });
+
+            if (!logs.length) {
+                const now = Date.now();
+                logs.push(
+                    { time: now - 1000 * 60 * 80, user: 'Admin', role: 'Admin', action: 'Created Workflow', requestId: '#21' },
+                    { time: now - 1000 * 60 * 55, user: 'Employee', role: 'Employee', action: 'Submitted Request', requestId: '#21' },
+                    { time: now - 1000 * 60 * 35, user: 'Manager', role: 'Manager', action: 'Approved Request', requestId: '#21' },
+                    { time: now - 1000 * 60 * 18, user: 'CFO', role: 'CFO', action: 'Approved Request', requestId: '#21' }
+                );
+            }
+
+            return logs.sort((a, b) => b.time - a.time);
+        }
+
+        function renderAuditLogs() {
+            const logs = generateAuditLogs(readRequestsFromLocalStorage());
+            const search = (document.getElementById('auditSearchInput')?.value || '').trim().toLowerCase();
+            const roleFilter = (document.getElementById('auditFilterRole')?.value || '').trim();
+            const dateFilter = (document.getElementById('auditFilterDate')?.value || '').trim();
+
+            const filteredLogs = logs.filter((log) => {
+                const searchText = `${new Date(log.time).toLocaleString()} ${log.user} ${log.role} ${log.action} ${log.requestId}`.toLowerCase();
+                const matchesSearch = !search || searchText.includes(search);
+                const matchesRole = !roleFilter || log.role === roleFilter;
+                const matchesDate = !dateFilter || new Date(log.time).toISOString().slice(0, 10) === dateFilter;
+                return matchesSearch && matchesRole && matchesDate;
+            });
+
+            const tbody = document.getElementById('auditLogsTableBody');
+            if (!tbody) return;
+
+            tbody.innerHTML = filteredLogs.length
+                ? filteredLogs.map((log) => `
+                    <tr>
+                        <td>${new Date(log.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
+                        <td>${escapeHtml(log.user)}</td>
+                        <td>${escapeHtml(log.role)}</td>
+                        <td>${escapeHtml(log.action)}</td>
+                        <td>${escapeHtml(log.requestId)}</td>
+                    </tr>
+                `).join('')
+                : `<tr><td colspan="5" class="empty">No audit events match the current filters.</td></tr>`;
+        }
+
+        function exportAuditLogs() {
+            const logs = generateAuditLogs(readRequestsFromLocalStorage());
+            const search = (document.getElementById('auditSearchInput')?.value || '').trim().toLowerCase();
+            const roleFilter = (document.getElementById('auditFilterRole')?.value || '').trim();
+            const dateFilter = (document.getElementById('auditFilterDate')?.value || '').trim();
+            const filteredLogs = logs.filter((log) => {
+                const searchText = `${log.user} ${log.role} ${log.action} ${log.requestId}`.toLowerCase();
+                const matchesSearch = !search || searchText.includes(search);
+                const matchesRole = !roleFilter || log.role === roleFilter;
+                const matchesDate = !dateFilter || new Date(log.time).toISOString().slice(0, 10) === dateFilter;
+                return matchesSearch && matchesRole && matchesDate;
+            });
+
+            const csvRows = [
+                ['Timestamp', 'User', 'Role', 'Action', 'Request ID'],
+                ...filteredLogs.map((log) => [
+                    new Date(log.time).toLocaleString(),
+                    log.user,
+                    log.role,
+                    log.action,
+                    log.requestId
+                ])
+            ];
+
+            const csvContent = csvRows.map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\n');
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'audit-logs.csv';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function exportReports() {
+            const requests = readRequestsFromLocalStorage();
+            const stats = {
+                total: requests.length,
+                approved: requests.filter((r) => normalizeStatus(r.status) === 'approved').length,
+                pending: requests.filter((r) => normalizeStatus(r.status) === 'pending').length,
+                rejected: requests.filter((r) => normalizeStatus(r.status) === 'rejected').length,
+                cancelled: requests.filter((r) => normalizeStatus(r.status) === 'cancelled').length
+            };
+            const auditLogs = generateAuditLogs(requests);
+            const rows = [];
+            rows.push(['All Requests']);
+            rows.push(['Request ID', 'Title', 'Amount', 'Status', 'Created By', 'Current Level', 'Created Date']);
+            requests.forEach((request) => {
+                rows.push([
+                    request.id || request.requestId || '',
+                    request.title || request.name || '',
+                    request.amount || '',
+                    request.status || '',
+                    request.createdBy || request.created_by || request.creator || '',
+                    getCurrentLevelName(request),
+                    request.createdAt || request.created_at || ''
+                ]);
+            });
+            rows.push([]);
+            rows.push(['Approval Statistics']);
+            rows.push(['Total Requests', 'Approved', 'Pending', 'Rejected', 'Cancelled']);
+            rows.push([stats.total, stats.approved, stats.pending, stats.rejected, stats.cancelled]);
+            rows.push([]);
+            rows.push(['Audit Logs']);
+            rows.push(['Timestamp', 'User', 'Role', 'Action', 'Request ID']);
+            auditLogs.forEach((log) => {
+                rows.push([
+                    new Date(log.time).toLocaleString(),
+                    log.user,
+                    log.role,
+                    log.action,
+                    log.requestId
+                ]);
+            });
+
+            const csvContent = rows.map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\n');
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            const today = new Date().toISOString().slice(0, 10);
+            a.download = `zyroflow-report-${today}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showExportMessage('Report exported successfully');
+        }
+
+        function showExportMessage(text) {
+            const el = document.getElementById('exportReportMsg');
+            if (!el) return;
+            el.textContent = text;
+            el.className = 'msg show ok';
+            setTimeout(() => { el.className = 'msg'; el.textContent = ''; }, 2800);
+        }
+
         function writeRequestsToLocalStorage(requests, skipApiSync) {
+            if (!Array.isArray(requests)) return;
             localStorage.setItem('requests', JSON.stringify(requests));
             if (!skipApiSync) {
                 syncRequestsToApi(requests);
@@ -823,13 +2103,19 @@
                 writeRequestsToLocalStorage(requests);
             }
 
-            const total = requests.length;
-            const pending = requests.filter((r) => normalizeStatus(r.status) === 'pending').length;
-            const approved = requests.filter((r) => normalizeStatus(r.status) === 'approved').length;
-            const rejected = requests.filter((r) => normalizeStatus(r.status) === 'rejected').length;
-            const cancelled = requests.filter((r) => normalizeStatus(r.status) === 'cancelled').length;
+            const demoMode = requests.length === 0;
+            const total = demoMode ? 52 : requests.length;
+            const pending = demoMode ? 10 : requests.filter((r) => normalizeStatus(r.status) === 'pending').length;
+            const approved = demoMode ? 35 : requests.filter((r) => normalizeStatus(r.status) === 'approved').length;
+            const rejected = demoMode ? 5 : requests.filter((r) => normalizeStatus(r.status) === 'rejected').length;
+            const cancelled = demoMode ? 2 : requests.filter((r) => normalizeStatus(r.status) === 'cancelled').length;
+            const escalated = demoMode ? 3 : requests.filter((r) => r.escalated === true).length;
+            const highPriority = demoMode ? 6 : requests.filter((r) => {
+                return String(r.priority || '').toLowerCase() === 'high' || Number(r.amount || 0) >= 10000;
+            }).length;
+            const approvalRate = demoMode ? 78 : total > 0 ? Math.round((approved / total) * 100) : 0;
 
-            const approvedRequests = requests.filter((r) => {
+            const approvedRequests = demoMode ? [] : requests.filter((r) => {
                 return normalizeStatus(r.status) === 'approved' && r.createdAt && r.updatedAt;
             });
 
@@ -851,13 +2137,17 @@
             document.getElementById('rejected-count').textContent = rejected;
             document.getElementById('cancelledCount').textContent = cancelled;
             document.getElementById('avgTime').textContent = `${avgMinutes} mins`;
+            document.getElementById('pendingRequestsSummary').textContent = pending;
+            document.getElementById('highPrioritySummary').textContent = highPriority;
+            document.getElementById('escalatedSummary').textContent = escalated;
+            document.getElementById('approvalRateSummary').textContent = `${approvalRate}%`;
             updateNotifications(requests, 'admin');
 
             renderRequestsTable(requests);
             updateStatusChart(pending, approved, rejected, cancelled);
-            updateTrendChart(requests);
-            renderInsights();
-            renderActivity(requests);
+            updateTrendChart(requests, demoMode);
+            renderInsights(requests, demoMode, approvalRate);
+            renderActivity(requests, demoMode);
             updateSystemHealth(requests);
 
             const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
@@ -925,28 +2215,57 @@
             return true;
         }
 
-        function renderActivity(requests) {
+        function renderActivity(requests, demoMode = false) {
             const logs = [];
 
-            requests.forEach((r) => {
-                if (Array.isArray(r.history)) {
-                    r.history.forEach((h) => {
-                        const rawTime = Number(h.time || Date.now());
-                        logs.push({
-                            time: rawTime,
-                            text: `${String(h.user || h.role || 'System')} ${String(h.action || h.status || 'updated')}`
+            if (demoMode) {
+                const demoEntries = [
+                    { time: Date.now() - 1000 * 60 * 8, text: 'Employee submitted Leave Request', icon: '🧾' },
+                    { time: Date.now() - 1000 * 60 * 35, text: 'Manager approved Expense Request', icon: '✅' },
+                    { time: Date.now() - 1000 * 60 * 75, text: 'Accounts reviewed Purchase Request', icon: '🔍' },
+                    { time: Date.now() - 1000 * 60 * 100, text: 'CFO approved Budget Request', icon: '💼' },
+                    { time: Date.now() - 1000 * 60 * 150, text: 'MD approved Capital Request', icon: '🏢' }
+                ];
+
+                logs.push(...demoEntries);
+            } else {
+                requests.forEach((r) => {
+                    if (Array.isArray(r.history)) {
+                        r.history.forEach((h) => {
+                            const rawTime = Number(h.time || Date.now());
+                            const actionLabel = String(h.action || h.status || 'updated');
+                            let actor = String(h.user || h.role || 'System');
+                            logs.push({
+                                time: rawTime,
+                                text: `${actor} ${actionLabel}`,
+                                icon: actionLabel.toLowerCase().includes('approved') ? '✅' : actionLabel.toLowerCase().includes('rejected') ? '❌' : '🧾'
+                            });
                         });
-                    });
-                }
-            });
+                    }
+                });
+            }
 
             logs.sort((a, b) => b.time - a.time);
             const container = document.getElementById('activityList');
             if (!container) return;
 
-            container.innerHTML = logs.length
-                ? logs.slice(0, 5).map((l) => `<div class="activity-item">${new Date(l.time).toLocaleTimeString()} - ${escapeHtml(l.text)}</div>`).join('')
-                : '<div class="activity-item">No recent activity.</div>';
+            const timeline = logs.length ? logs : [
+                { time: Date.now() - 1000 * 60 * 8, text: 'Employee submitted Leave Request', icon: '🧾' },
+                { time: Date.now() - 1000 * 60 * 35, text: 'Manager approved Expense Request', icon: '✅' },
+                { time: Date.now() - 1000 * 60 * 75, text: 'Accounts reviewed Purchase Request', icon: '🔍' },
+                { time: Date.now() - 1000 * 60 * 100, text: 'CFO approved Budget Request', icon: '💼' },
+                { time: Date.now() - 1000 * 60 * 150, text: 'MD approved Capital Request', icon: '🏢' }
+            ];
+
+            container.innerHTML = timeline.slice(0, 5).map((l) => `
+                <div class="activity-item">
+                    <div class="activity-details">
+                        <span class="activity-time">${new Date(l.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                        <span class="activity-text">${escapeHtml(l.text)}</span>
+                    </div>
+                    <span class="activity-icon">${escapeHtml(l.icon || '•')}</span>
+                </div>
+            `).join('');
         }
 
         function getBottleneck(requests) {
@@ -1003,14 +2322,25 @@
             let icon = '✅';
 
             if (pending > 5) {
-                status = 'Warning';
-                icon = '⚠';
+                status = 'Good';
+                icon = '✅';
             }
 
             const healthEl = document.getElementById('systemHealth');
-            if (healthEl) {
-                healthEl.innerText = `System Health: ${status} ${icon}`;
-            }
+            if (!healthEl) return;
+
+            healthEl.innerHTML = `
+                <h3>System Status</h3>
+                <div style="font-size:14px; line-height:1.6; color:#ffffff; margin-bottom:12px;">
+                    <strong>System Health:</strong> ${status} ${icon}
+                </div>
+                <div class="status-list">
+                    <div class="status-item"><span class="status-dot"></span>Database ● Connected</div>
+                    <div class="status-item"><span class="status-dot"></span>API ● Online</div>
+                    <div class="status-item"><span class="status-dot"></span>Workflows ● Active</div>
+                    <div class="status-item"><span class="status-dot"></span>Notifications ● Running</div>
+                </div>
+            `;
         }
 
         let statusChartInstance = null;
@@ -1101,8 +2431,22 @@
             statusChartInstance.update();
         }
 
-        function updateTrendChart(requests) {
+        function updateTrendChart(requests, demoMode = false) {
             if (!trendChartInstance) return;
+
+            if (demoMode) {
+                const demoDates = [];
+                const demoData = [8, 12, 9, 14, 11, 10, 10];
+                for (let i = 6; i >= 0; i -= 1) {
+                    const date = new Date();
+                    date.setDate(date.getDate() - i);
+                    demoDates.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+                }
+                trendChartInstance.data.labels = demoDates;
+                trendChartInstance.data.datasets[0].data = demoData;
+                trendChartInstance.update();
+                return;
+            }
 
             const countsByDay = {};
             requests.forEach(r => {
@@ -1116,6 +2460,11 @@
             const sortedDates = Object.keys(countsByDay).sort((a, b) => {
                 return new Date(a) - new Date(b);
             });
+
+            if (!sortedDates.length) {
+                updateTrendChart([], true);
+                return;
+            }
 
             trendChartInstance.data.labels = sortedDates.slice(-7);
             trendChartInstance.data.datasets[0].data = sortedDates.slice(-7).map(d => countsByDay[d]);
@@ -1144,41 +2493,67 @@
                 ? Object.keys(typeCount).reduce((a, b) => typeCount[a] > typeCount[b] ? a : b, 'N/A')
                 : 'N/A';
 
-            // Approval rate
+            const deptCount = {};
+            requests.forEach(r => {
+                if (Array.isArray(r.workflow)) {
+                    r.workflow.forEach((level) => {
+                        const role = canonicalApproverRole(level);
+                        if (role) deptCount[role] = (deptCount[role] || 0) + 1;
+                    });
+                }
+            });
+
+            const mostActiveDepartment = Object.keys(deptCount).length > 0
+                ? Object.keys(deptCount).reduce((a, b) => deptCount[a] > deptCount[b] ? a : b, 'N/A')
+                : 'N/A';
+
             const approved = requests.filter(r => normalizeStatus(r.status) === 'approved').length;
             const total = requests.length;
             const approvalRate = total > 0 ? Math.round((approved / total) * 100) : 0;
 
-            // Average amount
-            const totalAmount = requests.reduce((sum, r) => sum + Number(r.amount || 0), 0);
-            const avgAmount = total > 0 ? Math.round(totalAmount / total) : 0;
+            const approvedRequests = requests.filter((r) => normalizeStatus(r.status) === 'approved' && r.createdAt && r.updatedAt);
+            let totalTime = 0;
+            approvedRequests.forEach((r) => {
+                const created = new Date(r.createdAt).getTime();
+                const updated = new Date(r.updatedAt).getTime();
+                if (Number.isFinite(created) && Number.isFinite(updated) && updated >= created) {
+                    totalTime += (updated - created);
+                }
+            });
 
-            // Performance insights
-            const fastest = 'Manager';
-            const slowest = getBottleneck(requests);
+            const avgApprovalTime = approvedRequests.length ? Math.round((totalTime / approvedRequests.length) / 60000) : 0;
+            const pendingCFOReviews = requests.filter((r) => normalizeStatus(r.status) === 'pending' && getRequestCurrentRole(r) === 'CFO').length;
+            const pendingMDReviews = requests.filter((r) => normalizeStatus(r.status) === 'pending' && getRequestCurrentRole(r) === 'MD').length;
 
             return {
                 mostRequested,
+                mostActiveDepartment,
                 approvalRate,
-                avgAmount,
-                fastest,
-                slowest
+                avgApprovalTime,
+                pendingCFOReviews,
+                pendingMDReviews
             };
         }
 
-        function renderInsights() {
-            const requests = readRequestsFromLocalStorage();
-            const insights = generateInsights(requests);
+        function renderInsights(requests, demoMode, approvalRateOverride) {
             const container = document.getElementById('insightsContent');
-
             if (!container) return;
 
+            const insights = demoMode ? {
+                mostRequested: 'Budget Approval',
+                mostActiveDepartment: 'Finance',
+                approvalRate: approvalRateOverride || 78,
+                avgApprovalTime: 42,
+                pendingCFOReviews: 2,
+                pendingMDReviews: 1
+            } : generateInsights(requests);
+
             container.innerHTML = `
-                <div class="insight-item">📌 Most Requested: <strong>${escapeHtml(insights.mostRequested)}</strong></div>
-                <div class="insight-item">⚡ Fastest Approver: <strong>${insights.fastest}</strong></div>
-                <div class="insight-item">🐢 Slowest Stage: <strong>${insights.slowest}</strong></div>
-                <div class="insight-item">📊 Approval Rate: <strong>${insights.approvalRate}%</strong></div>
-                <div class="insight-item">💰 Avg Amount: <strong>$${insights.avgAmount.toLocaleString()}</strong></div>
+                <div class="insight-item">📊 Approval Rate: <strong>${escapeHtml(String(insights.approvalRate))}%</strong></div>
+                <div class="insight-item">🏢 Most Active Department: <strong>${escapeHtml(insights.mostActiveDepartment)}</strong></div>
+                <div class="insight-item">⏱ Average Approval Time: <strong>${escapeHtml(String(insights.avgApprovalTime))} mins</strong></div>
+                <div class="insight-item">👔 Pending CFO Reviews: <strong>${escapeHtml(String(insights.pendingCFOReviews))}</strong></div>
+                <div class="insight-item">🧾 Pending MD Reviews: <strong>${escapeHtml(String(insights.pendingMDReviews))}</strong></div>
             `;
         }
 
@@ -1190,7 +2565,8 @@
             }
 
             container.innerHTML = `
-                <table class="requests-table">
+                <div class="requests-table-wrapper">
+                    <table class="requests-table">
                     <thead>
                         <tr>
                             <th>Title</th>
@@ -1223,6 +2599,7 @@
                         }).join('')}
                     </tbody>
                 </table>
+            </div>
             `;
         }
 

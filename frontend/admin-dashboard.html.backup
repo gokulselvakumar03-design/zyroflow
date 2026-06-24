@@ -1,0 +1,1291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Workflow Builder</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #4facfe 75%, #00f2fe 100%);
+            background-size: 400% 400%;
+            animation: gradient-shift 15s ease infinite;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        @keyframes gradient-shift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            padding: 20px 24px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar-title {
+            color: white;
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .navbar-user {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .notification {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: rgba(255, 255, 255, 0.95);
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: 999px;
+            padding: 8px 12px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .notif-count {
+            min-width: 22px;
+            height: 22px;
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 193, 7, 0.9);
+            color: #1f2937;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .user-info {
+            color: rgba(255, 255, 255, 0.92);
+            font-size: 14px;
+            text-align: right;
+        }
+
+        .user-role {
+            font-weight: 700;
+            text-transform: capitalize;
+        }
+
+        .welcome-text {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 13px;
+        }
+
+        .logout-button {
+            padding: 10px 16px;
+            background: rgba(255, 107, 107, 0.85);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .logout-button:hover {
+            transform: scale(1.04);
+            background: rgba(255, 107, 107, 1);
+        }
+
+        .container {
+            max-width: 1250px;
+            margin: 0 auto;
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: 1.15fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 24px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .card-title {
+            color: white;
+            font-size: 19px;
+            font-weight: 700;
+            margin-bottom: 18px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        .form-label {
+            display: block;
+            color: rgba(255, 255, 255, 0.92);
+            font-size: 12px;
+            font-weight: 700;
+            margin-bottom: 7px;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+
+        .form-input,
+        .form-select {
+            width: 100%;
+            padding: 11px 13px;
+            border: 2px solid rgba(255, 255, 255, 0.22);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+
+        .form-input::placeholder {
+            color: rgba(255, 255, 255, 0.65);
+        }
+
+        .form-select option {
+            color: #222;
+        }
+
+        .form-input:focus,
+        .form-select:focus {
+            outline: none;
+            border-color: rgba(255, 255, 255, 0.6);
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+        }
+
+        .button-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 10px 14px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: scale(1.03);
+            box-shadow: 0 4px 16px rgba(102, 126, 234, 0.45);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.18);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+        }
+
+        .btn-danger {
+            background: rgba(244, 67, 54, 0.82);
+            color: #fff;
+        }
+
+        .btn-danger:hover {
+            transform: scale(1.03);
+        }
+
+        .levels-box {
+            margin-top: 12px;
+            min-height: 46px;
+            padding: 12px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px dashed rgba(255, 255, 255, 0.28);
+        }
+
+        .flow-chain {
+            color: rgba(255, 255, 255, 0.95);
+            font-weight: 600;
+            line-height: 1.6;
+        }
+
+        .templates-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 12px;
+        }
+
+        .template-card {
+            padding: 14px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        .template-name {
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .template-range {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.78);
+            margin-bottom: 8px;
+        }
+
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+
+        .summary-card {
+            background: rgba(255, 255, 255, 0.11);
+            border-radius: 10px;
+            padding: 14px;
+            text-align: center;
+            color: white;
+            border-left: 4px solid;
+        }
+
+        .summary-card.total { border-left-color: #7ca2ff; }
+        .summary-card.pending { border-left-color: #ffc107; }
+        .summary-card.approved { border-left-color: #4caf50; }
+        .summary-card.rejected { border-left-color: #f44336; }
+        .summary-card.cancelled { border-left-color: #9e9e9e; }
+
+        .overdue {
+            color: #ff6b6b;
+            font-weight: 700;
+        }
+
+        .escalated {
+            color: #ffd166;
+            font-weight: 700;
+        }
+
+        .toolbar-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .export-button {
+            background: rgba(255, 255, 255, 0.14);
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            color: white;
+            border-radius: 10px;
+            padding: 8px 12px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .export-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .avg-time-card {
+            margin-top: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border-left-color: #7c4dff;
+        }
+
+        .summary-number {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .summary-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: rgba(255, 255, 255, 0.75);
+        }
+
+        .requests-table {
+            width: 100%;
+            border-collapse: collapse;
+            color: white;
+        }
+
+        .requests-table th,
+        .requests-table td {
+            padding: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: left;
+            font-size: 13px;
+        }
+
+        .requests-table thead {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .badge {
+            display: inline-block;
+            border-radius: 999px;
+            padding: 4px 9px;
+            font-size: 11px;
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+
+        .badge-pending { background: rgba(255, 193, 7, 0.25); color: #ffd966; }
+        .badge-approved { background: rgba(76, 175, 80, 0.25); color: #78e27b; }
+        .badge-rejected { background: rgba(244, 67, 54, 0.25); color: #ff8c85; }
+        .badge-cancelled { background: rgba(158, 158, 158, 0.25); color: #eceff1; }
+
+        .msg {
+            display: none;
+            margin-bottom: 12px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            font-size: 13px;
+        }
+
+        .msg.show { display: block; }
+        .msg.ok { background: rgba(76, 175, 80, 0.2); color: #8de592; }
+        .msg.err { background: rgba(244, 67, 54, 0.2); color: #ff9f99; }
+
+        .empty {
+            color: rgba(255, 255, 255, 0.7);
+            text-align: center;
+            padding: 14px;
+        }
+
+        @media (max-width: 1040px) {
+            .layout { grid-template-columns: 1fr; }
+            .form-grid { grid-template-columns: 1fr; }
+        }
+
+        .charts-row {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .chart-box {
+            flex: 1;
+            min-width: 300px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 15px;
+        }
+
+        .insights-panel {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 15px;
+            min-width: 250px;
+        }
+
+        .insights-panel h3 {
+            color: white;
+            margin-top: 0;
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        .insight-item {
+            margin: 10px 0;
+            font-size: 14px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.08);
+            color: rgba(255, 255, 255, 0.92);
+            border-left: 3px solid rgba(255, 255, 255, 0.2);
+            line-height: 1.5;
+        }
+
+        .activity-panel,
+        .health-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 12px;
+            margin-top: 20px;
+            color: rgba(255, 255, 255, 0.92);
+        }
+
+        .activity-panel h3 {
+            margin: 0 0 10px;
+            font-size: 15px;
+            color: white;
+        }
+
+        .activity-item {
+            font-size: 13px;
+            margin: 5px 0;
+            opacity: 0.8;
+        }
+
+        @media (max-width: 1040px) {
+            .charts-row { flex-direction: column; }
+            .navbar {
+                flex-direction: column;
+                gap: 12px;
+                text-align: center;
+            }
+
+            .navbar-user {
+                flex-direction: column;
+            }
+
+            .summary { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="navbar">
+        <div class="navbar-title">Admin Dashboard</div>
+        <div class="navbar-user">
+            <div class="notification">🔔 <span id="notifCount" class="notif-count">0</span></div>
+            <div class="user-info">
+                <div>Workflow Builder</div>
+                <div id="welcomeText" class="welcome-text"></div>
+                <div id="roleSummary" class="welcome-text"></div>
+            </div>
+            <a href="profile.html" class="profile-link" style="color:white; margin-right:8px; font-weight:600; text-decoration:none;">Profile</a>
+            <button class="logout-button" onclick="logout()">Logout</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="layout">
+            <div class="card">
+                <h2 class="card-title">Create Workflow Template</h2>
+                <div id="workflow-msg" class="msg"></div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label" for="workflow-name">Workflow Name</label>
+                        <input id="workflow-name" class="form-input" type="text" placeholder="Expense Approval">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="workflow-type">Request Type</label>
+                        <select id="workflow-type" class="form-select">
+                            <option value="leave">Leave Request</option>
+                            <option value="budget">Budget Approval</option>
+                            <option value="travel">Travel Request</option>
+                            <option value="reimbursement">Reimbursement</option>
+                            <option value="equipment">Equipment Request</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="min-amount">Min Amount</label>
+                        <input id="min-amount" class="form-input" type="number" min="0" step="0.01" placeholder="0">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="max-amount">Max Amount</label>
+                        <input id="max-amount" class="form-input" type="number" min="0" step="0.01" placeholder="50000">
+                    </div>
+                </div>
+
+                <div class="button-row">
+                    <select id="level-role" class="form-select">
+                        <option value="Accounts">Accounts</option>
+                        <option value="Manager">Manager</option>
+                        <option value="CFO">CFO</option>
+                        <option value="MD">MD</option>
+                    </select>
+                    <button id="add-level-btn" class="btn btn-secondary" type="button">Add Level</button>
+                    <button id="clear-levels-btn" class="btn btn-danger" type="button">Clear Levels</button>
+                    <button id="save-workflow-btn" class="btn btn-primary" type="button">Save Workflow</button>
+                </div>
+
+                <div class="levels-box">
+                    <div id="levels-preview" class="flow-chain">No levels added yet.</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2 class="card-title">Workflow Templates</h2>
+                <div id="templates-grid" class="templates-grid">
+                    <div class="empty">No templates yet</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2 class="card-title">Approvals Overview</h2>
+            <div class="summary">
+                <div class="summary-card total">
+                    <div class="summary-number" id="total-count">0</div>
+                    <div class="summary-label">Total Requests</div>
+                </div>
+                <div class="summary-card pending">
+                    <div class="summary-number" id="pending-count">0</div>
+                    <div class="summary-label">Pending</div>
+                </div>
+                <div class="summary-card approved">
+                    <div class="summary-number" id="approved-count">0</div>
+                    <div class="summary-label">Approved</div>
+                </div>
+                <div class="summary-card rejected">
+                    <div class="summary-number" id="rejected-count">0</div>
+                    <div class="summary-label">Rejected</div>
+                </div>
+                <div class="summary-card cancelled">
+                    <div class="summary-number" id="cancelledCount">0</div>
+                    <div class="summary-label">Cancelled</div>
+                </div>
+            </div>
+            <div class="summary-card avg-time-card">
+                <div class="summary-number" id="avgTime">0 mins</div>
+                <div class="summary-label">Avg Approval Time</div>
+            </div>
+            <div class="charts-row">
+                <div class="chart-box">
+                    <h3 class="chart-title">Request Status Overview</h3>
+                    <canvas id="statusChart"></canvas>
+                </div>
+                <div class="chart-box">
+                    <h3 class="chart-title">Request Trends</h3>
+                    <canvas id="trendChart"></canvas>
+                </div>
+                <div class="insights-panel">
+                    <h3>Top Insights</h3>
+                    <div id="insightsContent"></div>
+                </div>
+            </div>
+            <div class="health-card" id="systemHealth"></div>
+            <div class="activity-panel">
+                <h3>Recent Activity</h3>
+                <div id="activityList"></div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="toolbar-row">
+                <h2 class="card-title" style="margin-bottom: 0;">All Requests</h2>
+                <button class="export-button" onclick="exportCSV()">Export</button>
+            </div>
+            <div id="requests-container">
+                <div class="empty">No requests yet</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const workflowLevels = [];
+        const REQUESTS_API_URL = 'http://localhost:5000/requests';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAuthentication();
+            displayUserRole();
+            wireWorkflowActions();
+            renderWorkflowTemplates();
+            initializeStatusChart();
+            initializeTrendChart();
+            loadRequests();
+        });
+
+        function readRequestsFromLocalStorage() {
+            return JSON.parse(localStorage.getItem('requests') || '[]');
+        }
+
+        function writeRequestsToLocalStorage(requests, skipApiSync) {
+            localStorage.setItem('requests', JSON.stringify(requests));
+            if (!skipApiSync) {
+                syncRequestsToApi(requests);
+            }
+        }
+
+        function syncRequestsToApi(requests) {
+            if (!Array.isArray(requests) || !requests.length) return;
+            requests.forEach((req) => {
+                fetch(REQUESTS_API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(req),
+                }).catch(() => {
+                    // Local fallback remains primary when backend is unavailable.
+                });
+            });
+        }
+
+        function loadRequests() {
+            fetch(REQUESTS_API_URL)
+                .then((res) => {
+                    if (!res.ok) {
+                        throw new Error('API request failed');
+                    }
+                    return res.json();
+                })
+                .then((data) => {
+                    const requests = Array.isArray(data) ? data : [];
+                    writeRequestsToLocalStorage(requests, true);
+                    updateDashboard();
+                })
+                .catch(() => {
+                    updateDashboard();
+                });
+        }
+
+        function normalizeRole(role) {
+            return String(role || '').trim().toLowerCase();
+        }
+
+        function checkAuthentication() {
+            const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+            const role = normalizeRole((currentUser && currentUser.role) || localStorage.getItem('role') || localStorage.getItem('userRole'));
+            if (role !== 'admin') {
+                window.location.href = 'login.html';
+            }
+            localStorage.setItem('role', 'admin');
+            localStorage.setItem('userRole', 'admin');
+        }
+
+        function displayUserRole() {
+            const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+            const role = (currentUser && currentUser.role) || localStorage.getItem('role') || localStorage.getItem('userRole') || 'admin';
+            const prettyRole = canonicalRole(role);
+            const welcomeText = document.getElementById('welcomeText');
+            if (welcomeText) {
+                welcomeText.textContent = `Welcome ${prettyRole}`;
+            }
+        }
+
+        function canonicalRole(roleValue) {
+            const raw = String(roleValue || '').trim().toLowerCase();
+            if (raw === 'accounts') return 'Accounts';
+            if (raw === 'manager') return 'Manager';
+            if (raw === 'cfo') return 'CFO';
+            if (raw === 'md') return 'MD';
+            if (raw === 'admin') return 'Admin';
+            return 'Employee';
+        }
+
+        function wireWorkflowActions() {
+            document.getElementById('add-level-btn').addEventListener('click', addLevel);
+            document.getElementById('clear-levels-btn').addEventListener('click', clearLevels);
+            document.getElementById('save-workflow-btn').addEventListener('click', saveWorkflow);
+        }
+
+        function addLevel() {
+            const role = document.getElementById('level-role').value;
+            workflowLevels.push(role);
+            renderLevelPreview();
+        }
+
+        function clearLevels() {
+            workflowLevels.length = 0;
+            renderLevelPreview();
+        }
+
+        function renderLevelPreview() {
+            const el = document.getElementById('levels-preview');
+            el.textContent = workflowLevels.length ? workflowLevels.join(' -> ') : 'No levels added yet.';
+        }
+
+        function getWorkflows() {
+            return JSON.parse(localStorage.getItem('workflows') || '[]');
+        }
+
+        function setWorkflows(workflows) {
+            localStorage.setItem('workflows', JSON.stringify(workflows));
+        }
+
+        function saveWorkflow() {
+            const name = document.getElementById('workflow-name').value.trim();
+            const type = document.getElementById('workflow-type').value;
+            const minAmount = Number(document.getElementById('min-amount').value);
+            const maxAmount = Number(document.getElementById('max-amount').value);
+
+            if (!name || !type || Number.isNaN(minAmount) || Number.isNaN(maxAmount)) {
+                showWorkflowMessage('Please fill all workflow fields.', 'err');
+                return;
+            }
+
+            if (minAmount < 0 || maxAmount < 0 || maxAmount < minAmount) {
+                showWorkflowMessage('Amount range is invalid.', 'err');
+                return;
+            }
+
+            if (!workflowLevels.length) {
+                showWorkflowMessage('Add at least one approval level.', 'err');
+                return;
+            }
+
+            const workflows = getWorkflows();
+            workflows.push({
+                id: Date.now(),
+                name,
+                type,
+                minAmount,
+                maxAmount,
+                levels: [...workflowLevels]
+            });
+
+            setWorkflows(workflows);
+            showWorkflowMessage('Workflow saved successfully.', 'ok');
+
+            document.getElementById('workflow-name').value = '';
+            document.getElementById('workflow-type').value = 'leave';
+            document.getElementById('min-amount').value = '';
+            document.getElementById('max-amount').value = '';
+            clearLevels();
+            renderWorkflowTemplates();
+        }
+
+        function getRequestTypeLabel(type) {
+            const labels = {
+                leave: 'Leave Request',
+                budget: 'Budget Approval',
+                travel: 'Travel Request',
+                reimbursement: 'Reimbursement',
+                equipment: 'Equipment Request'
+            };
+            return labels[type] || 'General';
+        }
+
+        function showWorkflowMessage(text, type) {
+            const el = document.getElementById('workflow-msg');
+            el.textContent = text;
+            el.className = `msg show ${type}`;
+            setTimeout(() => el.classList.remove('show'), 2400);
+        }
+
+        function renderWorkflowTemplates() {
+            const workflows = getWorkflows();
+            const container = document.getElementById('templates-grid');
+
+            if (!workflows.length) {
+                container.innerHTML = '<div class="empty">No templates yet</div>';
+                return;
+            }
+
+            container.innerHTML = workflows.map((wf) => `
+                <div class="template-card">
+                    <div class="template-name">${escapeHtml(wf.name)}</div>
+                    <div class="template-range">Type: ${escapeHtml(getRequestTypeLabel(wf.type))}</div>
+                    <div class="template-range">${formatCurrency(wf.minAmount)} - ${formatCurrency(wf.maxAmount)}</div>
+                    <div class="flow-chain">${wf.levels.map(escapeHtml).join(' -> ')}</div>
+                </div>
+            `).join('');
+        }
+
+        function updateDashboard() {
+            const requests = readRequestsFromLocalStorage();
+            let hasEscalationChanges = false;
+            requests.forEach((r) => {
+                addSLA(r);
+                if (checkEscalation(r)) {
+                    hasEscalationChanges = true;
+                    addHistory(r, 'Escalated to CFO', 'System');
+                    simulateEmail('escalation', 'CFO');
+                }
+            });
+            if (hasEscalationChanges) {
+                writeRequestsToLocalStorage(requests);
+            }
+
+            const total = requests.length;
+            const pending = requests.filter((r) => normalizeStatus(r.status) === 'pending').length;
+            const approved = requests.filter((r) => normalizeStatus(r.status) === 'approved').length;
+            const rejected = requests.filter((r) => normalizeStatus(r.status) === 'rejected').length;
+            const cancelled = requests.filter((r) => normalizeStatus(r.status) === 'cancelled').length;
+
+            const approvedRequests = requests.filter((r) => {
+                return normalizeStatus(r.status) === 'approved' && r.createdAt && r.updatedAt;
+            });
+
+            let totalTime = 0;
+            approvedRequests.forEach((r) => {
+                const created = new Date(r.createdAt).getTime();
+                const updated = new Date(r.updatedAt).getTime();
+                if (Number.isFinite(created) && Number.isFinite(updated) && updated >= created) {
+                    totalTime += (updated - created);
+                }
+            });
+
+            const avgTimeMs = approvedRequests.length ? totalTime / approvedRequests.length : 0;
+            const avgMinutes = Math.floor(avgTimeMs / 60000);
+
+            document.getElementById('total-count').textContent = total;
+            document.getElementById('pending-count').textContent = pending;
+            document.getElementById('approved-count').textContent = approved;
+            document.getElementById('rejected-count').textContent = rejected;
+            document.getElementById('cancelledCount').textContent = cancelled;
+            document.getElementById('avgTime').textContent = `${avgMinutes} mins`;
+            updateNotifications(requests, 'admin');
+
+            renderRequestsTable(requests);
+            updateStatusChart(pending, approved, rejected, cancelled);
+            updateTrendChart(requests);
+            renderInsights();
+            renderActivity(requests);
+            updateSystemHealth(requests);
+
+            const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+            renderSummary(requests, (currentUser && currentUser.role) || 'Admin');
+        }
+
+        function normalizeStatus(status) {
+            return String(status || '').trim().toLowerCase();
+        }
+
+        function canonicalApproverRole(roleValue) {
+            const raw = String(roleValue || '').trim().toLowerCase();
+            if (raw === 'accounts') return 'Accounts';
+            if (raw === 'manager') return 'Manager';
+            if (raw === 'cfo') return 'CFO';
+            if (raw === 'md') return 'MD';
+            if (raw === 'admin') return 'Admin';
+            return roleValue || '';
+        }
+
+        function getRequestCurrentRole(request) {
+            const workflow = Array.isArray(request.workflow) ? request.workflow : [];
+            const idx = Number(request.currentLevel || 0);
+            return canonicalApproverRole(request.currentRole || workflow[idx] || '');
+        }
+
+        function updateNotifications(requests, userRole) {
+            const role = canonicalApproverRole(userRole);
+            const pending = role === 'Admin'
+                ? requests.filter((r) => normalizeStatus(r.status) === 'pending').length
+                : requests.filter((r) => normalizeStatus(r.status) === 'pending' && getRequestCurrentRole(r) === role).length;
+            const counter = document.getElementById('notifCount');
+            if (counter) counter.innerText = String(pending);
+        }
+
+        function simulateEmail(action, role) {
+            console.log(`Email sent to ${role || 'next approver'} for ${action}`);
+        }
+
+        function addHistory(request, action, user) {
+            if (!Array.isArray(request.history)) request.history = [];
+            request.history.push({ action, user, role: user, status: action, time: Date.now() });
+        }
+
+        function addSLA(request) {
+            if (!request.deadline && request.createdAt) {
+                request.deadline = Number(request.createdAt) + (24 * 60 * 60 * 1000);
+            }
+        }
+
+        function checkSLA(request) {
+            return Number(request.deadline || 0) > 0 && Date.now() > Number(request.deadline);
+        }
+
+        function checkEscalation(request) {
+            if (normalizeStatus(request.status) !== 'pending') return false;
+            if (!checkSLA(request)) return false;
+            const workflow = Array.isArray(request.workflow) ? request.workflow : [];
+            const cfoIndex = workflow.findIndex((role) => canonicalApproverRole(role) === 'CFO');
+            if (cfoIndex === -1 || Number(request.currentLevel || 0) >= cfoIndex) return false;
+            request.currentLevel = cfoIndex;
+            request.currentRole = 'CFO';
+            request.escalated = true;
+            request.updatedAt = Date.now();
+            return true;
+        }
+
+        function renderActivity(requests) {
+            const logs = [];
+
+            requests.forEach((r) => {
+                if (Array.isArray(r.history)) {
+                    r.history.forEach((h) => {
+                        const rawTime = Number(h.time || Date.now());
+                        logs.push({
+                            time: rawTime,
+                            text: `${String(h.user || h.role || 'System')} ${String(h.action || h.status || 'updated')}`
+                        });
+                    });
+                }
+            });
+
+            logs.sort((a, b) => b.time - a.time);
+            const container = document.getElementById('activityList');
+            if (!container) return;
+
+            container.innerHTML = logs.length
+                ? logs.slice(0, 5).map((l) => `<div class="activity-item">${new Date(l.time).toLocaleTimeString()} - ${escapeHtml(l.text)}</div>`).join('')
+                : '<div class="activity-item">No recent activity.</div>';
+        }
+
+        function getBottleneck(requests) {
+            const roleTime = {};
+
+            requests.forEach((r) => {
+                if (Array.isArray(r.history) && r.history.length > 1) {
+                    for (let i = 1; i < r.history.length; i += 1) {
+                        const prev = Number(r.history[i - 1].time || 0);
+                        const curr = Number(r.history[i].time || 0);
+                        const role = String(r.history[i].user || r.history[i].role || 'System');
+                        const delta = curr - prev;
+                        if (delta > 0) {
+                            roleTime[role] = (roleTime[role] || 0) + delta;
+                        }
+                    }
+                }
+            });
+
+            let slowest = 'N/A';
+            let max = 0;
+            Object.keys(roleTime).forEach((role) => {
+                if (roleTime[role] > max) {
+                    max = roleTime[role];
+                    slowest = role;
+                }
+            });
+
+            return slowest;
+        }
+
+        function renderSummary(requests, role) {
+            const normalizedRole = canonicalApproverRole(role);
+            let summary = '';
+
+            if (normalizedRole === 'Employee') {
+                const approved = requests.filter((r) => normalizeStatus(r.status) === 'approved').length;
+                const pending = requests.filter((r) => normalizeStatus(r.status) === 'pending').length;
+                summary = `Approved: ${approved} | Pending: ${pending}`;
+            }
+
+            if (normalizedRole !== 'Employee') {
+                const pending = requests.filter((r) => getRequestCurrentRole(r) === normalizedRole && normalizeStatus(r.status) === 'pending').length;
+                summary = `You have ${pending} approvals pending`;
+            }
+
+            const roleSummary = document.getElementById('roleSummary');
+            if (roleSummary) roleSummary.innerText = summary;
+        }
+
+        function updateSystemHealth(requests) {
+            const pending = requests.filter((r) => normalizeStatus(r.status) === 'pending').length;
+            let status = 'Good';
+            let icon = '✅';
+
+            if (pending > 5) {
+                status = 'Warning';
+                icon = '⚠';
+            }
+
+            const healthEl = document.getElementById('systemHealth');
+            if (healthEl) {
+                healthEl.innerText = `System Health: ${status} ${icon}`;
+            }
+        }
+
+        let statusChartInstance = null;
+        let trendChartInstance = null;
+
+        function initializeStatusChart() {
+            const ctx = document.getElementById('statusChart');
+            if (!ctx) return;
+            
+            statusChartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Pending', 'Approved', 'Rejected', 'Cancelled'],
+                    datasets: [{
+                        data: [0, 0, 0, 0],
+                        backgroundColor: [
+                            '#ff9800',
+                            '#4caf50',
+                            '#f44336',
+                            '#9e9e9e'
+                        ],
+                        borderColor: 'rgba(255, 255, 255, 0.1)',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: 'rgba(255, 255, 255, 0.9)',
+                                font: { size: 12, weight: '600' },
+                                padding: 15
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function initializeTrendChart() {
+            const trendCtx = document.getElementById('trendChart');
+            if (!trendCtx) return;
+
+            trendChartInstance = new Chart(trendCtx, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Requests',
+                        data: [],
+                        backgroundColor: '#2196f3',
+                        borderColor: 'rgba(255, 255, 255, 0.1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: 'rgba(255, 255, 255, 0.9)',
+                                font: { size: 12, weight: '600' },
+                                padding: 15
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: { color: 'rgba(255, 255, 255, 0.8)', font: { size: 11 } },
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            ticks: { color: 'rgba(255, 255, 255, 0.8)', font: { size: 11 } },
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateStatusChart(pending, approved, rejected, cancelled) {
+            if (!statusChartInstance) return;
+            statusChartInstance.data.datasets[0].data = [pending, approved, rejected, cancelled];
+            statusChartInstance.update();
+        }
+
+        function updateTrendChart(requests) {
+            if (!trendChartInstance) return;
+
+            const countsByDay = {};
+            requests.forEach(r => {
+                const date = new Date(Number(r.createdAt || Date.now())).toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric'
+                });
+                countsByDay[date] = (countsByDay[date] || 0) + 1;
+            });
+
+            const sortedDates = Object.keys(countsByDay).sort((a, b) => {
+                return new Date(a) - new Date(b);
+            });
+
+            trendChartInstance.data.labels = sortedDates.slice(-7);
+            trendChartInstance.data.datasets[0].data = sortedDates.slice(-7).map(d => countsByDay[d]);
+            trendChartInstance.update();
+        }
+
+        function generateInsights(requests) {
+            if (!Array.isArray(requests) || requests.length === 0) {
+                return {
+                    mostRequested: 'N/A',
+                    approvalRate: 0,
+                    avgAmount: 0,
+                    fastest: 'N/A',
+                    slowest: 'N/A'
+                };
+            }
+
+            // Most requested type
+            const typeCount = {};
+            requests.forEach(r => {
+                const type = String(r.type || 'Unknown').trim();
+                typeCount[type] = (typeCount[type] || 0) + 1;
+            });
+
+            const mostRequested = Object.keys(typeCount).length > 0
+                ? Object.keys(typeCount).reduce((a, b) => typeCount[a] > typeCount[b] ? a : b, 'N/A')
+                : 'N/A';
+
+            // Approval rate
+            const approved = requests.filter(r => normalizeStatus(r.status) === 'approved').length;
+            const total = requests.length;
+            const approvalRate = total > 0 ? Math.round((approved / total) * 100) : 0;
+
+            // Average amount
+            const totalAmount = requests.reduce((sum, r) => sum + Number(r.amount || 0), 0);
+            const avgAmount = total > 0 ? Math.round(totalAmount / total) : 0;
+
+            // Performance insights
+            const fastest = 'Manager';
+            const slowest = getBottleneck(requests);
+
+            return {
+                mostRequested,
+                approvalRate,
+                avgAmount,
+                fastest,
+                slowest
+            };
+        }
+
+        function renderInsights() {
+            const requests = readRequestsFromLocalStorage();
+            const insights = generateInsights(requests);
+            const container = document.getElementById('insightsContent');
+
+            if (!container) return;
+
+            container.innerHTML = `
+                <div class="insight-item">📌 Most Requested: <strong>${escapeHtml(insights.mostRequested)}</strong></div>
+                <div class="insight-item">⚡ Fastest Approver: <strong>${insights.fastest}</strong></div>
+                <div class="insight-item">🐢 Slowest Stage: <strong>${insights.slowest}</strong></div>
+                <div class="insight-item">📊 Approval Rate: <strong>${insights.approvalRate}%</strong></div>
+                <div class="insight-item">💰 Avg Amount: <strong>$${insights.avgAmount.toLocaleString()}</strong></div>
+            `;
+        }
+
+        function renderRequestsTable(requests) {
+            const container = document.getElementById('requests-container');
+            if (!requests.length) {
+                container.innerHTML = '<div class="empty">No requests yet</div>';
+                return;
+            }
+
+            container.innerHTML = `
+                <table class="requests-table">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Amount</th>
+                            <th>Workflow</th>
+                            <th>Current Level</th>
+                            <th>Status</th>
+                            <th>Last Action</th>
+                            <th>Updated</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${requests.map((req) => {
+                            const current = getCurrentLevelName(req);
+                            const status = normalizeStatus(req.status);
+                            const last = Array.isArray(req.history) && req.history.length ? req.history[req.history.length - 1] : null;
+                            const overdueTag = checkSLA(req) ? ' | Overdue' : '';
+                            const escalatedTag = req.escalated ? ' | Escalated' : '';
+                            return `
+                                <tr>
+                                    <td>${escapeHtml(req.title || '-')}</td>
+                                    <td>${formatCurrency(req.amount || 0)}</td>
+                                    <td>${(req.workflow || []).map(escapeHtml).join(' -> ')}</td>
+                                    <td>${escapeHtml(current)}</td>
+                                    <td><span class="badge badge-${status}">${status}</span>${overdueTag ? ` <span class="overdue">⚠ Overdue</span>` : ''}${escalatedTag ? ` <span class="escalated">🚨 Escalated</span>` : ''}</td>
+                                    <td>${last ? `${escapeHtml(last.role || last.user || 'System')} ${escapeHtml(String(last.status || last.action || '').toLowerCase())}` : 'No action yet'}</td>
+                                    <td>${timeAgo(req.updatedAt || req.createdAt)}</td>
+                                </tr>
+                            `;
+                        }).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        function exportCSV() {
+            const requests = readRequestsFromLocalStorage();
+            let csv = 'Title,Status,Amount\n';
+            requests.forEach((r) => {
+                csv += `${String(r.title || '').replace(/,/g, ' ')},${String(r.status || '')},${Number(r.amount || 0)}\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'requests.csv';
+            a.click();
+            URL.revokeObjectURL(a.href);
+        }
+
+        function getCurrentLevelName(request) {
+            const status = normalizeStatus(request.status);
+            if (status === 'approved') return 'Completed';
+            if (status === 'rejected') return 'Rejected';
+            if (status === 'cancelled') return 'Cancelled';
+            const idx = Number(request.currentLevel || 0);
+            const levels = Array.isArray(request.workflow) ? request.workflow : [];
+            return levels[idx] || 'N/A';
+        }
+
+        function formatCurrency(amount) {
+            return `$${Number(amount || 0).toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
+        }
+
+        function timeAgo(timestamp) {
+            let time = Number(timestamp);
+            if (!Number.isFinite(time)) {
+                const parsed = Date.parse(String(timestamp || ''));
+                time = Number.isFinite(parsed) ? parsed : Date.now();
+            }
+            const diffSeconds = Math.max(0, Math.floor((Date.now() - time) / 1000));
+            if (diffSeconds < 60) return `${diffSeconds}s ago`;
+            const mins = Math.floor(diffSeconds / 60);
+            if (mins < 60) return `${mins} min${mins === 1 ? '' : 's'} ago`;
+            const hours = Math.floor(mins / 60);
+            if (hours < 24) return `${hours} hour${hours === 1 ? '' : 's'} ago`;
+            const days = Math.floor(hours / 24);
+            return `${days} day${days === 1 ? '' : 's'} ago`;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = String(text || '');
+            return div.innerHTML;
+        }
+
+        function logout() {
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('role');
+            localStorage.removeItem('userRole');
+            localStorage.removeItem('userEmail');
+            window.location.href = 'login.html';
+        }
+
+        setInterval(loadRequests, 4000);
+    </script>
+</body>
+</html>
