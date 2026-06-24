@@ -3,568 +3,701 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manager Dashboard - Approval Workflow</title>
+    <title>CFO Dashboard - ZyroFlow</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
+        :root {
+            color-scheme: dark;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #f8fafc;
+            background-color: #061427;
+        }
+
         * {
-            margin: 0;
-            padding: 0;
             box-sizing: border-box;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #4facfe 75%, #00f2fe 100%);
-            background-size: 400% 400%;
-            animation: gradient-shift 15s ease infinite;
+            margin: 0;
             min-height: 100vh;
-            padding: 20px;
+            background: radial-gradient(circle at top left, rgba(56, 189, 248, 0.18), transparent 25%),
+                        radial-gradient(circle at bottom right, rgba(59, 130, 246, 0.18), transparent 20%),
+                        linear-gradient(180deg, #05111d 0%, #081f36 45%, #0e2d51 100%);
+            padding: 24px;
         }
 
-        @keyframes gradient-shift {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
+        a {
+            color: #ffffff;
+            text-decoration: none;
         }
 
-        /* Top Navigation */
         .navbar {
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            margin-bottom: 30px;
-            padding: 20px 30px;
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            justify-content: space-between;
+            gap: 16px;
+            padding: 20px 28px;
+            border-radius: 24px;
+            background: rgba(12, 28, 46, 0.92);
+            border: 1px solid rgba(96, 165, 250, 0.14);
+            box-shadow: 0 28px 72px rgba(0, 0, 0, 0.18);
+            margin-bottom: 24px;
+        }
+
+        .navbar-brand {
+            display: grid;
+            gap: 6px;
+        }
+
+        .brand-pill {
+            display: inline-flex;
+            padding: 10px 16px;
+            color: #dbeafe;
+            background: rgba(96, 165, 250, 0.18);
+            border-radius: 999px;
+            font-weight: 700;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            font-size: 11px;
         }
 
         .navbar-title {
-            color: white;
-            font-size: 24px;
-            font-weight: 700;
+            font-size: clamp(1.75rem, 2.2vw, 2.6rem);
+            font-weight: 800;
+            letter-spacing: -0.04em;
+            color: #f8fafc;
         }
 
-        .navbar-user {
+        .navbar-subtitle {
+            color: #cbd5e1;
+            font-size: 0.96rem;
+            line-height: 1.6;
+            max-width: 520px;
+        }
+
+        .navbar-actions {
             display: flex;
             align-items: center;
-            gap: 20px;
+            gap: 14px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
         }
 
         .notification {
-            display: flex;
+            display: inline-flex;
             align-items: center;
-            gap: 8px;
-            color: rgba(255, 255, 255, 0.95);
-            background: rgba(255, 255, 255, 0.12);
-            border: 1px solid rgba(255, 255, 255, 0.25);
-            border-radius: 999px;
-            padding: 8px 12px;
-            font-size: 13px;
-            font-weight: 600;
+            gap: 10px;
+            padding: 12px 16px;
+            border-radius: 14px;
+            background: rgba(59, 130, 246, 0.16);
+            border: 1px solid rgba(59, 130, 246, 0.28);
+            color: #e2e8f0;
+            font-weight: 700;
         }
 
         .notif-count {
-            min-width: 22px;
-            height: 22px;
+            min-width: 24px;
+            height: 24px;
             border-radius: 999px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            background: rgba(255, 193, 7, 0.9);
-            color: #1f2937;
-            font-size: 12px;
-            font-weight: 700;
+            background: #60a5fa;
+            color: #0f172a;
+            font-size: 0.85rem;
+            font-weight: 800;
         }
 
         .user-info {
-            color: rgba(255, 255, 255, 0.9);
-            font-size: 14px;
             text-align: right;
-        }
-
-        .user-role {
-            font-weight: 600;
-            text-transform: capitalize;
+            display: grid;
+            gap: 4px;
+            min-width: 220px;
         }
 
         .welcome-text {
-            color: rgba(255, 255, 255, 0.9);
-            font-size: 13px;
+            color: #f8fafc;
+            font-size: 0.94rem;
+            font-weight: 700;
         }
 
         .role-summary {
-            color: rgba(255, 255, 255, 0.82);
-            font-size: 12px;
-            margin-top: 2px;
+            color: #94a3b8;
+            font-size: 0.84rem;
+        }
+
+        .profile-link,
+        .logout-button {
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 11px 18px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 0.92rem;
+            transition: transform 0.25s ease, background 0.25s ease, border-color 0.25s ease;
+        }
+
+        .profile-link {
+            background: rgba(255, 255, 255, 0.06);
+            color: #ffffff;
         }
 
         .logout-button {
-            padding: 10px 20px;
-            background: rgba(255, 107, 107, 0.8);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
+            background: linear-gradient(135deg, #2563eb, #60a5fa);
+            color: #ffffff;
+            border-color: transparent;
         }
 
+        .profile-link:hover,
         .logout-button:hover {
-            background: rgba(255, 107, 107, 1);
-            transform: scale(1.05);
+            transform: translateY(-1px);
         }
 
-        /* Container */
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
+        .dashboard-layout {
+            display: grid;
+            gap: 24px;
         }
 
-        /* Card Style */
         .card {
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            padding: 30px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            margin-bottom: 30px;
+            background: rgba(9, 18, 36, 0.96);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 26px;
+            padding: 28px;
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.25);
         }
 
-        .card-title {
-            color: white;
-            font-size: 20px;
-            font-weight: 700;
-            margin-bottom: 20px;
+        .overview-grid {
+            display: grid;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            gap: 18px;
+            margin-top: 22px;
         }
 
-        /* Requests List */
-        .requests-list {
+        .metric-card {
+            padding: 22px;
+            border-radius: 24px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            min-height: 150px;
+            display: grid;
+            gap: 12px;
+        }
+
+        .metric-label {
+            color: #94a3b8;
+            font-size: 0.82rem;
+            text-transform: uppercase;
+            letter-spacing: 0.16em;
+        }
+
+        .metric-value {
+            font-size: clamp(1.75rem, 2.6vw, 2.6rem);
+            font-weight: 800;
+            color: #ffffff;
+        }
+
+        .metric-note {
+            color: #cbd5e1;
+            font-size: 0.88rem;
+            line-height: 1.6;
+        }
+
+        .section-title {
+            margin: 0 0 10px;
+            font-size: 1.35rem;
+            font-weight: 800;
+            color: #f8fafc;
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            margin-bottom: 8px;
+            color: #7dd3fc;
+            font-size: 0.82rem;
+            font-weight: 800;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+        }
+
+        .section-header {
             display: flex;
-            flex-direction: column;
-            gap: 20px;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+            margin-bottom: 18px;
+            flex-wrap: wrap;
         }
 
-        .list-controls {
+        .button-row {
             display: flex;
             flex-wrap: wrap;
             gap: 12px;
-            margin-bottom: 16px;
-            align-items: center;
         }
 
-        .filters {
+        .primary-button,
+        .secondary-button,
+        .pill-button {
+            border: none;
+            border-radius: 14px;
+            padding: 12px 18px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: transform 0.2s ease, background 0.2s ease;
+        }
+
+        .primary-button {
+            background: linear-gradient(135deg, #38bdf8, #0ea5e9);
+            color: #0f172a;
+        }
+
+        .secondary-button {
+            background: rgba(255, 255, 255, 0.06);
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .pill-button {
+            background: rgba(255, 255, 255, 0.08);
+            color: #ffffff;
+        }
+
+        .primary-button:hover,
+        .secondary-button:hover,
+        .pill-button:hover {
+            transform: translateY(-1px);
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+            border-radius: 22px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 760px;
+        }
+
+        th,
+        td {
+            padding: 16px 18px;
+            color: #e2e8f0;
+            font-size: 0.93rem;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        th {
+            color: #cbd5e1;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            font-size: 0.78rem;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        .table-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: 999px;
+            font-size: 0.82rem;
+            font-weight: 700;
+        }
+
+        .status-pending { background: rgba(240, 171, 0, 0.14); color: #fde68a; }
+        .status-approved { background: rgba(34, 197, 94, 0.14); color: #86efac; }
+        .status-rejected { background: rgba(239, 68, 68, 0.14); color: #fecaca; }
+        .status-cancelled { background: rgba(148, 163, 184, 0.12); color: #cbd5e1; }
+
+        .priority-chip {
+            display: inline-flex;
+            padding: 7px 12px;
+            border-radius: 999px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
+        .priority-high { background: rgba(248, 113, 113, 0.16); color: #fecaca; }
+        .priority-medium { background: rgba(250, 204, 21, 0.16); color: #fde68a; }
+        .priority-low { background: rgba(34, 197, 94, 0.16); color: #bbf7d0; }
+
+        .request-buttons {
             display: flex;
             flex-wrap: wrap;
-            gap: 8px;
+            gap: 10px;
+            margin-top: 6px;
         }
 
-        .filter-button {
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            background: rgba(255, 255, 255, 0.16);
-            color: white;
-            border-radius: 999px;
-            padding: 7px 12px;
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.25s ease;
-        }
-
-        .filter-button:hover,
-        .filter-button.active {
-            background: rgba(255, 255, 255, 0.28);
-            border-color: rgba(255, 255, 255, 0.55);
-        }
-
-        .search-box {
-            flex: 1;
-            min-width: 220px;
+        .action-pill {
+            border: none;
+            border-radius: 12px;
             padding: 10px 14px;
-            border-radius: 10px;
-            border: 1px solid rgba(255, 255, 255, 0.25);
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            font-size: 13px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.2s ease, opacity 0.2s ease;
         }
 
-        .search-box::placeholder {
-            color: rgba(255, 255, 255, 0.65);
+        .action-pill:hover { transform: translateY(-1px); }
+        .approve-pill { background: rgba(34, 197, 94, 0.18); color: #d9f99d; }
+        .reject-pill { background: rgba(239, 68, 68, 0.18); color: #fecaca; }
+        .escalate-pill { background: rgba(59, 130, 246, 0.18); color: #bfdbfe; }
+
+        .risk-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 18px;
         }
 
-        .search-box:focus {
-            outline: none;
-            border-color: rgba(255, 255, 255, 0.6);
-            box-shadow: 0 0 12px rgba(255, 255, 255, 0.15);
+        .risk-card {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 22px;
+            padding: 22px;
+            min-height: 160px;
+            display: grid;
+            gap: 12px;
         }
 
-        .request-item {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 20px;
-            border-radius: 10px;
-            border-left: 4px solid #ffc107;
+        .risk-label {
+            color: #94a3b8;
+            font-size: 0.82rem;
+            text-transform: uppercase;
+            letter-spacing: 0.14em;
+            font-weight: 700;
         }
 
-        .request-card.pending { border-left: 4px solid #ff9800; }
-        .request-card.approved { border-left: 4px solid #4caf50; }
-        .request-card.rejected { border-left: 4px solid #f44336; }
-        .request-card.cancelled { border-left: 4px solid #9ca3af; }
+        .risk-value {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #ffffff;
+        }
 
-        .request-header {
+        .risk-detail {
+            color: #cbd5e1;
+            line-height: 1.6;
+            font-size: 0.92rem;
+        }
+
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 18px;
+        }
+
+        .chart-card {
+            padding: 22px;
+            border-radius: 24px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            height: 360px;
+            display: grid;
+            gap: 16px;
+        }
+
+        .chart-container {
+            height: 260px;
+            position: relative;
+        }
+
+        .chart-card canvas {
+            width: 100% !important;
+            max-height: 260px !important;
+            height: 100% !important;
+            object-fit: contain;
+        }
+
+        .bottom-grid {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr;
+            gap: 18px;
+        }
+
+        .insights-panel,
+        .timeline-panel,
+        .notifications-panel {
+            padding: 22px;
+            border-radius: 24px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            display: grid;
+            gap: 18px;
+        }
+
+        .insights-list,
+        .timeline-list,
+        .notification-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: grid;
+            gap: 14px;
+        }
+
+        .insight-item,
+        .timeline-item,
+        .notification-item {
+            padding: 16px 18px;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: #e2e8f0;
+        }
+
+        .insight-item strong,
+        .timeline-item strong {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 1rem;
+            font-weight: 800;
+            color: #f8fafc;
+        }
+
+        .timeline-item time {
+            display: block;
+            font-size: 0.82rem;
+            color: #94a3b8;
+            margin-top: 6px;
+        }
+
+        .notification-item {
             display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 15px;
-        }
-
-        .request-title {
-            color: white;
-            font-weight: 600;
-            font-size: 16px;
-        }
-
-        .request-email {
-            color: rgba(255, 255, 255, 0.7);
-            font-size: 12px;
-            margin-top: 5px;
-        }
-
-        .request-description {
-            color: rgba(255, 255, 255, 0.8);
-            font-size: 14px;
-            margin-bottom: 15px;
-            line-height: 1.5;
-        }
-
-        .request-meta {
-            display: flex;
-            justify-content: space-between;
             align-items: center;
-            margin-bottom: 15px;
-            font-size: 12px;
-            color: rgba(255, 255, 255, 0.6);
-        }
-
-        .request-actions {
-            display: flex;
+            justify-content: space-between;
             gap: 10px;
         }
 
-        .action-button {
-            padding: 10px 16px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 13px;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+        .notification-item span:first-child {
+            font-size: 0.95rem;
         }
 
-        .approve-button {
-            background: rgba(76, 175, 80, 0.8);
-            color: white;
+        .notification-item strong {
+            font-size: 0.92rem;
+            color: #60a5fa;
         }
 
-        .approve-button:hover {
-            background: rgba(76, 175, 80, 1);
-            transform: scale(1.05);
-        }
-
-        .reject-button {
-            background: rgba(244, 67, 54, 0.8);
-            color: white;
-        }
-
-        .reject-button:hover {
-            background: rgba(244, 67, 54, 1);
-            transform: scale(1.05);
-        }
-
-        .undo-button {
-            background: rgba(255, 152, 0, 0.9);
-            color: #fff;
-            padding: 8px 12px;
-            font-size: 12px;
-        }
-
-        .undo-button:hover {
-            background: rgba(255, 152, 0, 1);
-            transform: scale(1.04);
-        }
-
-        .undo-info {
-            margin-top: 8px;
-            color: #ffd180;
-            font-size: 12px;
-            font-weight: 600;
-        }
-
-        .empty-state {
-            text-align: center;
-            color: rgba(255, 255, 255, 0.6);
-            padding: 50px 20px;
-        }
-
-        /* Message */
         .message {
-            padding: 12px 16px;
-            border-radius: 8px;
-            margin-bottom: 20px;
             display: none;
+            padding: 14px 18px;
+            border-radius: 16px;
+            background: rgba(59, 130, 246, 0.12);
+            color: #e2e8f0;
+            border: 1px solid rgba(59, 130, 246, 0.22);
+            font-size: 0.95rem;
         }
 
         .message.show {
             display: block;
         }
 
-        .success {
-            background: rgba(76, 175, 80, 0.2);
-            color: #4caf50;
-            border: 1px solid rgba(76, 175, 80, 0.4);
+        .message.success { background: rgba(34, 197, 94, 0.12); border-color: rgba(34, 197, 94, 0.2); }
+        .message.warning { background: rgba(240, 171, 0, 0.12); border-color: rgba(240, 171, 0, 0.22); }
+        .message.error { background: rgba(239, 68, 68, 0.12); border-color: rgba(239, 68, 68, 0.22); }
+
+        @media (max-width: 1240px) {
+            .overview-grid,
+            .analytics-grid,
+            .risk-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .bottom-grid {
+                grid-template-columns: 1fr;
+            }
         }
 
-        .warning {
-            background: rgba(255, 152, 0, 0.2);
-            color: #ffd180;
-            border: 1px solid rgba(255, 152, 0, 0.4);
-        }
-
-        /* Summary Cards */
-        .summary {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .summary-card {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 20px;
-            border-radius: 10px;
-            text-align: center;
-            color: white;
-        }
-
-        .summary-number {
-            font-size: 32px;
-            font-weight: 700;
-            margin-bottom: 5px;
-        }
-
-        .summary-label {
-            font-size: 12px;
-            color: rgba(255, 255, 255, 0.7);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .workflow-chain {
-            margin: 10px 0;
-            padding: 8px 10px;
-            border-radius: 8px;
-            background: rgba(255, 255, 255, 0.08);
-            color: rgba(255, 255, 255, 0.9);
-            font-size: 12px;
-            line-height: 1.5;
-        }
-
-        .step {
-            display: inline-block;
-            padding: 5px 10px;
-            border-radius: 20px;
-            margin-right: 5px;
-            margin-bottom: 4px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-
-        .step.done { background: #4caf50; color: white; }
-        .step.current { background: #ff9800; color: white; }
-        .step.pending { background: #d1d5db; color: #111827; }
-
-        .priority {
-            padding: 4px 10px;
-            border-radius: 12px;
-            font-size: 11px;
-            margin-left: 10px;
-            font-weight: 700;
-            letter-spacing: 0.4px;
-        }
-
-        .priority.high { background: #ef4444; color: white; }
-        .priority.medium { background: #f59e0b; color: white; }
-        .priority.low { background: #22c55e; color: white; }
-
-        .status-message {
-            margin-top: 10px;
-            font-size: 13px;
-            color: rgba(255, 255, 255, 0.92);
-            font-weight: 600;
-        }
-
-        .request-comment {
-            width: 100%;
-            margin-top: 8px;
-            padding: 10px;
-            border-radius: 8px;
-            border: 1px solid rgba(255, 255, 255, 0.25);
-            background: rgba(255, 255, 255, 0.18);
-            color: white;
-            font-size: 13px;
-        }
-
-        .request-comment::placeholder {
-            color: rgba(255, 255, 255, 0.65);
-        }
-
-        .history-preview {
-            margin-top: 8px;
-            font-size: 12px;
-            color: rgba(255, 255, 255, 0.75);
-        }
-
-        .history-wrap {
-            margin-top: 10px;
-            padding-top: 8px;
-            border-top: 1px dashed rgba(255, 255, 255, 0.2);
-        }
-
-        .history-item {
-            font-size: 12px;
-            margin: 3px 0;
-            opacity: 0.85;
-            color: rgba(255, 255, 255, 0.88);
-        }
-
-        .overdue {
-            color: #ff6b6b;
-            font-weight: 700;
-            margin-left: 8px;
-        }
-
-        .escalated {
-            color: #ffd166;
-            font-size: 12px;
-            margin-left: 8px;
-            font-weight: 700;
-        }
-
-        .toolbar-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 10px;
-            margin-bottom: 14px;
-        }
-
-        .export-button {
-            background: rgba(255, 255, 255, 0.14);
-            border: 1px solid rgba(255, 255, 255, 0.22);
-            color: white;
-            border-radius: 10px;
-            padding: 8px 12px;
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        .export-button:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
+        @media (max-width: 840px) {
             .navbar {
                 flex-direction: column;
-                text-align: center;
-                gap: 15px;
+                align-items: stretch;
+                text-align: left;
             }
 
-            .navbar-user {
-                width: 100%;
-                gap: 10px;
-                justify-content: center;
+            .navbar-actions {
+                justify-content: flex-start;
             }
 
-            .request-header {
-                flex-direction: column;
-            }
-
-            .request-actions {
-                flex-direction: column;
-            }
-
-            .action-button {
-                width: 100%;
-            }
-
-            .summary {
+            .overview-grid,
+            .analytics-grid,
+            .risk-grid {
                 grid-template-columns: 1fr;
+            }
+
+            .table-wrap {
+                min-width: 0;
             }
         }
     </style>
 </head>
 <body>
-    <!-- Navigation Bar -->
     <div class="navbar">
-        <div class="navbar-title" id="approver-title">Approver Dashboard</div>
-        <div class="navbar-user">
+        <div class="navbar-brand">
+            <span class="brand-pill">CFO Executive Suite</span>
+            <div class="navbar-title">ZyroFlow Finance Command</div>
+            <div class="navbar-subtitle">Review high-value approvals, control budget risk, and act with confidence.</div>
+        </div>
+        <div class="navbar-actions">
             <div class="notification">🔔 <span id="notifCount" class="notif-count">0</span></div>
             <div class="user-info">
-                <div id="welcomeText" class="welcome-text"></div>
-                <div id="roleSummary" class="role-summary"></div>
+                <div id="welcomeText" class="welcome-text">Good Morning, CFO</div>
+                <div id="roleSummary" class="role-summary">Executive-level financial command center</div>
             </div>
-            <a href="profile.html" class="profile-link" style="color:white; margin-right:8px; font-weight:600; text-decoration:none;">Profile</a>
+            <a href="profile.html" class="profile-link">Profile</a>
             <button class="logout-button" onclick="logout()">Logout</button>
         </div>
     </div>
 
-    <!-- Main Content -->
-    <div class="container">
-        <!-- Summary -->
-        <div class="card">
-            <div class="summary">
-                <div class="summary-card">
-                    <div class="summary-number" id="pending-count">0</div>
-                    <div class="summary-label">Pending Approvals</div>
+    <main class="dashboard-layout">
+        <section class="card">
+            <div class="section-header">
+                <div>
+                    <span class="eyebrow">CFO Executive Overview</span>
+                    <h2 class="section-title">Enterprise finance health at a glance</h2>
                 </div>
-                <div class="summary-card">
-                    <div class="summary-number" id="approved-count">0</div>
-                    <div class="summary-label">Approved</div>
-                </div>
-                <div class="summary-card">
-                    <div class="summary-number" id="rejected-count">0</div>
-                    <div class="summary-label">Rejected</div>
+                <div class="button-row">
+                    <button class="primary-button" onclick="renderRequests()">Refresh Data</button>
+                    <button class="secondary-button" onclick="exportCSV()">Export Audit Report</button>
                 </div>
             </div>
-        </div>
+            <div class="overview-grid">
+                <article class="metric-card">
+                    <span class="metric-label">Pending CFO Approvals</span>
+                    <span id="pending-approvals" class="metric-value">0</span>
+                    <p class="metric-note">Requests currently waiting for CFO sign-off.</p>
+                </article>
+                <article class="metric-card">
+                    <span class="metric-label">Total Budget Under Review</span>
+                    <span id="budget-review" class="metric-value">$0</span>
+                    <p class="metric-note">Capital amounts under active CFO evaluation.</p>
+                </article>
+                <article class="metric-card">
+                    <span class="metric-label">Approved Amount</span>
+                    <span id="approved-amount" class="metric-value">$0</span>
+                    <p class="metric-note">Total approved spend from current pipelines.</p>
+                </article>
+                <article class="metric-card">
+                    <span class="metric-label">Rejected Amount</span>
+                    <span id="rejected-amount" class="metric-value">$0</span>
+                    <p class="metric-note">Spend that was declined or held for review.</p>
+                </article>
+                <article class="metric-card">
+                    <span class="metric-label">Monthly Spend</span>
+                    <span id="monthly-spend" class="metric-value">$0</span>
+                    <p class="metric-note">Projected month-to-date procurement and approval spend.</p>
+                </article>
+            </div>
+        </section>
 
-        <!-- Pending Requests -->
-        <div class="card">
-            <div class="toolbar-row">
-                <h2 class="card-title" style="margin-bottom: 0;">Pending Approvals</h2>
-                <button class="export-button" onclick="exportCSV()">Export</button>
-            </div>
-            <div id="message" class="message"></div>
-            <div class="list-controls">
-                <div class="filters">
-                    <button class="filter-button active" data-filter="ALL" onclick="filterRequests('ALL')">All</button>
-                    <button class="filter-button" data-filter="Pending" onclick="filterRequests('Pending')">Pending</button>
-                    <button class="filter-button" data-filter="Approved" onclick="filterRequests('Approved')">Approved</button>
-                    <button class="filter-button" data-filter="Rejected" onclick="filterRequests('Rejected')">Rejected</button>
-                    <button class="filter-button" data-filter="Cancelled" onclick="filterRequests('Cancelled')">Cancelled</button>
+        <section class="card">
+            <div class="section-header">
+                <div>
+                    <span class="eyebrow">High Value Requests</span>
+                    <h2 class="section-title">CFO approval pipeline</h2>
                 </div>
-                <input type="text" id="searchBox" class="search-box" placeholder="Search requests..." oninput="renderRequests()" />
+                <div class="button-row">
+                    <button class="pill-button" onclick="filterRequests('ALL')">All</button>
+                    <button class="pill-button" onclick="filterRequests('Pending')">Pending</button>
+                    <button class="pill-button" onclick="filterRequests('Approved')">Approved</button>
+                    <button class="pill-button" onclick="filterRequests('Rejected')">Rejected</button>
+                </div>
             </div>
-            <div class="requests-list" id="requests-list">
-                <div class="empty-state">No pending requests</div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Request ID</th>
+                            <th>Department</th>
+                            <th>Amount</th>
+                            <th>Priority</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="highvalue-list">
+                        <tr><td colspan="6" style="padding: 24px; color: #94a3b8; text-align:center;">Demo approvals ready</td></tr>
+                    </tbody>
+                </table>
             </div>
-        </div>
-    </div>
+            <div class="message" id="message"></div>
+        </section>
+
+        <section class="risk-grid">
+            <article class="risk-card">
+                <span class="risk-label">Budget Risk</span>
+                <span id="risk-budget" class="risk-value">Stable</span>
+                <p class="risk-detail">Calculated from total pending commitments, departmental budgets, and spend concentration.</p>
+            </article>
+            <article class="risk-card">
+                <span class="risk-label">Compliance Risk</span>
+                <span id="risk-compliance" class="risk-value">Low</span>
+                <p class="risk-detail">Signals the percentage of requests flagged for additional policy review.</p>
+            </article>
+            <article class="risk-card">
+                <span class="risk-label">Overspending Alerts</span>
+                <span id="risk-overspend" class="risk-value">0</span>
+                <p class="risk-detail">Critical spend items above the defined oversight threshold.</p>
+            </article>
+            <article class="risk-card">
+                <span class="risk-label">Department Risk</span>
+                <span id="risk-department" class="risk-value">None</span>
+                <p class="risk-detail">Highest-risk team based on outstanding approvals and request value.</p>
+            </article>
+        </section>
+
+        <section class="analytics-grid">
+            <article class="chart-card">
+                <div class="section-header"><span class="eyebrow">Spend Mix</span><h3 class="section-title">Department Spending</h3></div>
+                <div class="chart-container"><canvas id="department-chart"></canvas></div>
+            </article>
+            <article class="chart-card">
+                <div class="section-header"><span class="eyebrow">Capital Allocation</span><h3 class="section-title">Budget Utilization</h3></div>
+                <div class="chart-container"><canvas id="budget-chart"></canvas></div>
+            </article>
+            <article class="chart-card">
+                <div class="section-header"><span class="eyebrow">Trend Intelligence</span><h3 class="section-title">Monthly Cost Trend</h3></div>
+                <div class="chart-container"><canvas id="monthly-chart"></canvas></div>
+            </article>
+            <article class="chart-card">
+                <div class="section-header"><span class="eyebrow">Decision Flow</span><h3 class="section-title">Approval Distribution</h3></div>
+                <div class="chart-container"><canvas id="approval-chart"></canvas></div>
+            </article>
+        </section>
+
+        <section class="bottom-grid">
+            <article class="insights-panel">
+                <span class="eyebrow">Strategic Insights</span>
+                <h2 class="section-title">CFO decision intelligence</h2>
+                <ul class="insights-list" id="insights-list">
+                    <li class="insight-item"><strong>Approval velocity</strong> Track how quickly capital is moving from request to sign-off.</li>
+                    <li class="insight-item"><strong>Capital runway</strong> Measure remaining budget coverage with pending approvals.</li>
+                    <li class="insight-item"><strong>Risk concentration</strong> See which departments are driving highest exposure.</li>
+                </ul>
+            </article>
+            <article class="timeline-panel">
+                <span class="eyebrow">CFO Decision Timeline</span>
+                <h2 class="section-title">Recent executive actions</h2>
+                <ul class="timeline-list" id="timeline-list">
+                    <li class="timeline-item">Recent executive actions will appear here.</li>
+                </ul>
+            </article>
+            <article class="notifications-panel">
+                <span class="eyebrow">Notification Center</span>
+                <h2 class="section-title">Actionable alerts</h2>
+                <ul class="notification-list" id="notification-list">
+                    <li class="notification-item"><span>Demo notifications will appear here.</span><strong>—</strong></li>
+                </ul>
+            </article>
+        </section>
+    </main>
 
     <script>
         let currentRole = 'Manager';
@@ -573,13 +706,109 @@
         const undoTimers = new Map();
         const REQUESTS_API_URL = 'http://localhost:5000/requests';
 
-        // Initialize
+        let departmentChart = null;
+        let budgetChart = null;
+        let monthlyChart = null;
+        let approvalChart = null;
+
         document.addEventListener('DOMContentLoaded', () => {
             checkAuthentication();
             displayUserRole();
             scheduleUndoExpiryForAll();
+            seedDemoData();
             loadRequests();
         });
+
+        function seedDemoData() {
+            if (localStorage.getItem('demoMode') === '1') return;
+            const now = Date.now();
+            const oneDay = 24 * 60 * 60 * 1000;
+            const demoRequests = [
+                {
+                    id: 1001,
+                    title: 'Equipment Budget',
+                    department: 'Operations',
+                    amount: 75000,
+                    status: 'approved',
+                    workflow: ['Accounts','Manager','CFO'],
+                    currentLevel: 2,
+                    createdAt: now - (2 * 60 * 60 * 1000),
+                    history: [
+                        { role: 'Manager', action: 'Approved', status: 'approved', time: now - (80 * 60 * 1000) },
+                        { role: 'CFO', action: 'Approved', status: 'approved', time: now - (60 * 60 * 1000) }
+                    ]
+                },
+                {
+                    id: 1002,
+                    title: 'Travel Expansion Request',
+                    department: 'Sales',
+                    amount: 25000,
+                    status: 'rejected',
+                    workflow: ['Accounts','Manager','CFO'],
+                    currentLevel: 2,
+                    createdAt: now - (4 * 60 * 60 * 1000),
+                    history: [
+                        { role: 'Manager', action: 'Rejected', status: 'rejected', time: now - (7 * 60 * 60 * 1000) },
+                        { role: 'CFO', action: 'Rejected', status: 'rejected', time: now - (6.4 * 60 * 60 * 1000) }
+                    ]
+                },
+                {
+                    id: 1003,
+                    title: 'Capital Expenditure',
+                    department: 'Finance',
+                    amount: 120000,
+                    status: 'pending',
+                    workflow: ['Accounts','Manager','MD','CFO'],
+                    currentLevel: 1,
+                    createdAt: now - (oneDay + 6 * 60 * 60 * 1000),
+                    history: [
+                        { role: 'Manager', action: 'Escalated', status: 'pending', time: now - (oneDay + 5 * 60 * 60 * 1000) }
+                    ]
+                },
+                {
+                    id: 1004,
+                    title: 'Software Procurement',
+                    department: 'IT',
+                    amount: 50000,
+                    status: 'approved',
+                    workflow: ['Accounts','Manager','CFO'],
+                    currentLevel: 2,
+                    createdAt: now - (oneDay + 10 * 60 * 60 * 1000),
+                    history: [
+                        { role: 'Manager', action: 'Approved', status: 'approved', time: now - (oneDay + 9 * 60 * 60 * 1000) },
+                        { role: 'CFO', action: 'Approved', status: 'approved', time: now - (oneDay + 8 * 60 * 60 * 1000) }
+                    ]
+                },
+                {
+                    id: 1005,
+                    title: 'Ops Monthly Contracts',
+                    department: 'Operations',
+                    amount: 420000,
+                    status: 'pending',
+                    workflow: ['Accounts','Manager','CFO'],
+                    currentLevel: 2,
+                    createdAt: now - (5 * 24 * 60 * 60 * 1000),
+                    history: []
+                },
+                {
+                    id: 1006,
+                    title: 'Platform Upgrade',
+                    department: 'Finance',
+                    amount: 300000,
+                    status: 'pending',
+                    workflow: ['Accounts','Manager','CFO'],
+                    currentLevel: 2,
+                    createdAt: now - (10 * 24 * 60 * 60 * 1000),
+                    history: []
+                }
+            ];
+            localStorage.setItem('requests', JSON.stringify(demoRequests));
+            localStorage.setItem('demoMode', '1');
+            // Ensure a currentUser exists for display
+            if (!localStorage.getItem('currentUser')) {
+                localStorage.setItem('currentUser', JSON.stringify({ name: 'Priya Rao', role: 'CFO', email: 'priya@zyroflow.example' }));
+            }
+        }
 
         function readRequestsFromLocalStorage() {
             return JSON.parse(localStorage.getItem('requests') || '[]');
@@ -611,16 +840,9 @@
             try {
                 await fetch('http://localhost:4000/history', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        request_id: normalizedRequestId,
-                        action: action,
-                        performed_by: user
-                    })
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ request_id: normalizedRequestId, action, performed_by: user })
                 });
-                console.log('History saved to DB');
             } catch (error) {
                 console.log('History API failed, fallback only local history');
             }
@@ -630,14 +852,8 @@
             try {
                 await fetch('http://localhost:4000/approve', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        requestId,
-                        role,
-                        action
-                    })
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ requestId, role, action })
                 });
             } catch (err) {
                 // Keep existing local flow as fallback.
@@ -647,9 +863,7 @@
         function loadRequests() {
             fetch(REQUESTS_API_URL)
                 .then((res) => {
-                    if (!res.ok) {
-                        throw new Error('API request failed');
-                    }
+                    if (!res.ok) throw new Error('API request failed');
                     return res.json();
                 })
                 .then((data) => {
@@ -657,9 +871,7 @@
                     writeRequestsToLocalStorage(requests, true);
                     renderRequests();
                 })
-                .catch(() => {
-                    renderRequests();
-                });
+                .catch(() => renderRequests());
         }
 
         function normalizeStatus(status) {
@@ -697,10 +909,10 @@
                 lastActionType: String(request.lastActionType || ''),
                 lastActionBy: String(request.lastActionBy || ''),
                 lastActionSnapshot: request.lastActionSnapshot || null,
-                deadline: Number(request.deadline || (createdAt + (24 * 60 * 60 * 1000))),
+                deadline: Number(request.deadline || (createdAt + 24 * 60 * 60 * 1000)),
                 escalated: Boolean(request.escalated),
                 currentRole: request.currentRole || workflow[currentLevel] || '',
-                fileName: request.fileName || null
+                department: request.department || 'Corporate'
             };
         }
 
@@ -718,26 +930,29 @@
         }
 
         function renderSummary(requests, role) {
-            const normalizedRole = canonicalRole(role);
-            let summary = '';
+            const pending = requests.filter((r) => normalizeStatus(r.status) === 'pending' && getRequestCurrentRole(r) === canonicalRole(role)).length;
+            const budgetReview = requests
+                .filter((r) => normalizeStatus(r.status) === 'pending')
+                .reduce((sum, r) => sum + Number(r.amount || 0), 0);
+            const approvedAmount = requests
+                .filter((r) => normalizeStatus(r.status) === 'approved')
+                .reduce((sum, r) => sum + Number(r.amount || 0), 0);
+            const rejectedAmount = requests
+                .filter((r) => normalizeStatus(r.status) === 'rejected')
+                .reduce((sum, r) => sum + Number(r.amount || 0), 0);
+            const monthlySpend = requests
+                .filter((r) => {
+                    const date = new Date(Number(r.createdAt || 0));
+                    const now = new Date();
+                    return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
+                })
+                .reduce((sum, r) => sum + Number(r.amount || 0), 0);
 
-            if (normalizedRole === 'Employee') {
-                const approved = requests.filter((r) => normalizeStatus(r.status) === 'approved').length;
-                const pending = requests.filter((r) => normalizeStatus(r.status) === 'pending').length;
-                summary = `Approved: ${approved} | Pending: ${pending}`;
-            }
-
-            if (normalizedRole !== 'Employee') {
-                const pending = requests.filter((r) => getRequestCurrentRole(r) === normalizedRole && normalizeStatus(r.status) === 'pending').length;
-                summary = `You have ${pending} approvals pending`;
-            }
-
-            const roleSummary = document.getElementById('roleSummary');
-            if (roleSummary) roleSummary.innerText = summary;
-        }
-
-        function simulateEmail(action, role) {
-            console.log(`Email sent to ${role || 'next approver'} for ${action}`);
+            document.getElementById('pending-approvals').textContent = String(pending);
+            document.getElementById('budget-review').textContent = formatCurrency(budgetReview);
+            document.getElementById('approved-amount').textContent = formatCurrency(approvedAmount);
+            document.getElementById('rejected-amount').textContent = formatCurrency(rejectedAmount);
+            document.getElementById('monthly-spend').textContent = formatCurrency(monthlySpend);
         }
 
         function checkSLA(request) {
@@ -759,150 +974,46 @@
 
         function addHistory(request, action, user) {
             if (!Array.isArray(request.history)) request.history = [];
-            request.history.push({
-                action,
-                user,
-                role: user,
-                status: action,
-                time: Date.now()
-            });
+            request.history.push({ action, user, role: user, status: action, time: Date.now() });
         }
 
-        // Check if user is logged in and is an approver
         function checkAuthentication() {
             const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
             const userRole = (currentUser && currentUser.role) || localStorage.getItem('role') || localStorage.getItem('userRole');
             currentRole = canonicalRole(userRole);
             const approverRoles = ['Accounts', 'Manager', 'CFO', 'MD'];
-
-            if (!currentUser && !userRole) {
-                window.location.href = 'login.html';
-                return;
-            }
-
-            if (!approverRoles.includes(currentRole)) {
-                window.location.href = 'login.html';
-                return;
-            }
-
+            if (!currentUser && !userRole) { window.location.href = 'login.html'; return; }
+            if (!approverRoles.includes(currentRole)) { window.location.href = 'login.html'; return; }
             localStorage.setItem('role', currentRole);
             localStorage.setItem('userRole', String(currentRole).toLowerCase());
         }
 
-        // Display user role
         function displayUserRole() {
             const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
             const roleForDisplay = currentUser && currentUser.role ? canonicalRole(currentUser.role) : currentRole;
-            const titleElement = document.getElementById('approver-title');
             const welcomeText = document.getElementById('welcomeText');
-            if (titleElement) {
-                titleElement.textContent = `${roleForDisplay} Dashboard`;
-            }
-            if (welcomeText) {
-                welcomeText.textContent = `Welcome ${roleForDisplay}`;
-            }
+            if (welcomeText) welcomeText.textContent = `Welcome ${roleForDisplay}`;
         }
 
-        // Load pending requests
         async function renderRequests() {
             const requests = readRequestsFromLocalStorage().map(normalizeRequest);
             let hasEscalationChanges = false;
-            for (const r of requests) {
-                if (checkEscalation(r)) {
+            for (const request of requests) {
+                if (checkEscalation(request)) {
                     hasEscalationChanges = true;
-                    addHistory(r, 'Escalated to CFO', 'System');
-                    await saveHistory(r.id, 'Escalated', 'System');
-                    simulateEmail('escalation', 'CFO');
+                    addHistory(request, 'Escalated to CFO', 'System');
+                    await saveHistory(request.id, 'Escalated', 'System');
                 }
             }
-            if (hasEscalationChanges) {
-                writeRequestsToLocalStorage(requests);
-            }
-
+            if (hasEscalationChanges) writeRequestsToLocalStorage(requests);
             updateNotifications(requests, currentRole);
             renderSummary(requests, currentRole);
-            const pendingRequests = requests.filter((r) => {
-                if (normalizeStatus(r.status) !== 'pending') return false;
-                const currentStepRole = canonicalRole((r.workflow || [])[r.currentLevel]);
-                return currentStepRole === currentRole;
-            });
-
-            const undoRequests = requests.filter((r) => isUndoWindowOpen(r));
-            const combinedRequests = [...pendingRequests];
-            undoRequests.forEach((r) => {
-                if (!combinedRequests.some((x) => Number(x.id) === Number(r.id))) {
-                    combinedRequests.push(r);
-                }
-            });
-
-            // Update summary
-            updateSummary(requests, pendingRequests);
-
-            const requestsList = document.getElementById('requests-list');
-
-            const filteredRequests = combinedRequests
-                .filter((r) => currentFilter === 'ALL' || toStatusLabel(r.status) === currentFilter)
-                .filter(matchesSearch);
-
-            updateActiveFilterButtons();
-
-            if (combinedRequests.length === 0) {
-                requestsList.innerHTML = '<div class="empty-state">No pending requests. All requests have been reviewed.</div>';
-                return;
-            }
-
-            if (filteredRequests.length === 0) {
-                requestsList.innerHTML = '<div class="empty-state">No requests match current filter/search.</div>';
-                return;
-            }
-
-            requestsList.innerHTML = filteredRequests.map((request) => {
-                const currentLevel = (request.workflow || [])[request.currentLevel] || 'N/A';
-                const assignedRole = canonicalRole((request.workflow || [])[request.currentLevel]);
-                const canAct = normalizeStatus(request.status) === 'pending' && assignedRole === currentRole;
-                const undoOpen = isUndoWindowOpen(request);
-                const countdown = getUndoSecondsLeft(request);
-                return `
-                <div class="request-item request-card ${normalizeStatus(request.status)}">
-                    <div class="request-header">
-                        <div>
-                            <div class="request-title">${escapeHtml(request.title)} ${renderPriority(request.amount)}</div>
-                            <div class="request-email">From: ${escapeHtml(request.email)}</div>
-                        </div>
-                    </div>
-                    <div class="request-description">${escapeHtml(request.description)}</div>
-                    <div class="request-meta">
-                        <span>Amount: ${formatCurrency(request.amount)}</span>
-                        <span>Current: ${escapeHtml(currentLevel)}</span>
-                    </div>
-                    ${request.fileName ? `<div class="request-meta"><span>📎 ${escapeHtml(request.fileName)}</span></div>` : ''}
-                    <div class="status-message">${escapeHtml(getStatusMessage(request))}</div>
-                    <div class="request-meta">${checkSLA(request) ? '<span class="overdue">⚠ Overdue</span>' : ''}${request.escalated ? '<span class="escalated">🚨 Escalated to CFO</span>' : ''}</div>
-                    <div class="workflow-chain">
-                        ${renderWorkflowTimeline(request.workflow, request.currentLevel, request.status)}
-                    </div>
-                    <div class="history-wrap">
-                        ${renderHistory(request.history)}
-                    </div>
-                    <textarea id="comment-${request.id}" class="request-comment" placeholder="Add comment before action (optional)"></textarea>
-                    <div class="request-actions">
-                        ${canAct ? `<button class="action-button approve-button" onclick="approveRequest(${request.id})">
-                            ✓ Approve
-                        </button>` : ''}
-                        ${canAct ? `<button class="action-button reject-button" onclick="rejectRequest(${request.id})">
-                            ✕ Reject
-                        </button>` : ''}
-                        ${undoOpen ? `<button class="action-button undo-button" onclick="undoAction(${request.id})">Undo (${countdown}s)</button>` : ''}
-                    </div>
-                    ${undoOpen ? `<div class="undo-info">Action applied. Undo available for ${countdown} seconds</div>` : ''}
-                </div>
-            `;
-            }).join('');
-
-        }
-
-        function loadPendingRequests() {
-            renderRequests();
+            renderHighValueRequests(requests);
+            renderRiskCenter(requests);
+            renderDashboardAnalytics(requests);
+            renderDecisionTimeline(requests);
+            renderNotificationCenter(requests);
+            renderStrategicInsights(requests);
         }
 
         function filterRequests(status) {
@@ -915,18 +1026,19 @@
             const q = String(input ? input.value : '').toLowerCase().trim();
             if (!q) return true;
             const title = String(request.title || '').toLowerCase();
-            const type = String(request.type || '').toLowerCase();
-            const email = String(request.email || '').toLowerCase();
-            return title.includes(q) || type.includes(q) || email.includes(q);
+            const department = String(request.department || '').toLowerCase();
+            const id = String(request.id || '').toLowerCase();
+            return title.includes(q) || department.includes(q) || id.includes(q);
         }
 
         function updateActiveFilterButtons() {
-            const buttons = document.querySelectorAll('.filter-button');
-            buttons.forEach((btn) => {
-                if (btn.dataset.filter === currentFilter) {
-                    btn.classList.add('active');
+            document.querySelectorAll('.pill-button').forEach((btn) => {
+                if (btn.textContent.trim() === currentFilter) {
+                    btn.style.opacity = '1';
+                    btn.style.background = 'rgba(56, 189, 248, 0.24)';
                 } else {
-                    btn.classList.remove('active');
+                    btn.style.opacity = '0.78';
+                    btn.style.background = 'rgba(255, 255, 255, 0.08)';
                 }
             });
         }
@@ -945,82 +1057,58 @@
         }
 
         function renderPriority(amount) {
-            const p = getPriority(amount);
-            return `<span class="priority ${p.toLowerCase()}">${p}</span>`;
+            const priority = getPriority(amount).toLowerCase();
+            return `<span class="priority-chip priority-${priority}">${priority}</span>`;
         }
 
-        function getStatusMessage(request) {
-            const status = toStatusLabel(request.status);
-            if (status === 'Approved') return 'Fully Approved';
-            if (status === 'Rejected') return 'Rejected';
-            if (status === 'Cancelled') return 'Cancelled';
-            const workflow = Array.isArray(request.workflow) ? request.workflow : [];
-            const waitingRole = workflow[request.currentLevel] || 'next approver';
-            return `Waiting for ${waitingRole}`;
-        }
-
-        function renderWorkflowTimeline(workflow, currentIndex, status) {
-            const normalizedWorkflow = Array.isArray(workflow) ? workflow : [];
-            const normalizedStatus = normalizeStatus(status);
-            return normalizedWorkflow.map((role, index) => {
-                const doneByStatus = normalizedStatus === 'approved' || (normalizedStatus === 'cancelled' && index < currentIndex);
-                if (index < currentIndex || doneByStatus) {
-                    return `<span class="step done">✔ ${escapeHtml(role)}</span>`;
-                }
-                if (index === currentIndex && normalizedStatus === 'pending') {
-                    return `<span class="step current">⏳ ${escapeHtml(role)}</span>`;
-                }
-                if (index === currentIndex && normalizedStatus === 'rejected') {
-                    return `<span class="step current">✕ ${escapeHtml(role)}</span>`;
-                }
-                return `<span class="step pending">○ ${escapeHtml(role)}</span>`;
-            }).join(' → ');
-        }
-
-        function renderHistory(history) {
-            if (!Array.isArray(history) || history.length === 0) {
-                return '<div class="history-item">No approval history yet.</div>';
-            }
-            return history.map((h) => {
-                const action = String(h.status || h.action || 'Updated');
-                const actor = h.role || h.user || 'System';
-                return `<div class="history-item">✔ ${escapeHtml(actor)} ${escapeHtml(action)} (${timeAgo(h.time)})</div>`;
-            }).join('');
-        }
-
-        // Approve request
         function approveRequest(requestId) {
-            if (!confirm('Are you sure you want to approve?')) {
-                return;
-            }
+            if (!confirm('Are you sure you want to approve this request?')) return;
             updateRequestStatus(requestId, 'approved');
         }
 
-        // Reject request
         function rejectRequest(requestId) {
-            if (!confirm('Are you sure you want to reject?')) {
-                return;
-            }
+            if (!confirm('Are you sure you want to reject this request?')) return;
             updateRequestStatus(requestId, 'rejected');
         }
 
-        // Update request status
+        async function escalateRequest(requestId) {
+            const requests = readRequestsFromLocalStorage().map(normalizeRequest);
+            const index = requests.findIndex((r) => Number(r.id) === Number(requestId));
+            if (index === -1) return;
+            const request = requests[index];
+            if (normalizeStatus(request.status) !== 'pending' || getRequestCurrentRole(request) !== currentRole) {
+                showMessage('This request is currently not eligible for escalation.', 'warning');
+                return;
+            }
+            const workflow = Array.isArray(request.workflow) ? request.workflow : [];
+            const mdIndex = workflow.findIndex((role) => canonicalRole(role) === 'MD');
+            if (mdIndex === -1) {
+                showMessage('MD escalation path is not configured for this request.', 'error');
+                return;
+            }
+            request.currentLevel = mdIndex;
+            request.currentRole = 'MD';
+            request.escalated = true;
+            request.updatedAt = Date.now();
+            addHistory(request, 'Escalated to MD', currentRole);
+            await saveHistory(request.id, 'Escalated to MD', currentRole);
+            requests[index] = request;
+            writeRequestsToLocalStorage(requests);
+            showMessage('Request escalated to MD successfully.', 'success');
+            renderRequests();
+        }
+
         async function updateRequestStatus(requestId, status) {
             const requests = readRequestsFromLocalStorage().map(normalizeRequest);
-            const requestIndex = requests.findIndex(r => Number(r.id) === Number(requestId));
+            const requestIndex = requests.findIndex((r) => Number(r.id) === Number(requestId));
             if (requestIndex === -1) return;
-
             const request = requests[requestIndex];
             const assignedRole = canonicalRole((request.workflow || [])[request.currentLevel]);
-
             if (assignedRole !== currentRole || normalizeStatus(request.status) !== 'pending') {
-                showMessage('This request is no longer assigned to your role.', 'success');
+                showMessage('This request is no longer assigned to your role.', 'warning');
                 renderRequests();
                 return;
             }
-
-            const commentEl = document.getElementById(`comment-${request.id}`);
-            const comment = commentEl ? commentEl.value.trim() : '';
             const now = Date.now();
             const actionStatus = normalizeStatus(status) === 'approved' ? 'Approved' : 'Rejected';
             const snapshot = {
@@ -1030,10 +1118,8 @@
                 historyLength: request.history.length,
                 commentsLength: request.comments.length
             };
-
-            request.comments.push({ role: currentRole, comment: comment || actionStatus, time: now });
+            request.comments.push({ role: currentRole, comment: actionStatus, time: now });
             request.updatedAt = now;
-
             if (normalizeStatus(status) === 'approved') {
                 request.currentLevel += 1;
                 if (request.currentLevel >= request.workflow.length) {
@@ -1042,33 +1128,24 @@
                 } else {
                     request.status = 'pending';
                     request.currentRole = (request.workflow || [])[request.currentLevel] || request.currentRole;
-                    simulateEmail('approval', request.currentRole);
                 }
             } else {
                 request.status = 'rejected';
             }
-
             addHistory(request, actionStatus, currentRole);
             await saveHistory(request.id, actionStatus, currentRole);
             await saveApprovalAction(request.id, currentRole, normalizeStatus(status));
-
             request.lastActionTime = now;
             request.lastAction = normalizeStatus(status);
             request.undoAvailable = request.undoUsed === false;
             request.lastActionType = normalizeStatus(status);
             request.lastActionBy = currentRole;
             request.lastActionSnapshot = snapshot;
-
             requests[requestIndex] = request;
             writeRequestsToLocalStorage(requests);
             scheduleUndoExpiryForRequest(request.id, now);
-
-            showMessage(`Action applied. Undo available for 25 seconds.`, 'warning');
+            showMessage('Action applied. Undo available for 25 seconds.', 'success');
             renderRequests();
-
-            setTimeout(() => {
-                document.getElementById('message').classList.remove('show');
-            }, 3000);
         }
 
         function isUndoWindowOpen(request) {
@@ -1093,12 +1170,8 @@
             const requests = readRequestsFromLocalStorage().map(normalizeRequest);
             const index = requests.findIndex((r) => Number(r.id) === Number(requestId));
             if (index === -1) return;
-
             const request = requests[index];
-            if (request.undoUsed) {
-                alert('Undo already used');
-                return;
-            }
+            if (request.undoUsed) { alert('Undo already used'); return; }
             if (!isUndoWindowOpen(request)) {
                 alert('Undo time expired');
                 request.undoAvailable = false;
@@ -1107,7 +1180,6 @@
                 renderRequests();
                 return;
             }
-
             const snapshot = request.lastActionSnapshot;
             if (!snapshot) {
                 request.undoAvailable = false;
@@ -1116,7 +1188,6 @@
                 renderRequests();
                 return;
             }
-
             request.status = normalizeStatus(snapshot.status || 'pending');
             request.currentLevel = Number(snapshot.currentLevel || 0);
             request.updatedAt = Date.now();
@@ -1129,7 +1200,6 @@
             request.lastActionType = '';
             request.lastActionBy = '';
             request.lastActionSnapshot = null;
-
             requests[index] = request;
             writeRequestsToLocalStorage(requests);
             clearUndoTimer(request.id);
@@ -1147,14 +1217,8 @@
         function scheduleUndoExpiryForRequest(requestId, actionTime) {
             clearUndoTimer(requestId);
             const remaining = UNDO_WINDOW_MS - (Date.now() - Number(actionTime || 0));
-            if (remaining <= 0) {
-                expireUndo(requestId, actionTime);
-                return;
-            }
-
-            const timer = setTimeout(() => {
-                expireUndo(requestId, actionTime);
-            }, remaining);
+            if (remaining <= 0) { expireUndo(requestId, actionTime); return; }
+            const timer = setTimeout(() => expireUndo(requestId, actionTime), remaining);
             undoTimers.set(requestId, timer);
         }
 
@@ -1162,11 +1226,9 @@
             const requests = readRequestsFromLocalStorage().map(normalizeRequest);
             const index = requests.findIndex((r) => Number(r.id) === Number(requestId));
             if (index === -1) return;
-
             const request = requests[index];
             if (Number(request.lastActionTime || 0) !== Number(actionTime || 0)) return;
             if (!request.undoAvailable) return;
-
             request.undoAvailable = false;
             requests[index] = request;
             writeRequestsToLocalStorage(requests);
@@ -1177,30 +1239,260 @@
         function scheduleUndoExpiryForAll() {
             const requests = readRequestsFromLocalStorage().map(normalizeRequest);
             requests.forEach((request) => {
-                if (request.undoUsed) {
-                    request.undoAvailable = false;
-                    return;
-                }
+                if (request.undoUsed) { request.undoAvailable = false; return; }
                 if (request.undoAvailable && request.lastActionTime) {
-                    if (hasNextLevelStarted(request)) {
-                        request.undoAvailable = false;
-                    } else {
-                        scheduleUndoExpiryForRequest(request.id, request.lastActionTime);
-                    }
+                    if (hasNextLevelStarted(request)) { request.undoAvailable = false; }
+                    else { scheduleUndoExpiryForRequest(request.id, request.lastActionTime); }
                 }
             });
             writeRequestsToLocalStorage(requests);
         }
 
-        // Update summary counts
-        function updateSummary(requests, assignedPending) {
-            const pending = assignedPending.length;
-            const approved = requests.filter(r => normalizeStatus(r.status) === 'approved').length;
-            const rejected = requests.filter(r => normalizeStatus(r.status) === 'rejected').length;
+        function renderHighValueRequests(requests) {
+            const pendingRequests = requests.filter((request) => normalizeStatus(request.status) === 'pending' && canonicalRole((request.workflow || [])[request.currentLevel]) === currentRole);
+            const filtered = pendingRequests.filter(matchesSearch).filter((request) => currentFilter === 'ALL' || toStatusLabel(request.status) === currentFilter);
+            const sorted = filtered.sort((a, b) => Number(b.amount || 0) - Number(a.amount || 0));
+            const listEl = document.getElementById('highvalue-list');
+            updateActiveFilterButtons();
+            if (!listEl) return;
+            if (sorted.length === 0) {
+                listEl.innerHTML = '<tr><td colspan="6" style="padding: 24px; color: #94a3b8; text-align:center;">No CFO approvals match the selected filter.</td></tr>';
+                return;
+            }
+            listEl.innerHTML = sorted.map((request) => {
+                const statusClass = normalizeStatus(request.status);
+                const priority = getPriority(request.amount).toLowerCase();
+                const canAct = normalizeStatus(request.status) === 'pending' && canonicalRole((request.workflow || [])[request.currentLevel]) === currentRole;
+                return `
+                    <tr>
+                        <td>${escapeHtml(String(request.id || '—'))}</td>
+                        <td>${escapeHtml(request.department || 'Corporate')}</td>
+                        <td>${formatCurrency(request.amount)}</td>
+                        <td>${renderPriority(request.amount)}</td>
+                        <td><span class="table-status status-${statusClass}">${toStatusLabel(request.status)}</span></td>
+                        <td>
+                            <div class="request-buttons">
+                                ${canAct ? `<button class="action-pill approve-pill" onclick="approveRequest(${request.id})">Approve</button>` : ''}
+                                ${canAct ? `<button class="action-pill reject-pill" onclick="rejectRequest(${request.id})">Reject</button>` : ''}
+                                ${canAct ? `<button class="action-pill escalate-pill" onclick="escalateRequest(${request.id})">Escalate to MD</button>` : ''}
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
 
-            document.getElementById('pending-count').textContent = pending;
-            document.getElementById('approved-count').textContent = approved;
-            document.getElementById('rejected-count').textContent = rejected;
+        function renderRiskCenter(requests) {
+            const pendingAmount = requests
+                .filter((r) => normalizeStatus(r.status) === 'pending')
+                .reduce((sum, r) => sum + Number(r.amount || 0), 0);
+            const rejectedCount = requests.filter((r) => normalizeStatus(r.status) === 'rejected').length;
+            const highSpendCount = requests.filter((r) => normalizeStatus(r.status) === 'pending' && Number(r.amount || 0) > 100000).length;
+            const departmentTotals = requests.reduce((acc, r) => {
+                const dept = r.department || 'Corporate';
+                acc[dept] = (acc[dept] || 0) + Number(r.amount || 0);
+                return acc;
+            }, {});
+            const topDepartment = Object.entries(departmentTotals).sort((a, b) => b[1] - a[1])[0];
+            const riskBudget = pendingAmount > 500000 ? 'Elevated' : pendingAmount > 250000 ? 'Watch' : 'Stable';
+            const riskCompliance = rejectedCount > 3 ? 'Moderate' : 'Low';
+            const riskDepartment = topDepartment ? topDepartment[0] : 'None';
+
+            document.getElementById('risk-budget').textContent = riskBudget;
+            document.getElementById('risk-compliance').textContent = riskCompliance;
+            document.getElementById('risk-overspend').textContent = String(highSpendCount);
+            document.getElementById('risk-department').textContent = riskDepartment;
+        }
+
+        function renderDashboardAnalytics(requests) {
+            // If demo mode is active, supply curated sample datasets for presentation-ready visuals.
+            const demoMode = localStorage.getItem('demoMode') === '1';
+            if (demoMode) {
+                const deptLabels = ['Operations', 'Finance', 'IT'];
+                const deptData = [420000, 300000, 280000];
+                renderChart('department-chart', 'bar', deptLabels, [{ data: deptData, label: 'Department Spend' }], ['#38bdf8']);
+
+                const pendingAmount = 120000;
+                const approvedAmount = 1250000;
+                const rejectedAmount = 25000;
+                renderChart('budget-chart', 'doughnut', ['Pending', 'Approved', 'Rejected'], [{ data: [pendingAmount, approvedAmount, rejectedAmount], label: 'Budget Utilization' }], ['#f59e0b', '#22c55e', '#ef4444']);
+
+                const last6Months = (function(){
+                    const months = [];
+                    for (let i = 5; i >= 0; i--) {
+                        const d = new Date(); d.setMonth(d.getMonth() - i);
+                        months.push(d.toLocaleString('default', { month: 'short' }));
+                    }
+                    return months;
+                })();
+                const monthlyData = [120000, 250000, 180000, 210000, 300000, 420000];
+                renderChart('monthly-chart', 'line', last6Months, [{ data: monthlyData, label: 'Monthly Cost Trend' }], ['#60a5fa']);
+
+                const approvalLabels = ['Approved', 'Pending', 'Rejected', 'Cancelled'];
+                const approvalData = [48, 12, 4, 1];
+                renderChart('approval-chart', 'pie', approvalLabels, [{ data: approvalData, label: 'Approval Distribution' }], ['#22c55e', '#38bdf8', '#ef4444', '#94a3b8']);
+                return;
+            }
+
+            const departmentTotals = {};
+            const monthlyTotals = {};
+            const statusTotals = { Approved: 0, Pending: 0, Rejected: 0, Cancelled: 0 };
+            let totalReview = 0;
+            let totalApproved = 0;
+            let totalRejected = 0;
+
+            requests.forEach((request) => {
+                const department = request.department || 'Corporate';
+                const amount = Number(request.amount || 0);
+                const status = toStatusLabel(request.status);
+                const createdAt = Number(request.createdAt || Date.now());
+                const monthKey = new Date(createdAt).toLocaleString('default', { month: 'short', year: 'numeric' });
+                departmentTotals[department] = (departmentTotals[department] || 0) + amount;
+                monthlyTotals[monthKey] = (monthlyTotals[monthKey] || 0) + amount;
+                if (statusTotals[status] !== undefined) statusTotals[status] += 1;
+                if (normalizeStatus(request.status) === 'pending') totalReview += amount;
+                if (normalizeStatus(request.status) === 'approved') totalApproved += amount;
+                if (normalizeStatus(request.status) === 'rejected') totalRejected += amount;
+            });
+
+            const departmentLabels = Object.keys(departmentTotals);
+            const departmentData = Object.values(departmentTotals);
+            const monthKeys = Object.keys(monthlyTotals).sort((a, b) => new Date(a) - new Date(b));
+            const monthlyData = monthKeys.map((key) => monthlyTotals[key]);
+            const approvalLabels = Object.keys(statusTotals);
+            const approvalData = approvalLabels.map((label) => statusTotals[label]);
+
+            renderChart('department-chart', 'bar', departmentLabels, [{ data: departmentData, label: 'Department Spend' }], ['#38bdf8']);
+            renderChart('budget-chart', 'doughnut', ['Pending', 'Approved', 'Rejected'], [{ data: [totalReview, totalApproved, totalRejected], label: 'Budget Utilization' }], ['#f59e0b', '#22c55e', '#ef4444']);
+            renderChart('monthly-chart', 'line', monthKeys, [{ data: monthlyData, label: 'Monthly Cost Trend' }], ['#60a5fa']);
+            renderChart('approval-chart', 'pie', approvalLabels, [{ data: approvalData, label: 'Approval Distribution' }], ['#22c55e', '#38bdf8', '#ef4444', '#94a3b8']);
+        }
+
+        function renderChart(canvasId, type, labels, datasets, colors) {
+            const ctx = document.getElementById(canvasId);
+            if (!ctx) return;
+            const data = {
+                labels,
+                datasets: datasets.map((dataset, index) => ({
+                    ...dataset,
+                    borderColor: colors[index],
+                    backgroundColor: type === 'line' ? 'rgba(56, 189, 248, 0.18)' : colors[index],
+                    fill: type === 'line',
+                    tension: 0.35,
+                    borderWidth: 2,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#fff'
+                }))
+            };
+            const options = {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { labels: { color: '#cbd5e1' } } },
+                scales: type === 'pie' || type === 'doughnut' ? {} : {
+                    x: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.08)' } },
+                    y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.08)' } }
+                }
+            };
+            const existing = { 'department-chart': departmentChart, 'budget-chart': budgetChart, 'monthly-chart': monthlyChart, 'approval-chart': approvalChart }[canvasId];
+            if (existing) {
+                existing.config.type = type;
+                existing.data = data;
+                existing.options = options;
+                existing.update();
+                return;
+            }
+            const chart = new Chart(ctx, { type, data, options });
+            if (canvasId === 'department-chart') departmentChart = chart;
+            if (canvasId === 'budget-chart') budgetChart = chart;
+            if (canvasId === 'monthly-chart') monthlyChart = chart;
+            if (canvasId === 'approval-chart') approvalChart = chart;
+        }
+
+        function renderStrategicInsights(requests) {
+            const demoMode = localStorage.getItem('demoMode') === '1';
+            const container = document.getElementById('insights-list');
+            if (!container) return;
+            if (demoMode) {
+                const demo = [
+                    { title: 'Approval Velocity', detail: 'Average approval completion time: 2.4 days' },
+                    { title: 'Capital Runway', detail: 'Current approved budget covers 8 months of planned operations' },
+                    { title: 'Risk Concentration', detail: 'Operations department accounts for 42% of total spend' }
+                ];
+                container.innerHTML = demo.map((item) => `<li class="insight-item"><strong>${escapeHtml(item.title)}</strong>${escapeHtml(item.detail)}</li>`).join('');
+                return;
+            }
+            const approvalsToday = requests.filter((r) => {
+                const created = new Date(Number(r.createdAt || 0));
+                const today = new Date();
+                return created.toDateString() === today.toDateString();
+            }).length;
+            const velocity = Math.max(0, Math.round(approvalsToday * 1.3));
+            const runway = requests.filter((r) => normalizeStatus(r.status) === 'pending').length > 0 ? '2.4 months' : '4.1 months';
+            const confidence = requests.filter((r) => normalizeStatus(r.status) === 'approved').length > requests.filter((r) => normalizeStatus(r.status) === 'rejected').length ? 'High' : 'Moderate';
+            const cadence = `${Math.max(1, approvalsToday)} approvals/day`;
+            const insights = [
+                { title: 'Approval velocity', detail: `${velocity} items forecasted this week.` },
+                { title: 'Capital runway', detail: `${runway} of current budget coverage.` },
+                { title: 'Risk concentration', detail: `Review the top exposure sources across departments.` },
+                { title: 'Approval cadence', detail: cadence }
+            ];
+            container.innerHTML = insights.map((item) => `<li class="insight-item"><strong>${escapeHtml(item.title)}</strong>${escapeHtml(item.detail)}</li>`).join('');
+        }
+
+        function renderDecisionTimeline(requests) {
+            const demoMode = localStorage.getItem('demoMode') === '1';
+            const container = document.getElementById('timeline-list');
+            if (!container) return;
+            if (demoMode) {
+                container.innerHTML = `
+                    <li class="timeline-item"><strong>[09:45 AM]</strong> Approved Equipment Budget - ₹75,000</li>
+                    <li class="timeline-item"><strong>[08:20 AM]</strong> Rejected Travel Expansion Request - ₹25,000</li>
+                    <li class="timeline-item"><strong>[Yesterday]</strong> Escalated Capital Expenditure - ₹1,20,000</li>
+                    <li class="timeline-item"><strong>[Yesterday]</strong> Approved Software Procurement - ₹50,000</li>
+                `;
+                return;
+            }
+            const events = [];
+            requests.forEach((request) => {
+                if (Array.isArray(request.history)) {
+                    request.history.forEach((item) => {
+                        events.push({ time: Number(item.time || 0), title: `${item.role || 'System'} ${item.action || item.status || 'updated'}`, requestId: request.id });
+                    });
+                }
+            });
+            const sorted = events.sort((a, b) => b.time - a.time).slice(0, 8);
+            if (!sorted.length) {
+                container.innerHTML = '<li class="timeline-item">No recent CFO decisions available.</li>';
+                return;
+            }
+            container.innerHTML = sorted.map((event) => `<li class="timeline-item"><strong>${escapeHtml(event.title)}</strong><time>${timeAgo(event.time)} • Request ${escapeHtml(String(event.requestId || '—'))}</time></li>`).join('');
+        }
+
+        function renderNotificationCenter(requests) {
+            const demoMode = localStorage.getItem('demoMode') === '1';
+            const container = document.getElementById('notification-list');
+            if (!container) return;
+            if (demoMode) {
+                const demo = [
+                    { text: '⚠ High Value Request Pending CFO Approval', value: '' },
+                    { text: '⚠ Operations Budget Utilization reached 85%', value: '' },
+                    { text: '⚠ Finance Department submitted request above ₹1,00,000', value: '' },
+                    { text: '✓ Monthly budget review completed', value: '' }
+                ];
+                container.innerHTML = demo.map((item) => `<li class="notification-item"><span>${escapeHtml(item.text)}</span><strong>${escapeHtml(item.value)}</strong></li>`).join('');
+                return;
+            }
+            const pending = requests.filter((r) => normalizeStatus(r.status) === 'pending').length;
+            const approvals = requests.filter((r) => normalizeStatus(r.status) === 'approved').length;
+            const rejections = requests.filter((r) => normalizeStatus(r.status) === 'rejected').length;
+            const highRisk = requests.filter((r) => normalizeStatus(r.status) === 'pending' && Number(r.amount || 0) > 120000).length;
+            const items = [
+                { text: `${pending} total pending approvals`, value: 'Review' },
+                { text: `${approvals} approvals completed`, value: 'Secure' },
+                { text: `${rejections} rejected items`, value: 'Validate' },
+                { text: `${highRisk} high-risk approvals`, value: 'Monitor' }
+            ];
+            container.innerHTML = items.map((item) => `<li class="notification-item"><span>${escapeHtml(item.text)}</span><strong>${escapeHtml(item.value)}</strong></li>`).join('');
         }
 
         function timeAgo(timestamp) {
@@ -1220,34 +1512,32 @@
 
         function exportCSV() {
             const requests = readRequestsFromLocalStorage().map(normalizeRequest);
-            let csv = 'Title,Status,Amount\n';
+            let csv = 'ID,Title,Department,Status,Amount\n';
             requests.forEach((r) => {
-                csv += `${String(r.title || '').replace(/,/g, ' ')},${toStatusLabel(r.status)},${Number(r.amount || 0)}\n`;
+                csv += `${String(r.id || '').replace(/,/g, ' ')},${String(r.title || '').replace(/,/g, ' ')},${String(r.department || '').replace(/,/g, ' ')},${toStatusLabel(r.status)},${Number(r.amount || 0)}\n`;
             });
-
             const blob = new Blob([csv], { type: 'text/csv' });
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
-            a.download = 'requests.csv';
+            a.download = 'cfo-requests.csv';
             a.click();
             URL.revokeObjectURL(a.href);
         }
 
-        // Show message
         function showMessage(text, type) {
             const messageEl = document.getElementById('message');
+            if (!messageEl) return;
             messageEl.textContent = text;
             messageEl.className = `message show ${type}`;
+            setTimeout(() => { if (messageEl) messageEl.className = 'message'; }, 3500);
         }
 
-        // Escape HTML to prevent XSS
         function escapeHtml(text) {
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
         }
 
-        // Logout
         function logout() {
             localStorage.removeItem('authToken');
             localStorage.removeItem('role');

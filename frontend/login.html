@@ -696,22 +696,24 @@
                     successMessage.classList.add('show');
                     
                     // Store authentication data
+                    const normalizedRole = normalizeRoleValue(response.role || response.user?.role || 'employee');
                     localStorage.setItem('authToken', response.token);
-                    localStorage.setItem('userRole', response.role.toLowerCase());
-                    localStorage.setItem('role', response.role);
+                    localStorage.setItem('userRole', normalizedRole);
+                    localStorage.setItem('role', normalizedRole);
                     localStorage.setItem('email', response.user.email);
                     localStorage.setItem('userEmail', response.user.email);
                     localStorage.setItem('userId', response.userId);
-                    localStorage.setItem('currentUser', JSON.stringify(response.user));
+                    localStorage.setItem('currentUser', JSON.stringify({ ...response.user, role: normalizedRole }));
 
                     console.log('[LOGIN REDIRECT] ========== REDIRECT LOGIC START ==========');
-                    console.log('[LOGIN REDIRECT] Role from backend:', response.role);
-                    console.log('[LOGIN REDIRECT] Stored to localStorage - role:', response.role, 'userRole:', response.role.toLowerCase());
+                    console.log('[LOGIN REDIRECT] Role detected:', response.role || response.user?.role);
+                    console.log('[LOGIN REDIRECT] Normalized role:', normalizedRole);
+                    console.log('[LOGIN REDIRECT] Stored to localStorage - role:', normalizedRole, 'userRole:', normalizedRole);
 
                     // Redirect based on role after 1.5 seconds
                     setTimeout(() => {
-                        const roleNormalized = response.role.toLowerCase().trim();
-                        console.log('[LOGIN REDIRECT] Normalized role (lowercase, trimmed):', roleNormalized);
+                        const roleNormalized = normalizedRole;
+                        console.log('[LOGIN REDIRECT] Redirecting to dashboard for normalized role:', roleNormalized);
 
                         let dashboardUrl = 'user-dashboard.html'; // default
                         console.log('[LOGIN REDIRECT] Default dashboard: user-dashboard.html');
@@ -756,6 +758,30 @@
         }
 
         // Helper Functions
+        function normalizeRoleValue(rawRole) {
+            if (!rawRole) return 'employee';
+            const normalized = String(rawRole).toLowerCase().trim();
+            if (['md', 'm.d.', 'managing director', 'managing_director', 'managingdirector', 'managing director'].includes(normalized)) {
+                return 'md';
+            }
+            if (['admin', 'administrator'].includes(normalized)) {
+                return 'admin';
+            }
+            if (['accounts', 'account'].includes(normalized)) {
+                return 'accounts';
+            }
+            if (['manager', 'managers'].includes(normalized)) {
+                return 'manager';
+            }
+            if (['cfo', 'chief financial officer', 'chief_financial_officer'].includes(normalized)) {
+                return 'cfo';
+            }
+            if (['employee', 'user', 'staff'].includes(normalized)) {
+                return 'employee';
+            }
+            return normalized;
+        }
+
         function isValidEmail(email) {
             const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             return regex.test(email);

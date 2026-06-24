@@ -3,66 +3,824 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Employee Dashboard - Approval Workflow</title>
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <title>Employee Workspace - ZyroFlow</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+      :root{--bg:#061427;--card:#091224;--muted:#94a3b8;--accent:#38bdf8;--glass:rgba(255,255,255,0.04)}
+      *{box-sizing:border-box}
+      body{margin:0;font-family:Segoe UI,Roboto,Arial;background:linear-gradient(180deg,#05111d,#081f36);color:#e6eef8;padding:20px}
+      a{color:inherit}
+      .container{max-width:1200px;margin:0 auto}
+      .nav{display:flex;justify-content:space-between;align-items:center;padding:20px;border-radius:14px;background:rgba(9,18,36,0.9);border:1px solid rgba(96,165,250,0.08);margin-bottom:18px}
+      .brand{display:flex;flex-direction:column}
+      .brand .title{font-size:1.6rem;font-weight:800}
+      .brand .subtitle{color:var(--muted);font-size:0.95rem}
+      .nav-actions{display:flex;align-items:center;gap:12px}
+      .btn,button{cursor:pointer}
+      .profile-pill{padding:8px 12px;border-radius:12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.04)}
+
+      .grid{display:grid;grid-template-columns:1fr;gap:18px}
+      .kpi-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px}
+      .kpi{background:var(--card);padding:18px;border-radius:12px;border:1px solid rgba(255,255,255,0.04);min-height:110px;display:flex;flex-direction:column;justify-content:space-between}
+      .kpi .label{color:var(--muted);font-weight:700;font-size:0.78rem;letter-spacing:0.12em;text-transform:uppercase}
+      .kpi .value{font-size:1.6rem;font-weight:800}
+
+      .actions{display:flex;gap:12px;flex-wrap:wrap}
+      .primary{background:linear-gradient(135deg,var(--accent),#0ea5e9);color:#071029;padding:10px 14px;border-radius:10px;border:none;font-weight:800}
+      .ghost{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.04);color:#e6eef8;padding:10px 14px;border-radius:10px}
+
+      .card{background:var(--card);border-radius:14px;padding:18px;border:1px solid rgba(255,255,255,0.04)}
+      .two-col{display:grid;grid-template-columns:1fr 420px;gap:18px}
+
+      .chart-card{height:360px;border-radius:12px;background:var(--glass);padding:16px;display:flex;flex-direction:column}
+      .chart-container{height:260px;position:relative}
+      .chart-card canvas{width:100%!important;max-height:260px!important;height:100%!important}
+      .detail-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin-top:18px}
+      .detail-label{color:#94a3b8;font-size:.82rem;margin-bottom:6px}
+      .detail-value{background:rgba(255,255,255,0.04);padding:14px;border-radius:14px;border:1px solid rgba(255,255,255,0.08);color:#e6eef8;min-height:48px;white-space:pre-wrap}
+      .stage-steps{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-top:18px}
+      .stage-step{padding:14px 12px;border-radius:16px;text-align:center;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.03);color:#cbd5e1;font-weight:700}
+      .stage-step.active{background:linear-gradient(135deg,var(--accent),#60a5fa);color:#071029;border-color:transparent;box-shadow:0 10px 30px rgba(56,189,248,0.22)}
+      .stage-step.completed{background:rgba(34,197,94,0.16);color:#d9f99d}
+      .comment-section{margin-top:18px}
+      .comment-list{display:grid;gap:12px;margin-top:12px}
+      .comment-item{padding:14px;border-radius:16px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08)}
+      .comment-item strong{display:block;color:#ffffff;margin-bottom:6px}
+      .comment-item time{display:block;color:#94a3b8;font-size:.82rem;margin-top:8px}
+      .details-actions{display:grid;grid-template-columns:1fr 220px;gap:18px;align-items:start;margin-top:18px}
+      .details-actions .secondary{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);color:#e6eef8}
+      .details-actions textarea{width:100%;min-height:104px;padding:14px;border-radius:16px;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.04);color:#e6eef8;resize:vertical}
+      .details-actions label{display:block;color:#94a3b8;margin-bottom:6px;font-size:.9rem}
+      .details-actions .action-controls{display:grid;gap:10px}
+
+      table{width:100%;border-collapse:collapse;color:#e6eef8}
+      th,td{padding:10px;border-bottom:1px solid rgba(255,255,255,0.04);text-align:left}
+      th{color:var(--muted);font-size:0.78rem}
+
+      .workflow{display:flex;flex-direction:column;gap:8px;align-items:flex-start}
+      .stage{padding:8px 12px;border-radius:999px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.03)}
+      .stage.active{background:linear-gradient(90deg,var(--accent),#60a5fa);color:#071029;font-weight:800}
+      .track-message{color:#cfe9ff;font-size:0.95rem;min-height:1.3rem;margin-top:10px}
+      .track-highlight{animation:track-highlight 2s ease forwards}
+      @keyframes track-highlight{0%{box-shadow:0 0 0 0 rgba(56,189,248,0.35)}50%{box-shadow:0 0 0 24px rgba(56,189,248,0.12)}100%{box-shadow:0 0 0 0 rgba(56,189,248,0)}}
+
+      .modal-backdrop{position:fixed;inset:0;background:rgba(4,12,29,0.72);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;z-index:1200;opacity:0;transition:opacity .25s ease}
+      .modal-backdrop.visible{display:flex;opacity:1}
+      .modal-card{width:min(980px,95vw);max-height:85vh;overflow:hidden;background:rgba(9,18,36,0.96);border:1px solid rgba(255,255,255,0.08);border-radius:24px;box-shadow:0 28px 72px rgba(0,0,0,0.28);transform:translateY(24px);transition:transform .25s ease}
+      .modal-backdrop.visible .modal-card{transform:translateY(0)}
+      .modal-header{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:24px 28px 0}
+      .modal-title{margin:0;color:#f8fafc;font-size:1.35rem;font-weight:800}
+      .modal-close{border:none;background:rgba(255,255,255,0.05);color:#e2e8f0;width:38px;height:38px;border-radius:12px;cursor:pointer;font-size:1.1rem}
+      .modal-content{padding:0 28px 24px;overflow:auto;max-height:calc(85vh - 96px)}
+      .modal-controls{display:flex;flex-wrap:wrap;gap:10px;margin:18px 0 12px}
+      .modal-chip{padding:10px 14px;border-radius:12px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:#e2e8f0;cursor:pointer;transition:background .2s ease}
+      .modal-chip.active{background:linear-gradient(135deg,var(--accent),#60a5fa);color:#071029;border-color:transparent}
+      .modal-search{width:100%;max-width:360px;padding:12px 14px;border-radius:12px;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.04);color:#e6eef8}
+      .modal-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:18px 0}
+      .stat-card{padding:18px;border-radius:18px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);display:grid;gap:10px}
+      .stat-label{color:#94a3b8;font-size:.82rem;text-transform:uppercase;letter-spacing:.12em}
+      .stat-value{font-size:1.65rem;font-weight:800;color:#fff}
+      .stat-caption{color:#cbd5e1;font-size:.9rem;line-height:1.5}
+      .history-table{width:100%;border-collapse:collapse;margin-top:16px}
+      .history-table th,.history-table td{padding:14px 12px;border-bottom:1px solid rgba(255,255,255,0.06);color:#e6eef8;font-size:.95rem;text-align:left}
+      .history-table th{color:#94a3b8;font-size:.78rem;text-transform:uppercase;letter-spacing:.08em}
+      .table-empty{padding:36px 0;text-align:center;color:#94a3b8}
+      .analytics-panel{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:16px}
+      .chart-panel{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:18px;padding:18px;min-height:300px;display:grid;gap:18px}
+      .chart-panel canvas{width:100%!important;height:100%!important;min-height:220px}
+      .modal-footer{display:flex;justify-content:flex-end;padding:0 28px 18px}
+
+      .timeline{display:flex;flex-direction:column;gap:10px}
+      .timeline-item{padding:10px;border-radius:10px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.03)}
+
+      @media (max-width:1100px){.two-col{grid-template-columns:1fr}.kpi-grid{grid-template-columns:repeat(3,1fr)}}
+      @media (max-width:640px){.kpi-grid{grid-template-columns:1fr}.nav{flex-direction:column;align-items:flex-start}}
+    </style>
   </head>
-  <body class="bg-light">
-    <div class="container mt-4">
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2>Employee Request Submission</h2>
-        <div>
-          <a class="btn btn-sm btn-outline-secondary" href="approver.html">Approver</a>
-          <a class="btn btn-sm btn-outline-secondary" href="track.html">Track</a>
-          <a class="btn btn-sm btn-outline-secondary" href="admin-rules.html">Admin Rules</a>
-          <button id="logout-btn" class="btn btn-sm btn-danger">Logout</button>
+  <body>
+    <div class="container">
+      <header class="nav">
+        <div class="brand">
+          <div class="title">Employee Workspace</div>
+          <div class="subtitle">Create requests, track approvals, and manage submissions in one place.</div>
+        </div>
+        <div class="nav-actions">
+          <div id="welcome" class="profile-pill">Good Morning, Employee</div>
+          <button id="notifBtn" class="profile-pill">🔔 <span id="notifCount">0</span></button>
+          <a href="profile.html" class="profile-pill">Profile</a>
+          <button id="logout-btn" class="primary">Logout</button>
+        </div>
+      </header>
+
+      <section class="grid">
+        <div class="kpi-grid" id="kpiGrid">
+          <div class="kpi"><div class="label">Total Requests</div><div class="value" id="k_total">0</div></div>
+          <div class="kpi"><div class="label">Pending Requests</div><div class="value" id="k_pending">0</div></div>
+          <div class="kpi"><div class="label">Approved Requests</div><div class="value" id="k_approved">0</div></div>
+          <div class="kpi"><div class="label">Rejected Requests</div><div class="value" id="k_rejected">0</div></div>
+          <div class="kpi"><div class="label">Approval Rate</div><div class="value" id="k_rate">0%</div></div>
+        </div>
+
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+            <div style="font-weight:800">Quick Actions</div>
+            <div class="actions">
+              <button class="primary" id="newRequestBtn">+ New Request</button>
+              <button class="ghost" id="trackBtn">Track Requests</button>
+              <button class="ghost" id="requestHistoryBtn">Request History</button>
+              <button class="ghost" id="requestAnalyticsBtn">Request Analytics</button>
+            </div>
+          </div>
+          <div id="quickHelp" style="color:var(--muted)">Use Quick Actions to create or manage requests.</div>
+        </div>
+
+        <div class="two-col">
+          <div>
+            <section class="card" id="createCard">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><strong>Create Request Center</strong></div>
+              <form id="request-form">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                  <div>
+                    <label class="label">Request Type</label>
+                    <input id="request_type" class="profile-pill" placeholder="Travel / Equipment / Software" required style="width:100%">
+                  </div>
+                  <div>
+                    <label class="label">Amount</label>
+                    <input id="amount" type="number" class="profile-pill" placeholder="100000" required style="width:100%">
+                  </div>
+                  <div>
+                    <label class="label">Department</label>
+                    <select id="department" class="profile-pill" style="width:100%">
+                      <option>Operations</option>
+                      <option>Finance</option>
+                      <option>IT</option>
+                      <option>Sales</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="label">Priority</label>
+                    <select id="priority" class="profile-pill" style="width:100%">
+                      <option>Low</option>
+                      <option>Medium</option>
+                      <option>High</option>
+                    </select>
+                  </div>
+                </div>
+                <div style="margin-top:10px">
+                  <label class="label">Description</label>
+                  <textarea id="description" class="profile-pill" rows="3" style="width:100%" placeholder="Describe the request..."></textarea>
+                </div>
+                <div style="margin-top:10px;display:flex;gap:10px;align-items:center">
+                  <input id="attachment" type="file">
+                </div>
+                <div style="margin-top:12px;display:flex;gap:10px">
+                  <button type="submit" class="primary">Submit Request</button>
+                  <button type="button" id="saveDraft" class="ghost">Save Draft</button>
+                  <button type="button" id="clearForm" class="ghost">Clear Form</button>
+                </div>
+                <div id="employee-alert" class="" style="margin-top:10px;color:#cfe9ff"></div>
+              </form>
+            </section>
+
+            <section class="card" style="margin-top:12px">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><strong>My Requests</strong>
+                <div style="display:flex;gap:8px;align-items:center">
+                  <input id="searchBox" placeholder="Search requests" class="profile-pill" style="padding:8px">
+                  <select id="filterStatus" class="profile-pill"><option>All</option><option>Pending</option><option>Approved</option><option>Rejected</option></select>
+                </div>
+              </div>
+              <div style="overflow:auto;max-height:320px">
+                <table id="requestsTable">
+                  <thead><tr><th>ID</th><th>Type</th><th>Amount</th><th>Priority</th><th>Status</th><th>Approver</th><th>Created</th><th>Actions</th></tr></thead>
+                  <tbody id="requestsBody"></tbody>
+                </table>
+              </div>
+            </section>
+          </div>
+
+          <aside>
+            <section class="card">
+              <strong>Approval Tracker</strong>
+              <div class="workflow" id="workflowTracker" style="margin-top:12px">
+                <div class="stage" data-stage="Employee">Employee</div>
+                <div class="stage" data-stage="Accounts">Accounts</div>
+                <div class="stage" data-stage="Manager">Manager</div>
+                <div class="stage" data-stage="CFO">CFO</div>
+                <div class="stage" data-stage="MD">MD</div>
+                <div class="stage" data-stage="Completed">Completed</div>
+              </div>
+            </section>
+
+            <section class="card" style="margin-top:12px">
+              <strong>Request Timeline</strong>
+              <div id="trackMessage" class="track-message" aria-live="polite"></div>
+              <div class="timeline" id="timelineList" style="margin-top:10px">
+                <div class="timeline-item">Recent request activities will appear here.</div>
+              </div>
+            </section>
+
+            <section class="card" style="margin-top:12px">
+              <strong>Notifications</strong>
+              <ul id="notification-list" style="margin-top:10px;list-style:none;padding:0"></ul>
+            </section>
+          </aside>
+        </div>
+
+        <section class="card">
+          <strong>Analytics</strong>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:12px">
+            <div class="chart-card"><div style="font-weight:800">Request Type Distribution</div><div class="chart-container"><canvas id="typeChart"></canvas></div></div>
+            <div class="chart-card"><div style="font-weight:800">Monthly Requests</div><div class="chart-container"><canvas id="monthlyChart"></canvas></div></div>
+            <div class="chart-card"><div style="font-weight:800">Approval Status</div><div class="chart-container"><canvas id="statusChart"></canvas></div></div>
+          </div>
+        </section>
+
+        <section class="card">
+          <strong>Recent Activities</strong>
+          <div id="recentActivities" style="margin-top:10px"></div>
+        </section>
+      </section>
+    </div>
+
+    <div id="requestHistoryModal" class="modal-backdrop" tabindex="-1">
+      <div class="modal-card">
+        <div class="modal-header">
+          <div>
+            <div class="modal-title">Request History</div>
+            <div style="color:#94a3b8;font-size:.95rem;margin-top:4px">Review all requests submitted by you.</div>
+          </div>
+          <button class="modal-close" aria-label="Close history" onclick="closeRequestHistory()">✕</button>
+        </div>
+        <div class="modal-content">
+          <div class="modal-controls" id="historyFilters">
+            <span class="modal-chip active" data-status="All" onclick="filterHistory('All')">All</span>
+            <span class="modal-chip" data-status="Pending" onclick="filterHistory('Pending')">Pending</span>
+            <span class="modal-chip" data-status="Approved" onclick="filterHistory('Approved')">Approved</span>
+            <span class="modal-chip" data-status="Rejected" onclick="filterHistory('Rejected')">Rejected</span>
+            <span class="modal-chip" data-status="Cancelled" onclick="filterHistory('Cancelled')">Cancelled</span>
+            <input id="historySearch" class="modal-search" placeholder="Search history..." oninput="renderRequestHistory()" />
+          </div>
+          <div style="overflow:auto;max-height:58vh">
+            <table class="history-table">
+              <thead>
+                <tr><th>Request ID</th><th>Request Type</th><th>Amount</th><th>Status</th><th>Submitted Date</th></tr>
+              </thead>
+              <tbody id="historyTableBody"></tbody>
+            </table>
+          </div>
         </div>
       </div>
+    </div>
 
-      <div id="employee-alert" class="alert d-none" role="alert"></div>
-      <form id="request-form" class="card p-3 shadow-sm bg-white">
-        <div class="form-row">
-          <div class="form-group col-md-4">
-            <label for="request_type">Request Type</label>
-            <input type="text" id="request_type" class="form-control" placeholder="expense" required>
+    <div id="requestAnalyticsModal" class="modal-backdrop" tabindex="-1">
+      <div class="modal-card">
+        <div class="modal-header">
+          <div>
+            <div class="modal-title">Request Analytics</div>
+            <div style="color:#94a3b8;font-size:.95rem;margin-top:4px">Track performance and approval trends.</div>
           </div>
-          <div class="form-group col-md-4">
-            <label for="amount">Amount</label>
-            <input type="number" id="amount" class="form-control" placeholder="100000" required>
+          <button class="modal-close" aria-label="Close analytics" onclick="closeRequestAnalytics()">✕</button>
+        </div>
+        <div class="modal-content">
+          <div class="modal-grid">
+            <div class="stat-card"><div class="stat-label">Total Requests</div><div id="analyticsTotalRequests" class="stat-value">0</div><div class="stat-caption">Requests logged by you.</div></div>
+            <div class="stat-card"><div class="stat-label">Approval Rate</div><div id="analyticsApprovalRate" class="stat-value">0%</div><div class="stat-caption">Approved ratio of all requests.</div></div>
+            <div class="stat-card"><div class="stat-label">Total Approved Amount</div><div id="analyticsApprovedAmount" class="stat-value">₹0</div><div class="stat-caption">Value of approved requests.</div></div>
+            <div class="stat-card"><div class="stat-label">Total Rejected Amount</div><div id="analyticsRejectedAmount" class="stat-value">₹0</div><div class="stat-caption">Value of rejected requests.</div></div>
+            <div class="stat-card" style="grid-column:span 2"><div class="stat-label">Average Approval Time</div><div id="analyticsAvgTime" class="stat-value">N/A</div><div class="stat-caption">Average time between submission and approval.</div></div>
           </div>
-          <div class="form-group col-md-4">
-            <label for="description">Description</label>
-            <input type="text" id="description" class="form-control" placeholder="Brief description" required>
+          <div class="analytics-panel">
+            <div class="chart-panel"><div class="modal-title" style="font-size:1rem;margin-bottom:10px">Monthly Request Trend</div><canvas id="historyTrendChart"></canvas></div>
+            <div class="chart-panel"><div class="modal-title" style="font-size:1rem;margin-bottom:10px">Status Distribution</div><canvas id="historyStatusChart"></canvas></div>
           </div>
         </div>
-        <button type="submit" class="btn btn-primary">Submit Request</button>
-      </form>
+      </div>
+    </div>
+
+    <div id="requestDetailsModal" class="modal-backdrop" tabindex="-1">
+      <div class="modal-card">
+        <div class="modal-header">
+          <div>
+            <div class="modal-title">Request Details</div>
+            <div style="color:#94a3b8;font-size:.95rem;margin-top:4px">View status, timeline and approval notes.</div>
+          </div>
+          <button class="modal-close" aria-label="Close details" onclick="closeRequestDetails()">✕</button>
+        </div>
+        <div class="modal-content">
+          <div class="detail-grid">
+            <div>
+              <div class="detail-label">Request ID</div>
+              <div id="detailsRequestId" class="detail-value">—</div>
+            </div>
+            <div>
+              <div class="detail-label">Current Status</div>
+              <div id="detailsStatus" class="detail-value">—</div>
+            </div>
+            <div>
+              <div class="detail-label">Employee Name</div>
+              <div id="detailsEmployeeName" class="detail-value">—</div>
+            </div>
+            <div>
+              <div class="detail-label">Department</div>
+              <div id="detailsDepartment" class="detail-value">—</div>
+            </div>
+            <div>
+              <div class="detail-label">Request Type</div>
+              <div id="detailsRequestType" class="detail-value">—</div>
+            </div>
+            <div>
+              <div class="detail-label">Amount</div>
+              <div id="detailsAmount" class="detail-value">—</div>
+            </div>
+            <div>
+              <div class="detail-label">Priority</div>
+              <div id="detailsPriority" class="detail-value">—</div>
+            </div>
+            <div>
+              <div class="detail-label">Submitted Date</div>
+              <div id="detailsDate" class="detail-value">—</div>
+            </div>
+            <div style="grid-column:span 2">
+              <div class="detail-label">Description</div>
+              <div id="detailsDescription" class="detail-value">—</div>
+            </div>
+          </div>
+          <div id="detailsWorkflowSteps" class="stage-steps"></div>
+          <div class="comment-section">
+            <div class="detail-label">Approval Audit Trail</div>
+            <div id="detailsHistoryList" class="comment-list"></div>
+          </div>
+          <div class="comment-section">
+            <div class="detail-label">Approval Notes</div>
+            <div id="detailsCommentsList" class="comment-list"></div>
+          </div>
+          <div id="detailsActionArea" class="comment-section" style="display:none">
+            <div class="detail-label">Your action</div>
+            <div class="details-actions">
+              <div class="action-note">
+                <label for="approvalNote">Add note</label>
+                <textarea id="approvalNote" placeholder="Enter a comment or note for the audit trail"></textarea>
+              </div>
+              <div class="action-controls">
+                <button id="detailsApproveBtn" class="primary">Approve</button>
+                <button id="detailsRejectBtn" class="secondary">Reject</button>
+                <button id="detailsEscalateBtn" class="secondary" style="display:none">Escalate</button>
+                <button id="detailsAddNoteBtn" class="secondary">Save Note</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <script src="app.js"></script>
     <script>
-      checkAuth();
-      document.getElementById('logout-btn').addEventListener('click', logout);
-
-      document.getElementById('request-form').addEventListener('submit', async (event) => {
-        event.preventDefault();
-        const request_type = document.getElementById('request_type').value.trim();
-        const amount = Number(document.getElementById('amount').value);
-        const description = document.getElementById('description').value.trim();
-
-        const result = await submitRequest(request_type, amount, description);
-        const alert = document.getElementById('employee-alert');
-
-        if (result.success) {
-          alert.className = 'alert alert-success';
-          alert.innerHTML = 'Request submitted successfully. ID: ' + result.request_id;
-          document.getElementById('request-form').reset();
-        } else {
-          alert.className = 'alert alert-danger';
-          alert.innerText = result.message || 'Request submission failed';
-        }
-        alert.classList.remove('d-none');
+      const REQUESTS_API_URL = 'http://localhost:5000/requests';
+      document.addEventListener('DOMContentLoaded', () => {
+        checkAuth();
+        initUI();
+        loadRequests();
       });
+
+      function initUI(){
+        document.getElementById('logout-btn').addEventListener('click', logout);
+        document.getElementById('newRequestBtn').addEventListener('click', () => document.getElementById('request_type').focus());
+        document.getElementById('trackBtn').addEventListener('click', onTrackRequests);
+        document.getElementById('requestHistoryBtn').addEventListener('click', openRequestHistory);
+        document.getElementById('requestAnalyticsBtn').addEventListener('click', openRequestAnalytics);
+        document.getElementById('clearForm').addEventListener('click', () => document.getElementById('request-form').reset());
+        document.getElementById('saveDraft').addEventListener('click', saveDraft);
+        document.getElementById('detailsApproveBtn')?.addEventListener('click', () => handleRequestAction('approve'));
+        document.getElementById('detailsRejectBtn')?.addEventListener('click', () => handleRequestAction('reject'));
+        document.getElementById('detailsEscalateBtn')?.addEventListener('click', () => handleRequestAction('escalate'));
+        document.getElementById('detailsAddNoteBtn')?.addEventListener('click', () => handleRequestAction('note'));
+        document.getElementById('request-form').addEventListener('submit', onSubmit);
+        document.getElementById('searchBox').addEventListener('input', renderRequestsTable);
+        document.getElementById('filterStatus').addEventListener('change', renderRequestsTable);
+      }
+
+      async function onSubmit(e){
+        e.preventDefault();
+        const request_type = document.getElementById('request_type').value.trim();
+        const amount = Number(document.getElementById('amount').value || 0);
+        const department = document.getElementById('department').value;
+        const priority = document.getElementById('priority').value;
+        const description = document.getElementById('description').value.trim();
+        const employeeName = getCurrentUserName();
+        const employeeEmail = getCurrentUserEmail();
+        const request = {
+          id: generateRequestId(),
+          request_type,
+          title: request_type,
+          department,
+          amount,
+          priority,
+          description,
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+          requester: employeeName,
+          requesterEmail: employeeEmail,
+          status: 'Pending Accounts Review',
+          currentLevel: 1,
+          currentRole: 'Accounts',
+          workflow: ['Employee','Accounts','Manager','CFO','Completed'],
+          history: [
+            {time: Date.now(), action: 'Employee Submitted', status: 'Pending Accounts Review', role: 'Employee', user: employeeName, note: 'Request created'}
+          ],
+          comments: []
+        };
+        saveRequest(request);
+        const alert = document.getElementById('employee-alert');
+        alert.style.color = '#d1fae5';
+        alert.textContent = `Request submitted successfully. ID: ${request.id}`;
+        document.getElementById('request-form').reset();
+        renderAll(readRequestsFromLocalStorage());
+      }
+
+      function saveDraft(){
+        const draft = {
+          request_type: document.getElementById('request_type').value,
+          amount: Number(document.getElementById('amount').value||0),
+          department: document.getElementById('department').value,
+          priority: document.getElementById('priority').value,
+          description: document.getElementById('description').value
+        };
+        localStorage.setItem('employeeDraft', JSON.stringify(draft));
+        alert('Draft saved locally');
+      }
+
+      function onTrackRequests(){
+        const requests = readRequestsFromLocalStorage();
+        const trackMessage = document.getElementById('trackMessage');
+        const trackerSection = document.getElementById('workflowTracker')?.closest('section');
+
+        if(requests.length === 0){
+          if(trackMessage){
+            trackMessage.textContent = 'No active requests to track.';
+            trackMessage.style.color = '#f8d7da';
+          }
+          if(trackerSection){
+            trackerSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+          return;
+        }
+
+        if(trackMessage){
+          trackMessage.textContent = '';
+        }
+        if(trackerSection){
+          trackerSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          trackerSection.classList.add('track-highlight');
+          window.setTimeout(() => trackerSection.classList.remove('track-highlight'), 2000);
+        }
+      }
+
+      function readRequestsFromLocalStorage(){
+        return JSON.parse(localStorage.getItem('requests')||'[]').map(r=>({...r, amount:Number(r.amount||0)}));
+      }
+
+      function loadRequests(){
+        const localData = readRequestsFromLocalStorage();
+        fetch(REQUESTS_API_URL).then(r=>{ if(!r.ok) throw 0; return r.json(); }).then(remote=>{ const merged = mergeRequests(remote || [], localData); localStorage.setItem('requests', JSON.stringify(merged)); renderAll(merged); }).catch(()=>{ renderAll(localData); });
+      }
+
+      function renderAll(requests){
+        renderKPIs(requests);
+        renderRequestsTable();
+        renderTracker(requests);
+        renderTimeline(requests);
+        renderNotifications(requests);
+        renderCharts(requests);
+        renderRecentActivities(requests);
+        document.getElementById('welcome').textContent = `Welcome ${getCurrentUserName()}`;
+      }
+
+      function openRequestHistory(){
+        const modal = document.getElementById('requestHistoryModal');
+        if(!modal) return;
+        renderRequestHistory();
+        modal.classList.add('visible');
+      }
+
+      function closeRequestHistory(){
+        const modal = document.getElementById('requestHistoryModal');
+        if(modal) modal.classList.remove('visible');
+      }
+
+      function openRequestAnalytics(){
+        const modal = document.getElementById('requestAnalyticsModal');
+        if(!modal) return;
+        renderRequestAnalytics();
+        modal.classList.add('visible');
+      }
+
+      function closeRequestAnalytics(){
+        const modal = document.getElementById('requestAnalyticsModal');
+        if(modal) modal.classList.remove('visible');
+      }
+
+      function filterHistory(status){
+        const buttons = document.querySelectorAll('#historyFilters .modal-chip');
+        buttons.forEach(btn=>btn.classList.toggle('active', btn.dataset.status===status));
+        renderRequestHistory(status);
+      }
+
+      function renderRequestHistory(status='All'){
+        const requests = getEmployeeRequests();
+        const search = (document.getElementById('historySearch')?.value||'').toLowerCase().trim();
+        const filtered = requests.filter(r=>{
+          const statusMatch = status==='All' || toStatusLabel(r.status)===status;
+          const searchMatch = !search || [r.id, r.request_type, r.title, r.department, r.priority].some(v=>String(v||'').toLowerCase().includes(search));
+          return statusMatch && searchMatch;
+        });
+        const body=document.getElementById('historyTableBody');
+        body.innerHTML='';
+        if(filtered.length===0){
+          body.innerHTML='<tr><td colspan="5" class="table-empty">No requests match your selection.</td></tr>';
+          return;
+        }
+        filtered.forEach(r=>{ const tr=document.createElement('tr'); tr.innerHTML=`<td>${escapeHtml(r.id||'—')}</td><td>${escapeHtml(r.request_type||r.title||'—')}</td><td>${formatCurrency(r.amount)}</td><td>${toStatusLabel(r.status)}</td><td>${new Date(Number(r.createdAt||Date.now())).toLocaleDateString()}</td>`; body.appendChild(tr); });
+      }
+
+      function renderRequestAnalytics(){
+        const requests = getEmployeeRequests();
+        const total = requests.length;
+        const approved = requests.filter(r=>toStatusLabel(r.status)==='Approved').length;
+        const rejected = requests.filter(r=>toStatusLabel(r.status)==='Rejected').length;
+        const cancelled = requests.filter(r=>toStatusLabel(r.status)==='Cancelled').length;
+        const approvedAmount = requests.filter(r=>toStatusLabel(r.status)==='Approved').reduce((sum,r)=>sum+Number(r.amount||0),0);
+        const rejectedAmount = requests.filter(r=>toStatusLabel(r.status)==='Rejected').reduce((sum,r)=>sum+Number(r.amount||0),0);
+        const approvalRate = total?Math.round((approved/total)*100):0;
+        const avgTime = calculateAverageApprovalTime(requests);
+        document.getElementById('analyticsTotalRequests').textContent = total;
+        document.getElementById('analyticsApprovalRate').textContent = approvalRate + '%';
+        document.getElementById('analyticsApprovedAmount').textContent = formatCurrency(approvedAmount);
+        document.getElementById('analyticsRejectedAmount').textContent = formatCurrency(rejectedAmount);
+        document.getElementById('analyticsAvgTime').textContent = avgTime;
+        const trendLabels=[]; const trendData=[]; const statusMap={};
+        const monthly = {};
+        requests.forEach(r=>{
+          const date = new Date(Number(r.createdAt||Date.now()));
+          const key = date.toLocaleString('default',{month:'short',year:'numeric'});
+          monthly[key] = (monthly[key]||0)+1;
+          statusMap[toStatusLabel(r.status)] = (statusMap[toStatusLabel(r.status)]||0)+1;
+        });
+        if(Object.keys(monthly).length===0){
+          const months=['Jan','Feb','Mar','Apr','May','Jun'];
+          months.forEach(m=>{ trendLabels.push(m); trendData.push(Math.floor(Math.random()*20)+10); });
+          statusMap['Approved']=48; statusMap['Pending']=32; statusMap['Rejected']=12; statusMap['Cancelled']=8;
+        } else {
+          Object.keys(monthly).sort((a,b)=>new Date(a)-new Date(b)).forEach(k=>{ trendLabels.push(k); trendData.push(monthly[k]); });
+        }
+        renderChart('historyTrendChart','line',trendLabels,[trendData],['#38bdf8']);
+        renderChart('historyStatusChart','doughnut',Object.keys(statusMap),[Object.values(statusMap)],['#22c55e','#38bdf8','#f97316','#94a3b8']);
+      }
+
+      function getCurrentUserEmail(){ const u=JSON.parse(localStorage.getItem('currentUser')||'null'); return u?.email||localStorage.getItem('userEmail')||localStorage.getItem('email')||''; }
+      function getCurrentUserRole(){ const u=JSON.parse(localStorage.getItem('currentUser')||'null'); return String(u?.role||localStorage.getItem('user_role')||localStorage.getItem('role')||'Employee'); }
+      function generateRequestId(){ return `REQ-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).slice(2,6).toUpperCase()}`; }
+      function saveRequest(request){ const requests=readRequestsFromLocalStorage(); const idx=requests.findIndex(r=>String(r.id)===String(request.id)); if(idx===-1) requests.unshift(request); else requests[idx]=request; localStorage.setItem('requests', JSON.stringify(requests)); }
+      function mergeRequests(remote, local){ const map=new Map(); (Array.isArray(local)?local:[]).forEach(req=>{ if(req && req.id != null) map.set(String(req.id), req); }); (Array.isArray(remote)?remote:[]).forEach(req=>{ if(!req || req.id==null) return; const existing = map.get(String(req.id)); if(!existing || Number(existing.updatedAt||0) < Number(req.updatedAt||0)) map.set(String(req.id), req); }); return [...map.values()].sort((a,b)=>Number(b.createdAt||0)-Number(a.createdAt||0)); }
+      function openRequestDetails(request){ const modal=document.getElementById('requestDetailsModal'); if(!modal) return; modal.dataset.requestId=String(request.id); renderRequestDetails(request); modal.classList.add('visible'); }
+      function closeRequestDetails(){ const modal=document.getElementById('requestDetailsModal'); if(modal) modal.classList.remove('visible'); }
+      function addHistory(request, action, role, note=''){ if(!Array.isArray(request.history)) request.history=[]; request.history.unshift({ time: Date.now(), action, role, user:getCurrentUserName(), note, status: request.status || '' }); }
+      function handleRequestAction(type){
+        const modal = document.getElementById('requestDetailsModal');
+        if(!modal) return;
+        const requestId = modal.dataset.requestId;
+        const requests = readRequestsFromLocalStorage();
+        const request = requests.find(r => String(r.id) === String(requestId));
+        if(!request) return;
+
+        const noteElement = document.getElementById('approvalNote');
+        const note = noteElement ? noteElement.value.trim() : '';
+        const role = getCurrentUserRole();
+        const roleLabel = String(role).trim();
+
+        if(type === 'note'){
+          if(!note) return alert('Add a note before saving.');
+          addHistory(request, 'Comment added', roleLabel, note);
+          request.comments = request.comments || [];
+          request.comments.unshift({ time: Date.now(), role: roleLabel, user: getCurrentUserName(), note });
+          request.updatedAt = Date.now();
+          saveRequest(request);
+          if(noteElement) noteElement.value = '';
+          renderRequestDetails(request);
+          renderAll(readRequestsFromLocalStorage());
+          return;
+        }
+
+        if(String(request.currentRole || '').toLowerCase() !== String(roleLabel).toLowerCase()){
+          return alert('You are not authorized to act on this request at this stage.');
+        }
+
+        if(type === 'reject'){
+          request.status = 'Rejected';
+          request.currentRole = 'Completed';
+          request.currentLevel = request.workflow?.length || 4;
+          addHistory(request, 'Rejected', roleLabel, note || 'Request rejected');
+        } else if(type === 'approve'){
+          if(roleLabel === 'Accounts'){
+            request.status = 'Pending Manager Approval';
+            request.currentLevel = 2;
+            request.currentRole = 'Manager';
+            addHistory(request, 'Accounts approved', roleLabel, note || 'Approved for manager review');
+          } else if(roleLabel === 'Manager'){
+            request.status = 'Pending CFO Approval';
+            request.currentLevel = 3;
+            request.currentRole = 'CFO';
+            addHistory(request, 'Manager approved', roleLabel, note || 'Approved for CFO review');
+          } else if(roleLabel === 'CFO'){
+            request.status = 'Approved';
+            request.currentRole = 'Completed';
+            request.currentLevel = request.workflow?.length || 4;
+            addHistory(request, 'CFO approved', roleLabel, note || 'Final approval completed');
+          }
+        } else if(type === 'escalate'){
+          if(roleLabel !== 'Manager'){
+            return alert('Escalation is only available to Manager');
+          }
+          request.status = 'Pending CFO Approval';
+          request.currentLevel = 3;
+          request.currentRole = 'CFO';
+          addHistory(request, 'Escalated to CFO', roleLabel, note || 'Escalated for CFO review');
+        }
+
+        if(note){
+          request.comments = request.comments || [];
+          request.comments.unshift({ time: Date.now(), role: roleLabel, user: getCurrentUserName(), note });
+        }
+
+        request.updatedAt = Date.now();
+        saveRequest(request);
+        if(noteElement) noteElement.value = '';
+        renderRequestDetails(request);
+        renderAll(readRequestsFromLocalStorage());
+      }
+      function renderRequestDetails(request){
+        if(!request) return;
+        document.getElementById('detailsRequestId').textContent = String(request.id || '—');
+        document.getElementById('detailsEmployeeName').textContent = escapeHtml(request.requester || request.requesterName || getCurrentUserName());
+        document.getElementById('detailsDepartment').textContent = escapeHtml(request.department || '—');
+        document.getElementById('detailsRequestType').textContent = escapeHtml(request.request_type || request.title || '—');
+        document.getElementById('detailsAmount').textContent = formatCurrency(request.amount);
+        document.getElementById('detailsPriority').textContent = escapeHtml(request.priority || '—');
+        document.getElementById('detailsDate').textContent = new Date(Number(request.createdAt || Date.now())).toLocaleString();
+        document.getElementById('detailsStatus').textContent = escapeHtml(request.status || 'Pending Accounts Review');
+        document.getElementById('detailsDescription').textContent = escapeHtml(request.description || '—');
+
+        const stepContainer = document.getElementById('detailsWorkflowSteps');
+        const workflow = Array.isArray(request.workflow) && request.workflow.length ? request.workflow : ['Employee','Accounts','Manager','CFO','Completed'];
+        const activeIndex = Number(request.currentLevel || 0);
+        stepContainer.innerHTML = workflow.map((step, index) => {
+          const classes = ['stage-step'];
+          if(index <= activeIndex) classes.push('completed');
+          if(index === activeIndex) classes.push('active');
+          return `<div class="${classes.join(' ')}">${escapeHtml(step)}</div>`;
+        }).join('');
+
+        const historyList = document.getElementById('detailsHistoryList');
+        const historyItems = Array.isArray(request.history) ? request.history.slice().sort((a,b) => Number(b.time||0) - Number(a.time||0)) : [];
+        historyList.innerHTML = historyItems.length ? historyItems.map(h => `
+          <div class="comment-item">
+            <strong>${escapeHtml(h.action)} by ${escapeHtml(h.role || h.user || 'System')}</strong>
+            <div>${escapeHtml(h.note || h.status || '')}</div>
+            <time>${new Date(Number(h.time||0)).toLocaleString()}</time>
+          </div>
+        `).join('') : '<div class="comment-item">No audit trail entries available.</div>';
+
+        const commentsList = document.getElementById('detailsCommentsList');
+        const comments = Array.isArray(request.comments) ? request.comments.slice().sort((a,b) => Number(b.time||0) - Number(a.time||0)) : [];
+        commentsList.innerHTML = comments.length ? comments.map(c => `
+          <div class="comment-item">
+            <strong>Note by ${escapeHtml(c.role || c.user || 'System')}</strong>
+            <div>${escapeHtml(c.note || '')}</div>
+            <time>${new Date(Number(c.time||0)).toLocaleString()}</time>
+          </div>
+        `).join('') : '<div class="comment-item">No approval comments yet.</div>';
+
+        const userRole = getCurrentUserRole();
+        const actionArea = document.getElementById('detailsActionArea');
+        const approveBtn = document.getElementById('detailsApproveBtn');
+        const rejectBtn = document.getElementById('detailsRejectBtn');
+        const escalateBtn = document.getElementById('detailsEscalateBtn');
+        const noteBtn = document.getElementById('detailsAddNoteBtn');
+        if(!actionArea || !approveBtn || !rejectBtn || !escalateBtn || !noteBtn){
+          return;
+        }
+
+        const canAct = String(userRole).toLowerCase() === String(request.currentRole).toLowerCase() &&
+          ['accounts','manager','cfo'].includes(String(userRole).toLowerCase()) &&
+          ['Pending Accounts Review','Pending Manager Approval','Pending CFO Approval'].includes(request.status);
+
+        actionArea.style.display = canAct ? 'block' : 'none';
+        approveBtn.textContent = String(userRole).toLowerCase() === 'cfo' ? 'Final Approve' : 'Approve';
+        rejectBtn.textContent = 'Reject';
+        escalateBtn.style.display = String(userRole).toLowerCase() === 'manager' ? 'inline-flex' : 'none';
+        noteBtn.textContent = 'Save Note';
+      }
+
+      function calculateAverageApprovalTime(requests){
+        const durations=[];
+        requests.forEach(r=>{ if(Array.isArray(r.history) && r.history.length){ const submitted = Number(r.createdAt||Date.now()); const approved = r.history.find(h=>String(h.status||h.action||'').toLowerCase()==='approved'); if(approved && approved.time){ durations.push(Number(approved.time)-submitted); } } });
+        if(!durations.length) return 'N/A';
+        const avg=durations.reduce((sum,v)=>sum+v,0)/durations.length;
+        const hours=Math.round(avg/3600000);
+        return `${hours}h`;
+      }
+
+      function getCurrentUserName(){
+        try{ const u=JSON.parse(localStorage.getItem('currentUser')||'null'); return u && u.name?u.name.split(' ')[0]:'Employee'; }catch(e){return 'Employee'}
+      }
+
+      function renderKPIs(requests){
+        const total = requests.length;
+        const pending = requests.filter(r=>String(r.status||'').toLowerCase()==='pending').length;
+        const approved = requests.filter(r=>String(r.status||'').toLowerCase()==='approved').length;
+        const rejected = requests.filter(r=>String(r.status||'').toLowerCase()==='rejected').length;
+        const rate = total?Math.round((approved/total)*100):0;
+        animateValue('k_total', total);
+        animateValue('k_pending', pending);
+        animateValue('k_approved', approved);
+        animateValue('k_rejected', rejected);
+        document.getElementById('k_rate').textContent = rate + '%';
+      }
+
+      function animateValue(id,end){
+        const el=document.getElementById(id); if(!el) return; const start=0; const dur=700; const step= Math.max(1,Math.round(end/ (dur/16)) ); let v=start; const t=setInterval(()=>{ v+=step; if(v>=end){ el.textContent=end; clearInterval(t); } else el.textContent=v; },16);
+      }
+
+      function renderRequestsTable(){
+        const all = readRequestsFromLocalStorage();
+        const q = (document.getElementById('searchBox').value||'').toLowerCase();
+        const statusFilter = document.getElementById('filterStatus').value;
+        const filtered = all.filter(r=>{
+          if(statusFilter!=='All' && toStatusLabel(r.status)!==statusFilter) return false;
+          if(!q) return true;
+          return String(r.id||'').includes(q) || String(r.title||r.request_type||'').toLowerCase().includes(q) || String(r.department||'').toLowerCase().includes(q);
+        }).sort((a,b)=>Number(b.amount||0)-Number(a.amount||0));
+        const body=document.getElementById('requestsBody'); body.innerHTML='';
+        if(filtered.length===0){ body.innerHTML='<tr><td colspan="8" style="color:var(--muted)">No requests found</td></tr>'; return; }
+        filtered.forEach(r=>{ const tr=document.createElement('tr'); tr.innerHTML=`<td>${escapeHtml(r.id||'—')}</td><td>${escapeHtml(r.request_type||r.title||'—')}</td><td>${formatCurrency(r.amount)}</td><td>${escapeHtml(r.priority||'—')}</td><td>${toStatusLabel(r.status)}</td><td>${escapeHtml(r.currentRole||r.currentApprover||'—')}</td><td>${new Date(Number(r.createdAt||Date.now())).toLocaleString()}</td><td><button class="ghost" onclick="viewRequest(${r.id})">View</button> <button class="ghost" onclick="editRequest(${r.id})">Edit</button> <button class="ghost" onclick="cancelRequest(${r.id})">Cancel</button></td>`; body.appendChild(tr); });
+      }
+
+      function viewRequest(id){ const r=readRequestsFromLocalStorage().find(x=>String(x.id)===String(id)); if(!r) return alert('Request not found'); openRequestDetails(r); }
+      function editRequest(id){ const r=readRequestsFromLocalStorage().find(x=>Number(x.id)===Number(id)); if(!r) return alert('Request not found'); document.getElementById('request_type').value=r.request_type||r.title||''; document.getElementById('amount').value=r.amount||0; document.getElementById('department').value=r.department||'Operations'; document.getElementById('priority').value=r.priority||'Low'; document.getElementById('description').value=r.description||''; window.scrollTo({top:0,behavior:'smooth'}); }
+      async function cancelRequest(id){ if(!confirm('Cancel this request?')) return; const requests=readRequestsFromLocalStorage(); const idx=requests.findIndex(r=>Number(r.id)===Number(id)); if(idx===-1) return; requests[idx].status='cancelled'; localStorage.setItem('requests',JSON.stringify(requests)); renderAll(requests); try{ await fetch('http://localhost:4000/history',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({request_id:id,action:'Cancelled',performed_by:getCurrentUserName()})}); }catch(e){} }
+
+      function renderTracker(requests){
+        // pick the highest-in-progress stage from user's latest request
+        const my = requests.filter(r=>String(r.requestor||r.owner||'').toLowerCase()===String((JSON.parse(localStorage.getItem('currentUser')||'{}')).email||'').toLowerCase());
+        const stages=['Employee','Accounts','Manager','CFO','MD','Completed'];
+        let active='Employee';
+        if(my.length){ const latest=my.sort((a,b)=>Number(b.createdAt||0)-Number(a.createdAt||0))[0]; active = latest.currentRole || stages[Math.min(latest.currentLevel||0,stages.length-1)]; }
+        document.querySelectorAll('#workflowTracker .stage').forEach(el=>{ el.classList.toggle('active', el.dataset.stage===active); });
+      }
+
+      function renderTimeline(requests){
+        const container=document.getElementById('timelineList'); container.innerHTML='';
+        const events=[];
+        requests.forEach(r=>{ (r.history||[]).forEach(h=>events.push({t:Number(h.time||0),text:`${new Date(Number(h.time||0)).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} — ${h.action || h.status || 'Updated'} (${r.request_type||r.title||'Req'})`})); });
+        const sorted=events.sort((a,b)=>b.t-a.t).slice(0,8);
+        if(sorted.length===0){ container.innerHTML='<div class="timeline-item">No recent timeline events</div>'; return; }
+        sorted.forEach(ev=>{ const d=document.createElement('div'); d.className='timeline-item'; d.textContent=ev.text; container.appendChild(d); });
+      }
+
+      function renderNotifications(requests){
+        const list=document.getElementById('notification-list'); list.innerHTML='';
+        const pending = requests.filter(r=>String(r.status||'').toLowerCase()==='pending' && Number(r.amount||0)>100000).length;
+        const items=[`Pending Reviews: ${requests.filter(r=>String(r.status||'').toLowerCase()==='pending').length}` , `High value pending: ${pending}`];
+        items.forEach(t=>{ const li=document.createElement('li'); li.className='notification-item'; li.innerHTML=`<span>${escapeHtml(t)}</span><strong></strong>`; list.appendChild(li); });
+      }
+
+      function renderRecentActivities(requests){ const container=document.getElementById('recentActivities'); container.innerHTML=''; const activities=[]; requests.forEach(r=>{ activities.push({t: r.createdAt||Date.now(), text:`${new Date(Number(r.createdAt||Date.now())).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} — ${r.request_type||r.title||'Request'} Submitted`}); (r.history||[]).forEach(h=>activities.push({t:h.time||Date.now(), text:`${new Date(Number(h.time||Date.now())).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} — ${h.role||'System'} ${h.action||h.status||'updated'}`})); }); activities.sort((a,b)=>b.t-a.t).slice(0,6).forEach(a=>{ const d=document.createElement('div'); d.className='timeline-item'; d.textContent=a.text; container.appendChild(d); }); }
+
+      function renderCharts(requests){
+        const demoMode = localStorage.getItem('demoMode')==='1';
+        if(demoMode){
+          renderChart('typeChart','doughnut',['Travel','Equipment','Software'],[[120,80,60]],['#60a5fa','#22c55e','#f97316']);
+          renderChart('monthlyChart','line',['Jan','Feb','Mar','Apr','May','Jun'],[[120,150,130,180,210,260]],['#38bdf8']);
+          renderChart('statusChart','pie',['Approved','Pending','Rejected'],[[48,12,4]],['#22c55e','#38bdf8','#ef4444']);
+          return;
+        }
+        const types={}; const months={}; const statusCount={'Approved':0,'Pending':0,'Rejected':0};
+        requests.forEach(r=>{ types[r.request_type||r.title]=(types[r.request_type||r.title]||0)+1; const m=new Date(Number(r.createdAt||Date.now())).toLocaleString('default',{month:'short'}); months[m]=(months[m]||0)+1; statusCount[toStatusLabel(r.status)]= (statusCount[toStatusLabel(r.status)]||0)+1; });
+        renderChart('typeChart','doughnut',Object.keys(types),[Object.values(types)],['#60a5fa','#22c55e','#f97316']);
+        renderChart('monthlyChart','line',Object.keys(months),[Object.values(months)],['#38bdf8']);
+        renderChart('statusChart','pie',Object.keys(statusCount),[Object.values(statusCount)],['#22c55e','#38bdf8','#ef4444']);
+      }
+
+      function renderChart(canvasId,type,labels,datasets,colors){
+        const ctx=document.getElementById(canvasId); if(!ctx) return; const data={labels, datasets: datasets.map((ds,i)=>({ data: ds, backgroundColor: colors, borderColor: colors[i]||colors[0] }))};
+        const options={responsive:true, maintainAspectRatio:false, plugins:{legend:{labels:{color:'#cbd5e1'}}}, scales: (type==='pie'||type==='doughnut')?{}:{x:{ticks:{color:'#94a3b8'},grid:{color:'rgba(255,255,255,0.04)'}},y:{ticks:{color:'#94a3b8'},grid:{color:'rgba(255,255,255,0.04)'}}}};
+        if(window[canvasId+'Chart']){ window[canvasId+'Chart'].data=data; window[canvasId+'Chart'].options=options; window[canvasId+'Chart'].update(); return; }
+        window[canvasId+'Chart']= new Chart(ctx,{type, data, options});
+      }
+
+      function toStatusLabel(s){ const n=String(s||'').toLowerCase(); if(n==='approved') return 'Approved'; if(n==='rejected') return 'Rejected'; if(n==='cancelled') return 'Cancelled'; return 'Pending'; }
+      function formatCurrency(v){ return '₹'+Number(v||0).toLocaleString(); }
+      function escapeHtml(t){ const d=document.createElement('div'); d.textContent=t; return d.innerHTML; }
+
     </script>
   </body>
 </html>

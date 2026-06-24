@@ -522,6 +522,21 @@
             }
         }
     </style>
+<script>
+  // If login redirects employees to user-dashboard, forward them to the new employee workspace.
+  (function(){
+    try{
+      const roleNormalized = (localStorage.getItem('userRole') || localStorage.getItem('role') || '').toString().toLowerCase().trim();
+      if(roleNormalized === 'employee'){
+        // Avoid infinite redirect loops: only redirect if we're on user-dashboard
+        const p = window.location.pathname || '';
+        if(p.endsWith('/user-dashboard.html') || p.endsWith('user-dashboard.html')){
+          window.location.replace('employee.html');
+        }
+      }
+    }catch(e){/* no-op */}
+  })();
+</script>
 </head>
 <body>
     <!-- Navigation Bar -->

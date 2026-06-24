@@ -1,10 +1,27 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manager Dashboard - Approval Workflow</title>
+    <title>ZyroFlow Executive MD Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
+        :root {
+            color-scheme: dark;
+            --bg: #050B18;
+            --panel: rgba(14, 27, 48, 0.88);
+            --panel-soft: rgba(22, 38, 66, 0.72);
+            --border: rgba(255,255,255,0.08);
+            --accent: #52D0FF;
+            --accent-strong: #7C3AED;
+            --success: #22C55E;
+            --warning: #FBBF24;
+            --danger: #FB7185;
+            --text: #E2E8F0;
+            --subtext: rgba(226, 232, 240, 0.72);
+            --glass: rgba(19, 40, 74, 0.78);
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -12,1247 +29,1199 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #4facfe 75%, #00f2fe 100%);
-            background-size: 400% 400%;
-            animation: gradient-shift 15s ease infinite;
             min-height: 100vh;
-            padding: 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: radial-gradient(circle at top left, rgba(82, 208, 255, 0.16), transparent 18%),
+                        radial-gradient(circle at top right, rgba(124, 58, 237, 0.16), transparent 20%),
+                        linear-gradient(180deg, #061020 0%, #050A15 100%);
+            color: var(--text);
         }
 
-        @keyframes gradient-shift {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(circle at 10% 20%, rgba(82,208,255,0.14), transparent 15%),
+                        radial-gradient(circle at 80% 10%, rgba(124,58,237,0.12), transparent 14%),
+                        radial-gradient(circle at 85% 80%, rgba(251,113,133,0.10), transparent 18%);
+            pointer-events: none;
+            z-index: 0;
         }
 
-        /* Top Navigation */
-        .navbar {
+        .page {
+            position: relative;
+            z-index: 1;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 24px 20px 40px;
+            width: 100%;
+        }
+
+        .topbar {
             display: flex;
+            align-items: center;
             justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-            padding: 20px 30px;
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            gap: 20px;
+            margin-bottom: 28px;
+            flex-wrap: wrap;
         }
 
-        .navbar-title {
-            color: white;
-            font-size: 24px;
-            font-weight: 700;
-        }
-
-        .navbar-user {
+        .topbar-left {
             display: flex;
             align-items: center;
-            gap: 20px;
+            gap: 16px;
+            flex: 1;
+            min-width: 0;
         }
 
-        .notification {
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        .header-icon-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.12);
+            background: rgba(255,255,255,0.06);
+            color: var(--text);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            transition: background 0.2s ease, border-color 0.2s ease;
+        }
+
+        .header-icon-btn:hover {
+            background: rgba(255,255,255,0.12);
+            border-color: rgba(255,255,255,0.18);
+        }
+
+        .header-welcome {
             display: flex;
             align-items: center;
             gap: 8px;
-            color: rgba(255, 255, 255, 0.95);
-            background: rgba(255, 255, 255, 0.12);
-            border: 1px solid rgba(255, 255, 255, 0.25);
-            border-radius: 999px;
-            padding: 8px 12px;
-            font-size: 13px;
-            font-weight: 600;
+            padding: 0 12px;
+            color: var(--subtext);
+            font-size: 0.95rem;
         }
 
-        .notif-count {
-            min-width: 22px;
-            height: 22px;
-            border-radius: 999px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            background: rgba(255, 193, 7, 0.9);
-            color: #1f2937;
-            font-size: 12px;
-            font-weight: 700;
+        .header-welcome strong {
+            color: var(--text);
         }
 
-        .user-info {
-            color: rgba(255, 255, 255, 0.9);
-            font-size: 14px;
-            text-align: right;
-        }
-
-        .user-role {
-            font-weight: 600;
-            text-transform: capitalize;
-        }
-
-        .welcome-text {
-            color: rgba(255, 255, 255, 0.9);
-            font-size: 13px;
-        }
-
-        .role-summary {
-            color: rgba(255, 255, 255, 0.82);
-            font-size: 12px;
-            margin-top: 2px;
-        }
-
-        .logout-button {
-            padding: 10px 20px;
-            background: rgba(255, 107, 107, 0.8);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-
-        .logout-button:hover {
-            background: rgba(255, 107, 107, 1);
-            transform: scale(1.05);
-        }
-
-        /* Container */
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-        }
-
-        /* Card Style */
-        .card {
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            padding: 30px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            margin-bottom: 30px;
-        }
-
-        .card-title {
-            color: white;
-            font-size: 20px;
-            font-weight: 700;
-            margin-bottom: 20px;
-        }
-
-        /* Requests List */
-        .requests-list {
+        .brand-group {
             display: flex;
-            flex-direction: column;
-            gap: 20px;
+            align-items: flex-start;
+            gap: 16px;
         }
 
-        .list-controls {
+        .brand-chip {
+            width: 58px;
+            height: 58px;
+            border-radius: 18px;
+            background: linear-gradient(135deg, rgba(82,208,255,0.18), rgba(124,58,237,0.2));
+            display: grid;
+            place-items: center;
+            border: 1px solid var(--border);
+            box-shadow: 0 24px 60px rgba(8, 15, 29, 0.35);
+            font-weight: 800;
+            color: #fff;
+            font-size: 22px;
+        }
+
+        .brand-copy {
+            display: grid;
+            gap: 6px;
+        }
+
+        .page-title {
+            font-size: clamp(2.1rem, 2.5vw, 3.2rem);
+            line-height: 1.05;
+            letter-spacing: -0.04em;
+            color: #F8FAFC;
+        }
+
+        .page-subtitle {
+            color: var(--subtext);
+            font-size: 0.98rem;
+            max-width: 560px;
+        }
+
+        .top-actions {
             display: flex;
             flex-wrap: wrap;
             gap: 12px;
-            margin-bottom: 16px;
             align-items: center;
+            justify-content: flex-end;
         }
 
-        .filters {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-
-        .filter-button {
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            background: rgba(255, 255, 255, 0.16);
-            color: white;
+        .pill {
             border-radius: 999px;
-            padding: 7px 12px;
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.25s ease;
-        }
-
-        .filter-button:hover,
-        .filter-button.active {
-            background: rgba(255, 255, 255, 0.28);
-            border-color: rgba(255, 255, 255, 0.55);
-        }
-
-        .search-box {
-            flex: 1;
-            min-width: 220px;
-            padding: 10px 14px;
-            border-radius: 10px;
-            border: 1px solid rgba(255, 255, 255, 0.25);
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            font-size: 13px;
-        }
-
-        .search-box::placeholder {
-            color: rgba(255, 255, 255, 0.65);
-        }
-
-        .search-box:focus {
-            outline: none;
-            border-color: rgba(255, 255, 255, 0.6);
-            box-shadow: 0 0 12px rgba(255, 255, 255, 0.15);
-        }
-
-        .request-item {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 20px;
-            border-radius: 10px;
-            border-left: 4px solid #ffc107;
-        }
-
-        .request-card.pending { border-left: 4px solid #ff9800; }
-        .request-card.approved { border-left: 4px solid #4caf50; }
-        .request-card.rejected { border-left: 4px solid #f44336; }
-        .request-card.cancelled { border-left: 4px solid #9ca3af; }
-
-        .request-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 15px;
-        }
-
-        .request-title {
-            color: white;
-            font-weight: 600;
-            font-size: 16px;
-        }
-
-        .request-email {
-            color: rgba(255, 255, 255, 0.7);
-            font-size: 12px;
-            margin-top: 5px;
-        }
-
-        .request-description {
-            color: rgba(255, 255, 255, 0.8);
-            font-size: 14px;
-            margin-bottom: 15px;
-            line-height: 1.5;
-        }
-
-        .request-meta {
-            display: flex;
-            justify-content: space-between;
+            padding: 12px 18px;
+            border: 1px solid rgba(255,255,255,0.08);
+            background: rgba(255,255,255,0.06);
+            color: var(--text);
+            font-size: 0.94rem;
+            display: inline-flex;
             align-items: center;
-            margin-bottom: 15px;
-            font-size: 12px;
-            color: rgba(255, 255, 255, 0.6);
+            gap: 8px;
+            backdrop-filter: blur(16px);
         }
 
-        .request-actions {
-            display: flex;
-            gap: 10px;
+        .pill.accent {
+            background: linear-gradient(135deg, rgba(82,208,255,0.16), rgba(124,58,237,0.16));
+            border-color: rgba(82,208,255,0.18);
         }
 
-        .action-button {
-            padding: 10px 16px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 13px;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+        .pill span {
+            font-weight: 700;
         }
 
-        .approve-button {
-            background: rgba(76, 175, 80, 0.8);
-            color: white;
-        }
-
-        .approve-button:hover {
-            background: rgba(76, 175, 80, 1);
-            transform: scale(1.05);
-        }
-
-        .reject-button {
-            background: rgba(244, 67, 54, 0.8);
-            color: white;
-        }
-
-        .reject-button:hover {
-            background: rgba(244, 67, 54, 1);
-            transform: scale(1.05);
-        }
-
-        .undo-button {
-            background: rgba(255, 152, 0, 0.9);
-            color: #fff;
-            padding: 8px 12px;
-            font-size: 12px;
-        }
-
-        .undo-button:hover {
-            background: rgba(255, 152, 0, 1);
-            transform: scale(1.04);
-        }
-
-        .undo-info {
-            margin-top: 8px;
-            color: #ffd180;
-            font-size: 12px;
-            font-weight: 600;
-        }
-
-        .empty-state {
-            text-align: center;
-            color: rgba(255, 255, 255, 0.6);
-            padding: 50px 20px;
-        }
-
-        /* Message */
-        .message {
-            padding: 12px 16px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            display: none;
-        }
-
-        .message.show {
-            display: block;
-        }
-
-        .success {
-            background: rgba(76, 175, 80, 0.2);
-            color: #4caf50;
-            border: 1px solid rgba(76, 175, 80, 0.4);
-        }
-
-        .warning {
-            background: rgba(255, 152, 0, 0.2);
-            color: #ffd180;
-            border: 1px solid rgba(255, 152, 0, 0.4);
-        }
-
-        /* Summary Cards */
-        .summary {
+        .grid-2 {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            grid-template-columns: minmax(0, 1.6fr) minmax(320px, 1fr);
+        }
+
+        .grid-2-equal {
+            display: grid;
+            gap: 24px;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        }
+
+        .grid-2-action {
+            display: grid;
+            gap: 24px;
+            grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+        }
+
+        .grid-3 {
+            display: grid;
             gap: 20px;
-            margin-bottom: 30px;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
         }
 
-        .summary-card {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 20px;
-            border-radius: 10px;
-            text-align: center;
-            color: white;
+        .glass-card {
+            position: relative;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 28px;
+            box-shadow: 0 28px 80px rgba(0,0,0,0.22);
+            backdrop-filter: blur(24px);
+            padding: 26px;
+            overflow: hidden;
         }
 
-        .summary-number {
-            font-size: 32px;
-            font-weight: 700;
-            margin-bottom: 5px;
+        .glass-card::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background: linear-gradient(180deg, rgba(255,255,255,0.08), transparent 40%);
+            border-radius: inherit;
         }
 
-        .summary-label {
-            font-size: 12px;
-            color: rgba(255, 255, 255, 0.7);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .workflow-chain {
-            margin: 10px 0;
-            padding: 8px 10px;
-            border-radius: 8px;
-            background: rgba(255, 255, 255, 0.08);
-            color: rgba(255, 255, 255, 0.9);
-            font-size: 12px;
-            line-height: 1.5;
-        }
-
-        .step {
-            display: inline-block;
-            padding: 5px 10px;
-            border-radius: 20px;
-            margin-right: 5px;
-            margin-bottom: 4px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-
-        .step.done { background: #4caf50; color: white; }
-        .step.current { background: #ff9800; color: white; }
-        .step.pending { background: #d1d5db; color: #111827; }
-
-        .priority {
-            padding: 4px 10px;
-            border-radius: 12px;
-            font-size: 11px;
-            margin-left: 10px;
-            font-weight: 700;
-            letter-spacing: 0.4px;
-        }
-
-        .priority.high { background: #ef4444; color: white; }
-        .priority.medium { background: #f59e0b; color: white; }
-        .priority.low { background: #22c55e; color: white; }
-
-        .status-message {
-            margin-top: 10px;
-            font-size: 13px;
-            color: rgba(255, 255, 255, 0.92);
-            font-weight: 600;
-        }
-
-        .request-comment {
-            width: 100%;
-            margin-top: 8px;
-            padding: 10px;
-            border-radius: 8px;
-            border: 1px solid rgba(255, 255, 255, 0.25);
-            background: rgba(255, 255, 255, 0.18);
-            color: white;
-            font-size: 13px;
-        }
-
-        .request-comment::placeholder {
-            color: rgba(255, 255, 255, 0.65);
-        }
-
-        .history-preview {
-            margin-top: 8px;
-            font-size: 12px;
-            color: rgba(255, 255, 255, 0.75);
-        }
-
-        .history-wrap {
-            margin-top: 10px;
-            padding-top: 8px;
-            border-top: 1px dashed rgba(255, 255, 255, 0.2);
-        }
-
-        .history-item {
-            font-size: 12px;
-            margin: 3px 0;
-            opacity: 0.85;
-            color: rgba(255, 255, 255, 0.88);
-        }
-
-        .overdue {
-            color: #ff6b6b;
-            font-weight: 700;
-            margin-left: 8px;
-        }
-
-        .escalated {
-            color: #ffd166;
-            font-size: 12px;
-            margin-left: 8px;
-            font-weight: 700;
-        }
-
-        .toolbar-row {
+        .section-head {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 10px;
+            gap: 16px;
+            margin-bottom: 18px;
+        }
+
+        .section-head h2 {
+            font-size: 1.15rem;
+            letter-spacing: -0.03em;
+            color: #F8FAFC;
+        }
+
+        .section-head p {
+            color: var(--subtext);
+            font-size: 0.94rem;
+            max-width: 420px;
+        }
+
+        .metrics-grid {
+            display: grid;
+            gap: 18px;
+            grid-template-columns: repeat(6, minmax(0, 1fr));
+        }
+
+        .metric-card {
+            border-radius: 22px;
+            padding: 22px;
+            min-height: 132px;
+            background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
+            border: 1px solid rgba(255,255,255,0.08);
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .metric-label {
+            color: var(--subtext);
+            font-size: 0.83rem;
+            text-transform: uppercase;
+            letter-spacing: 0.18em;
+            font-weight: 700;
             margin-bottom: 14px;
         }
 
-        .export-button {
-            background: rgba(255, 255, 255, 0.14);
-            border: 1px solid rgba(255, 255, 255, 0.22);
-            color: white;
-            border-radius: 10px;
-            padding: 8px 12px;
-            font-size: 12px;
-            font-weight: 600;
+        .metric-value {
+            font-size: 2.05rem;
+            color: #F8FAFC;
+            font-weight: 800;
+            line-height: 1;
+        }
+
+        .metric-foot {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--accent);
+            font-size: 0.92rem;
+            font-weight: 700;
+        }
+
+        .metric-foot span {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .action-panel {
+            display: grid;
+            gap: 18px;
+        }
+
+        .action-buttons {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 16px;
+        }
+
+        .action-buttons button {
+            min-height: 56px;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.96rem;
+            font-weight: 700;
+            width: 100%;
+        }
+
+        .action-card {
+            background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 24px;
+            padding: 22px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            min-height: 220px;
+        }
+
+        .action-card h3 {
+            font-size: 1rem;
+            margin-bottom: 10px;
+        }
+
+        .action-card p {
+            color: var(--subtext);
+            line-height: 1.7;
+            font-size: 0.95rem;
+        }
+
+        .action-card button,
+        .primary-button,
+        .text-button {
+            border: none;
+            border-radius: 14px;
+            min-height: 48px;
             cursor: pointer;
+            font-weight: 700;
+            font-size: 0.95rem;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.25s ease;
         }
 
-        .export-button:hover {
-            background: rgba(255, 255, 255, 0.2);
+        .primary-button {
+            background: linear-gradient(135deg, var(--accent), #7C3AED);
+            color: #050B18;
+            box-shadow: 0 18px 32px rgba(82,208,255,0.18);
         }
 
-        /* Responsive */
-        @media (max-width: 768px) {
-            .navbar {
-                flex-direction: column;
-                text-align: center;
-                gap: 15px;
-            }
+        .primary-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 20px 40px rgba(82,208,255,0.24);
+        }
 
-            .navbar-user {
-                width: 100%;
-                gap: 10px;
-                justify-content: center;
-            }
+        .secondary-button {
+            background: rgba(255,255,255,0.08);
+            color: var(--text);
+            border: 1px solid rgba(255,255,255,0.12);
+        }
 
-            .request-header {
-                flex-direction: column;
-            }
+        .secondary-button:hover {
+            background: rgba(255,255,255,0.12);
+        }
 
-            .request-actions {
-                flex-direction: column;
-            }
+        .board-row {
+            display: grid;
+            gap: 18px;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
 
-            .action-button {
-                width: 100%;
-            }
+        .queue-card {
+            background: var(--glass);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 28px;
+            padding: 26px;
+            box-shadow: 0 22px 64px rgba(0,0,0,0.22);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            width: 100%;
+        }
 
-            .summary {
+        .queue-wrapper {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255,255,255,0.12) transparent;
+        }
+
+        .queue-wrapper::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        .queue-wrapper::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .queue-wrapper::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.12);
+            border-radius: 999px;
+        }
+
+        .queue-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95rem;
+            min-width: 100%;
+        }
+
+        .queue-table thead th {
+            text-align: left;
+            color: var(--subtext);
+            font-weight: 700;
+            padding: 16px 14px;
+            font-size: 0.8rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            white-space: nowrap;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .queue-table tbody tr {
+            border-top: none;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            transition: background 0.2s ease;
+        }
+
+        .queue-table tbody td {
+            padding: 16px 14px;
+            color: #E2E8F0;
+            vertical-align: middle;
+            white-space: nowrap;
+        }
+
+        .queue-table tbody tr:hover {
+            background: rgba(255,255,255,0.04);
+        }
+
+        .status-chip {
+            display: inline-flex;
+            gap: 8px;
+            align-items: center;
+            padding: 8px 12px;
+            border-radius: 999px;
+            font-size: 0.82rem;
+            font-weight: 700;
+        }
+
+        .status-chip.Pending { background: rgba(251, 191, 36, 0.14); color: #FBBF24; }
+        .status-chip.Escalated { background: rgba(251, 113, 133, 0.14); color: #FB7185; }
+        .status-chip.Approved { background: rgba(34, 197, 94, 0.14); color: #22C55E; }
+        .status-chip.CFOForwarded { background: rgba(82, 208, 255, 0.14); color: #52D0FF; }
+        .status-chip.Strategic { background: rgba(124, 58, 237, 0.14); color: #C4B5FD; }
+
+        .risk-pill {
+            padding: 8px 12px;
+            border-radius: 999px;
+            font-size: 0.82rem;
+            font-weight: 700;
+        }
+
+        .risk-pill.Low { background: rgba(34,197,94,0.14); color: #22C55E; }
+        .risk-pill.Medium { background: rgba(251,191,36,0.14); color: #FBBF24; }
+        .risk-pill.High { background: rgba(251,113,133,0.14); color: #FB7185; }
+
+        .analytics-grid {
+            display: grid;
+            gap: 24px;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .analytics-grid-full {
+            display: grid;
+            gap: 24px;
+            grid-template-columns: minmax(0, 1fr);
+        }
+
+        .chart-card {
+            padding: 24px;
+            border-radius: 24px;
+            background: linear-gradient(180deg, rgba(255,255,255,0.07), rgba(255,255,255,0.03));
+            border: 1px solid rgba(255,255,255,0.08);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .chart-card h3 {
+            margin: 0;
+            color: #F8FAFC;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 280px;
+            width: 100%;
+            flex: 1;
+        }
+
+        .chart-container canvas {
+            max-height: 280px;
+        }
+
+        .insight-grid {
+            display: grid;
+            gap: 18px;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            width: 100%;
+        }
+
+        .insight-card {
+            padding: 22px;
+            border-radius: 24px;
+            background: rgba(6, 11, 24, 0.95);
+            border: 1px solid rgba(255,255,255,0.06);
+            min-height: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .insight-card h4 {
+            color: #F8FAFC;
+            margin-bottom: 14px;
+            font-size: 0.95rem;
+        }
+
+        .insight-card p {
+            color: var(--subtext);
+            font-size: 0.94rem;
+            line-height: 1.65;
+        }
+
+        .insight-value {
+            color: #F8FAFC;
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 18px;
+        }
+
+        .summary-card-md {
+            background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 24px;
+            padding: 22px;
+            min-height: 170px;
+        }
+
+        .summary-card-md h4 {
+            font-size: 0.95rem;
+            margin-bottom: 18px;
+            color: var(--subtext);
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+        }
+
+        .summary-card-md strong {
+            display: block;
+            font-size: 1.85rem;
+            color: #F8FAFC;
+            margin-bottom: 10px;
+        }
+
+        .summary-card-md .progress-wrap {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .progress-pill {
+            flex: 1;
+            height: 10px;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.08);
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: inherit;
+            background: linear-gradient(135deg, var(--accent), rgba(124,58,237,0.95));
+        }
+
+        .notification-list,
+        .timeline-list {
+            display: grid;
+            gap: 14px;
+        }
+
+        .notification-item,
+        .timeline-item {
+            padding: 16px 18px;
+            border-radius: 20px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .notification-item h4,
+        .timeline-item h4 {
+            font-size: 0.95rem;
+            margin-bottom: 6px;
+            color: #F8FAFC;
+        }
+
+        .notification-item p,
+        .timeline-item p {
+            color: var(--subtext);
+            font-size: 0.92rem;
+            line-height: 1.6;
+        }
+
+        .badge-pill {
+            padding: 8px 12px;
+            border-radius: 999px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #fff;
+        }
+
+        .badge-pill.info { background: rgba(82,208,255,0.16); color: #7DD3FC; }
+        .badge-pill.warning { background: rgba(251,191,36,0.16); color: #FBBF24; }
+        .badge-pill.danger { background: rgba(251,113,133,0.16); color: #FB7185; }
+        .badge-pill.success { background: rgba(34,197,94,0.16); color: #86efac; }
+
+        .decision-panel {
+            display: grid;
+            gap: 18px;
+        }
+
+        .decision-panel textarea,
+        .decision-panel select {
+            width: 100%;
+            border-radius: 18px;
+            border: 1px solid rgba(255,255,255,0.12);
+            background: rgba(255,255,255,0.05);
+            color: var(--text);
+            padding: 16px 18px;
+            font-size: 0.95rem;
+            resize: vertical;
+        }
+
+        .decision-row {
+            display: grid;
+            gap: 12px;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+
+        .decision-row button {
+            min-height: 56px;
+        }
+
+        .decision-row button.approve { background: #22C55E; color: #050B18; }
+        .decision-row button.reject { background: #FB7185; color: white; }
+        .decision-row button.sendback { background: #FBBF24; color: #050B18; }
+        .decision-row button.escalate { background: #7C3AED; color: white; }
+
+        .decision-row button:hover { transform: translateY(-1px); }
+
+        .footer {
+            margin-top: 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            color: var(--subtext);
+            font-size: 0.92rem;
+        }
+
+        @media (max-width: 1200px) {
+            .metrics-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+            .grid-2,
+            .grid-2-equal,
+            .grid-2-action,
+            .analytics-grid,
+            .summary-grid,
+            .board-row {
                 grid-template-columns: 1fr;
+            }
+            .insight-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 900px) {
+            .topbar {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .topbar-right {
+                width: 100%;
+                justify-content: flex-start;
+            }
+        }
+
+        @media (max-width: 760px) {
+            .topbar-left,
+            .topbar-right,
+            .section-head {
+                flex-direction: column;
+                align-items: flex-start;
+                width: 100%;
+            }
+            .topbar-right {
+                justify-content: stretch;
+                flex-wrap: wrap;
+            }
+            .top-actions {
+                justify-content: stretch;
+            }
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+            .insight-grid {
+                grid-template-columns: 1fr;
+            }
+            .action-buttons {
+                grid-template-columns: 1fr;
+            }
+            .queue-table thead {
+                display: none;
+            }
+            .queue-table,
+            .queue-table tbody,
+            .queue-table tr {
+                display: grid;
+                grid-template-columns: 1fr;
+            }
+            .queue-table tbody tr {
+                border: 1px solid rgba(255,255,255,0.08);
+                border-radius: 12px;
+                margin-bottom: 12px;
+                padding: 12px;
+            }
+            .queue-table td {
+                display: grid;
+                grid-template-columns: 100px 1fr;
+                gap: 12px;
+                padding: 8px 0;
+                border: none;
+            }
+            .queue-table td:before {
+                content: attr(data-label);
+                font-weight: 700;
+                color: var(--subtext);
+                font-size: 0.8rem;
+                text-transform: uppercase;
             }
         }
     </style>
 </head>
 <body>
-    <!-- Navigation Bar -->
-    <div class="navbar">
-        <div class="navbar-title" id="approver-title">Approver Dashboard</div>
-        <div class="navbar-user">
-            <div class="notification">🔔 <span id="notifCount" class="notif-count">0</span></div>
-            <div class="user-info">
-                <div id="welcomeText" class="welcome-text"></div>
-                <div id="roleSummary" class="role-summary"></div>
+    <div class="page">
+        <header class="topbar">
+            <div class="topbar-left">
+                <div class="brand-group">
+                    <div class="brand-chip">MD</div>
+                    <div class="brand-copy">
+                        <h1 class="page-title">ZyroFlow Executive Board</h1>
+                        <p class="page-subtitle">Premium MD command center for approvals, escalations, company budgets, and strategic oversight.</p>
+                    </div>
+                </div>
             </div>
-            <a href="profile.html" class="profile-link" style="color:white; margin-right:8px; font-weight:600; text-decoration:none;">Profile</a>
-            <button class="logout-button" onclick="logout()">Logout</button>
-        </div>
-    </div>
+            <div class="topbar-right">
+                <div class="header-welcome">
+                    <span>Welcome</span>
+                    <strong id="mdWelcomeName">Managing Director</strong>
+                </div>
+                <button class="header-icon-btn" onclick="alert('Notifications center')" title="Notifications">🔔</button>
+                <button class="header-icon-btn" onclick="alert('Profile settings')" title="Profile">👤</button>
+                <button class="secondary-button" onclick="logout()" style="min-height: 44px; padding: 0 16px;">Logout</button>
+            </div>
+        </header>
 
-    <!-- Main Content -->
-    <div class="container">
-        <!-- Summary -->
-        <div class="card">
-            <div class="summary">
-                <div class="summary-card">
-                    <div class="summary-number" id="pending-count">0</div>
-                    <div class="summary-label">Pending Approvals</div>
-                </div>
-                <div class="summary-card">
-                    <div class="summary-number" id="approved-count">0</div>
-                    <div class="summary-label">Approved</div>
-                </div>
-                <div class="summary-card">
-                    <div class="summary-number" id="rejected-count">0</div>
-                    <div class="summary-label">Rejected</div>
-                </div>
-            </div>
-        </div>
+        <section class="glass-card">
+            <div class="metrics-grid" id="topMetrics"></div>
+        </section>
 
-        <!-- Pending Requests -->
-        <div class="card">
-            <div class="toolbar-row">
-                <h2 class="card-title" style="margin-bottom: 0;">Pending Approvals</h2>
-                <button class="export-button" onclick="exportCSV()">Export</button>
-            </div>
-            <div id="message" class="message"></div>
-            <div class="list-controls">
-                <div class="filters">
-                    <button class="filter-button active" data-filter="ALL" onclick="filterRequests('ALL')">All</button>
-                    <button class="filter-button" data-filter="Pending" onclick="filterRequests('Pending')">Pending</button>
-                    <button class="filter-button" data-filter="Approved" onclick="filterRequests('Approved')">Approved</button>
-                    <button class="filter-button" data-filter="Rejected" onclick="filterRequests('Rejected')">Rejected</button>
-                    <button class="filter-button" data-filter="Cancelled" onclick="filterRequests('Cancelled')">Cancelled</button>
+        <!-- Row 2: Executive Action Center (70%) + Executive Insights (30%) -->
+        <section class="grid-2-action">
+            <div class="action-panel">
+                <div class="glass-card">
+                    <div class="section-head">
+                        <div>
+                            <h2>Executive Action Center</h2>
+                            <p>Fast-track high-impact decisions and maintain strategic visibility across company workflows.</p>
+                        </div>
+                    </div>
+                    <div class="action-buttons">
+                        <button class="primary-button" onclick="scrollToSection('queueSection')">Review Escalations</button>
+                        <button class="secondary-button" onclick="scrollToSection('analyticsSection')">Company Analytics</button>
+                        <button class="secondary-button" onclick="scrollToSection('decisionSection')">Make Decision</button>
+                        <button class="secondary-button" onclick="exportBoardReport()">Export Board Report</button>
+                    </div>
                 </div>
-                <input type="text" id="searchBox" class="search-box" placeholder="Search requests..." oninput="renderRequests()" />
             </div>
-            <div class="requests-list" id="requests-list">
-                <div class="empty-state">No pending requests</div>
+
+            <div class="glass-card">
+                <div class="section-head">
+                    <div>
+                        <h2>Executive Insights</h2>
+                    </div>
+                </div>
+                <div class="notification-list" id="notificationCenter"></div>
             </div>
-        </div>
+        </section>
+
+        <!-- Row 3: Executive Queue (Full Width) -->
+        <section class="queue-card" id="queueSection">
+            <div class="section-head">
+                <div>
+                    <h2>Executive Queue</h2>
+                    <p>High-value, escalated, strategic, and CFO-forwarded requests curated for MD review.</p>
+                </div>
+                <span class="badge-pill info">Ready for decision</span>
+            </div>
+            <div class="queue-wrapper">
+                <table class="queue-table">
+                    <thead>
+                        <tr>
+                            <th>Request ID</th>
+                            <th>Employee</th>
+                            <th>Department</th>
+                            <th>Amount</th>
+                            <th>Risk</th>
+                            <th>Status</th>
+                            <th>CFO Comments</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="queueRows"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Row 4 & 5: Analytics Charts (2x2 Grid) -->
+        <section class="glass-card" id="analyticsSection">
+            <div class="section-head">
+                <div>
+                    <h2>Company Analytics</h2>
+                    <p>Enterprise metrics that track spending, trends, budgets, and organizational risk.</p>
+                </div>
+            </div>
+            <div class="analytics-grid">
+                <div class="chart-card">
+                    <h3>Department Spending</h3>
+                    <div class="chart-container"><canvas id="deptSpendingChart"></canvas></div>
+                </div>
+                <div class="chart-card">
+                    <h3>Approval Trend</h3>
+                    <div class="chart-container"><canvas id="approvalTrendChart"></canvas></div>
+                </div>
+                <div class="chart-card">
+                    <h3>Budget Utilization</h3>
+                    <div class="chart-container"><canvas id="budgetUtilizationChart"></canvas></div>
+                </div>
+                <div class="chart-card">
+                    <h3>Risk Distribution</h3>
+                    <div class="chart-container"><canvas id="riskDistributionChart"></canvas></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Row 6: Recent Executive Decisions + Notification Center -->
+        <section class="grid-2-equal">
+            <div class="glass-card" id="decisionSection">
+                <div class="section-head">
+                    <div>
+                        <h2>Recent Executive Decisions</h2>
+                        <p>Timeline of the latest MD-level approvals and escalations.</p>
+                    </div>
+                </div>
+                <div class="timeline-list" id="decisionTimeline"></div>
+            </div>
+            <div class="glass-card">
+                <div class="section-head">
+                    <div>
+                        <h2>Escalation Intelligence</h2>
+                        <p>Priority actions waiting on MD sign-off and risk flags requiring attention.</p>
+                    </div>
+                </div>
+                <div class="notification-list" id="escalationIntelligence"></div>
+            </div>
+        </section>
+
+        <footer class="footer">
+            <span>ZyroFlow Executive Dashboard • Managed Director view</span>
+            <button class="secondary-button" onclick="logout()">Logout</button>
+        </footer>
     </div>
 
     <script>
-        let currentRole = 'Manager';
-        let currentFilter = 'ALL';
-        const UNDO_WINDOW_MS = 25000;
-        const undoTimers = new Map();
-        const REQUESTS_API_URL = 'http://localhost:5000/requests';
+        const sampleRequests = [
+            { id: 'REQ-3287-XL', employee: 'Sara Patel', department: 'Strategic Initiatives', amount: 325000, status: 'Escalated', risk: 'High', priority: 'Critical', decision: 'Review', category: 'Strategic', forwarded: true, cfoComment: 'Exceeds threshold, requires MD review', action: 'Review' },
+            { id: 'REQ-4419-CP', employee: 'Michael Owen', department: 'Corporate Planning', amount: 212500, status: 'CFO Forwarded', risk: 'Medium', priority: 'High', decision: 'Pending MD', category: 'CFO Forwarded', forwarded: true, cfoComment: 'Approved by CFO, awaiting MD sign-off', action: 'Decide' },
+            { id: 'REQ-9920-BZ', employee: 'Noah Kim', department: 'Finance', amount: 185000, status: 'Pending', risk: 'Medium', priority: 'High', decision: 'Pending MD', category: 'High Value', forwarded: false, cfoComment: 'Strategic importance: high', action: 'Evaluate' },
+            { id: 'REQ-7215-TS', employee: 'Ayesha Khan', department: 'Risk Management', amount: 148000, status: 'Escalated', risk: 'High', priority: 'Critical', decision: 'Review', category: 'Escalated', forwarded: false, cfoComment: 'Compliance risk flagged', action: 'Review' },
+            { id: 'REQ-5140-FG', employee: 'Olivia Reyes', department: 'Operations', amount: 123000, status: 'Pending', risk: 'Low', priority: 'Medium', decision: 'Pending MD', category: 'High Value', forwarded: false, cfoComment: 'Routine operational expense', action: 'Approve' },
+            { id: 'REQ-6082-HM', employee: 'Aaron Blake', department: 'CFO Office', amount: 98000, status: 'CFO Forwarded', risk: 'Medium', priority: 'High', decision: 'Review', category: 'CFO Forwarded', forwarded: true, cfoComment: 'Budget alignment confirmed', action: 'Decide' }
+        ];
 
-        // Initialize
+        const executiveActions = [
+            { label: 'Review Escalations', description: 'Inspect highest-risk requests that require MD sign-off.' },
+            { label: 'Executive Decisions', description: 'Finalize strategic and capital approval decisions.' },
+            { label: 'Company Analytics', description: 'Monitor spending patterns, approval velocity, and budget utilization.' },
+            { label: 'Export Board Report', description: 'Create a premium report for the leadership review deck.' }
+        ];
+
+        const notifications = [
+            { title: 'CFO approvals awaiting sign-off', description: '4 CFO-forwarded decisions are queued for your review.', type: 'info' },
+            { title: 'Budget threshold alert', description: 'Strategic Initiatives has exceeded 92% of its quarterly allocation.', type: 'warning' },
+            { title: 'High-risk request flagged', description: 'A capital expansion request has a high risk profile and needs executive validation.', type: 'danger' },
+            { title: 'Escalated workflow item', description: 'One request has been moved directly to MD review after missing the approval SLA.', type: 'info' }
+        ];
+
+        const decisionTimeline = [
+            { time: '10:30 AM', title: 'Approved Capital Expansion', detail: 'MD approved the $325K strategic initiative for Q3 deployment.' },
+            { time: '11:15 AM', title: 'Escalated Budget Request', detail: 'Budget request from Operations escalated for MD risk validation.' },
+            { time: '12:00 PM', title: 'Approved Strategic Purchase', detail: 'MD signed off on a corporate purchase ahead of deadline.' }
+        ];
+
+        const analyticsData = {
+            departments: {
+                labels: ['Strategic Initiatives', 'Finance', 'Corporate Planning', 'Operations', 'Risk Management'],
+                values: [540000, 385000, 312000, 275000, 210000]
+            },
+            approvalTrend: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                values: [18, 22, 17, 25, 28, 34]
+            },
+            budgetUtilization: {
+                labels: ['Committed', 'Approved', 'Available'],
+                values: [68, 54, 28]
+            },
+            riskDistribution: {
+                labels: ['High', 'Medium', 'Low'],
+                values: [8, 14, 22]
+            }
+        };
+
+        const mdInsights = {
+            topDepartment: 'Strategic Initiatives',
+            mostActive: 'Finance',
+            budgetHealthScore: '87%',
+            efficiencyScore: '91%',
+            riskAlerts: '3 alerts active'
+        };
+
+        let charts = {};
+
         document.addEventListener('DOMContentLoaded', () => {
-            checkAuthentication();
-            displayUserRole();
-            scheduleUndoExpiryForAll();
-            loadRequests();
+            validateUser();
+            renderTopMetrics();
+            renderQueue();
+            renderNotifications();
+            renderDecisionTimeline();
+            renderAnalytics();
+            renderInsights();
+            renderBoardSummary();
+            populateDecisionOptions();
+            renderDecisionContext();
         });
 
-        function readRequestsFromLocalStorage() {
-            return JSON.parse(localStorage.getItem('requests') || '[]');
-        }
-
-        function writeRequestsToLocalStorage(requests, skipApiSync) {
-            localStorage.setItem('requests', JSON.stringify(requests));
-            if (!skipApiSync) {
-                syncRequestsToApi(requests);
-            }
-        }
-
-        function syncRequestsToApi(requests) {
-            if (!Array.isArray(requests) || !requests.length) return;
-            requests.forEach((req) => {
-                fetch(REQUESTS_API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(req),
-                }).catch(() => {
-                    // Keep local fallback behavior if backend is unavailable.
-                });
-            });
-        }
-
-        async function saveHistory(requestId, action, user) {
-            const normalizedRequestId = Number(requestId);
-            if (!Number.isInteger(normalizedRequestId) || normalizedRequestId <= 0) return;
-            try {
-                await fetch('http://localhost:4000/history', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        request_id: normalizedRequestId,
-                        action: action,
-                        performed_by: user
-                    })
-                });
-                console.log('History saved to DB');
-            } catch (error) {
-                console.log('History API failed, fallback only local history');
-            }
-        }
-
-        async function saveApprovalAction(requestId, role, action) {
-            try {
-                await fetch('http://localhost:4000/approve', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        requestId,
-                        role,
-                        action
-                    })
-                });
-            } catch (err) {
-                // Keep existing local flow as fallback.
-            }
-        }
-
-        function loadRequests() {
-            fetch(REQUESTS_API_URL)
-                .then((res) => {
-                    if (!res.ok) {
-                        throw new Error('API request failed');
-                    }
-                    return res.json();
-                })
-                .then((data) => {
-                    const requests = Array.isArray(data) ? data : [];
-                    writeRequestsToLocalStorage(requests, true);
-                    renderRequests();
-                })
-                .catch(() => {
-                    renderRequests();
-                });
-        }
-
-        function normalizeStatus(status) {
-            return String(status || '').trim().toLowerCase();
-        }
-
-        function canonicalRole(roleValue) {
-            const raw = String(roleValue || '').trim().toLowerCase();
-            if (raw === 'accounts') return 'Accounts';
-            if (raw === 'manager') return 'Manager';
-            if (raw === 'cfo') return 'CFO';
-            if (raw === 'md') return 'MD';
-            if (raw === 'admin') return 'Admin';
-            return 'Employee';
-        }
-
-        function normalizeRequest(request) {
-            const workflow = Array.isArray(request.workflow) ? request.workflow : [];
-            const createdAt = Number(request.createdAt || Date.now());
-            const currentLevel = Number(request.currentLevel || 0);
-            return {
-                ...request,
-                amount: Number(request.amount || 0),
-                workflow,
-                currentLevel,
-                status: normalizeStatus(request.status || 'pending'),
-                createdAt,
-                updatedAt: Number(request.updatedAt || createdAt),
-                history: Array.isArray(request.history) ? request.history : [],
-                comments: Array.isArray(request.comments) ? request.comments : [],
-                lastActionTime: Number(request.lastActionTime || 0),
-                undoAvailable: Boolean(request.undoAvailable),
-                undoUsed: Boolean(request.undoUsed),
-                lastAction: request.lastAction || null,
-                lastActionType: String(request.lastActionType || ''),
-                lastActionBy: String(request.lastActionBy || ''),
-                lastActionSnapshot: request.lastActionSnapshot || null,
-                deadline: Number(request.deadline || (createdAt + (24 * 60 * 60 * 1000))),
-                escalated: Boolean(request.escalated),
-                currentRole: request.currentRole || workflow[currentLevel] || '',
-                fileName: request.fileName || null
-            };
-        }
-
-        function getRequestCurrentRole(request) {
-            const workflow = Array.isArray(request.workflow) ? request.workflow : [];
-            const idx = Number(request.currentLevel || 0);
-            return canonicalRole(request.currentRole || workflow[idx] || '');
-        }
-
-        function updateNotifications(requests, userRole) {
-            const role = canonicalRole(userRole);
-            const pending = requests.filter((r) => normalizeStatus(r.status) === 'pending' && getRequestCurrentRole(r) === role).length;
-            const counter = document.getElementById('notifCount');
-            if (counter) counter.innerText = String(pending);
-        }
-
-        function renderSummary(requests, role) {
-            const normalizedRole = canonicalRole(role);
-            let summary = '';
-
-            if (normalizedRole === 'Employee') {
-                const approved = requests.filter((r) => normalizeStatus(r.status) === 'approved').length;
-                const pending = requests.filter((r) => normalizeStatus(r.status) === 'pending').length;
-                summary = `Approved: ${approved} | Pending: ${pending}`;
-            }
-
-            if (normalizedRole !== 'Employee') {
-                const pending = requests.filter((r) => getRequestCurrentRole(r) === normalizedRole && normalizeStatus(r.status) === 'pending').length;
-                summary = `You have ${pending} approvals pending`;
-            }
-
-            const roleSummary = document.getElementById('roleSummary');
-            if (roleSummary) roleSummary.innerText = summary;
-        }
-
-        function simulateEmail(action, role) {
-            console.log(`Email sent to ${role || 'next approver'} for ${action}`);
-        }
-
-        function checkSLA(request) {
-            return Number(request.deadline || 0) > 0 && Date.now() > Number(request.deadline);
-        }
-
-        function checkEscalation(request) {
-            if (normalizeStatus(request.status) !== 'pending') return false;
-            if (!checkSLA(request)) return false;
-            const workflow = Array.isArray(request.workflow) ? request.workflow : [];
-            const cfoIndex = workflow.findIndex((role) => canonicalRole(role) === 'CFO');
-            if (cfoIndex === -1 || Number(request.currentLevel || 0) >= cfoIndex) return false;
-            request.currentLevel = cfoIndex;
-            request.currentRole = 'CFO';
-            request.escalated = true;
-            request.updatedAt = Date.now();
-            return true;
-        }
-
-        function addHistory(request, action, user) {
-            if (!Array.isArray(request.history)) request.history = [];
-            request.history.push({
-                action,
-                user,
-                role: user,
-                status: action,
-                time: Date.now()
-            });
-        }
-
-        // Check if user is logged in and is an approver
-        function checkAuthentication() {
+        function validateUser() {
             const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
-            const userRole = (currentUser && currentUser.role) || localStorage.getItem('role') || localStorage.getItem('userRole');
-            currentRole = canonicalRole(userRole);
-            const approverRoles = ['Accounts', 'Manager', 'CFO', 'MD'];
-
-            if (!currentUser && !userRole) {
+            if (!currentUser || !currentUser.role || String(currentUser.role).toLowerCase() !== 'md') {
                 window.location.href = 'login.html';
                 return;
             }
-
-            if (!approverRoles.includes(currentRole)) {
-                window.location.href = 'login.html';
-                return;
-            }
-
-            localStorage.setItem('role', currentRole);
-            localStorage.setItem('userRole', String(currentRole).toLowerCase());
-        }
-
-        // Display user role
-        function displayUserRole() {
-            const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
-            const roleForDisplay = currentUser && currentUser.role ? canonicalRole(currentUser.role) : currentRole;
-            const titleElement = document.getElementById('approver-title');
-            const welcomeText = document.getElementById('welcomeText');
-            if (titleElement) {
-                titleElement.textContent = `${roleForDisplay} Dashboard`;
-            }
-            if (welcomeText) {
-                welcomeText.textContent = `Welcome ${roleForDisplay}`;
+            const welcomeNameEl = document.getElementById('mdWelcomeName');
+            if (welcomeNameEl) {
+                welcomeNameEl.textContent = currentUser.name || 'Managing Director';
             }
         }
 
-        // Load pending requests
-        async function renderRequests() {
-            const requests = readRequestsFromLocalStorage().map(normalizeRequest);
-            let hasEscalationChanges = false;
-            for (const r of requests) {
-                if (checkEscalation(r)) {
-                    hasEscalationChanges = true;
-                    addHistory(r, 'Escalated to CFO', 'System');
-                    await saveHistory(r.id, 'Escalated', 'System');
-                    simulateEmail('escalation', 'CFO');
-                }
-            }
-            if (hasEscalationChanges) {
-                writeRequestsToLocalStorage(requests);
-            }
+        function renderTopMetrics() {
+            const totalRequests = sampleRequests.length;
+            const totalApprovedValue = sampleRequests.filter(r => r.status === 'Approved').reduce((sum, r) => sum + r.amount, 0);
+            const totalPendingValue = sampleRequests.filter(r => r.status === 'Pending' || r.status === 'Escalated' || r.status === 'CFO Forwarded').reduce((sum, r) => sum + r.amount, 0);
+            const escalatedRequests = sampleRequests.filter(r => r.status === 'Escalated').length;
+            const cfoPending = sampleRequests.filter(r => r.status === 'CFO Forwarded').length;
+            const approvalRate = 84;
 
-            updateNotifications(requests, currentRole);
-            renderSummary(requests, currentRole);
-            const pendingRequests = requests.filter((r) => {
-                if (normalizeStatus(r.status) !== 'pending') return false;
-                const currentStepRole = canonicalRole((r.workflow || [])[r.currentLevel]);
-                return currentStepRole === currentRole;
-            });
+            const metrics = [
+                { label: 'Total Company Requests', value: totalRequests, foot: 'Enterprise breadth' },
+                { label: 'Total Approved Value', value: formatCurrency(totalApprovedValue), foot: 'Board-approved spend' },
+                { label: 'Total Pending Value', value: formatCurrency(totalPendingValue), foot: 'Awaiting MD action' },
+                { label: 'Escalated Requests', value: escalatedRequests, foot: 'Priority escalation count' },
+                { label: 'CFO Pending Decisions', value: cfoPending, foot: 'Forwarded by CFO' },
+                { label: 'Monthly Approval Rate', value: `${approvalRate}%`, foot: 'Average across streams' }
+            ];
 
-            const undoRequests = requests.filter((r) => isUndoWindowOpen(r));
-            const combinedRequests = [...pendingRequests];
-            undoRequests.forEach((r) => {
-                if (!combinedRequests.some((x) => Number(x.id) === Number(r.id))) {
-                    combinedRequests.push(r);
-                }
-            });
-
-            // Update summary
-            updateSummary(requests, pendingRequests);
-
-            const requestsList = document.getElementById('requests-list');
-
-            const filteredRequests = combinedRequests
-                .filter((r) => currentFilter === 'ALL' || toStatusLabel(r.status) === currentFilter)
-                .filter(matchesSearch);
-
-            updateActiveFilterButtons();
-
-            if (combinedRequests.length === 0) {
-                requestsList.innerHTML = '<div class="empty-state">No pending requests. All requests have been reviewed.</div>';
-                return;
-            }
-
-            if (filteredRequests.length === 0) {
-                requestsList.innerHTML = '<div class="empty-state">No requests match current filter/search.</div>';
-                return;
-            }
-
-            requestsList.innerHTML = filteredRequests.map((request) => {
-                const currentLevel = (request.workflow || [])[request.currentLevel] || 'N/A';
-                const assignedRole = canonicalRole((request.workflow || [])[request.currentLevel]);
-                const canAct = normalizeStatus(request.status) === 'pending' && assignedRole === currentRole;
-                const undoOpen = isUndoWindowOpen(request);
-                const countdown = getUndoSecondsLeft(request);
-                return `
-                <div class="request-item request-card ${normalizeStatus(request.status)}">
-                    <div class="request-header">
-                        <div>
-                            <div class="request-title">${escapeHtml(request.title)} ${renderPriority(request.amount)}</div>
-                            <div class="request-email">From: ${escapeHtml(request.email)}</div>
-                        </div>
-                    </div>
-                    <div class="request-description">${escapeHtml(request.description)}</div>
-                    <div class="request-meta">
-                        <span>Amount: ${formatCurrency(request.amount)}</span>
-                        <span>Current: ${escapeHtml(currentLevel)}</span>
-                    </div>
-                    ${request.fileName ? `<div class="request-meta"><span>📎 ${escapeHtml(request.fileName)}</span></div>` : ''}
-                    <div class="status-message">${escapeHtml(getStatusMessage(request))}</div>
-                    <div class="request-meta">${checkSLA(request) ? '<span class="overdue">⚠ Overdue</span>' : ''}${request.escalated ? '<span class="escalated">🚨 Escalated to CFO</span>' : ''}</div>
-                    <div class="workflow-chain">
-                        ${renderWorkflowTimeline(request.workflow, request.currentLevel, request.status)}
-                    </div>
-                    <div class="history-wrap">
-                        ${renderHistory(request.history)}
-                    </div>
-                    <textarea id="comment-${request.id}" class="request-comment" placeholder="Add comment before action (optional)"></textarea>
-                    <div class="request-actions">
-                        ${canAct ? `<button class="action-button approve-button" onclick="approveRequest(${request.id})">
-                            ✓ Approve
-                        </button>` : ''}
-                        ${canAct ? `<button class="action-button reject-button" onclick="rejectRequest(${request.id})">
-                            ✕ Reject
-                        </button>` : ''}
-                        ${undoOpen ? `<button class="action-button undo-button" onclick="undoAction(${request.id})">Undo (${countdown}s)</button>` : ''}
-                    </div>
-                    ${undoOpen ? `<div class="undo-info">Action applied. Undo available for ${countdown} seconds</div>` : ''}
+            document.getElementById('topMetrics').innerHTML = metrics.map(metric => `
+                <div class="metric-card">
+                    <div class="metric-label">${metric.label}</div>
+                    <div class="metric-value">${metric.value}</div>
+                    <div class="metric-foot"><span>•</span> ${metric.foot}</div>
                 </div>
-            `;
-            }).join('');
-
+            `).join('');
         }
 
-        function loadPendingRequests() {
-            renderRequests();
+        function renderQueue() {
+            const queueRows = document.getElementById('queueRows');
+            const queueItems = sampleRequests.filter(item => item.amount > 100000 || item.status === 'Escalated' || item.category === 'Strategic' || item.status === 'CFO Forwarded');
+            queueRows.innerHTML = queueItems.map(row => `
+                <tr>
+                    <td>${row.id}</td>
+                    <td>${row.employee}</td>
+                    <td>${row.department}</td>
+                    <td>${formatCurrency(row.amount)}</td>
+                    <td><span class="risk-pill ${row.risk}">${row.risk}</span></td>
+                    <td><span class="status-chip ${row.status.replace(/\s+/g, '')}">${row.status}</span></td>
+                    <td>${row.cfoComment}</td>
+                    <td><button class="secondary-button" onclick="scrollToSection('decisionSection')" style="min-height: 36px; padding: 6px 12px; font-size: 0.85rem;">${row.action}</button></td>
+                </tr>
+            `).join('');
         }
 
-        function filterRequests(status) {
-            currentFilter = status;
-            renderRequests();
+        function renderNotifications() {
+            document.getElementById('notificationCenter').innerHTML = notifications.map(note => `
+                <div class="notification-item">
+                    <h4>${note.title}</h4>
+                    <p>${note.description}</p>
+                </div>
+            `).join('');
+            document.getElementById('escalationIntelligence').innerHTML = notifications.slice(0, 3).map(note => `
+                <div class="notification-item">
+                    <h4>${note.title}</h4>
+                    <p>${note.description}</p>
+                </div>
+            `).join('');
         }
 
-        function matchesSearch(request) {
-            const input = document.getElementById('searchBox');
-            const q = String(input ? input.value : '').toLowerCase().trim();
-            if (!q) return true;
-            const title = String(request.title || '').toLowerCase();
-            const type = String(request.type || '').toLowerCase();
-            const email = String(request.email || '').toLowerCase();
-            return title.includes(q) || type.includes(q) || email.includes(q);
+        function renderDecisionTimeline() {
+            document.getElementById('decisionTimeline').innerHTML = decisionTimeline.map(item => `
+                <div class="timeline-item">
+                    <h4>${item.time} — ${item.title}</h4>
+                    <p>${item.detail}</p>
+                </div>
+            `).join('');
         }
 
-        function updateActiveFilterButtons() {
-            const buttons = document.querySelectorAll('.filter-button');
-            buttons.forEach((btn) => {
-                if (btn.dataset.filter === currentFilter) {
-                    btn.classList.add('active');
-                } else {
-                    btn.classList.remove('active');
-                }
+        function renderAnalytics() {
+            const deptCtx = document.getElementById('deptSpendingChart').getContext('2d');
+            const trendCtx = document.getElementById('approvalTrendChart').getContext('2d');
+            const budgetCtx = document.getElementById('budgetUtilizationChart').getContext('2d');
+            const riskCtx = document.getElementById('riskDistributionChart').getContext('2d');
+
+            charts.department = new Chart(deptCtx, {
+                type: 'bar',
+                data: {
+                    labels: analyticsData.departments.labels,
+                    datasets: [{ data: analyticsData.departments.values, label: 'Spend', backgroundColor: 'rgba(82,208,255,0.84)', borderRadius: 16, borderSkipped: false }]
+                },
+                options: chartOptions('Department Spend')
+            });
+
+            charts.trend = new Chart(trendCtx, {
+                type: 'line',
+                data: {
+                    labels: analyticsData.approvalTrend.labels,
+                    datasets: [{ data: analyticsData.approvalTrend.values, label: 'Approvals', borderColor: '#7C3AED', backgroundColor: 'rgba(124,58,237,0.2)', tension: 0.35, fill: true, pointRadius: 4 }]
+                },
+                options: chartOptions('Approval Trend', false)
+            });
+
+            charts.budget = new Chart(budgetCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: analyticsData.budgetUtilization.labels,
+                    datasets: [{ data: analyticsData.budgetUtilization.values, backgroundColor: ['#22C55E', '#52D0FF', '#FB7185'], hoverOffset: 6 }]
+                },
+                options: chartOptions('Budget Utilization')
+            });
+
+            charts.risk = new Chart(riskCtx, {
+                type: 'polarArea',
+                data: {
+                    labels: analyticsData.riskDistribution.labels,
+                    datasets: [{ data: analyticsData.riskDistribution.values, backgroundColor: ['#FB7185', '#FBBF24', '#22C55E'] }]
+                },
+                options: chartOptions('Risk Distribution')
             });
         }
 
-        function toStatusLabel(status) {
-            const n = normalizeStatus(status);
-            if (!n) return 'Pending';
-            return `${n.charAt(0).toUpperCase()}${n.slice(1)}`;
-        }
-
-        function getPriority(amount) {
-            if (!amount) return 'LOW';
-            if (Number(amount) > 100000) return 'HIGH';
-            if (Number(amount) > 50000) return 'MEDIUM';
-            return 'LOW';
-        }
-
-        function renderPriority(amount) {
-            const p = getPriority(amount);
-            return `<span class="priority ${p.toLowerCase()}">${p}</span>`;
-        }
-
-        function getStatusMessage(request) {
-            const status = toStatusLabel(request.status);
-            if (status === 'Approved') return 'Fully Approved';
-            if (status === 'Rejected') return 'Rejected';
-            if (status === 'Cancelled') return 'Cancelled';
-            const workflow = Array.isArray(request.workflow) ? request.workflow : [];
-            const waitingRole = workflow[request.currentLevel] || 'next approver';
-            return `Waiting for ${waitingRole}`;
-        }
-
-        function renderWorkflowTimeline(workflow, currentIndex, status) {
-            const normalizedWorkflow = Array.isArray(workflow) ? workflow : [];
-            const normalizedStatus = normalizeStatus(status);
-            return normalizedWorkflow.map((role, index) => {
-                const doneByStatus = normalizedStatus === 'approved' || (normalizedStatus === 'cancelled' && index < currentIndex);
-                if (index < currentIndex || doneByStatus) {
-                    return `<span class="step done">✔ ${escapeHtml(role)}</span>`;
+        function chartOptions(title, stacked = true) {
+            return {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { backgroundColor: '#0F172A', titleColor: '#F8FAFC', bodyColor: '#E2E8F0' }
+                },
+                scales: {
+                    x: { grid: { color: 'rgba(255,255,255,0.06)' }, ticks: { color: '#CBD5E1' } },
+                    y: { grid: { color: 'rgba(255,255,255,0.06)' }, ticks: { color: '#CBD5E1' } }
                 }
-                if (index === currentIndex && normalizedStatus === 'pending') {
-                    return `<span class="step current">⏳ ${escapeHtml(role)}</span>`;
-                }
-                if (index === currentIndex && normalizedStatus === 'rejected') {
-                    return `<span class="step current">✕ ${escapeHtml(role)}</span>`;
-                }
-                return `<span class="step pending">○ ${escapeHtml(role)}</span>`;
-            }).join(' → ');
+            };
         }
 
-        function renderHistory(history) {
-            if (!Array.isArray(history) || history.length === 0) {
-                return '<div class="history-item">No approval history yet.</div>';
-            }
-            return history.map((h) => {
-                const action = String(h.status || h.action || 'Updated');
-                const actor = h.role || h.user || 'System';
-                return `<div class="history-item">✔ ${escapeHtml(actor)} ${escapeHtml(action)} (${timeAgo(h.time)})</div>`;
-            }).join('');
+        function renderInsights() {
+            document.getElementById('insightTopDepartment').textContent = mdInsights.topDepartment;
+            document.getElementById('insightMostActive').textContent = mdInsights.mostActive;
+            document.getElementById('insightBudgetHealth').textContent = mdInsights.budgetHealthScore;
+            document.getElementById('insightEfficiency').textContent = mdInsights.efficiencyScore;
         }
 
-        // Approve request
-        function approveRequest(requestId) {
-            if (!confirm('Are you sure you want to approve?')) {
-                return;
-            }
-            updateRequestStatus(requestId, 'approved');
+        function renderBoardSummary() {
+            document.getElementById('boardFinanceStatus').textContent = 'Solid';
+            document.getElementById('boardOperationsStatus').textContent = 'Stable';
+            document.getElementById('boardBudgetHealth').textContent = 'Healthy';
+            document.getElementById('boardEfficiency').textContent = 'High';
         }
 
-        // Reject request
-        function rejectRequest(requestId) {
-            if (!confirm('Are you sure you want to reject?')) {
-                return;
-            }
-            updateRequestStatus(requestId, 'rejected');
+        function populateDecisionOptions() {
+            const select = document.getElementById('selectedRequest');
+            select.innerHTML = sampleRequests.map(req => `<option value="${req.id}">${req.id} · ${req.employee} · ${req.department}</option>`).join('');
         }
 
-        // Update request status
-        async function updateRequestStatus(requestId, status) {
-            const requests = readRequestsFromLocalStorage().map(normalizeRequest);
-            const requestIndex = requests.findIndex(r => Number(r.id) === Number(requestId));
-            if (requestIndex === -1) return;
+        function renderDecisionContext() {
+            const select = document.getElementById('selectedRequest');
+            const request = sampleRequests.find(item => item.id === select.value) || sampleRequests[0];
+            const context = document.getElementById('decisionContext');
+            context.innerHTML = `
+                <strong>Status:</strong> ${request.status} • <strong>Risk:</strong> ${request.risk} • <strong>Priority:</strong> ${request.priority}<br>
+                <strong>Amount:</strong> ${formatCurrency(request.amount)} • <strong>Decision Tag:</strong> ${request.category}
+            `;
+        }
 
-            const request = requests[requestIndex];
-            const assignedRole = canonicalRole((request.workflow || [])[request.currentLevel]);
+        function submitDecision(action) {
+            const select = document.getElementById('selectedRequest');
+            const note = document.getElementById('decisionNote').value.trim();
+            const request = sampleRequests.find(item => item.id === select.value);
+            if (!request) return;
 
-            if (assignedRole !== currentRole || normalizeStatus(request.status) !== 'pending') {
-                showMessage('This request is no longer assigned to your role.', 'success');
-                renderRequests();
-                return;
-            }
-
-            const commentEl = document.getElementById(`comment-${request.id}`);
-            const comment = commentEl ? commentEl.value.trim() : '';
-            const now = Date.now();
-            const actionStatus = normalizeStatus(status) === 'approved' ? 'Approved' : 'Rejected';
-            const snapshot = {
-                status: request.status,
-                currentLevel: request.currentLevel,
-                updatedAt: request.updatedAt,
-                historyLength: request.history.length,
-                commentsLength: request.comments.length
+            const labelMap = {
+                approve: 'approved',
+                reject: 'rejected',
+                'send-back': 'sent back',
+                escalate: 'escalated further'
             };
 
-            request.comments.push({ role: currentRole, comment: comment || actionStatus, time: now });
-            request.updatedAt = now;
+            request.status = action === 'approve' ? 'Approved' : (action === 'reject' ? 'Rejected' : action === 'escalate' ? 'Escalated' : 'Sent Back');
+            request.decision = action === 'approve' ? 'Approved' : action === 'reject' ? 'Rejected' : action === 'escalate' ? 'Escalate Further' : 'Send Back';
 
-            if (normalizeStatus(status) === 'approved') {
-                request.currentLevel += 1;
-                if (request.currentLevel >= request.workflow.length) {
-                    request.status = 'approved';
-                    request.currentLevel = Math.max(0, request.workflow.length - 1);
-                } else {
-                    request.status = 'pending';
-                    request.currentRole = (request.workflow || [])[request.currentLevel] || request.currentRole;
-                    simulateEmail('approval', request.currentRole);
-                }
-            } else {
-                request.status = 'rejected';
-            }
+            decisionTimeline.unshift({ time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), title: `${labelMap[action].charAt(0).toUpperCase() + labelMap[action].slice(1)} ${request.department} Request`, detail: `${note || 'No additional note provided.'}` });
 
-            addHistory(request, actionStatus, currentRole);
-            await saveHistory(request.id, actionStatus, currentRole);
-            await saveApprovalAction(request.id, currentRole, normalizeStatus(status));
-
-            request.lastActionTime = now;
-            request.lastAction = normalizeStatus(status);
-            request.undoAvailable = request.undoUsed === false;
-            request.lastActionType = normalizeStatus(status);
-            request.lastActionBy = currentRole;
-            request.lastActionSnapshot = snapshot;
-
-            requests[requestIndex] = request;
-            writeRequestsToLocalStorage(requests);
-            scheduleUndoExpiryForRequest(request.id, now);
-
-            showMessage(`Action applied. Undo available for 25 seconds.`, 'warning');
-            renderRequests();
-
-            setTimeout(() => {
-                document.getElementById('message').classList.remove('show');
-            }, 3000);
+            if (decisionTimeline.length > 6) decisionTimeline.pop();
+            renderQueue();
+            renderDecisionTimeline();
+            renderTopMetrics();
+            renderDecisionContext();
+            document.getElementById('decisionNote').value = '';
+            showToast(`Request ${request.id} ${labelMap[action]}.`);
         }
 
-        function isUndoWindowOpen(request) {
-            if (!request.undoAvailable || !request.lastActionTime) return false;
-            if (request.undoUsed) return false;
-            if (canonicalRole(request.lastActionBy) !== currentRole) return false;
-            if ((Date.now() - Number(request.lastActionTime)) > UNDO_WINDOW_MS) return false;
-            if (hasNextLevelStarted(request)) return false;
-            return true;
-        }
-
-        function hasNextLevelStarted(request) {
-            return (request.history || []).some((h) => Number(h.time || 0) > Number(request.lastActionTime || 0) && canonicalRole(h.role) !== currentRole);
-        }
-
-        function getUndoSecondsLeft(request) {
-            const elapsed = Date.now() - Number(request.lastActionTime || 0);
-            return Math.max(0, Math.ceil((UNDO_WINDOW_MS - elapsed) / 1000));
-        }
-
-        function undoAction(requestId) {
-            const requests = readRequestsFromLocalStorage().map(normalizeRequest);
-            const index = requests.findIndex((r) => Number(r.id) === Number(requestId));
-            if (index === -1) return;
-
-            const request = requests[index];
-            if (request.undoUsed) {
-                alert('Undo already used');
-                return;
-            }
-            if (!isUndoWindowOpen(request)) {
-                alert('Undo time expired');
-                request.undoAvailable = false;
-                requests[index] = request;
-                writeRequestsToLocalStorage(requests);
-                renderRequests();
-                return;
-            }
-
-            const snapshot = request.lastActionSnapshot;
-            if (!snapshot) {
-                request.undoAvailable = false;
-                requests[index] = request;
-                writeRequestsToLocalStorage(requests);
-                renderRequests();
-                return;
-            }
-
-            request.status = normalizeStatus(snapshot.status || 'pending');
-            request.currentLevel = Number(snapshot.currentLevel || 0);
-            request.updatedAt = Date.now();
-            request.history = request.history.slice(0, Number(snapshot.historyLength || 0));
-            request.comments = request.comments.slice(0, Number(snapshot.commentsLength || 0));
-            request.undoAvailable = false;
-            request.undoUsed = true;
-            request.lastActionTime = 0;
-            request.lastAction = null;
-            request.lastActionType = '';
-            request.lastActionBy = '';
-            request.lastActionSnapshot = null;
-
-            requests[index] = request;
-            writeRequestsToLocalStorage(requests);
-            clearUndoTimer(request.id);
-            showMessage('Action was undone successfully.', 'success');
-            renderRequests();
-        }
-
-        function clearUndoTimer(requestId) {
-            if (undoTimers.has(requestId)) {
-                clearTimeout(undoTimers.get(requestId));
-                undoTimers.delete(requestId);
-            }
-        }
-
-        function scheduleUndoExpiryForRequest(requestId, actionTime) {
-            clearUndoTimer(requestId);
-            const remaining = UNDO_WINDOW_MS - (Date.now() - Number(actionTime || 0));
-            if (remaining <= 0) {
-                expireUndo(requestId, actionTime);
-                return;
-            }
-
-            const timer = setTimeout(() => {
-                expireUndo(requestId, actionTime);
-            }, remaining);
-            undoTimers.set(requestId, timer);
-        }
-
-        function expireUndo(requestId, actionTime) {
-            const requests = readRequestsFromLocalStorage().map(normalizeRequest);
-            const index = requests.findIndex((r) => Number(r.id) === Number(requestId));
-            if (index === -1) return;
-
-            const request = requests[index];
-            if (Number(request.lastActionTime || 0) !== Number(actionTime || 0)) return;
-            if (!request.undoAvailable) return;
-
-            request.undoAvailable = false;
-            requests[index] = request;
-            writeRequestsToLocalStorage(requests);
-            clearUndoTimer(requestId);
-            renderRequests();
-        }
-
-        function scheduleUndoExpiryForAll() {
-            const requests = readRequestsFromLocalStorage().map(normalizeRequest);
-            requests.forEach((request) => {
-                if (request.undoUsed) {
-                    request.undoAvailable = false;
-                    return;
-                }
-                if (request.undoAvailable && request.lastActionTime) {
-                    if (hasNextLevelStarted(request)) {
-                        request.undoAvailable = false;
-                    } else {
-                        scheduleUndoExpiryForRequest(request.id, request.lastActionTime);
-                    }
-                }
+        function exportBoardReport() {
+            const rows = ['Request ID,Employee,Department,Amount,Status,Risk,Priority,Decision'];
+            sampleRequests.forEach(item => {
+                rows.push(`${item.id},${item.employee},${item.department},${item.amount},${item.status},${item.risk},${item.priority},${item.decision}`);
             });
-            writeRequestsToLocalStorage(requests);
+            const blob = new Blob([rows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'zyroflow-executive-board-report.csv';
+            link.click();
+            URL.revokeObjectURL(link.href);
         }
 
-        // Update summary counts
-        function updateSummary(requests, assignedPending) {
-            const pending = assignedPending.length;
-            const approved = requests.filter(r => normalizeStatus(r.status) === 'approved').length;
-            const rejected = requests.filter(r => normalizeStatus(r.status) === 'rejected').length;
-
-            document.getElementById('pending-count').textContent = pending;
-            document.getElementById('approved-count').textContent = approved;
-            document.getElementById('rejected-count').textContent = rejected;
+        function scrollToSection(id) {
+            const target = document.getElementById(id);
+            if (target) {
+                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
         }
 
-        function timeAgo(timestamp) {
-            const diffSeconds = Math.max(0, Math.floor((Date.now() - Number(timestamp || Date.now())) / 1000));
-            if (diffSeconds < 60) return `${diffSeconds}s ago`;
-            const mins = Math.floor(diffSeconds / 60);
-            if (mins < 60) return `${mins} min${mins === 1 ? '' : 's'} ago`;
-            const hours = Math.floor(mins / 60);
-            if (hours < 24) return `${hours} hour${hours === 1 ? '' : 's'} ago`;
-            const days = Math.floor(hours / 24);
-            return `${days} day${days === 1 ? '' : 's'} ago`;
+        function formatCurrency(value) {
+            return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(value);
         }
 
-        function formatCurrency(amount) {
-            return `$${Number(amount || 0).toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.textContent = message;
+            toast.style.position = 'fixed';
+            toast.style.bottom = '24px';
+            toast.style.right = '24px';
+            toast.style.padding = '16px 20px';
+            toast.style.background = 'rgba(14, 24, 49, 0.92)';
+            toast.style.color = '#F8FAFC';
+            toast.style.border = '1px solid rgba(82,208,255,0.14)';
+            toast.style.borderRadius = '18px';
+            toast.style.boxShadow = '0 24px 60px rgba(0,0,0,0.25)';
+            toast.style.zIndex = 9999;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3200);
         }
 
-        function exportCSV() {
-            const requests = readRequestsFromLocalStorage().map(normalizeRequest);
-            let csv = 'Title,Status,Amount\n';
-            requests.forEach((r) => {
-                csv += `${String(r.title || '').replace(/,/g, ' ')},${toStatusLabel(r.status)},${Number(r.amount || 0)}\n`;
-            });
-
-            const blob = new Blob([csv], { type: 'text/csv' });
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = 'requests.csv';
-            a.click();
-            URL.revokeObjectURL(a.href);
-        }
-
-        // Show message
-        function showMessage(text, type) {
-            const messageEl = document.getElementById('message');
-            messageEl.textContent = text;
-            messageEl.className = `message show ${type}`;
-        }
-
-        // Escape HTML to prevent XSS
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-
-        // Logout
         function logout() {
             localStorage.removeItem('authToken');
             localStorage.removeItem('role');
             localStorage.removeItem('userRole');
-            localStorage.removeItem('userEmail');
             window.location.href = 'login.html';
         }
     </script>
