@@ -52,6 +52,20 @@
       .details-actions textarea{width:100%;min-height:104px;padding:14px;border-radius:16px;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.04);color:#e6eef8;resize:vertical}
       .details-actions label{display:block;color:#94a3b8;margin-bottom:6px;font-size:.9rem}
       .details-actions .action-controls{display:grid;gap:10px}
+      #request-form input,
+      #request-form textarea,
+      #request-form select{
+        color:#ffffff;
+        caret-color:#ffffff;
+      }
+      #request-form input::placeholder,
+      #request-form textarea::placeholder{
+        color:#94A3B8;
+        opacity:1;
+      }
+      #request-form select{
+        color:#ffffff;
+      }
 
       table{width:100%;border-collapse:collapse;color:#e6eef8}
       th,td{padding:10px;border-bottom:1px solid rgba(255,255,255,0.04);text-align:left}
@@ -63,6 +77,8 @@
       .track-message{color:#cfe9ff;font-size:0.95rem;min-height:1.3rem;margin-top:10px}
       .track-highlight{animation:track-highlight 2s ease forwards}
       @keyframes track-highlight{0%{box-shadow:0 0 0 0 rgba(56,189,248,0.35)}50%{box-shadow:0 0 0 24px rgba(56,189,248,0.12)}100%{box-shadow:0 0 0 0 rgba(56,189,248,0)}}
+      .my-requests-highlight{animation:my-requests-highlight 2s ease forwards}
+      @keyframes my-requests-highlight{0%{box-shadow:0 0 0 0 rgba(56,189,248,0.38)}50%{box-shadow:0 0 0 22px rgba(56,189,248,0.10)}100%{box-shadow:0 0 0 0 rgba(56,189,248,0)}}
 
       .modal-backdrop{position:fixed;inset:0;background:rgba(4,12,29,0.72);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;z-index:1200;opacity:0;transition:opacity .25s ease}
       .modal-backdrop.visible{display:flex;opacity:1}
@@ -92,6 +108,10 @@
 
       .timeline{display:flex;flex-direction:column;gap:10px}
       .timeline-item{padding:10px;border-radius:10px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.03)}
+      .analytics-highlight{animation:analytics-highlight 2s ease forwards}
+      @keyframes analytics-highlight{0%{box-shadow:0 0 0 0 rgba(56,189,248,0.38)}50%{box-shadow:0 0 0 22px rgba(56,189,248,0.10)}100%{box-shadow:0 0 0 0 rgba(56,189,248,0)}}
+      .quick-toast{position:fixed;right:20px;bottom:20px;z-index:1600;min-width:240px;max-width:min(92vw,340px);padding:12px 16px;border-radius:14px;border:1px solid rgba(96,232,255,0.22);background:rgba(9,18,36,0.96);color:#e6eef8;box-shadow:0 18px 48px rgba(0,0,0,0.28);opacity:0;transform:translateY(12px);pointer-events:none;transition:opacity .2s ease, transform .2s ease}
+      .quick-toast.visible{opacity:1;transform:translateY(0)}
 
       @media (max-width:1100px){.two-col{grid-template-columns:1fr}.kpi-grid{grid-template-columns:repeat(3,1fr)}}
       @media (max-width:640px){.kpi-grid{grid-template-columns:1fr}.nav{flex-direction:column;align-items:flex-start}}
@@ -182,7 +202,7 @@
               </form>
             </section>
 
-            <section class="card" style="margin-top:12px">
+            <section class="card" id="myRequestsSection" style="margin-top:12px">
               <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><strong>My Requests</strong>
                 <div style="display:flex;gap:8px;align-items:center">
                   <input id="searchBox" placeholder="Search requests" class="profile-pill" style="padding:8px">
@@ -226,7 +246,7 @@
           </aside>
         </div>
 
-        <section class="card">
+        <section class="card" id="analyticsSection">
           <strong>Analytics</strong>
           <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:12px">
             <div class="chart-card"><div style="font-weight:800">Request Type Distribution</div><div class="chart-container"><canvas id="typeChart"></canvas></div></div>
@@ -241,6 +261,8 @@
         </section>
       </section>
     </div>
+
+    <div id="quickToast" class="quick-toast" role="status" aria-live="polite"></div>
 
     <div id="requestHistoryModal" class="modal-backdrop" tabindex="-1">
       <div class="modal-card">
@@ -317,7 +339,7 @@
               <div id="detailsStatus" class="detail-value">—</div>
             </div>
             <div>
-              <div class="detail-label">Employee Name</div>
+              <div class="detail-label">Current Approver</div>
               <div id="detailsEmployeeName" class="detail-value">—</div>
             </div>
             <div>
@@ -337,7 +359,7 @@
               <div id="detailsPriority" class="detail-value">—</div>
             </div>
             <div>
-              <div class="detail-label">Submitted Date</div>
+              <div class="detail-label">Created Date</div>
               <div id="detailsDate" class="detail-value">—</div>
             </div>
             <div style="grid-column:span 2">
@@ -376,6 +398,8 @@
     <script src="app.js"></script>
     <script>
       const REQUESTS_API_URL = 'http://localhost:5000/requests';
+      let requestsCache = [];
+      let editingRequestId = null;
       document.addEventListener('DOMContentLoaded', () => {
         checkAuth();
         initUI();
@@ -383,20 +407,38 @@
       });
 
       function initUI(){
-        document.getElementById('logout-btn').addEventListener('click', logout);
-        document.getElementById('newRequestBtn').addEventListener('click', () => document.getElementById('request_type').focus());
-        document.getElementById('trackBtn').addEventListener('click', onTrackRequests);
-        document.getElementById('requestHistoryBtn').addEventListener('click', openRequestHistory);
-        document.getElementById('requestAnalyticsBtn').addEventListener('click', openRequestAnalytics);
-        document.getElementById('clearForm').addEventListener('click', () => document.getElementById('request-form').reset());
-        document.getElementById('saveDraft').addEventListener('click', saveDraft);
+        const logoutBtn = document.getElementById('logout-btn');
+        const newRequestBtn = document.getElementById('newRequestBtn');
+        const trackBtn = document.getElementById('trackBtn');
+        const requestHistoryBtn = document.getElementById('requestHistoryBtn');
+        const requestAnalyticsBtn = document.getElementById('requestAnalyticsBtn');
+        const clearFormBtn = document.getElementById('clearForm');
+        const saveDraftBtn = document.getElementById('saveDraft');
+        const requestForm = document.getElementById('request-form');
+        const searchBox = document.getElementById('searchBox');
+        const filterStatus = document.getElementById('filterStatus');
+
+        if (logoutBtn) logoutBtn.addEventListener('click', logout);
+        if (newRequestBtn) newRequestBtn.addEventListener('click', () => {
+          exitEditMode();
+          requestForm?.reset();
+          document.getElementById('request_type')?.focus();
+        });
+        if (trackBtn) trackBtn.addEventListener('click', onTrackRequests);
+        if (requestHistoryBtn) requestHistoryBtn.addEventListener('click', scrollToMyRequests);
+        if (requestAnalyticsBtn) requestAnalyticsBtn.addEventListener('click', scrollToAnalytics);
+        if (clearFormBtn) clearFormBtn.addEventListener('click', () => {
+          requestForm?.reset();
+          exitEditMode();
+        });
+        if (saveDraftBtn) saveDraftBtn.addEventListener('click', saveDraft);
         document.getElementById('detailsApproveBtn')?.addEventListener('click', () => handleRequestAction('approve'));
         document.getElementById('detailsRejectBtn')?.addEventListener('click', () => handleRequestAction('reject'));
         document.getElementById('detailsEscalateBtn')?.addEventListener('click', () => handleRequestAction('escalate'));
         document.getElementById('detailsAddNoteBtn')?.addEventListener('click', () => handleRequestAction('note'));
-        document.getElementById('request-form').addEventListener('submit', onSubmit);
-        document.getElementById('searchBox').addEventListener('input', renderRequestsTable);
-        document.getElementById('filterStatus').addEventListener('change', renderRequestsTable);
+        if (requestForm) requestForm.addEventListener('submit', onSubmit);
+        if (searchBox) searchBox.addEventListener('input', renderRequestsTable);
+        if (filterStatus) filterStatus.addEventListener('change', renderRequestsTable);
       }
 
       async function onSubmit(e){
@@ -408,33 +450,59 @@
         const description = document.getElementById('description').value.trim();
         const employeeName = getCurrentUserName();
         const employeeEmail = getCurrentUserEmail();
-        const request = {
-          id: generateRequestId(),
+        const requestPayload = {
           request_type,
           title: request_type,
+          type: request_type,
           department,
-          amount,
           priority,
           description,
-          createdAt: Date.now(),
-          updatedAt: Date.now(),
-          requester: employeeName,
-          requesterEmail: employeeEmail,
-          status: 'Pending Accounts Review',
-          currentLevel: 1,
-          currentRole: 'Accounts',
-          workflow: ['Employee','Accounts','Manager','CFO','Completed'],
-          history: [
-            {time: Date.now(), action: 'Employee Submitted', status: 'Pending Accounts Review', role: 'Employee', user: employeeName, note: 'Request created'}
-          ],
-          comments: []
+          amount,
+          status: 'pending',
+          current_level: 0,
+          current_role: 'Accounts',
+          current_approver: 'Accounts',
+          requester_name: employeeName,
+          requester_email: employeeEmail,
+          workflow: JSON.stringify(['Employee', 'Accounts', 'Manager', 'CFO', 'Completed']),
+          payload: JSON.stringify({ request_type, department, priority, description, amount, requester_name: employeeName, requester_email: employeeEmail })
         };
-        saveRequest(request);
+        if(editingRequestId){
+          const response = await fetch(`${REQUESTS_API_URL}/${encodeURIComponent(editingRequestId)}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(requestPayload),
+          });
+          if(!response.ok){
+            const errorData = await response.json().catch(() => ({}));
+            alert(errorData.error || errorData.message || 'Only pending requests can be edited.');
+            return;
+          }
+          exitEditMode();
+          const alert = document.getElementById('employee-alert');
+          alert.style.color = '#d1fae5';
+          alert.textContent = 'Request updated successfully.';
+          document.getElementById('request-form').reset();
+          await loadRequests();
+          return;
+        }
+
+        const response = await fetch(REQUESTS_API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(requestPayload),
+        });
+        if(!response.ok){
+          const errorData = await response.json().catch(() => ({}));
+          alert(errorData.error || errorData.message || 'Request submission failed.');
+          return;
+        }
+        const data = await response.json();
         const alert = document.getElementById('employee-alert');
         alert.style.color = '#d1fae5';
-        alert.textContent = `Request submitted successfully. ID: ${request.id}`;
+        alert.textContent = `Request submitted successfully. ID: ${data.id}`;
         document.getElementById('request-form').reset();
-        renderAll(readRequestsFromLocalStorage());
+        await loadRequests();
       }
 
       function saveDraft(){
@@ -447,6 +515,18 @@
         };
         localStorage.setItem('employeeDraft', JSON.stringify(draft));
         alert('Draft saved locally');
+      }
+
+      function exitEditMode(){
+        editingRequestId = null;
+        const submitButton = document.querySelector('#request-form button[type="submit"]');
+        if(submitButton) submitButton.textContent = 'Submit Request';
+      }
+
+      function enterEditMode(requestId){
+        editingRequestId = String(requestId);
+        const submitButton = document.querySelector('#request-form button[type="submit"]');
+        if(submitButton) submitButton.textContent = 'Update Request';
       }
 
       function onTrackRequests(){
@@ -476,12 +556,20 @@
       }
 
       function readRequestsFromLocalStorage(){
-        return JSON.parse(localStorage.getItem('requests')||'[]').map(r=>({...r, amount:Number(r.amount||0)}));
+        return requestsCache.map(r=>({...r, amount:Number(r.amount||0)}));
       }
 
-      function loadRequests(){
-        const localData = readRequestsFromLocalStorage();
-        fetch(REQUESTS_API_URL).then(r=>{ if(!r.ok) throw 0; return r.json(); }).then(remote=>{ const merged = mergeRequests(remote || [], localData); localStorage.setItem('requests', JSON.stringify(merged)); renderAll(merged); }).catch(()=>{ renderAll(localData); });
+      async function loadRequests(){
+        try{
+          const response = await fetch(REQUESTS_API_URL);
+          if(!response.ok) throw new Error('Failed to load requests');
+          const remote = await response.json();
+          requestsCache = Array.isArray(remote) ? remote : [];
+          renderAll(requestsCache);
+        }catch(err){
+          requestsCache = [];
+          renderAll([]);
+        }
       }
 
       function renderAll(requests){
@@ -502,6 +590,24 @@
         modal.classList.add('visible');
       }
 
+      function scrollToMyRequests(){
+        const section = document.getElementById('myRequestsSection');
+        const searchBox = document.getElementById('searchBox');
+        if(!section) return;
+        console.log('[Employee Dashboard] Request History clicked');
+        const rect = section.getBoundingClientRect();
+        const isVisible = rect.top >= 0 && rect.bottom <= (window.innerHeight || document.documentElement.clientHeight);
+        if(!isVisible){
+          section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+        section.classList.add('my-requests-highlight');
+        if(searchBox){
+          window.setTimeout(() => searchBox.focus({ preventScroll: true }), isVisible ? 0 : 350);
+        }
+        showQuickToast('Viewing your request history.');
+        window.setTimeout(() => section.classList.remove('my-requests-highlight'), 2000);
+      }
+
       function closeRequestHistory(){
         const modal = document.getElementById('requestHistoryModal');
         if(modal) modal.classList.remove('visible');
@@ -514,9 +620,29 @@
         modal.classList.add('visible');
       }
 
+      function scrollToAnalytics(){
+        const section = document.getElementById('analyticsSection');
+        if(!section) return;
+        console.log('[Employee Dashboard] Request Analytics clicked');
+        section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        section.classList.add('analytics-highlight');
+        window.setTimeout(() => section.classList.remove('analytics-highlight'), 2000);
+      }
+
       function closeRequestAnalytics(){
         const modal = document.getElementById('requestAnalyticsModal');
         if(modal) modal.classList.remove('visible');
+      }
+
+      function showQuickToast(message){
+        const toast = document.getElementById('quickToast');
+        if(!toast) return;
+        toast.textContent = message;
+        toast.classList.add('visible');
+        window.clearTimeout(showQuickToast._timer);
+        showQuickToast._timer = window.setTimeout(() => {
+          toast.classList.remove('visible');
+        }, 2000);
       }
 
       function filterHistory(status){
@@ -578,9 +704,7 @@
 
       function getCurrentUserEmail(){ const u=JSON.parse(localStorage.getItem('currentUser')||'null'); return u?.email||localStorage.getItem('userEmail')||localStorage.getItem('email')||''; }
       function getCurrentUserRole(){ const u=JSON.parse(localStorage.getItem('currentUser')||'null'); return String(u?.role||localStorage.getItem('user_role')||localStorage.getItem('role')||'Employee'); }
-      function generateRequestId(){ return `REQ-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).slice(2,6).toUpperCase()}`; }
-      function saveRequest(request){ const requests=readRequestsFromLocalStorage(); const idx=requests.findIndex(r=>String(r.id)===String(request.id)); if(idx===-1) requests.unshift(request); else requests[idx]=request; localStorage.setItem('requests', JSON.stringify(requests)); }
-      function mergeRequests(remote, local){ const map=new Map(); (Array.isArray(local)?local:[]).forEach(req=>{ if(req && req.id != null) map.set(String(req.id), req); }); (Array.isArray(remote)?remote:[]).forEach(req=>{ if(!req || req.id==null) return; const existing = map.get(String(req.id)); if(!existing || Number(existing.updatedAt||0) < Number(req.updatedAt||0)) map.set(String(req.id), req); }); return [...map.values()].sort((a,b)=>Number(b.createdAt||0)-Number(a.createdAt||0)); }
+      function saveRequest(request){ const requests=readRequestsFromLocalStorage(); const idx=requests.findIndex(r=>String(r.id)===String(request.id)); if(idx===-1) requests.unshift(request); else requests[idx]=request; requestsCache = requests; }
       function openRequestDetails(request){ const modal=document.getElementById('requestDetailsModal'); if(!modal) return; modal.dataset.requestId=String(request.id); renderRequestDetails(request); modal.classList.add('visible'); }
       function closeRequestDetails(){ const modal=document.getElementById('requestDetailsModal'); if(modal) modal.classList.remove('visible'); }
       function addHistory(request, action, role, note=''){ if(!Array.isArray(request.history)) request.history=[]; request.history.unshift({ time: Date.now(), action, role, user:getCurrentUserName(), note, status: request.status || '' }); }
@@ -660,7 +784,7 @@
       function renderRequestDetails(request){
         if(!request) return;
         document.getElementById('detailsRequestId').textContent = String(request.id || '—');
-        document.getElementById('detailsEmployeeName').textContent = escapeHtml(request.requester || request.requesterName || getCurrentUserName());
+        document.getElementById('detailsEmployeeName').textContent = escapeHtml(request.currentApprover || request.currentRole || request.currentApproverName || '—');
         document.getElementById('detailsDepartment').textContent = escapeHtml(request.department || '—');
         document.getElementById('detailsRequestType').textContent = escapeHtml(request.request_type || request.title || '—');
         document.getElementById('detailsAmount').textContent = formatCurrency(request.amount);
@@ -761,12 +885,55 @@
         }).sort((a,b)=>Number(b.amount||0)-Number(a.amount||0));
         const body=document.getElementById('requestsBody'); body.innerHTML='';
         if(filtered.length===0){ body.innerHTML='<tr><td colspan="8" style="color:var(--muted)">No requests found</td></tr>'; return; }
-        filtered.forEach(r=>{ const tr=document.createElement('tr'); tr.innerHTML=`<td>${escapeHtml(r.id||'—')}</td><td>${escapeHtml(r.request_type||r.title||'—')}</td><td>${formatCurrency(r.amount)}</td><td>${escapeHtml(r.priority||'—')}</td><td>${toStatusLabel(r.status)}</td><td>${escapeHtml(r.currentRole||r.currentApprover||'—')}</td><td>${new Date(Number(r.createdAt||Date.now())).toLocaleString()}</td><td><button class="ghost" onclick="viewRequest(${r.id})">View</button> <button class="ghost" onclick="editRequest(${r.id})">Edit</button> <button class="ghost" onclick="cancelRequest(${r.id})">Cancel</button></td>`; body.appendChild(tr); });
+        filtered.forEach(r=>{ const requestId = JSON.stringify(String(r.id)); const tr=document.createElement('tr'); tr.innerHTML=`<td>${escapeHtml(r.id||'—')}</td><td>${escapeHtml(r.request_type||r.title||'—')}</td><td>${formatCurrency(r.amount)}</td><td>${escapeHtml(r.priority||'—')}</td><td>${toStatusLabel(r.status)}</td><td>${escapeHtml(r.currentRole||r.currentApprover||'—')}</td><td>${new Date(Number(r.createdAt||Date.now())).toLocaleString()}</td><td><button class="ghost" onclick="viewRequest(${requestId})">View</button> <button class="ghost" onclick="editRequest(${requestId})">Edit</button> <button class="ghost" onclick="cancelRequest(${requestId})">Cancel</button></td>`; body.appendChild(tr); });
       }
 
-      function viewRequest(id){ const r=readRequestsFromLocalStorage().find(x=>String(x.id)===String(id)); if(!r) return alert('Request not found'); openRequestDetails(r); }
-      function editRequest(id){ const r=readRequestsFromLocalStorage().find(x=>Number(x.id)===Number(id)); if(!r) return alert('Request not found'); document.getElementById('request_type').value=r.request_type||r.title||''; document.getElementById('amount').value=r.amount||0; document.getElementById('department').value=r.department||'Operations'; document.getElementById('priority').value=r.priority||'Low'; document.getElementById('description').value=r.description||''; window.scrollTo({top:0,behavior:'smooth'}); }
-      async function cancelRequest(id){ if(!confirm('Cancel this request?')) return; const requests=readRequestsFromLocalStorage(); const idx=requests.findIndex(r=>Number(r.id)===Number(id)); if(idx===-1) return; requests[idx].status='cancelled'; localStorage.setItem('requests',JSON.stringify(requests)); renderAll(requests); try{ await fetch('http://localhost:4000/history',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({request_id:id,action:'Cancelled',performed_by:getCurrentUserName()})}); }catch(e){} }
+      async function viewRequest(id){
+        try{
+          const response = await fetch(`${REQUESTS_API_URL}/${encodeURIComponent(id)}`);
+          if(!response.ok) throw new Error('Request not found');
+          const request = await response.json();
+          openRequestDetails(request);
+        }catch(err){
+          alert('Request not found');
+        }
+      }
+      async function editRequest(id){
+        try{
+          const response = await fetch(`${REQUESTS_API_URL}/${encodeURIComponent(id)}`);
+          if(!response.ok) throw new Error('Request not found');
+          const request = await response.json();
+          if(!isPendingRequest(request)) return alert('Only pending requests can be edited.');
+          document.getElementById('request_type').value=request.request_type||request.title||'';
+          document.getElementById('amount').value=request.amount||0;
+          document.getElementById('department').value=request.department||'Operations';
+          document.getElementById('priority').value=request.priority||'Low';
+          document.getElementById('description').value=request.description||'';
+          enterEditMode(request.id);
+          window.scrollTo({top:0,behavior:'smooth'});
+        }catch(err){
+          alert('Request not found');
+        }
+      }
+      async function cancelRequest(id){
+        try{
+          const response = await fetch(`${REQUESTS_API_URL}/${encodeURIComponent(id)}/status`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: 'Cancelled' }),
+          });
+          if(!response.ok){
+            const errorData = await response.json().catch(() => ({}));
+            if((errorData.error || '').includes('can no longer be cancelled')){
+              return alert('This request can no longer be cancelled.');
+            }
+            return alert(errorData.error || errorData.message || 'Unable to cancel request.');
+          }
+          await loadRequests();
+        }catch(err){
+          alert('Unable to cancel request.');
+        }
+      }
 
       function renderTracker(requests){
         // pick the highest-in-progress stage from user's latest request
@@ -817,6 +984,7 @@
         window[canvasId+'Chart']= new Chart(ctx,{type, data, options});
       }
 
+      function isPendingRequest(request){ return String(request?.status || '').trim().toLowerCase() === 'pending'; }
       function toStatusLabel(s){ const n=String(s||'').toLowerCase(); if(n==='approved') return 'Approved'; if(n==='rejected') return 'Rejected'; if(n==='cancelled') return 'Cancelled'; return 'Pending'; }
       function formatCurrency(v){ return '₹'+Number(v||0).toLocaleString(); }
       function escapeHtml(t){ const d=document.createElement('div'); d.textContent=t; return d.innerHTML; }

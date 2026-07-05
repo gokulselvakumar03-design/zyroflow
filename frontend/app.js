@@ -1,14 +1,16 @@
 const API_BASE = 'http://localhost:4000/api';
 
 function getToken() {
-  return localStorage.getItem('auth_token');
+  return localStorage.getItem('authToken') || localStorage.getItem('auth_token');
 }
 
 function setToken(token) {
+  localStorage.setItem('authToken', token);
   localStorage.setItem('auth_token', token);
 }
 
 function logout() {
+  localStorage.removeItem('authToken');
   localStorage.removeItem('auth_token');
   window.location.href = 'login.html';
 }

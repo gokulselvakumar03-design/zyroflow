@@ -609,6 +609,7 @@
     <script>
         let currentFilter = 'ALL';
         const REQUESTS_API_URL = 'http://localhost:5000/requests';
+        let requestsCache = [];
 
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
@@ -620,27 +621,11 @@
         });
 
         function readRequestsFromLocalStorage() {
-            return JSON.parse(localStorage.getItem('requests') || '[]');
+            return requestsCache;
         }
 
-        function writeRequestsToLocalStorage(requests, skipApiSync) {
-            localStorage.setItem('requests', JSON.stringify(requests));
-            if (!skipApiSync) {
-                syncRequestsToApi(requests);
-            }
-        }
-
-        function syncRequestsToApi(requests) {
-            if (!Array.isArray(requests) || !requests.length) return;
-            requests.forEach((req) => {
-                fetch(REQUESTS_API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(req),
-                }).catch(() => {
-                    // Keep local fallback behavior unchanged if backend is down.
-                });
-            });
+        function writeRequestsToLocalStorage(requests) {
+            requestsCache = Array.isArray(requests) ? requests : [];
         }
 
         async function saveRequestToBackend(request) {
@@ -735,7 +720,7 @@
                             status: hasRejected ? 'rejected' : (allApproved ? 'approved' : (request.status || 'pending'))
                         };
                     }));
-                    writeRequestsToLocalStorage(withSteps, true);
+                    writeRequestsToLocalStorage(withSteps);
                     renderRequests();
                 })
                 .catch(() => {
@@ -1233,7 +1218,8 @@
                 amount: request.amount,
                 status: request.status,
                 workflow: JSON.stringify(request.workflow),
-                current_level: request.current_level
+                current_level: request.current_level,
+                payload: JSON.stringify(request)
             };
 
             const dbRequestId = await saveRequestToBackend(requestToSend);
@@ -1248,7 +1234,7 @@
             // Save to localStorage
             let requests = readRequestsFromLocalStorage();
             requests.push(request);
-            writeRequestsToLocalStorage(requests, true);
+            writeRequestsToLocalStorage(requests);
             if (dbRequestId) {
                 await saveHistory(dbRequestId, 'Request Created', localStorage.getItem('userEmail'));
             }

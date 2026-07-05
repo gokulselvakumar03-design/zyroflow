@@ -68,10 +68,18 @@ async function initializeMysqlStorage() {
           type VARCHAR(100),
           description TEXT,
           amount INT,
+          department VARCHAR(100),
+          priority VARCHAR(50),
           status VARCHAR(50),
+          requester_name VARCHAR(100),
+          requester_email VARCHAR(100),
+          current_role VARCHAR(50),
+          current_approver VARCHAR(100),
           workflow TEXT,
+          payload JSON NULL,
           current_level INT DEFAULT 0,
-          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
         )
       `);
       await db.promise().execute(`
@@ -152,6 +160,84 @@ async function initializeMysqlStorage() {
 // Serve frontend static files
 app.use(express.static('frontend'));
 
+function parseJsonValue(value, fallback = null) {
+  if (value == null || value === '') return fallback;
+  if (typeof value === 'object') return value;
+  try {
+    return JSON.parse(value);
+  } catch (err) {
+    return fallback;
+  }
+}
+
+function getWorkflowList(row) {
+  const workflow = parseJsonValue(row.workflow, []);
+  return Array.isArray(workflow) ? workflow : [];
+}
+
+function mapRequestRow(row) {
+  const workflow = getWorkflowList(row);
+  const payload = parseJsonValue(row.payload, {});
+  const createdAt = row.created_at ? new Date(row.created_at).getTime() : Date.now();
+  const updatedAt = row.updated_at ? new Date(row.updated_at).getTime() : createdAt;
+  const currentLevel = Number(row.current_level ?? 0);
+  const currentRole = row.current_role || workflow[Math.min(currentLevel, Math.max(workflow.length - 1, 0))] || '';
+  const currentApprover = row.current_approver || currentRole || '';
+
+  return {
+    id: Number(row.id),
+    title: row.title || row.type || payload.title || '',
+    request_type: row.type || row.request_type || row.title || payload.request_type || '',
+    type: row.type || row.request_type || row.title || payload.request_type || '',
+    department: row.department || payload.department || '',
+    priority: row.priority || payload.priority || '',
+    description: row.description || payload.description || '',
+    amount: Number(row.amount || payload.amount || 0),
+    status: row.status || payload.status || 'pending',
+    requester: row.requester_name || payload.requester || payload.requester_name || '',
+    requester_name: row.requester_name || payload.requester || payload.requester_name || '',
+    requesterEmail: row.requester_email || payload.requesterEmail || payload.email || '',
+    requester_email: row.requester_email || payload.requesterEmail || payload.email || '',
+    currentRole: currentRole,
+    current_role: currentRole,
+    currentApprover: currentApprover,
+    current_approver: currentApprover,
+    currentLevel,
+    current_level: currentLevel,
+    workflow,
+    payload,
+    createdAt,
+    created_at: createdAt,
+    updatedAt,
+    updated_at: updatedAt,
+  };
+}
+
+function normalizeRequestInput(body = {}) {
+  const workflow = parseJsonValue(body.workflow, []);
+  const workflowArray = Array.isArray(workflow) ? workflow : [];
+  const currentLevel = Number(body.current_level ?? body.currentLevel ?? 0);
+  const currentRole = body.current_role || body.currentRole || workflowArray[Math.min(currentLevel, Math.max(workflowArray.length - 1, 0))] || '';
+  const payload = parseJsonValue(body.payload, null) || body;
+
+  return {
+    title: body.title || body.request_type || body.type || payload.title || payload.request_type || payload.type || null,
+    type: body.type || body.request_type || body.title || payload.type || payload.request_type || payload.title || null,
+    description: body.description || payload.description || null,
+    amount: Number(body.amount ?? payload.amount ?? 0),
+    department: body.department || payload.department || null,
+    priority: body.priority || payload.priority || null,
+    status: String(body.status || payload.status || 'pending').toLowerCase(),
+    requester_name: body.requester_name || body.requesterName || payload.requester_name || payload.requesterName || payload.requester || null,
+    requester_email: body.requester_email || body.requesterEmail || payload.requester_email || payload.requesterEmail || payload.email || null,
+    current_role: currentRole || null,
+    current_approver: body.current_approver || body.currentApprover || currentRole || null,
+    workflow: JSON.stringify(workflowArray),
+    payload: JSON.stringify(payload),
+    current_level: currentLevel,
+  };
+}
+
 app.use('/api/auth', authRoutes);
 app.use('/api/rules', rulesRoutes);
 app.use('/api/requests', requestsRoutes);
@@ -166,35 +252,35 @@ app.get('/requests', async (req, res) => {
 
   try {
     const [rows] = await dbPool.query('SELECT * FROM workflow_requests ORDER BY id DESC');
-    const data = rows.map((row) => {
-      let workflow = [];
-      if (typeof row.workflow === 'string') {
-        try {
-          workflow = JSON.parse(row.workflow);
-        } catch (e) {
-          workflow = [];
-        }
-      } else if (Array.isArray(row.workflow)) {
-        workflow = row.workflow;
-      }
-
-      return {
-        id: row.id,
-        title: row.title,
-        type: row.type,
-        description: row.description,
-        amount: Number(row.amount || 0),
-        status: row.status,
-        workflow,
-        current_level: Number(row.current_level || 0),
-        createdAt: row.created_at ? new Date(row.created_at).getTime() : Date.now(),
-      };
-    });
+    const data = rows.map(mapRequestRow);
 
     res.json(data);
   } catch (error) {
     console.error('GET /requests failed:', error.message);
     res.status(500).json({ message: 'Failed to fetch requests' });
+  }
+});
+
+app.get('/requests/:id', async (req, res) => {
+  if (!dbPool) {
+    return res.status(500).json({ message: 'Database unavailable' });
+  }
+
+  try {
+    const requestId = Number(req.params.id);
+    if (!Number.isInteger(requestId) || requestId <= 0) {
+      return res.status(400).json({ message: 'Invalid request id' });
+    }
+
+    const [rows] = await dbPool.execute('SELECT * FROM workflow_requests WHERE id = ? LIMIT 1', [requestId]);
+    if (!rows.length) {
+      return res.status(404).json({ message: 'Request not found' });
+    }
+
+    res.json(mapRequestRow(rows[0]));
+  } catch (error) {
+    console.error('GET /requests/:id failed:', error.message);
+    res.status(500).json({ message: 'Failed to fetch request' });
   }
 });
 
@@ -204,38 +290,32 @@ app.post('/requests', async (req, res) => {
   }
 
   try {
-    const {
-      title,
-      type,
-      description,
-      amount,
-      status,
-      workflow,
-      current_level
-    } = req.body || {};
+    const requestData = normalizeRequestInput(req.body || {});
 
     const [result] = await dbPool.execute(
       `INSERT INTO workflow_requests
-       (title, type, description, amount, status, workflow, current_level)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+       (title, type, description, amount, department, priority, status, requester_name, requester_email, current_role, current_approver, workflow, payload, current_level)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
-        title || null,
-        type || null,
-        description || null,
-        Number(amount || 0),
-        status || 'pending',
-        workflow || '[]',
-        Number(current_level || 0)
+        requestData.title,
+        requestData.type,
+        requestData.description,
+        requestData.amount,
+        requestData.department,
+        requestData.priority,
+        requestData.status,
+        requestData.requester_name,
+        requestData.requester_email,
+        requestData.current_role,
+        requestData.current_approver,
+        requestData.workflow,
+        requestData.payload,
+        requestData.current_level,
       ]
     );
 
     const requestId = result.insertId;
-    let workflowArray = [];
-    try {
-      workflowArray = JSON.parse(workflow || '[]');
-    } catch (e) {
-      workflowArray = [];
-    }
+    const workflowArray = getWorkflowList({ workflow: requestData.workflow });
 
     for (let i = 0; i < workflowArray.length; i += 1) {
       await dbPool.execute(
@@ -250,9 +330,102 @@ app.post('/requests', async (req, res) => {
       );
     }
 
-    res.json({ success: true, id: requestId });
+    const [createdRows] = await dbPool.execute('SELECT * FROM workflow_requests WHERE id = ? LIMIT 1', [requestId]);
+    res.json({ success: true, id: requestId, request: mapRequestRow(createdRows[0]) });
   } catch (err) {
     console.error('INSERT ERROR:', err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.put('/requests/:id', async (req, res) => {
+  if (!dbPool) {
+    return res.status(500).json({ success: false, error: 'Database unavailable' });
+  }
+
+  try {
+    const requestId = Number(req.params.id);
+    if (!Number.isInteger(requestId) || requestId <= 0) {
+      return res.status(400).json({ success: false, error: 'Invalid request id' });
+    }
+
+    const [rows] = await dbPool.execute('SELECT * FROM workflow_requests WHERE id = ? LIMIT 1', [requestId]);
+    if (!rows.length) {
+      return res.status(404).json({ success: false, error: 'Request not found' });
+    }
+
+    const existing = mapRequestRow(rows[0]);
+    if (String(existing.status || '').toLowerCase() !== 'pending') {
+      return res.status(409).json({ success: false, error: 'Only pending requests can be edited' });
+    }
+
+    const updateData = normalizeRequestInput(req.body || {});
+    await dbPool.execute(
+      `UPDATE workflow_requests
+       SET title = ?, type = ?, description = ?, amount = ?, department = ?, priority = ?, status = ?, requester_name = ?, requester_email = ?, current_role = ?, current_approver = ?, workflow = ?, payload = ?, current_level = ?
+       WHERE id = ?`,
+      [
+        updateData.title,
+        updateData.type,
+        updateData.description,
+        updateData.amount,
+        updateData.department,
+        updateData.priority,
+        existing.status,
+        updateData.requester_name || existing.requester,
+        updateData.requester_email || existing.requesterEmail,
+        updateData.current_role || existing.currentRole,
+        updateData.current_approver || existing.currentApprover,
+        updateData.workflow,
+        updateData.payload,
+        updateData.current_level,
+        requestId,
+      ]
+    );
+
+    const [updatedRows] = await dbPool.execute('SELECT * FROM workflow_requests WHERE id = ? LIMIT 1', [requestId]);
+    res.json({ success: true, request: mapRequestRow(updatedRows[0]) });
+  } catch (err) {
+    console.error('PUT /requests/:id failed:', err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.patch('/requests/:id/status', async (req, res) => {
+  if (!dbPool) {
+    return res.status(500).json({ success: false, error: 'Database unavailable' });
+  }
+
+  try {
+    const requestId = Number(req.params.id);
+    if (!Number.isInteger(requestId) || requestId <= 0) {
+      return res.status(400).json({ success: false, error: 'Invalid request id' });
+    }
+
+    const newStatus = String(req.body?.status || '').trim().toLowerCase();
+    if (!newStatus) {
+      return res.status(400).json({ success: false, error: 'status is required' });
+    }
+
+    const [rows] = await dbPool.execute('SELECT * FROM workflow_requests WHERE id = ? LIMIT 1', [requestId]);
+    if (!rows.length) {
+      return res.status(404).json({ success: false, error: 'Request not found' });
+    }
+
+    const existing = mapRequestRow(rows[0]);
+    if (newStatus === 'cancelled' && String(existing.status || '').toLowerCase() !== 'pending') {
+      return res.status(409).json({ success: false, error: 'This request can no longer be cancelled.' });
+    }
+
+    await dbPool.execute(
+      'UPDATE workflow_requests SET status = ? WHERE id = ?',
+      [newStatus, requestId]
+    );
+
+    const [updatedRows] = await dbPool.execute('SELECT * FROM workflow_requests WHERE id = ? LIMIT 1', [requestId]);
+    res.json({ success: true, request: mapRequestRow(updatedRows[0]) });
+  } catch (err) {
+    console.error('PATCH /requests/:id/status failed:', err.message);
     res.status(500).json({ success: false, error: err.message });
   }
 });

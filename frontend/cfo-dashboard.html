@@ -705,6 +705,7 @@
         const UNDO_WINDOW_MS = 25000;
         const undoTimers = new Map();
         const REQUESTS_API_URL = 'http://localhost:5000/requests';
+        let requestsCache = [];
 
         let departmentChart = null;
         let budgetChart = null;
@@ -802,7 +803,7 @@
                     history: []
                 }
             ];
-            localStorage.setItem('requests', JSON.stringify(demoRequests));
+            requestsCache = demoRequests;
             localStorage.setItem('demoMode', '1');
             // Ensure a currentUser exists for display
             if (!localStorage.getItem('currentUser')) {
@@ -811,27 +812,11 @@
         }
 
         function readRequestsFromLocalStorage() {
-            return JSON.parse(localStorage.getItem('requests') || '[]');
+            return requestsCache;
         }
 
-        function writeRequestsToLocalStorage(requests, skipApiSync) {
-            localStorage.setItem('requests', JSON.stringify(requests));
-            if (!skipApiSync) {
-                syncRequestsToApi(requests);
-            }
-        }
-
-        function syncRequestsToApi(requests) {
-            if (!Array.isArray(requests) || !requests.length) return;
-            requests.forEach((req) => {
-                fetch(REQUESTS_API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(req),
-                }).catch(() => {
-                    // Keep local fallback behavior if backend is unavailable.
-                });
-            });
+        function writeRequestsToLocalStorage(requests) {
+            requestsCache = Array.isArray(requests) ? requests : [];
         }
 
         async function saveHistory(requestId, action, user) {

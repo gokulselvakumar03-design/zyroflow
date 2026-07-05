@@ -1612,6 +1612,7 @@
     <script>
         const workflowLevels = [];
         const REQUESTS_API_URL = 'http://localhost:5000/requests';
+        let requestsCache = [];
 
         document.addEventListener('DOMContentLoaded', () => {
             checkAuthentication();
@@ -1627,7 +1628,7 @@
         });
 
         function readRequestsFromLocalStorage() {
-            return JSON.parse(localStorage.getItem('requests') || '[]');
+            return requestsCache;
         }
 
         function wireAuditLogs() {
@@ -1906,25 +1907,8 @@
             setTimeout(() => { el.className = 'msg'; el.textContent = ''; }, 2800);
         }
 
-        function writeRequestsToLocalStorage(requests, skipApiSync) {
-            if (!Array.isArray(requests)) return;
-            localStorage.setItem('requests', JSON.stringify(requests));
-            if (!skipApiSync) {
-                syncRequestsToApi(requests);
-            }
-        }
-
-        function syncRequestsToApi(requests) {
-            if (!Array.isArray(requests) || !requests.length) return;
-            requests.forEach((req) => {
-                fetch(REQUESTS_API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(req),
-                }).catch(() => {
-                    // Local fallback remains primary when backend is unavailable.
-                });
-            });
+        function writeRequestsToLocalStorage(requests) {
+            requestsCache = Array.isArray(requests) ? requests : [];
         }
 
         function loadRequests() {
