@@ -58,8 +58,8 @@ async function initializeMysqlStorage() {
     try {
       console.log('Initializing DB...');
       await db.promise().execute('SET FOREIGN_KEY_CHECKS = 0');
-      await db.promise().execute('DROP TABLE IF EXISTS approvals');
-      await db.promise().execute('DROP TABLE IF EXISTS workflow_requests');
+      // await db.promise().execute('DROP TABLE IF EXISTS approvals');
+      //await db.promise().execute('DROP TABLE IF EXISTS workflow_requests');
       await db.promise().execute('SET FOREIGN_KEY_CHECKS = 1');
       await db.promise().execute(`
         CREATE TABLE workflow_requests (
@@ -117,9 +117,9 @@ async function initializeMysqlStorage() {
       await db.promise().query("ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_image VARCHAR(255)");
     } catch (e) {
       // Some MySQL versions do not support IF NOT EXISTS for ADD COLUMN - attempt guarded add
-      try { await db.promise().query("ALTER TABLE users ADD COLUMN phone VARCHAR(20)"); } catch (e2) {}
-      try { await db.promise().query("ALTER TABLE users ADD COLUMN department VARCHAR(100)"); } catch (e2) {}
-      try { await db.promise().query("ALTER TABLE users ADD COLUMN profile_image VARCHAR(255)"); } catch (e2) {}
+      try { await db.promise().query("ALTER TABLE users ADD COLUMN phone VARCHAR(20)"); } catch (e2) { }
+      try { await db.promise().query("ALTER TABLE users ADD COLUMN department VARCHAR(100)"); } catch (e2) { }
+      try { await db.promise().query("ALTER TABLE users ADD COLUMN profile_image VARCHAR(255)"); } catch (e2) { }
     }
 
     await db.promise().query(`

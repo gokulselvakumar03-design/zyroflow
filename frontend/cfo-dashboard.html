@@ -548,7 +548,7 @@
         <div class="navbar-actions">
             <div class="notification">🔔 <span id="notifCount" class="notif-count">0</span></div>
             <div class="user-info">
-                <div id="welcomeText" class="welcome-text">Good Morning, CFO</div>
+                <div id="welcomeText" class="welcome-text">Good Morning</div>
                 <div id="roleSummary" class="role-summary">Executive-level financial command center</div>
             </div>
             <a href="profile.html" class="profile-link">Profile</a>
@@ -976,8 +976,11 @@
         function displayUserRole() {
             const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
             const roleForDisplay = currentUser && currentUser.role ? canonicalRole(currentUser.role) : currentRole;
+            const displayName = currentUser && currentUser.name ? String(currentUser.name).trim() : roleForDisplay;
             const welcomeText = document.getElementById('welcomeText');
-            if (welcomeText) welcomeText.textContent = `Welcome ${roleForDisplay}`;
+            const roleSummary = document.getElementById('roleSummary');
+            if (welcomeText) welcomeText.textContent = `Welcome ${displayName}`;
+            if (roleSummary) roleSummary.textContent = roleForDisplay;
         }
 
         async function renderRequests() {

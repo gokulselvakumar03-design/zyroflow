@@ -64,7 +64,12 @@
         opacity:1;
       }
       #request-form select{
+        background:#1e293b;
         color:#ffffff;
+      }
+      #request-form select option{
+        background:#ffffff;
+        color:#111827;
       }
 
       table{width:100%;border-collapse:collapse;color:#e6eef8}
@@ -162,7 +167,18 @@
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
                   <div>
                     <label class="label">Request Type</label>
-                    <input id="request_type" class="profile-pill" placeholder="Travel / Equipment / Software" required style="width:100%">
+                    <select id="request_type" class="profile-pill" required style="width:100%">
+                      <option value="">Select Request Type</option>
+                      <option>Travel</option>
+                      <option>Equipment</option>
+                      <option>Software</option>
+                      <option>Capital Expenditure</option>
+                      <option>Reimbursement</option>
+                      <option>Purchase Request</option>
+                      <option>Maintenance</option>
+                      <option>Training</option>
+                      <option>Other</option>
+                    </select>
                   </div>
                   <div>
                     <label class="label">Amount</label>
@@ -170,16 +186,23 @@
                   </div>
                   <div>
                     <label class="label">Department</label>
-                    <select id="department" class="profile-pill" style="width:100%">
+                    <select id="department" class="profile-pill" required style="width:100%">
+                      <option value="">Select Department</option>
                       <option>Operations</option>
+                      <option>Accounts</option>
                       <option>Finance</option>
+                      <option>HR</option>
                       <option>IT</option>
                       <option>Sales</option>
+                      <option>Marketing</option>
+                      <option>Production</option>
+                      <option>Administration</option>
                     </select>
                   </div>
                   <div>
                     <label class="label">Priority</label>
-                    <select id="priority" class="profile-pill" style="width:100%">
+                    <select id="priority" class="profile-pill" required style="width:100%">
+                      <option value="">Select Priority</option>
                       <option>Low</option>
                       <option>Medium</option>
                       <option>High</option>
@@ -397,9 +420,11 @@
 
     <script src="app.js"></script>
     <script>
-      const REQUESTS_API_URL = 'http://localhost:5000/requests';
+      const REQUESTS_API_URL = 'http://localhost:4000/requests';
       let requestsCache = [];
       let editingRequestId = null;
+      let submissionTimelineEntries = [];
+      let submissionNotificationEntries = [];
       document.addEventListener('DOMContentLoaded', () => {
         checkAuth();
         initUI();
@@ -441,7 +466,45 @@
         if (filterStatus) filterStatus.addEventListener('change', renderRequestsTable);
       }
 
+      function showFormFeedback(message, type='info'){
+        const alert = document.getElementById('employee-alert');
+        if(!alert) return;
+        const styles = {
+          success: { color: '#d1fae5', background: 'rgba(34,197,94,0.16)', border: '1px solid rgba(74,222,128,0.35)' },
+          error: { color: '#fecaca', background: 'rgba(239,68,68,0.16)', border: '1px solid rgba(248,113,113,0.35)' },
+          info: { color: '#cfe9ff', background: 'rgba(56,189,248,0.12)', border: '1px solid rgba(56,189,248,0.35)' }
+        };
+        const style = styles[type] || styles.info;
+        alert.style.color = style.color;
+        alert.style.background = style.background;
+        alert.style.border = style.border;
+        alert.style.padding = '10px 12px';
+        alert.style.borderRadius = '10px';
+        alert.style.display = message ? 'block' : 'none';
+        alert.textContent = message;
+      }
+
+      function setSubmitButtonState(isLoading){
+        const submitButton = document.querySelector('#request-form button[type="submit"]');
+        if(!submitButton) return;
+        submitButton.disabled = isLoading;
+        submitButton.textContent = isLoading ? 'Submitting...' : (editingRequestId ? 'Update Request' : 'Submit Request');
+      }
+
+      function addSubmissionFeedback(requestData){
+        const requestLabel = requestData && requestData.id ? `REQ-${requestData.id}` : 'REQ-NEW';
+        submissionTimelineEntries.unshift({
+          time: Date.now(),
+          text: `Request ${requestLabel} submitted and waiting for Accounts approval.`
+        });
+        submissionNotificationEntries.unshift({
+          time: Date.now(),
+          text: 'Your request has been submitted successfully and is awaiting approval.'
+        });
+      }
+
       async function onSubmit(e){
+        console.log('[Employee Submit] Function started');
         e.preventDefault();
         const request_type = document.getElementById('request_type').value.trim();
         const amount = Number(document.getElementById('amount').value || 0);
@@ -450,6 +513,20 @@
         const description = document.getElementById('description').value.trim();
         const employeeName = getCurrentUserName();
         const employeeEmail = getCurrentUserEmail();
+
+        const missingFields = [];
+        if(!request_type) missingFields.push('Request Type');
+        if(!document.getElementById('amount').value || Number.isNaN(amount) || amount <= 0) missingFields.push('Amount');
+        if(!department) missingFields.push('Department');
+        if(!priority) missingFields.push('Priority');
+
+        if(missingFields.length){
+          console.log('[Employee Submit] Validation failed', missingFields);
+          showFormFeedback(`Please fill the required fields: ${missingFields.join(', ')}.`, 'error');
+          return;
+        }
+        console.log('[Employee Submit] Validation passed');
+
         const requestPayload = {
           request_type,
           title: request_type,
@@ -467,42 +544,62 @@
           workflow: JSON.stringify(['Employee', 'Accounts', 'Manager', 'CFO', 'Completed']),
           payload: JSON.stringify({ request_type, department, priority, description, amount, requester_name: employeeName, requester_email: employeeEmail })
         };
-        if(editingRequestId){
-          const response = await fetch(`${REQUESTS_API_URL}/${encodeURIComponent(editingRequestId)}`, {
-            method: 'PUT',
+
+        console.log('[Employee Submit] Request payload created', requestPayload);
+        setSubmitButtonState(true);
+        try{
+          console.log('[Employee Submit] Fetch request started');
+          if(editingRequestId){
+            const response = await fetch(`${REQUESTS_API_URL}/${encodeURIComponent(editingRequestId)}`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(requestPayload),
+            });
+            console.log('[Employee Submit] Backend response received');
+            console.log('[Employee Submit] Response status', response.status);
+            if(!response.ok){
+              const errorData = await response.json().catch(() => ({}));
+              console.log('[Employee Submit] Response JSON', errorData);
+              throw new Error(errorData.error || errorData.message || 'Only pending requests can be edited.');
+            }
+            exitEditMode();
+            document.getElementById('request-form').reset();
+            showFormFeedback('Request updated successfully.', 'success');
+            await loadRequests();
+            return;
+          }
+
+          const response = await fetch(REQUESTS_API_URL, {
+            method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(requestPayload),
           });
+          console.log('[Employee Submit] Backend response received');
+          console.log('[Employee Submit] Response status', response.status);
           if(!response.ok){
             const errorData = await response.json().catch(() => ({}));
-            alert(errorData.error || errorData.message || 'Only pending requests can be edited.');
-            return;
+            console.log('[Employee Submit] Response JSON', errorData);
+            throw new Error(errorData.error || errorData.message || 'Request submission failed.');
           }
-          exitEditMode();
-          const alert = document.getElementById('employee-alert');
-          alert.style.color = '#d1fae5';
-          alert.textContent = 'Request updated successfully.';
+          const data = await response.json();
+          console.log('[Employee Submit] Response JSON', data);
           document.getElementById('request-form').reset();
+          addSubmissionFeedback(data || {});
+          console.log('[Employee Submit] Success block entered');
+          showFormFeedback('✅ Request submitted successfully.', 'success');
           await loadRequests();
-          return;
+          if(data && data.id){
+            console.log('Request created:', data.id);
+          }
+        }catch(err){
+          console.log('[Employee Submit] Error block entered');
+          console.error(err);
+          showFormFeedback(err.message || 'Request submission failed. Please try again.', 'error');
+        }finally{
+          console.log('[Employee Submit] Finally block entered');
+          setSubmitButtonState(false);
+          console.log('[Employee Submit] Button text restored');
         }
-
-        const response = await fetch(REQUESTS_API_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(requestPayload),
-        });
-        if(!response.ok){
-          const errorData = await response.json().catch(() => ({}));
-          alert(errorData.error || errorData.message || 'Request submission failed.');
-          return;
-        }
-        const data = await response.json();
-        const alert = document.getElementById('employee-alert');
-        alert.style.color = '#d1fae5';
-        alert.textContent = `Request submitted successfully. ID: ${data.id}`;
-        document.getElementById('request-form').reset();
-        await loadRequests();
       }
 
       function saveDraft(){
@@ -573,13 +670,14 @@
       }
 
       function renderAll(requests){
-        renderKPIs(requests);
+        const myRequests = getEmployeeRequests();
+        renderKPIs(myRequests);
         renderRequestsTable();
-        renderTracker(requests);
-        renderTimeline(requests);
-        renderNotifications(requests);
-        renderCharts(requests);
-        renderRecentActivities(requests);
+        renderTracker(myRequests);
+        renderTimeline(myRequests);
+        renderNotifications(myRequests);
+        renderCharts(myRequests);
+        renderRecentActivities(myRequests);
         document.getElementById('welcome').textContent = `Welcome ${getCurrentUserName()}`;
       }
 
@@ -703,6 +801,10 @@
       }
 
       function getCurrentUserEmail(){ const u=JSON.parse(localStorage.getItem('currentUser')||'null'); return u?.email||localStorage.getItem('userEmail')||localStorage.getItem('email')||''; }
+      function getEmployeeRequests(){
+        const email = getCurrentUserEmail().toLowerCase();
+        return requestsCache.filter(r => String(r.requester_email || r.requesterEmail || r.email || '').toLowerCase() === email);
+      }
       function getCurrentUserRole(){ const u=JSON.parse(localStorage.getItem('currentUser')||'null'); return String(u?.role||localStorage.getItem('user_role')||localStorage.getItem('role')||'Employee'); }
       function saveRequest(request){ const requests=readRequestsFromLocalStorage(); const idx=requests.findIndex(r=>String(r.id)===String(request.id)); if(idx===-1) requests.unshift(request); else requests[idx]=request; requestsCache = requests; }
       function openRequestDetails(request){ const modal=document.getElementById('requestDetailsModal'); if(!modal) return; modal.dataset.requestId=String(request.id); renderRequestDetails(request); modal.classList.add('visible'); }
@@ -875,7 +977,7 @@
       }
 
       function renderRequestsTable(){
-        const all = readRequestsFromLocalStorage();
+        const all = getEmployeeRequests();
         const q = (document.getElementById('searchBox').value||'').toLowerCase();
         const statusFilter = document.getElementById('filterStatus').value;
         const filtered = all.filter(r=>{
@@ -885,7 +987,7 @@
         }).sort((a,b)=>Number(b.amount||0)-Number(a.amount||0));
         const body=document.getElementById('requestsBody'); body.innerHTML='';
         if(filtered.length===0){ body.innerHTML='<tr><td colspan="8" style="color:var(--muted)">No requests found</td></tr>'; return; }
-        filtered.forEach(r=>{ const requestId = JSON.stringify(String(r.id)); const tr=document.createElement('tr'); tr.innerHTML=`<td>${escapeHtml(r.id||'—')}</td><td>${escapeHtml(r.request_type||r.title||'—')}</td><td>${formatCurrency(r.amount)}</td><td>${escapeHtml(r.priority||'—')}</td><td>${toStatusLabel(r.status)}</td><td>${escapeHtml(r.currentRole||r.currentApprover||'—')}</td><td>${new Date(Number(r.createdAt||Date.now())).toLocaleString()}</td><td><button class="ghost" onclick="viewRequest(${requestId})">View</button> <button class="ghost" onclick="editRequest(${requestId})">Edit</button> <button class="ghost" onclick="cancelRequest(${requestId})">Cancel</button></td>`; body.appendChild(tr); });
+        filtered.forEach(r=>{ const tr=document.createElement('tr'); tr.innerHTML=`<td>${escapeHtml(r.id||'—')}</td><td>${escapeHtml(r.request_type||r.title||'—')}</td><td>${formatCurrency(r.amount)}</td><td>${escapeHtml(r.priority||'—')}</td><td>${toStatusLabel(r.status)}</td><td>${escapeHtml(r.currentRole||r.currentApprover||'—')}</td><td>${new Date(Number(r.createdAt||Date.now())).toLocaleString()}</td><td><button class="ghost" onclick="viewRequest('${r.id}')">View</button> <button class="ghost" onclick="editRequest('${r.id}')">Edit</button> <button class="ghost" onclick="cancelRequest('${r.id}')">Cancel</button></td>`; body.appendChild(tr); });
       }
 
       async function viewRequest(id){
@@ -937,17 +1039,25 @@
 
       function renderTracker(requests){
         // pick the highest-in-progress stage from user's latest request
-        const my = requests.filter(r=>String(r.requestor||r.owner||'').toLowerCase()===String((JSON.parse(localStorage.getItem('currentUser')||'{}')).email||'').toLowerCase());
+        const my = requests;
         const stages=['Employee','Accounts','Manager','CFO','MD','Completed'];
         let active='Employee';
-        if(my.length){ const latest=my.sort((a,b)=>Number(b.createdAt||0)-Number(a.createdAt||0))[0]; active = latest.currentRole || stages[Math.min(latest.currentLevel||0,stages.length-1)]; }
+        if(my.length){ const latest=my.sort((a,b)=>Number(b.createdAt||0)-Number(a.createdAt||0))[0]; active = latest.currentRole || latest.current_role || stages[Math.min(latest.currentLevel||latest.current_level||0,stages.length-1)]; }
         document.querySelectorAll('#workflowTracker .stage').forEach(el=>{ el.classList.toggle('active', el.dataset.stage===active); });
       }
 
       function renderTimeline(requests){
         const container=document.getElementById('timelineList'); container.innerHTML='';
         const events=[];
-        requests.forEach(r=>{ (r.history||[]).forEach(h=>events.push({t:Number(h.time||0),text:`${new Date(Number(h.time||0)).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} — ${h.action || h.status || 'Updated'} (${r.request_type||r.title||'Req'})`})); });
+        submissionTimelineEntries.forEach(entry=>events.push({t:Number(entry.time||Date.now()), text:entry.text}));
+        requests.forEach(r=>{
+          const createdTime = Number(r.createdAt || Date.now());
+          events.push({
+            t: createdTime,
+            text: `Request ${r.id ? `REQ-${r.id}` : 'REQ-NEW'} submitted and waiting for ${r.current_approver || r.current_role || 'Accounts'} approval.`
+          });
+          (r.history||[]).forEach(h=>events.push({t:Number(h.time||createdTime), text:`${new Date(Number(h.time||createdTime)).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} — ${h.action || h.status || 'Updated'} (${r.request_type||r.title||'Req'})`}));
+        });
         const sorted=events.sort((a,b)=>b.t-a.t).slice(0,8);
         if(sorted.length===0){ container.innerHTML='<div class="timeline-item">No recent timeline events</div>'; return; }
         sorted.forEach(ev=>{ const d=document.createElement('div'); d.className='timeline-item'; d.textContent=ev.text; container.appendChild(d); });
@@ -956,7 +1066,7 @@
       function renderNotifications(requests){
         const list=document.getElementById('notification-list'); list.innerHTML='';
         const pending = requests.filter(r=>String(r.status||'').toLowerCase()==='pending' && Number(r.amount||0)>100000).length;
-        const items=[`Pending Reviews: ${requests.filter(r=>String(r.status||'').toLowerCase()==='pending').length}` , `High value pending: ${pending}`];
+        const items=[...submissionNotificationEntries.map(entry=>entry.text), `Pending Reviews: ${requests.filter(r=>String(r.status||'').toLowerCase()==='pending').length}`, `High value pending: ${pending}`];
         items.forEach(t=>{ const li=document.createElement('li'); li.className='notification-item'; li.innerHTML=`<span>${escapeHtml(t)}</span><strong></strong>`; list.appendChild(li); });
       }
 

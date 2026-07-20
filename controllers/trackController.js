@@ -3,7 +3,7 @@ const pool = require('../config/db');
 exports.trackRequest = async (req, res, next) => {
   try {
     const requestId = req.params.requestId;
-    const [requests] = await pool.execute('SELECT * FROM requests WHERE id = ?', [requestId]);
+    const [requests] = await pool.execute('SELECT * FROM workflow_requests WHERE id = ?', [requestId]);
     const request = requests[0];
 
     if (!request) {
@@ -13,7 +13,7 @@ exports.trackRequest = async (req, res, next) => {
     const [rows] = await pool.execute(
       `SELECT a.approver_role, a.status, a.updated_at, r.created_at
        FROM approvals a
-       JOIN requests r ON a.request_id = r.id
+       JOIN workflow_requests r ON a.request_id = r.id
        WHERE a.request_id = ?
        ORDER BY a.step`,
       [requestId]

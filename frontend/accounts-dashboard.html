@@ -26,7 +26,7 @@
         <section class="hero-card card">
             <div class="hero-copy">
                 <span class="hero-badge">Accounts Operations</span>
-                <h1 class="hero-heading">Good Morning, Accounts Team</h1>
+                <h1 id="heroHeading" class="hero-heading">Good Morning, Accounts Team</h1>
                 <p class="hero-description">Monitor financial requests, approvals, and audit-ready actions from a unified ZyroFlow dashboard.</p>
                 <div class="hero-highlights">
                     <div class="hero-metric">
@@ -441,14 +441,22 @@
         function displayUserRole() {
             const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
             const roleForDisplay = currentUser && currentUser.role ? canonicalRole(currentUser.role) : currentRole;
+            const displayName = currentUser && currentUser.name ? String(currentUser.name).trim() : (roleForDisplay === 'Accounts' ? 'Accounts' : roleForDisplay);
             const titleElement = document.getElementById('approver-title');
             const welcomeText = document.getElementById('welcomeText');
+            const roleSummary = document.getElementById('roleSummary');
+            const heroHeading = document.getElementById('heroHeading');
             if (titleElement) {
                 titleElement.textContent = `${roleForDisplay} Dashboard`;
             }
             if (welcomeText) {
-                const teamLabel = roleForDisplay === 'Accounts' ? 'Accounts Team' : `${roleForDisplay} Team`;
-                welcomeText.textContent = `Good Morning, ${teamLabel}`;
+                welcomeText.textContent = `Good Morning, ${displayName}`;
+            }
+            if (roleSummary) {
+                roleSummary.textContent = roleForDisplay;
+            }
+            if (heroHeading) {
+                heroHeading.textContent = `Good Morning, ${displayName}`;
             }
         }
 

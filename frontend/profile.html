@@ -16,7 +16,7 @@
     .back-link { display: inline-flex; align-items: center; gap: 10px; padding: 11px 18px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.16); background: rgba(255,255,255,0.04); color: #ffffff; text-decoration: none; transition: background .2s ease, transform .2s ease; }
     .back-link:hover { background: rgba(255,255,255,0.08); transform: translateY(-1px); }
     .profile-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 22px; }
-    .card { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 24px; backdrop-filter: blur(18px); box-shadow: 0 24px 60px rgba(0,0,0,0.2); padding: 28px; }
+    .card { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 24px; backdrop-filter: blur(18px); box-shadow: 0 24px 60px rgba(0,0,0,0.2); padding: 28px; box-sizing: border-box; overflow: hidden; min-width: 0; width: 100%; }
     .section-title { color: #60E8FF; font-size: 15px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.4px; margin: 0 0 18px; }
     .profile-top { display: flex; gap: 22px; align-items: center; margin-bottom: 28px; flex-wrap: wrap; }
     .profile-avatar { width: 116px; height: 116px; min-width: 116px; border-radius: 50%; background: linear-gradient(135deg, rgba(96,232,255,0.16), rgba(59,130,246,0.18)); color: #ffffff; display: grid; place-items: center; font-size: 40px; font-weight: 800; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.12); overflow: hidden; }
@@ -29,13 +29,14 @@
     .btn:hover { transform: translateY(-1px); }
     .btn-primary { background: linear-gradient(135deg, #1E4DA1, #60E8FF); box-shadow: 0 12px 24px rgba(30,77,161,0.28); padding: 14px 22px; }
     .btn-secondary { background: rgba(255,255,255,0.08); color: #F8FBFF; padding: 14px 22px; border: 1px solid rgba(255,255,255,0.12); }
-    .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
-    .form-group { display: grid; gap: 8px; }
+    .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; align-items: start; width: 100%; }
+    .form-group { display: grid; gap: 8px; min-width: 0; width: 100%; }
     .form-label { color: rgba(229,244,255,0.72); font-size: 13px; font-weight: 600; letter-spacing: 0.02em; }
-    .form-input, .form-select { width: 100%; border-radius: 16px; border: 1px solid rgba(255,255,255,0.14); background: rgba(255,255,255,0.04); color: #F8FBFF; padding: 14px 16px; outline: none; min-height: 46px; }
+    .form-input, .form-select { width: 100%; box-sizing: border-box; border-radius: 16px; border: 1px solid rgba(255,255,255,0.14); background: rgba(255,255,255,0.04); color: #F8FBFF; padding: 14px 16px; outline: none; min-height: 48px; height: 48px; }
     .form-input:focus, .form-select:focus { border-color: rgba(96,232,255,0.5); box-shadow: 0 0 0 4px rgba(96,232,255,0.1); }
     .form-input[readonly] { background: rgba(255,255,255,0.03); color: rgba(255,255,255,0.78); }
     .profile-note { color: rgba(229,244,255,0.68); font-size: 13px; margin-top: 4px; max-width: 560px; }
+    .security-card { display: grid; gap: 18px; }
     .account-info, .security-info { display: grid; gap: 16px; }
     .info-row, .security-row { display: flex; justify-content: space-between; gap: 12px; align-items: center; padding: 16px 18px; border-radius: 18px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); }
     .info-row span:first-child, .security-row span:first-child { color: rgba(229,244,255,0.72); font-size: 13px; font-weight: 600; }
@@ -65,7 +66,7 @@
         <h1 class="page-title">Profile</h1>
         <p class="page-subtitle">Manage your ZyroFlow account details, security settings, and activity from one polished dashboard experience.</p>
       </div>
-      <a class="back-link" href="admin-dashboard.html">← Back to Dashboard</a>
+      <a id="backToDashboardBtn" class="back-link" href="#">← Back to Dashboard</a>
     </header>
     <main class="profile-grid">
       <section class="card">
@@ -79,6 +80,7 @@
             </div>
             <div class="profile-actions">
               <button id="changePictureBtn" class="btn btn-secondary">Change Profile Picture</button>
+              <button id="removePictureBtn" class="btn btn-secondary">Remove Profile Picture</button>
               <button id="changePwdBtn" class="btn btn-secondary">Change Password</button>
             </div>
             <input type="file" id="profileImageInput" accept="image/*" hidden>
@@ -100,15 +102,11 @@
           </div>
           <div class="form-group">
             <label class="form-label" for="department">Department</label>
-            <input id="department" class="form-input" readonly />
+            <input id="department" class="form-input" />
           </div>
           <div class="form-group">
             <label class="form-label" for="phone">Phone Number</label>
             <input id="phone" class="form-input" type="tel" placeholder="+1 555 555 5555" />
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="profile_image">Profile Image URL</label>
-            <input id="profile_image" class="form-input" type="url" placeholder="https://example.com/avatar.jpg" />
           </div>
         </div>
         <div class="profile-actions" style="margin-top:28px; justify-content:flex-start;">

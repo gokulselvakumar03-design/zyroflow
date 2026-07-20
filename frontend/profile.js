@@ -1,19 +1,130 @@
-const API_BASE = window.location.origin + '/api';
+const API_BASE = 'http://localhost:4000/api';
 const PROFILE_IMAGE_STORAGE_KEY = 'profileImageDataURL';
 
+function getAuthToken() {
+  return localStorage.getItem('authToken') || localStorage.getItem('auth_token') || '';
+}
+
+function getAuthHeaders() {
+  const headers = {};
+  const token = getAuthToken();
+  if (token) headers.Authorization = `Bearer ${token}`;
+  return headers;
+}
+
 function getUserEmail() {
-  return localStorage.getItem('userEmail') || '';
+  const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+  return currentUser?.email || localStorage.getItem('userEmail') || localStorage.getItem('email') || '';
 }
 
-function getStoredProfileImage() {
-  return localStorage.getItem(PROFILE_IMAGE_STORAGE_KEY) || '';
+function getCurrentUserId() {
+  try {
+    const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+    const candidates = [
+      currentUser?.id,
+      currentUser?.userId,
+      currentUser?.user_id,
+      localStorage.getItem('userId'),
+      localStorage.getItem('user_id'),
+      localStorage.getItem('id')
+    ];
+
+    for (const value of candidates) {
+      const normalized = String(value || '').trim();
+      if (normalized) return normalized;
+    }
+  } catch (err) {
+    console.error(err);
+  }
+
+  return '';
 }
 
-function saveStoredProfileImage(dataUrl) {
+function getRoleFromSession() {
+  try {
+    const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+    const role = currentUser?.role || localStorage.getItem('role') || localStorage.getItem('userRole') || localStorage.getItem('user_role') || '';
+    return String(role || '').trim().toLowerCase();
+  } catch (err) {
+    return '';
+  }
+}
+
+function getDashboardUrlForRole(role) {
+  const normalized = String(role || '').trim().toLowerCase();
+  const dashboardMap = {
+    admin: 'admin-dashboard.html',
+    employee: 'employee.html',
+    accounts: 'accounts-dashboard.html',
+    manager: 'manager-dashboard.html',
+    cfo: 'cfo-dashboard.html',
+    md: 'md-dashboard.html',
+    'managing director': 'md-dashboard.html',
+    'managing_director': 'md-dashboard.html',
+    'm.d.': 'md-dashboard.html'
+  };
+
+  return dashboardMap[normalized] || 'login.html';
+}
+
+function updateBackToDashboardLink() {
+  const link = document.getElementById('backToDashboardBtn');
+  if (!link) return;
+
+  const token = getAuthToken();
+  const role = getRoleFromSession();
+  const dashboardUrl = token || role ? getDashboardUrlForRole(role) : 'login.html';
+  link.href = dashboardUrl;
+
+  link.addEventListener('click', (event) => {
+    if (!token && !role) {
+      event.preventDefault();
+      window.location.href = 'login.html';
+    }
+  });
+}
+
+function getProfileImageStorageKey(userId = getCurrentUserId()) {
+  return userId ? `profileImage_${userId}` : PROFILE_IMAGE_STORAGE_KEY;
+}
+
+function getStoredProfileImage(userId = getCurrentUserId()) {
+  return localStorage.getItem(getProfileImageStorageKey(userId)) || '';
+}
+
+function saveStoredProfileImage(dataUrl, userId = getCurrentUserId()) {
+  const key = getProfileImageStorageKey(userId);
   if (dataUrl) {
-    localStorage.setItem(PROFILE_IMAGE_STORAGE_KEY, dataUrl);
+    localStorage.setItem(key, dataUrl);
   } else {
-    localStorage.removeItem(PROFILE_IMAGE_STORAGE_KEY);
+    localStorage.removeItem(key);
+  }
+}
+
+function persistCurrentUserProfileImage(profileImage) {
+  try {
+    const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+    if (currentUser) {
+      currentUser.profile_image = profileImage || '';
+      localStorage.setItem('currentUser', JSON.stringify(currentUser));
+    }
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+async function syncProfileImageToServer(profileImage) {
+  const email = getUserEmail();
+  if (!email) return;
+
+  try {
+    await fetch(`${API_BASE}/profile`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+      body: JSON.stringify({ profile_image: profileImage || '' })
+    });
+  } catch (err) {
+    console.error(err);
   }
 }
 
@@ -35,14 +146,16 @@ function handleProfileImageSelection(event) {
   }
 
   const reader = new FileReader();
-  reader.onload = () => {
+  reader.onload = async () => {
     const dataUrl = reader.result;
     if (!dataUrl || typeof dataUrl !== 'string') {
       alert('Unable to load the selected image.');
       return;
     }
     saveStoredProfileImage(dataUrl);
+    persistCurrentUserProfileImage(dataUrl);
     updateAvatar({ profile_image: dataUrl, name: document.getElementById('name').value });
+    await syncProfileImageToServer(dataUrl);
   };
   reader.readAsDataURL(file);
 }
@@ -53,9 +166,24 @@ function triggerProfileImageUpload(event) {
   input?.click();
 }
 
+async function removeProfilePicture(event) {
+  event.preventDefault();
+  const userId = getCurrentUserId();
+  if (!userId) {
+    setProfileMessage('No active user found to remove the profile picture.', 'err');
+    return;
+  }
+
+  localStorage.removeItem(getProfileImageStorageKey(userId));
+  persistCurrentUserProfileImage('');
+  updateAvatar({ profile_image: '', name: document.getElementById('name').value });
+  await syncProfileImageToServer('');
+  setProfileMessage('Profile picture removed.', 'ok');
+}
+
 function formatTimestamp(value) {
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return 'Unknown';
+  if (Number.isNaN(date.getTime())) return 'Not Available';
   return date.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 }
 
@@ -89,63 +217,70 @@ function updateAvatar(user) {
 
 async function loadProfile() {
   const email = getUserEmail();
-  if (!email) return;
-
-  let user = null;
-  try {
-    const res = await fetch(`${API_BASE}/profile?email=${encodeURIComponent(email)}`);
-    if (res.ok) user = await res.json();
-  } catch (err) {
-    console.error(err);
-  }
-
-  if (!user) {
+  const fallbackUser = (() => {
     try {
-      user = JSON.parse(localStorage.getItem('currentUser') || '{}');
+      return JSON.parse(localStorage.getItem('currentUser') || '{}');
     } catch (err) {
-      user = {};
+      return {};
+    }
+  })();
+
+  let user = fallbackUser;
+
+  if (email) {
+    try {
+      const res = await fetch(`${API_BASE}/profile`, {
+        headers: getAuthHeaders()
+      });
+      if (res.ok) {
+        user = await res.json();
+      } else {
+        console.warn('Profile fetch failed:', res.status);
+      }
+    } catch (err) {
+      console.error(err);
     }
   }
 
-  const name = user.name || '';
-  const role = user.role || '';
-  const department = user.department || '';
-  const phone = user.phone || '';
-  const emailValue = user.email || email;
-  const storedImage = getStoredProfileImage();
-  const profileImage = storedImage || user.profile_image || '';
-  const createdAt = user.createdAt || user.created_at || user.accountCreated || '';
-  const lastLogin = user.lastLogin || user.last_login || user.lastActivity || '';
-  const status = user.status || 'Active';
+  const name = user.name || fallbackUser.name || '';
+  const role = user.role || fallbackUser.role || '';
+  const department = user.department || fallbackUser.department || '';
+  const phone = user.phone || fallbackUser.phone || '';
+  const emailValue = user.email || fallbackUser.email || email;
+  const currentUserId = getCurrentUserId() || user.id || fallbackUser.id || user.userId || fallbackUser.userId || user.user_id || fallbackUser.user_id || '';
+  const storedImage = getStoredProfileImage(currentUserId);
+  const profileImage = storedImage || user.profile_image || fallbackUser.profile_image || '';
+  const createdAt = user.createdAt || user.created_at || fallbackUser.createdAt || fallbackUser.created_at || fallbackUser.accountCreated || '';
+  const lastLogin = user.lastLogin || user.last_login || fallbackUser.lastLogin || fallbackUser.last_login || fallbackUser.lastActivity || '';
+  const status = user.status || fallbackUser.status || 'Active';
 
   document.getElementById('name').value = name;
   document.getElementById('email').value = emailValue;
   document.getElementById('role').value = role;
   document.getElementById('department').value = department;
   document.getElementById('phone').value = phone;
-  document.getElementById('profile_image').value = profileImage;
   document.getElementById('profileNamePreview').textContent = name || 'User Profile';
   document.getElementById('profileRoleBadge').textContent = role || 'User';
-  document.getElementById('accountCreated').textContent = createdAt ? formatTimestamp(createdAt) : 'Unknown';
-  document.getElementById('lastLogin').textContent = lastLogin ? formatTimestamp(lastLogin) : 'Unknown';
-  document.getElementById('accountRole').textContent = role || 'Unknown';
-  document.getElementById('accountStatus').textContent = status;
+  document.getElementById('accountCreated').textContent = createdAt ? formatTimestamp(createdAt) : 'Not Available';
+  document.getElementById('lastLogin').textContent = lastLogin ? formatTimestamp(lastLogin) : 'Not Available';
+  document.getElementById('accountRole').textContent = role || 'Not Available';
+  document.getElementById('accountStatus').textContent = status || 'Active';
 
   updateAvatar({ profile_image: profileImage, name });
 }
 
 async function saveProfile() {
+  const currentUserId = getCurrentUserId();
   const payload = {
-    email: document.getElementById('email').value,
     name: document.getElementById('name').value,
     phone: document.getElementById('phone').value,
     department: document.getElementById('department').value,
-    profile_image: document.getElementById('profile_image').value
+    profile_image: getStoredProfileImage(currentUserId)
   };
 
   try {
     const res = await fetch(`${API_BASE}/profile`, {
-      method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+      method: 'PUT', headers: { 'Content-Type': 'application/json', ...getAuthHeaders() }, body: JSON.stringify(payload)
     });
     const data = await res.json();
     if (data.success) {
@@ -207,10 +342,13 @@ async function changePassword(event) {
   const oldPassword = document.getElementById('oldPassword').value;
   const newPassword = document.getElementById('newPassword').value;
   const confirm = document.getElementById('confirmPassword').value;
-  const email = document.getElementById('email').value;
 
-  if (!oldPassword || !newPassword) {
-    setProfileMessage('Provide both current and new password.', 'err');
+  if (!oldPassword || !newPassword || !confirm) {
+    setProfileMessage('Please fill in the current password, new password, and confirmation.', 'err');
+    return;
+  }
+  if (!newPassword.trim()) {
+    setProfileMessage('New password is required.', 'err');
     return;
   }
   if (newPassword !== confirm) {
@@ -220,17 +358,19 @@ async function changePassword(event) {
 
   try {
     const res = await fetch(`${API_BASE}/change-password`, {
-      method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, oldPassword, newPassword })
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+      body: JSON.stringify({ oldPassword, newPassword, confirmPassword: confirm })
     });
     const data = await res.json();
     if (data.success) {
-      setProfileMessage('Password updated successfully.', 'ok');
+      setProfileMessage(data.message || 'Password updated successfully.', 'ok');
       document.getElementById('oldPassword').value = '';
       document.getElementById('newPassword').value = '';
       document.getElementById('confirmPassword').value = '';
       updatePasswordStrength();
     } else {
-      setProfileMessage(data.message || 'Update failed.', 'err');
+      setProfileMessage(data.message || 'Password update failed.', 'err');
     }
   } catch (err) {
     setProfileMessage('Network error while changing password.', 'err');
@@ -245,11 +385,13 @@ function focusSecuritySection() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  updateBackToDashboardLink();
   loadProfile();
   document.getElementById('saveBtn').addEventListener('click', saveProfile);
   document.getElementById('doChangePwd').addEventListener('click', changePassword);
   document.getElementById('changePwdBtn').addEventListener('click', focusSecuritySection);
   document.getElementById('changePictureBtn').addEventListener('click', triggerProfileImageUpload);
+  document.getElementById('removePictureBtn').addEventListener('click', removeProfilePicture);
   document.getElementById('profileImageInput').addEventListener('change', handleProfileImageSelection);
   document.getElementById('newPassword').addEventListener('input', updatePasswordStrength);
 });

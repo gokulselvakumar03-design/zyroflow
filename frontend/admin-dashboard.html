@@ -1420,7 +1420,7 @@
     <div class="container">
         <div class="dashboard-intro">
             <div class="welcome-panel card">
-                <div class="welcome-panel-title">Good Morning, Admin</div>
+                <div class="welcome-panel-title" id="welcomePanelTitle">Good Morning</div>
                 <div class="welcome-panel-copy">Your executive dashboard provides an at-a-glance view of request flow, approval velocity, and key operational insights to keep the organization moving.</div>
             </div>
             <div class="dashboard-summary-grid">
@@ -1947,9 +1947,18 @@
             const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
             const role = (currentUser && currentUser.role) || localStorage.getItem('role') || localStorage.getItem('userRole') || 'admin';
             const prettyRole = canonicalRole(role);
+            const name = currentUser && currentUser.name ? String(currentUser.name).trim() : (prettyRole === 'Admin' ? 'Admin' : 'User');
             const welcomeText = document.getElementById('welcomeText');
+            const roleSummary = document.getElementById('roleSummary');
+            const welcomePanelTitle = document.getElementById('welcomePanelTitle');
             if (welcomeText) {
-                welcomeText.textContent = `Welcome ${prettyRole}`;
+                welcomeText.textContent = `Welcome ${name}`;
+            }
+            if (roleSummary) {
+                roleSummary.textContent = prettyRole;
+            }
+            if (welcomePanelTitle) {
+                welcomePanelTitle.textContent = `Good Morning, ${name}`;
             }
         }
 

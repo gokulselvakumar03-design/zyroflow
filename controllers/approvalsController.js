@@ -4,9 +4,9 @@ exports.getPendingApprovals = async (req, res, next) => {
   try {
     const role = req.user.role;
     const [rows] = await pool.execute(
-      `SELECT a.*, r.employee_id, r.request_type, r.amount, r.description, r.status as request_status
+      `SELECT a.*, r.requester_name as employee_id, r.type as request_type, r.amount, r.description, r.status as request_status
        FROM approvals a
-       JOIN requests r ON a.request_id = r.id
+       JOIN workflow_requests r ON a.request_id = r.id
        WHERE a.approver_role = ? AND a.status = 'pending'`,
       [role]
     );
@@ -23,10 +23,10 @@ async function updateRequestStatus(conn, requestId) {
   );
 
   if (pendingRows.length === 0) {
-    await conn.execute('UPDATE requests SET status = ? WHERE id = ?', ['approved', requestId]);
+    await conn.execute('UPDATE workflow_requests SET status = ? WHERE id = ?', ['approved', requestId]);
   } else {
     // If any pending exists, keep in_progress
-    await conn.execute('UPDATE requests SET status = ? WHERE id = ?', ['in_progress', requestId]);
+    await conn.execute('UPDATE workflow_requests SET status = ? WHERE id = ?', ['in_progress', requestId]);
   }
 }
 
@@ -40,7 +40,7 @@ exports.approve = async (req, res, next) => {
     conn = await pool.getConnection();
     await conn.beginTransaction();
 
-    const [requestRows] = await conn.execute('SELECT status FROM requests WHERE id = ? FOR UPDATE', [request_id]);
+    const [requestRows] = await conn.execute('SELECT status FROM workflow_requests WHERE id = ? FOR UPDATE', [request_id]);
     const request = requestRows[0];
     if (!request || request.status === 'rejected' || request.status === 'approved') {
       await conn.rollback();
@@ -91,7 +91,7 @@ exports.reject = async (req, res, next) => {
     conn = await pool.getConnection();
     await conn.beginTransaction();
 
-    const [requestRows] = await conn.execute('SELECT status FROM requests WHERE id = ? FOR UPDATE', [request_id]);
+    const [requestRows] = await conn.execute('SELECT status FROM workflow_requests WHERE id = ? FOR UPDATE', [request_id]);
     const request = requestRows[0];
     if (!request || request.status === 'rejected' || request.status === 'approved') {
       await conn.rollback();
@@ -109,7 +109,7 @@ exports.reject = async (req, res, next) => {
     }
 
     await conn.execute('UPDATE approvals SET status = ? WHERE id = ?', ['rejected', current.id]);
-    await conn.execute('UPDATE requests SET status = ? WHERE id = ?', ['rejected', request_id]);
+    await conn.execute('UPDATE workflow_requests SET status = ? WHERE id = ?', ['rejected', request_id]);
 
     await conn.commit();
     res.json({ message: 'Rejected' });

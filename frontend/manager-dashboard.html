@@ -1525,13 +1525,18 @@
         function displayUserRole() {
             const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
             const roleForDisplay = currentUser && currentUser.role ? canonicalRole(currentUser.role) : currentRole;
+            const displayName = currentUser && currentUser.name ? String(currentUser.name).trim() : roleForDisplay;
             const titleElement = document.getElementById('approver-title');
             const welcomeText = document.getElementById('welcomeText');
+            const roleSummary = document.getElementById('roleSummary');
             if (titleElement) {
                 titleElement.textContent = `${roleForDisplay} Dashboard`;
             }
             if (welcomeText) {
-                welcomeText.textContent = `Welcome ${roleForDisplay}`;
+                welcomeText.textContent = `Welcome ${displayName}`;
+            }
+            if (roleSummary) {
+                roleSummary.textContent = roleForDisplay;
             }
         }
 
