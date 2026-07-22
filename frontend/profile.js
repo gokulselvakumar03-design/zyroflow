@@ -242,6 +242,7 @@ async function loadProfile() {
     }
   }
 
+  const empId = user.employee_id || user.employeeId || fallbackUser.employee_id || fallbackUser.employeeId || 'N/A';
   const name = user.name || fallbackUser.name || '';
   const role = user.role || fallbackUser.role || '';
   const department = user.department || fallbackUser.department || '';
@@ -254,6 +255,8 @@ async function loadProfile() {
   const lastLogin = user.lastLogin || user.last_login || fallbackUser.lastLogin || fallbackUser.last_login || fallbackUser.lastActivity || '';
   const status = user.status || fallbackUser.status || 'Active';
 
+  if (document.getElementById('employeeId')) document.getElementById('employeeId').value = empId;
+  if (document.getElementById('accountEmpId')) document.getElementById('accountEmpId').textContent = empId;
   document.getElementById('name').value = name;
   document.getElementById('email').value = emailValue;
   document.getElementById('role').value = role;
@@ -262,6 +265,7 @@ async function loadProfile() {
   document.getElementById('profileNamePreview').textContent = name || 'User Profile';
   document.getElementById('profileRoleBadge').textContent = role || 'User';
   document.getElementById('accountCreated').textContent = createdAt ? formatTimestamp(createdAt) : 'Not Available';
+  document.getElementById('accountLastLogin') ? document.getElementById('accountLastLogin').textContent = lastLogin ? formatTimestamp(lastLogin) : 'Not Available' : null;
   document.getElementById('lastLogin').textContent = lastLogin ? formatTimestamp(lastLogin) : 'Not Available';
   document.getElementById('accountRole').textContent = role || 'Not Available';
   document.getElementById('accountStatus').textContent = status || 'Active';

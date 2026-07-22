@@ -1370,8 +1370,8 @@
         <div class="modal-card">
             <div class="modal-header">
                 <div>
-                    <div class="modal-title">Create User</div>
-                    <div class="modal-subtitle">Add a team member with role and department details.</div>
+                    <div class="modal-title" id="userModalTitle">Create User</div>
+                    <div class="modal-subtitle" id="userModalSubtitle">Add a team member with role and department details.</div>
                 </div>
                 <button id="closeAddUserBtn" class="modal-close" type="button">×</button>
             </div>
@@ -1379,7 +1379,12 @@
                 <div id="addUserMessage" class="msg" style="grid-column: 1 / -1; display: none;"></div>
             </div>
             <form id="addUserForm" class="modal-table-wrapper">
+                <input type="hidden" id="editUserId" value="" />
                 <div class="form-grid">
+                    <div class="form-group" id="employeeIdGroup" style="display: none;">
+                        <label class="form-label" for="editEmployeeId">Employee ID</label>
+                        <input id="editEmployeeId" class="form-input" type="text" readonly style="opacity: 0.7; cursor: not-allowed;" />
+                    </div>
                     <div class="form-group">
                         <label class="form-label" for="newUserName">Name</label>
                         <input id="newUserName" class="form-input" type="text" placeholder="Jane Doe" required />
@@ -1387,6 +1392,10 @@
                     <div class="form-group">
                         <label class="form-label" for="newUserEmail">Email</label>
                         <input id="newUserEmail" class="form-input" type="email" placeholder="jane.doe@example.com" required />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="newUserPhone">Phone Number</label>
+                        <input id="newUserPhone" class="form-input" type="text" placeholder="+1 234 567 890" />
                     </div>
                     <div class="form-group">
                         <label class="form-label" for="newUserRole">Role</label>
@@ -1404,14 +1413,14 @@
                         <label class="form-label" for="newUserDepartment">Department</label>
                         <input id="newUserDepartment" class="form-input" type="text" placeholder="Finance" required />
                     </div>
-                    <div class="form-group">
+                    <div class="form-group" id="passwordGroup">
                         <label class="form-label" for="newUserPassword">Password</label>
                         <input id="newUserPassword" class="form-input" type="password" placeholder="Enter password" required />
                     </div>
                 </div>
                 <div class="button-row" style="justify-content: flex-end; gap: 12px; margin-top: 20px;">
                     <button id="cancelAddUserBtn" class="btn btn-danger" type="button">Cancel</button>
-                    <button class="btn btn-primary" type="submit">Create User</button>
+                    <button id="userModalSubmitBtn" class="btn btn-primary" type="submit">Create User</button>
                 </div>
             </form>
         </div>
@@ -1598,7 +1607,61 @@
             </div>
         </div>
 
-        <div class="card">
+    <div id="statusUserModal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div>
+                    <div class="modal-title" id="statusModalTitle">Deactivate User?</div>
+                    <div class="modal-subtitle" id="statusModalSubtitle">Are you sure you want to change this user's status?</div>
+                </div>
+                <button id="closeStatusUserBtn" class="modal-close" type="button" onclick="closeStatusModal()">×</button>
+            </div>
+            <div class="modal-controls">
+                <div id="statusUserMessage" class="msg" style="grid-column: 1 / -1; display: none;"></div>
+            </div>
+            <div class="modal-table-wrapper" style="padding: 15px 0;">
+                <input type="hidden" id="statusTargetUserId" value="" />
+                <input type="hidden" id="statusTargetAction" value="" />
+                <div style="background: rgba(255, 255, 255, 0.05); padding: 16px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.1); font-size: 14px; line-height: 1.8;">
+                    <div>Employee ID: <strong id="statusModalEmpId" style="color: #60E8FF;">-</strong></div>
+                    <div>Employee: <strong id="statusModalName">-</strong></div>
+                    <div id="statusModalRoleRow">Role: <strong id="statusModalRole">-</strong></div>
+                    <div id="statusModalNotice" style="margin-top: 10px; color: #FF6B6B; font-weight: 700;">This user will no longer be able to login.</div>
+                </div>
+                <div class="button-row" style="justify-content: flex-end; gap: 12px; margin-top: 20px;">
+                    <button class="btn btn-secondary" type="button" onclick="closeStatusModal()">Cancel</button>
+                    <button id="statusModalConfirmBtn" class="btn btn-danger" type="button" onclick="confirmUserStatusChange()">Deactivate</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card" style="margin-top: 20px;">
+        <div class="toolbar-row">
+            <h2 class="card-title" style="margin-bottom: 0;">User Management</h2>
+            <button type="button" class="btn btn-primary" onclick="openAddUserModal()">+ Create User</button>
+        </div>
+        <div class="modal-table-wrapper" style="margin-top: 15px; overflow-x: auto;">
+            <table class="audit-table">
+                <thead>
+                    <tr>
+                        <th>Employee ID</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Department</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="userManagementTableBody">
+                    <tr><td colspan="7" style="text-align: center; color: var(--text-secondary);">Loading users...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+        <div class="card" style="margin-top: 20px;">
             <div class="toolbar-row">
                 <h2 class="card-title" style="margin-bottom: 0;">All Requests</h2>
                 <button class="export-button" onclick="exportCSV()">Export</button>
@@ -1611,7 +1674,7 @@
 
     <script>
         const workflowLevels = [];
-        const REQUESTS_API_URL = 'http://localhost:5000/requests';
+        const REQUESTS_API_URL = 'http://localhost:4000/requests';
         let requestsCache = [];
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -1625,6 +1688,7 @@
             initializeStatusChart();
             initializeTrendChart();
             loadRequests();
+            loadUsers();
         });
 
         function readRequestsFromLocalStorage() {
@@ -1675,10 +1739,24 @@
             exportBtn.addEventListener('click', exportReports);
         }
 
+        let usersDataCache = [];
+
         function openAddUserModal() {
             const modal = document.getElementById('addUserModal');
             if (!modal) return;
-            modal.classList.remove('hidden');
+            document.getElementById('editUserId').value = '';
+            document.getElementById('userModalTitle').textContent = 'Create User';
+            document.getElementById('userModalSubtitle').textContent = 'Add a team member with role and department details.';
+            document.getElementById('userModalSubmitBtn').textContent = 'Create User';
+            
+            const empGroup = document.getElementById('employeeIdGroup');
+            if (empGroup) empGroup.style.display = 'none';
+            
+            const pwdGroup = document.getElementById('passwordGroup');
+            if (pwdGroup) pwdGroup.style.display = 'block';
+            const pwdInput = document.getElementById('newUserPassword');
+            if (pwdInput) pwdInput.required = true;
+
             const form = document.getElementById('addUserForm');
             form?.reset();
             const message = document.getElementById('addUserMessage');
@@ -1686,6 +1764,44 @@
                 message.style.display = 'none';
                 message.textContent = '';
             }
+            modal.classList.remove('hidden');
+        }
+
+        function openEditUserModal(userId) {
+            const user = usersDataCache.find(u => String(u.id) === String(userId));
+            if (!user) return;
+
+            const modal = document.getElementById('addUserModal');
+            if (!modal) return;
+
+            document.getElementById('editUserId').value = user.id;
+            document.getElementById('userModalTitle').textContent = 'Edit User';
+            document.getElementById('userModalSubtitle').textContent = 'Update team member role and department details.';
+            document.getElementById('userModalSubmitBtn').textContent = 'Save Changes';
+
+            const empGroup = document.getElementById('employeeIdGroup');
+            if (empGroup) empGroup.style.display = 'block';
+            const empInput = document.getElementById('editEmployeeId');
+            if (empInput) empInput.value = user.employee_id || user.employeeId || '';
+
+            const pwdGroup = document.getElementById('passwordGroup');
+            if (pwdGroup) pwdGroup.style.display = 'none';
+            const pwdInput = document.getElementById('newUserPassword');
+            if (pwdInput) pwdInput.required = false;
+
+            document.getElementById('newUserName').value = user.name || '';
+            document.getElementById('newUserEmail').value = user.email || '';
+            document.getElementById('newUserPhone').value = user.phone || '';
+            document.getElementById('newUserRole').value = user.role || '';
+            document.getElementById('newUserDepartment').value = user.department || '';
+
+            const message = document.getElementById('addUserMessage');
+            if (message) {
+                message.style.display = 'none';
+                message.textContent = '';
+            }
+
+            modal.classList.remove('hidden');
         }
 
         function closeAddUserModal() {
@@ -1694,37 +1810,257 @@
             modal.classList.add('hidden');
         }
 
-        function handleAddUserSubmit(event) {
+        function openStatusModal(userId, action) {
+            const user = usersDataCache.find(u => String(u.id) === String(userId));
+            if (!user) return;
+
+            const modal = document.getElementById('statusUserModal');
+            if (!modal) return;
+
+            document.getElementById('statusTargetUserId').value = user.id;
+            document.getElementById('statusTargetAction').value = action;
+            document.getElementById('statusModalEmpId').textContent = user.employee_id || user.employeeId || 'N/A';
+            document.getElementById('statusModalName').textContent = user.name || 'N/A';
+            document.getElementById('statusModalRole').textContent = user.role || 'N/A';
+
+            const titleEl = document.getElementById('statusModalTitle');
+            const noticeEl = document.getElementById('statusModalNotice');
+            const confirmBtn = document.getElementById('statusModalConfirmBtn');
+            const msgEl = document.getElementById('statusUserMessage');
+
+            if (msgEl) {
+                msgEl.style.display = 'none';
+                msgEl.textContent = '';
+            }
+
+            if (action === 'deactivate') {
+                titleEl.textContent = 'Deactivate User?';
+                noticeEl.style.display = 'block';
+                noticeEl.textContent = 'This user will no longer be able to login.';
+                confirmBtn.textContent = 'Deactivate';
+                confirmBtn.className = 'btn btn-danger';
+            } else {
+                titleEl.textContent = 'Activate User?';
+                noticeEl.style.display = 'none';
+                confirmBtn.textContent = 'Activate';
+                confirmBtn.className = 'btn btn-primary';
+                confirmBtn.style.background = 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)';
+            }
+
+            modal.classList.remove('hidden');
+        }
+
+        function closeStatusModal() {
+            const modal = document.getElementById('statusUserModal');
+            if (!modal) return;
+            modal.classList.add('hidden');
+        }
+
+        async function confirmUserStatusChange() {
+            const userId = document.getElementById('statusTargetUserId').value;
+            const action = document.getElementById('statusTargetAction').value;
+            const message = document.getElementById('statusUserMessage');
+
+            if (!userId || !action) return;
+
+            try {
+                const endpoint = `http://localhost:4000/api/auth/users/${userId}/${action}`;
+                const res = await fetch(endpoint, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                const data = await res.json();
+
+                if (!res.ok) {
+                    if (message) {
+                        message.textContent = data.message || `Failed to ${action} user.`;
+                        message.className = 'msg show err';
+                        message.style.display = 'block';
+                    }
+                    return;
+                }
+
+                if (message) {
+                    message.innerHTML = `
+                        <div style="text-align:left; font-size:14px; line-height:1.6; border-left:3px solid #22c55e; padding-left:10px;">
+                            <strong>${action === 'deactivate' ? 'User Deactivated Successfully' : 'User Activated Successfully'}</strong>
+                        </div>
+                    `;
+                    message.className = 'msg show ok';
+                    message.style.display = 'block';
+                }
+
+                loadUsers();
+
+                setTimeout(() => {
+                    closeStatusModal();
+                }, 1000);
+            } catch (err) {
+                if (message) {
+                    message.textContent = `Error connecting to server to ${action} user.`;
+                    message.className = 'msg show err';
+                    message.style.display = 'block';
+                }
+            }
+        }
+
+        async function loadUsers() {
+            const tbody = document.getElementById('userManagementTableBody');
+            if (!tbody) return;
+            try {
+                const res = await fetch('http://localhost:4000/api/auth/users');
+                if (res.ok) {
+                    const users = await res.json();
+                    usersDataCache = users;
+                    if (users.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-secondary);">No users found.</td></tr>';
+                        return;
+                    }
+                    tbody.innerHTML = users.map(u => {
+                        const status = (u.status || 'ACTIVE').toUpperCase();
+                        const roleStr = String(u.role || '').trim().toLowerCase();
+                        const isAdmin = roleStr === 'admin';
+                        const isInactive = status === 'INACTIVE';
+
+                        const statusBadge = isInactive
+                            ? '<span class="badge" style="background: rgba(239, 68, 68, 0.2); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.4); font-weight: 700;">🔴 Inactive</span>'
+                            : '<span class="badge" style="background: rgba(34, 197, 94, 0.2); color: #22c55e; border: 1px solid rgba(34, 197, 94, 0.4); font-weight: 700;">🟢 Active</span>';
+
+                        let actionBtn = '';
+                        if (isAdmin) {
+                            actionBtn = `<button type="button" class="btn" disabled style="padding: 6px 12px; font-size: 12px; background: rgba(255, 255, 255, 0.1); color: rgba(255, 255, 255, 0.5); border: 1px solid rgba(255, 255, 255, 0.15); cursor: not-allowed; opacity: 0.7;">🔒 Protected</button>`;
+                        } else if (isInactive) {
+                            actionBtn = `<button type="button" class="btn" style="padding: 6px 12px; font-size: 12px; background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); color: white;" onclick="openStatusModal('${u.id}', 'activate')">🟢 Activate</button>`;
+                        } else {
+                            actionBtn = `<button type="button" class="btn btn-danger" style="padding: 6px 12px; font-size: 12px;" onclick="openStatusModal('${u.id}', 'deactivate')">🔴 Deactivate</button>`;
+                        }
+
+                        return `
+                            <tr>
+                                <td><strong style="color: var(--primary);">${escapeHtml(u.employee_id || u.employeeId || 'N/A')}</strong></td>
+                                <td>${escapeHtml(u.name || '')}</td>
+                                <td>${escapeHtml(u.email || '')}</td>
+                                <td><span class="badge badge-info">${escapeHtml(u.role || '')}</span></td>
+                                <td>${escapeHtml(u.department || 'N/A')}</td>
+                                <td>${statusBadge}</td>
+                                <td>
+                                    <div style="display: flex; gap: 8px; align-items: center;">
+                                        <button type="button" class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;" onclick="openEditUserModal('${u.id}')">✏ Edit</button>
+                                        ${actionBtn}
+                                    </div>
+                                </td>
+                            </tr>
+                        `;
+                    }).join('');
+                }
+            } catch (err) {
+                console.error('Failed to fetch users:', err);
+            }
+        }
+
+        async function handleAddUserSubmit(event) {
             event.preventDefault();
+            const userId = document.getElementById('editUserId')?.value;
             const name = document.getElementById('newUserName')?.value.trim();
             const email = document.getElementById('newUserEmail')?.value.trim();
+            const phone = document.getElementById('newUserPhone')?.value.trim();
             const role = document.getElementById('newUserRole')?.value;
             const department = document.getElementById('newUserDepartment')?.value.trim();
             const password = document.getElementById('newUserPassword')?.value;
             const message = document.getElementById('addUserMessage');
 
-            if (!name || !email || !role || !department || !password) {
+            const isEdit = Boolean(userId);
+
+            if (!name || !email || !role || !department || (!isEdit && !password)) {
                 if (message) {
-                    message.textContent = 'Fill all fields before creating a user.';
+                    message.textContent = 'Please fill all required fields.';
                     message.className = 'msg show err';
                     message.style.display = 'block';
                 }
                 return;
             }
 
-            const users = JSON.parse(localStorage.getItem('users') || '[]');
-            users.push({ id: Date.now(), name, email, role, department, password });
-            localStorage.setItem('users', JSON.stringify(users));
+            try {
+                if (isEdit) {
+                    const res = await fetch(`http://localhost:4000/api/auth/users/${userId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ name, email, phone, role, department })
+                    });
 
-            if (message) {
-                message.textContent = 'User created successfully.';
-                message.className = 'msg show ok';
-                message.style.display = 'block';
+                    const data = await res.json();
+
+                    if (!res.ok) {
+                        if (message) {
+                            message.textContent = data.message || 'Failed to update user.';
+                            message.className = 'msg show err';
+                            message.style.display = 'block';
+                        }
+                        return;
+                    }
+
+                    if (message) {
+                        message.innerHTML = `
+                            <div style="text-align:left; font-size:14px; line-height:1.6; border-left:3px solid #22c55e; padding-left:10px;">
+                                <strong>User Updated Successfully</strong>
+                            </div>
+                        `;
+                        message.className = 'msg show ok';
+                        message.style.display = 'block';
+                    }
+
+                    loadUsers();
+
+                    setTimeout(() => {
+                        closeAddUserModal();
+                    }, 1200);
+                } else {
+                    const res = await fetch('http://localhost:4000/api/auth/users', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ name, email, phone, role, department, password })
+                    });
+
+                    const data = await res.json();
+
+                    if (!res.ok) {
+                        if (message) {
+                            message.textContent = data.message || 'Failed to create user.';
+                            message.className = 'msg show err';
+                            message.style.display = 'block';
+                        }
+                        return;
+                    }
+
+                    const empId = data.employee_id || data.employeeId || 'EMP000';
+
+                    if (message) {
+                        message.innerHTML = `
+                            <div style="text-align:left; font-size:14px; line-height:1.6; border-left:3px solid #22c55e; padding-left:10px;">
+                                <strong>User Created Successfully</strong><br/>
+                                Employee ID: <strong>${empId}</strong><br/>
+                                Email: ${email}<br/>
+                                Temporary Password: ${password}
+                            </div>
+                        `;
+                        message.className = 'msg show ok';
+                        message.style.display = 'block';
+                    }
+
+                    loadUsers();
+
+                    setTimeout(() => {
+                        closeAddUserModal();
+                    }, 3000);
+                }
+            } catch (err) {
+                if (message) {
+                    message.textContent = 'Error connecting to server.';
+                    message.className = 'msg show err';
+                    message.style.display = 'block';
+                }
             }
-
-            setTimeout(() => {
-                closeAddUserModal();
-            }, 900);
         }
 
         function openAuditLogs() {
@@ -2552,6 +2888,7 @@
 
         function renderRequestsTable(requests) {
             const container = document.getElementById('requests-container');
+            if (!container) return;
             if (!requests.length) {
                 container.innerHTML = '<div class="empty">No requests yet</div>';
                 return;

@@ -24,8 +24,8 @@ async function initializeMysqlStorage() {
 
     const host = process.env.MYSQL_HOST || 'localhost';
     const user = process.env.MYSQL_USER || 'root';
-    const database = 'zyroflow';
-    const configuredPassword = process.env.MYSQL_PASSWORD;
+    const database = process.env.DB_NAME || process.env.MYSQL_DB || 'zyroflow';
+    const configuredPassword = process.env.MYSQL_PASSWORD || process.env.DB_PASSWORD;
     const passwordCandidates = configuredPassword !== undefined ? [configuredPassword] : ['root123', ''];
 
     let selectedPassword = passwordCandidates[0] || '';
@@ -53,8 +53,8 @@ async function initializeMysqlStorage() {
 
     console.log('MySQL Connected');
 
-    await db.promise().query('CREATE DATABASE IF NOT EXISTS zyroflow');
-    await db.promise().query('USE zyroflow');
+    await db.promise().query(`CREATE DATABASE IF NOT EXISTS \`${database}\``);
+    await db.promise().query(`USE \`${database}\``);
     try {
       console.log('Initializing DB...');
       await db.promise().execute('SET FOREIGN_KEY_CHECKS = 0');
@@ -62,7 +62,7 @@ async function initializeMysqlStorage() {
       //await db.promise().execute('DROP TABLE IF EXISTS workflow_requests');
       await db.promise().execute('SET FOREIGN_KEY_CHECKS = 1');
       await db.promise().execute(`
-        CREATE TABLE workflow_requests (
+        CREATE TABLE IF NOT EXISTS workflow_requests (
           id INT AUTO_INCREMENT PRIMARY KEY,
           title VARCHAR(255),
           type VARCHAR(100),
@@ -96,41 +96,90 @@ async function initializeMysqlStorage() {
       console.log('Table ready');
     } catch (err) {
       await db.promise().execute('SET FOREIGN_KEY_CHECKS = 1');
-      console.error('DB Init Error:', err.message);
+      console.error('DB Init Error:', err);
     }
     await db.promise().query(`
       CREATE TABLE IF NOT EXISTS users (
         id INT AUTO_INCREMENT PRIMARY KEY,
+        employee_id VARCHAR(20) UNIQUE,
         name VARCHAR(100),
         email VARCHAR(100) UNIQUE,
         password VARCHAR(100),
         role VARCHAR(50),
         phone VARCHAR(20),
         department VARCHAR(100),
-        profile_image VARCHAR(255)
+        profile_image VARCHAR(255),
+        status VARCHAR(20) DEFAULT 'ACTIVE'
       )
     `);
-    // ensure new profile columns exist for older databases
+    // ensure new profile, employee_id and status columns exist for older databases
     try {
+      await db.promise().query("ALTER TABLE users ADD COLUMN IF NOT EXISTS employee_id VARCHAR(20) UNIQUE");
       await db.promise().query("ALTER TABLE users ADD COLUMN IF NOT EXISTS phone VARCHAR(20)");
       await db.promise().query("ALTER TABLE users ADD COLUMN IF NOT EXISTS department VARCHAR(100)");
       await db.promise().query("ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_image VARCHAR(255)");
+      await db.promise().query("ALTER TABLE users ADD COLUMN IF NOT EXISTS status VARCHAR(20) DEFAULT 'ACTIVE'");
     } catch (e) {
       // Some MySQL versions do not support IF NOT EXISTS for ADD COLUMN - attempt guarded add
+      try { await db.promise().query("ALTER TABLE users ADD COLUMN employee_id VARCHAR(20) UNIQUE"); } catch (e2) { }
       try { await db.promise().query("ALTER TABLE users ADD COLUMN phone VARCHAR(20)"); } catch (e2) { }
       try { await db.promise().query("ALTER TABLE users ADD COLUMN department VARCHAR(100)"); } catch (e2) { }
       try { await db.promise().query("ALTER TABLE users ADD COLUMN profile_image VARCHAR(255)"); } catch (e2) { }
+      try { await db.promise().query("ALTER TABLE users ADD COLUMN status VARCHAR(20) DEFAULT 'ACTIVE'"); } catch (e2) { }
+    }
+
+    try {
+      await db.promise().query("UPDATE users SET status = 'ACTIVE' WHERE status IS NULL OR status = ''");
+    } catch (e) {
+      console.error('Error migrating user status:', e.message);
     }
 
     await db.promise().query(`
-      INSERT IGNORE INTO users (name, email, password, role, phone, department, profile_image) VALUES
-      ('Admin', 'admin@zyroflow.com', 'admin123', 'admin', '', '', ''),
-      ('Accounts', 'accounts@zyroflow.com', 'acc123', 'accounts', '', '', ''),
-      ('Manager', 'manager@zyroflow.com', 'man123', 'manager', '', '', ''),
-      ('CFO', 'cfo@zyroflow.com', 'cfo123', 'cfo', '', '', ''),
-      ('MD', 'md@zyroflow.com', 'md123', 'md', '', '', ''),
-      ('Employee One', 'employee1@zyroflow.com', 'emp123', 'employee', '', '', '')
+      INSERT IGNORE INTO users (employee_id, name, email, password, role, phone, department, profile_image) VALUES
+      ('ADM001', 'Admin', 'admin@zyroflow.com', 'admin123', 'admin', '', '', ''),
+      ('ACC001', 'Accounts', 'accounts@zyroflow.com', 'acc123', 'accounts', '', '', ''),
+      ('MGR001', 'Manager', 'manager@zyroflow.com', 'man123', 'manager', '', '', ''),
+      ('CFO001', 'CFO', 'cfo@zyroflow.com', 'cfo123', 'cfo', '', '', ''),
+      ('MD001', 'MD', 'md@zyroflow.com', 'md123', 'md', '', '', ''),
+      ('EMP001', 'Employee One', 'employee1@zyroflow.com', 'emp123', 'employee', '', '', '')
     `);
+
+    // Migrate/Backfill all existing users with correct role-based prefixes
+    try {
+      const getRolePrefix = (role) => {
+        const r = String(role || '').toLowerCase().trim();
+        if (r === 'admin') return 'ADM';
+        if (r === 'employee') return 'EMP';
+        if (r === 'manager') return 'MGR';
+        if (r === 'accounts') return 'ACC';
+        if (r === 'cfo') return 'CFO';
+        if (r === 'md') return 'MD';
+        return 'EMP';
+      };
+
+      const [allUsers] = await db.promise().query("SELECT id, role, employee_id FROM users ORDER BY id ASC");
+      for (const u of allUsers) {
+        const prefix = getRolePrefix(u.role);
+        // If employee_id doesn't match the new role-based prefix format, regenerate it
+        const idRegex = new RegExp(`^${prefix}\\d{3}$`);
+        if (!u.employee_id || !idRegex.test(u.employee_id)) {
+          // Find next available number for this specific prefix
+          const [maxRow] = await db.promise().query(
+            "SELECT employee_id FROM users WHERE employee_id LIKE ? ORDER BY CAST(SUBSTRING(employee_id, ?) AS UNSIGNED) DESC LIMIT 1",
+            [`${prefix}%`, prefix.length + 1]
+          );
+          let nextNum = 1;
+          if (maxRow && maxRow[0] && maxRow[0].employee_id) {
+            const numPart = maxRow[0].employee_id.substring(prefix.length);
+            nextNum = parseInt(numPart, 10) + 1;
+          }
+          const empId = `${prefix}${String(nextNum).padStart(3, '0')}`;
+          await db.promise().query("UPDATE users SET employee_id = ? WHERE id = ?", [empId, u.id]);
+        }
+      }
+    } catch (e) {
+      console.error('Error backfilling role-based employee_id:', e.message);
+    }
     await db.promise().query(`
       CREATE TABLE IF NOT EXISTS request_history (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -159,6 +208,13 @@ async function initializeMysqlStorage() {
 
 // Serve frontend static files
 app.use(express.static('frontend'));
+
+app.use('/api/auth', authRoutes);
+app.use('/api/rules', rulesRoutes);
+app.use('/api/requests', requestsRoutes);
+app.use('/api/approvals', approvalsRoutes);
+app.use('/api/track', trackRoutes);
+app.use('/api/profile', profileRoutes);
 
 function parseJsonValue(value, fallback = null) {
   if (value == null || value === '') return fallback;

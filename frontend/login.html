@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,7 +8,7 @@
     <style>
         :root {
             color-scheme: dark;
-            font-family: 'Inter',sans-serif;
+            font-family: 'Inter', sans-serif;
             font-size: 16px;
             --bg-left-start: #071A3D;
             --bg-left-end: #0E2A5C;
@@ -505,6 +506,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="app-shell">
         <section class="panel-left">
@@ -518,7 +520,8 @@
                 </div>
 
                 <h1 class="hero-title">Multi-Level Approval Workflow</h1>
-                <p class="hero-copy">Streamline approval processes with secure, scalable and intelligent workflow automation.</p>
+                <p class="hero-copy">Streamline approval processes with secure, scalable and intelligent workflow
+                    automation.</p>
 
                 <div class="feature-grid">
                     <article class="feature-card">
@@ -570,38 +573,25 @@
                     </div>
 
                     <div id="errorMsg" class="message-strip error-message"></div>
-                    <div id="success-message" class="message-strip success-message">Login successful. Redirecting...</div>
+                    <div id="success-message" class="message-strip success-message">Login successful. Redirecting...
+                    </div>
 
                     <form id="login-form">
                         <div class="form-group">
                             <label class="form-label" for="email">Email Address</label>
                             <div class="input-wrapper">
-                                <input
-                                    type="email"
-                                    id="email"
-                                    class="form-input"
-                                    placeholder="Enter your email"
-                                    required
-                                >
+                                <input type="email" id="email" class="form-input" placeholder="Enter your email"
+                                    required>
                             </div>
                         </div>
 
                         <div class="form-group">
                             <label class="form-label" for="password">Password</label>
                             <div class="input-wrapper">
-                                <input
-                                    type="password"
-                                    id="password"
-                                    class="form-input"
-                                    placeholder="Enter your password"
-                                    required
-                                >
-                                <button
-                                    type="button"
-                                    id="password-toggle"
-                                    class="password-toggle"
-                                    aria-label="Toggle password visibility"
-                                >
+                                <input type="password" id="password" class="form-input"
+                                    placeholder="Enter your password" required>
+                                <button type="button" id="password-toggle" class="password-toggle"
+                                    aria-label="Toggle password visibility">
                                     👁️
                                 </button>
                             </div>
@@ -694,16 +684,19 @@
 
                 if (response.success) {
                     successMessage.classList.add('show');
-                    
+
                     // Store authentication data
                     const normalizedRole = normalizeRoleValue(response.role || response.user?.role || 'employee');
+                    const empId = response.employee_id || response.employeeId || response.user?.employee_id || response.user?.employeeId || '';
+                    localStorage.setItem('employee_id', empId);
+                    localStorage.setItem('employeeId', empId);
                     localStorage.setItem('authToken', response.token);
                     localStorage.setItem('userRole', normalizedRole);
                     localStorage.setItem('role', normalizedRole);
                     localStorage.setItem('email', response.user.email);
                     localStorage.setItem('userEmail', response.user.email);
                     localStorage.setItem('userId', response.userId);
-                    localStorage.setItem('currentUser', JSON.stringify({ ...response.user, role: normalizedRole }));
+                    localStorage.setItem('currentUser', JSON.stringify({ ...response.user, role: normalizedRole, employee_id: empId, employeeId: empId }));
 
                     console.log('[LOGIN REDIRECT] ========== REDIRECT LOGIC START ==========');
                     console.log('[LOGIN REDIRECT] Role detected:', response.role || response.user?.role);
@@ -856,4 +849,5 @@
         }
     </script>
 </body>
+
 </html>

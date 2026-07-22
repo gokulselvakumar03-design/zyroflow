@@ -33,8 +33,8 @@ exports.getProfile = async (req, res, next) => {
 
     const { userId, email } = authUser;
     const [rows] = userId
-      ? await pool.execute('SELECT id, name, email, role, phone, department, profile_image FROM users WHERE id = ? LIMIT 1', [userId])
-      : await pool.execute('SELECT id, name, email, role, phone, department, profile_image FROM users WHERE email = ? LIMIT 1', [email]);
+      ? await pool.execute('SELECT id, employee_id, name, email, role, phone, department, profile_image FROM users WHERE id = ? LIMIT 1', [userId])
+      : await pool.execute('SELECT id, employee_id, name, email, role, phone, department, profile_image FROM users WHERE email = ? LIMIT 1', [email]);
 
     if (!rows || rows.length === 0) return res.status(404).json({ message: 'User not found' });
     res.json(rows[0]);
@@ -78,8 +78,8 @@ exports.updateProfile = async (req, res, next) => {
     await pool.execute(`UPDATE users SET ${updates.join(', ')} WHERE id = ? AND email = ?`, values);
 
     const [rows] = userId
-      ? await pool.execute('SELECT id, name, email, role, phone, department, profile_image FROM users WHERE id = ? LIMIT 1', [userId])
-      : await pool.execute('SELECT id, name, email, role, phone, department, profile_image FROM users WHERE email = ? LIMIT 1', [email]);
+      ? await pool.execute('SELECT id, employee_id, name, email, role, phone, department, profile_image FROM users WHERE id = ? LIMIT 1', [userId])
+      : await pool.execute('SELECT id, employee_id, name, email, role, phone, department, profile_image FROM users WHERE email = ? LIMIT 1', [email]);
 
     res.json({ success: true, user: rows[0] || null });
   } catch (err) {

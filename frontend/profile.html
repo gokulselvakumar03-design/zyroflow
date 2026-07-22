@@ -89,6 +89,10 @@
         </div>
         <div class="form-grid">
           <div class="form-group">
+            <label class="form-label" for="employeeId">Employee ID</label>
+            <input id="employeeId" class="form-input" readonly placeholder="EMP001" />
+          </div>
+          <div class="form-group">
             <label class="form-label" for="name">Full Name</label>
             <input id="name" class="form-input" type="text" placeholder="Jane Doe" />
           </div>
@@ -117,6 +121,7 @@
       <section class="card">
         <div class="section-title">Account Information</div>
         <div class="account-info">
+          <div class="info-row"><span>Employee ID</span><span id="accountEmpId" style="font-weight:700; color:var(--primary,#3b82f6);">—</span></div>
           <div class="info-row"><span>Account Created</span><span id="accountCreated">—</span></div>
           <div class="info-row"><span>Last Login</span><span id="lastLogin">—</span></div>
           <div class="info-row"><span>Role</span><span id="accountRole">—</span></div>
