@@ -13,4 +13,21 @@ const pool = mysql.createPool({
   queueLimit: 0,
 });
 
+// Temporary Debug
+(async () => {
+  try {
+    const conn = await pool.getConnection();
+
+    const [db] = await conn.query("SELECT DATABASE() AS db");
+    console.log("Connected Database:", db[0].db);
+
+    const [count] = await conn.query("SELECT COUNT(*) AS total FROM workflow_requests");
+    console.log("Requests Table Count:", count[0].total);
+
+    conn.release();
+  } catch (err) {
+    console.error("Database Debug Error:", err);
+  }
+})();
+
 module.exports = pool;

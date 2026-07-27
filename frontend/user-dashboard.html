@@ -629,20 +629,24 @@
         }
 
         async function saveRequestToBackend(request) {
+            console.log('Creating request', request);
             try {
-                const response = await fetch('http://localhost:4000/requests', {
+                const response = await fetch(REQUESTS_API_URL, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify(request)
                 });
-                const data = await response.json();
-                console.log('Saved to DB');
+                const data = await response.json().catch(() => ({}));
+                console.log('API response:', data);
+                if (!response.ok) {
+                    throw new Error(data.error || data.message || 'Failed to save request to MySQL database');
+                }
                 return data && data.id ? Number(data.id) : null;
             } catch (err) {
-                console.log('API failed, using localStorage fallback');
-                return null;
+                console.error('API failed to save request:', err);
+                throw err;
             }
         }
 
@@ -663,7 +667,7 @@
                 });
                 console.log('History saved to DB');
             } catch (error) {
-                console.log('History API failed, fallback only local history');
+                console.error('History save error:', error);
             }
         }
 
@@ -683,6 +687,7 @@
         }
 
         function loadRequests() {
+            console.log('Loading requests');
             fetch(REQUESTS_API_URL)
                 .then((res) => {
                     if (!res.ok) {
@@ -691,6 +696,7 @@
                     return res.json();
                 })
                 .then(async (data) => {
+                    console.log('API response:', data);
                     const requests = (Array.isArray(data) ? data : []).map((request) => {
                         const parsedRequest = { ...request };
                         if (typeof parsedRequest.workflow === 'string') {
@@ -1101,39 +1107,29 @@
         }
 
         async function cancelRequest(requestId) {
-            const requests = readRequestsFromLocalStorage();
-            const requestIndex = requests.findIndex((r) => Number(r.id) === Number(requestId));
-
-            if (requestIndex === -1) {
-                showMessage('Request not found', 'error');
-                return;
+            console.log('Deleting request', requestId);
+            try {
+                const response = await fetch(`${REQUESTS_API_URL}/${encodeURIComponent(requestId)}`, {
+                    method: 'DELETE'
+                });
+                const data = await response.json().catch(() => ({}));
+                console.log('API response:', data);
+                if (!response.ok) {
+                    showMessage(data.error || data.message || 'Unable to cancel request', 'error');
+                    return;
+                }
+                await saveHistory(requestId, 'Cancelled', localStorage.getItem('userEmail'));
+                showMessage('Request cancelled successfully', 'success');
+                loadRequests();
+            } catch (err) {
+                console.error('Error deleting/cancelling request:', err);
+                showMessage('Unable to cancel request', 'error');
             }
-
-            const request = normalizeRequest(requests[requestIndex]);
-            if (normalizeStatus(request.status) !== 'pending') {
-                alert('Cannot cancel this request');
-                return;
-            }
-
-            requests[requestIndex] = {
-                ...requests[requestIndex],
-                status: 'Cancelled',
-                cancelledAt: Date.now(),
-                updatedAt: Date.now(),
-                cancelWindowActive: false
-            };
-            addHistory(requests[requestIndex], 'Cancelled', 'Employee');
-            await saveHistory(requestId, 'Cancelled', localStorage.getItem('userEmail'));
-
-            writeRequestsToLocalStorage(requests);
-            showMessage('Request cancelled successfully', 'success');
-            loadRequests();
         }
 
         // Handle form submission
         document.getElementById('request-form').addEventListener('submit', async (e) => {
             e.preventDefault();
-
             const typeEl = document.getElementById('requestType');
             const type = typeEl ? typeEl.value : '';
             if (!type) {
@@ -1231,10 +1227,6 @@
             addHistory(request, 'Submitted', 'Employee');
             simulateEmail('submission', chosenWorkflow[0]);
 
-            // Save to localStorage
-            let requests = readRequestsFromLocalStorage();
-            requests.push(request);
-            writeRequestsToLocalStorage(requests);
             if (dbRequestId) {
                 await saveHistory(dbRequestId, 'Request Created', localStorage.getItem('userEmail'));
             }

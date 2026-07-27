@@ -2,12 +2,17 @@ const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const mysql = require('mysql2');
+
+// Import Auth Middleware for JWT protection
+const authMiddleware = require('./middleware/authMiddleware');
+
+// Import modular routes
 const authRoutes = require('./routes/authRoutes');
 const rulesRoutes = require('./routes/rulesRoutes');
-const requestsRoutes = require('./routes/requestsRoutes');
 const approvalsRoutes = require('./routes/approvalsRoutes');
 const trackRoutes = require('./routes/trackRoutes');
 const profileRoutes = require('./routes/profileRoutes');
+const accountsRoutes = require('./routes/accountsRoutes');
 
 dotenv.config();
 
@@ -15,9 +20,17 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+app.use('/api/accounts', accountsRoutes);
+app.use('/accounts', accountsRoutes);
+
 let db;
 let dbPool;
 
+/**
+ * Initialize MySQL Database Connection and Core Schema
+ * Keeps only 5 target tables: users, workflow_requests, approvals, rules, request_history
+ * Drops obsolete duplicate tables if present.
+ */
 async function initializeMysqlStorage() {
   try {
     console.log('Connecting to MySQL...');
@@ -55,12 +68,37 @@ async function initializeMysqlStorage() {
 
     await db.promise().query(`CREATE DATABASE IF NOT EXISTS \`${database}\``);
     await db.promise().query(`USE \`${database}\``);
+
+    const [dbNameResult] = await db.promise().query('SELECT DATABASE() AS db_name');
+    console.log(`[DB INIT] Connected Database Name: ${dbNameResult[0]?.db_name || database}`);
+
+    // --- TEMPORARY MYSQL DEBUG LOGS ---
+    const [infoRows] = await db.promise().query(`
+      SELECT
+          @@hostname AS hostname,
+          @@port AS port,
+          @@version AS version;
+    `);
+    const serverInfo = infoRows[0] || {};
+    console.log('--------------------------------');
+    console.log('MySQL Server Information');
+    console.log(`Hostname: ${serverInfo.hostname}`);
+    console.log(`Port: ${serverInfo.port}`);
+    console.log(`Version: ${serverInfo.version}`);
+    console.log(`Database: ${dbNameResult[0]?.db_name || database}`);
+    console.log('--------------------------------');
+    // ----------------------------------
+
     try {
-      console.log('Initializing DB...');
+      console.log('Initializing DB Schema...');
       await db.promise().execute('SET FOREIGN_KEY_CHECKS = 0');
-      // await db.promise().execute('DROP TABLE IF EXISTS approvals');
-      //await db.promise().execute('DROP TABLE IF EXISTS workflow_requests');
+
+      // Drop obsolete duplicate requests table if it exists
+      await db.promise().execute('DROP TABLE IF EXISTS requests');
+
       await db.promise().execute('SET FOREIGN_KEY_CHECKS = 1');
+
+      // 1. workflow_requests table
       await db.promise().execute(`
         CREATE TABLE IF NOT EXISTS workflow_requests (
           id INT AUTO_INCREMENT PRIMARY KEY,
@@ -82,6 +120,8 @@ async function initializeMysqlStorage() {
           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
         )
       `);
+
+      // 2. approvals table
       await db.promise().execute(`
         CREATE TABLE IF NOT EXISTS approvals (
           id INT AUTO_INCREMENT PRIMARY KEY,
@@ -90,106 +130,179 @@ async function initializeMysqlStorage() {
           step INT,
           status VARCHAR(50),
           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-          FOREIGN KEY (request_id) REFERENCES workflow_requests(id)
+          FOREIGN KEY (request_id) REFERENCES workflow_requests(id) ON DELETE CASCADE
         )
       `);
-      console.log('Table ready');
+
+      // 3. rules table
+      await db.promise().execute(`
+        CREATE TABLE IF NOT EXISTS rules (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          request_type VARCHAR(100),
+          min_amount DECIMAL(12,2) DEFAULT 0,
+          max_amount DECIMAL(12,2) DEFAULT 0,
+          approvers TEXT,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+
+      const [existingRules] = await db.promise().execute('SELECT id FROM rules LIMIT 1');
+      if (!existingRules || existingRules.length === 0) {
+        await db.promise().execute(`
+          INSERT INTO rules (request_type, min_amount, max_amount, approvers) VALUES
+          ('leave', 0, 99999999, 'Manager'),
+          ('budget', 0, 49999, 'Accounts'),
+          ('budget', 50000, 100000, 'Accounts, Manager'),
+          ('budget', 100001, 99999999, 'Accounts, Manager, CFO, MD'),
+          ('equipment', 0, 99999999, 'Manager, Accounts'),
+          ('travel', 0, 99999999, 'Manager, Accounts'),
+          ('reimbursement', 0, 99999999, 'Accounts, CFO')
+        `);
+      }
+
+      // 4. users table
+      await db.promise().query(`
+        CREATE TABLE IF NOT EXISTS users (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          employee_id VARCHAR(20) UNIQUE,
+          name VARCHAR(100),
+          email VARCHAR(100) UNIQUE,
+          password VARCHAR(100),
+          role VARCHAR(50),
+          phone VARCHAR(20),
+          department VARCHAR(100)
+        )
+      `);
+
+      // 5. payment_verifications table
+      await db.promise().execute(`
+        CREATE TABLE IF NOT EXISTS payment_verifications (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          request_id INT NOT NULL,
+          verified_by VARCHAR(100) NOT NULL,
+          verified_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          remarks TEXT,
+          status VARCHAR(50) DEFAULT 'Verified',
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          INDEX idx_pv_req (request_id),
+          INDEX idx_pv_status (status),
+          FOREIGN KEY (request_id) REFERENCES workflow_requests(id) ON DELETE CASCADE
+        )
+      `);
+
+      // 6. notifications table
+      await db.promise().execute(`
+        CREATE TABLE IF NOT EXISTS notifications (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          user_role VARCHAR(50) DEFAULT 'accounts',
+          request_id INT NULL,
+          title VARCHAR(255) NOT NULL,
+          message TEXT NOT NULL,
+          type VARCHAR(50) DEFAULT 'info',
+          is_read BOOLEAN DEFAULT FALSE,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+
+      // Ensure essential payment_verifications, workflow_requests and user columns exist
+      try {
+        await db.promise().query("ALTER TABLE payment_verifications ADD COLUMN verified_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP");
+      } catch (e) {}
+
+      try {
+        await db.promise().query("ALTER TABLE workflow_requests ADD COLUMN payment_verified INT DEFAULT 0");
+      } catch (e) {}
+      try {
+        await db.promise().query("ALTER TABLE workflow_requests ADD COLUMN payment_verified_by VARCHAR(100) NULL");
+      } catch (e) {}
+      try {
+        await db.promise().query("ALTER TABLE workflow_requests ADD COLUMN payment_verified_at TIMESTAMP NULL");
+      } catch (e) {}
+      try {
+        await db.promise().query("ALTER TABLE workflow_requests ADD COLUMN payment_verification_status VARCHAR(50) DEFAULT 'Unverified'");
+      } catch (e) {}
+
+      try {
+        await db.promise().query("ALTER TABLE users ADD COLUMN IF NOT EXISTS employee_id VARCHAR(20) UNIQUE");
+        await db.promise().query("ALTER TABLE users ADD COLUMN IF NOT EXISTS phone VARCHAR(20)");
+        await db.promise().query("ALTER TABLE users ADD COLUMN IF NOT EXISTS department VARCHAR(100)");
+        await db.promise().query("ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_image VARCHAR(255)");
+        await db.promise().query("ALTER TABLE users ADD COLUMN IF NOT EXISTS status VARCHAR(20) DEFAULT 'ACTIVE'");
+      } catch (e) {
+        try { await db.promise().query("ALTER TABLE users ADD COLUMN employee_id VARCHAR(20) UNIQUE"); } catch (e2) { }
+        try { await db.promise().query("ALTER TABLE users ADD COLUMN phone VARCHAR(20)"); } catch (e2) { }
+        try { await db.promise().query("ALTER TABLE users ADD COLUMN department VARCHAR(100)"); } catch (e2) { }
+        try { await db.promise().query("ALTER TABLE users ADD COLUMN profile_image VARCHAR(255)"); } catch (e2) { }
+        try { await db.promise().query("ALTER TABLE users ADD COLUMN status VARCHAR(20) DEFAULT 'ACTIVE'"); } catch (e2) { }
+      }
+
+      try {
+        await db.promise().query("UPDATE users SET status = 'ACTIVE' WHERE status IS NULL OR status = ''");
+      } catch (e) {
+        console.error('Error migrating user status:', e.message);
+      }
+
+      await db.promise().query(`
+        INSERT IGNORE INTO users (employee_id, name, email, password, role, phone, department, profile_image) VALUES
+        ('ADM001', 'Admin', 'admin@zyroflow.com', 'admin123', 'admin', '', '', ''),
+        ('ACC001', 'Accounts', 'accounts@zyroflow.com', 'acc123', 'accounts', '', '', ''),
+        ('MGR001', 'Manager', 'manager@zyroflow.com', 'man123', 'manager', '', '', ''),
+        ('CFO001', 'CFO', 'cfo@zyroflow.com', 'cfo123', 'cfo', '', '', ''),
+        ('MD001', 'MD', 'md@zyroflow.com', 'md123', 'md', '', '', ''),
+        ('EMP001', 'Employee One', 'employee1@zyroflow.com', 'emp123', 'employee', '', '', '')
+      `);
+
+      // Backfill role-based employee_id if missing
+      try {
+        const getRolePrefix = (role) => {
+          const r = String(role || '').toLowerCase().trim();
+          if (r === 'admin') return 'ADM';
+          if (r === 'employee') return 'EMP';
+          if (r === 'manager') return 'MGR';
+          if (r === 'accounts') return 'ACC';
+          if (r === 'cfo') return 'CFO';
+          if (r === 'md') return 'MD';
+          return 'EMP';
+        };
+
+        const [allUsers] = await db.promise().query("SELECT id, role, employee_id FROM users ORDER BY id ASC");
+        for (const u of allUsers) {
+          const prefix = getRolePrefix(u.role);
+          const idRegex = new RegExp(`^${prefix}\\d{3}$`);
+          if (!u.employee_id || !idRegex.test(u.employee_id)) {
+            const [maxRow] = await db.promise().query(
+              "SELECT employee_id FROM users WHERE employee_id LIKE ? ORDER BY CAST(SUBSTRING(employee_id, ?) AS UNSIGNED) DESC LIMIT 1",
+              [`${prefix}%`, prefix.length + 1]
+            );
+            let nextNum = 1;
+            if (maxRow && maxRow[0] && maxRow[0].employee_id) {
+              const numPart = maxRow[0].employee_id.substring(prefix.length);
+              nextNum = parseInt(numPart, 10) + 1;
+            }
+            const empId = `${prefix}${String(nextNum).padStart(3, '0')}`;
+            await db.promise().query("UPDATE users SET employee_id = ? WHERE id = ?", [empId, u.id]);
+          }
+        }
+      } catch (e) {
+        console.error('Error backfilling role-based employee_id:', e.message);
+      }
+
+      // 5. request_history table
+      await db.promise().query(`
+        CREATE TABLE IF NOT EXISTS request_history (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          request_id BIGINT,
+          action VARCHAR(100),
+          performed_by VARCHAR(100),
+          timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+
+      console.log('Database tables ready.');
     } catch (err) {
       await db.promise().execute('SET FOREIGN_KEY_CHECKS = 1');
       console.error('DB Init Error:', err);
     }
-    await db.promise().query(`
-      CREATE TABLE IF NOT EXISTS users (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        employee_id VARCHAR(20) UNIQUE,
-        name VARCHAR(100),
-        email VARCHAR(100) UNIQUE,
-        password VARCHAR(100),
-        role VARCHAR(50),
-        phone VARCHAR(20),
-        department VARCHAR(100),
-        profile_image VARCHAR(255),
-        status VARCHAR(20) DEFAULT 'ACTIVE'
-      )
-    `);
-    // ensure new profile, employee_id and status columns exist for older databases
-    try {
-      await db.promise().query("ALTER TABLE users ADD COLUMN IF NOT EXISTS employee_id VARCHAR(20) UNIQUE");
-      await db.promise().query("ALTER TABLE users ADD COLUMN IF NOT EXISTS phone VARCHAR(20)");
-      await db.promise().query("ALTER TABLE users ADD COLUMN IF NOT EXISTS department VARCHAR(100)");
-      await db.promise().query("ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_image VARCHAR(255)");
-      await db.promise().query("ALTER TABLE users ADD COLUMN IF NOT EXISTS status VARCHAR(20) DEFAULT 'ACTIVE'");
-    } catch (e) {
-      // Some MySQL versions do not support IF NOT EXISTS for ADD COLUMN - attempt guarded add
-      try { await db.promise().query("ALTER TABLE users ADD COLUMN employee_id VARCHAR(20) UNIQUE"); } catch (e2) { }
-      try { await db.promise().query("ALTER TABLE users ADD COLUMN phone VARCHAR(20)"); } catch (e2) { }
-      try { await db.promise().query("ALTER TABLE users ADD COLUMN department VARCHAR(100)"); } catch (e2) { }
-      try { await db.promise().query("ALTER TABLE users ADD COLUMN profile_image VARCHAR(255)"); } catch (e2) { }
-      try { await db.promise().query("ALTER TABLE users ADD COLUMN status VARCHAR(20) DEFAULT 'ACTIVE'"); } catch (e2) { }
-    }
-
-    try {
-      await db.promise().query("UPDATE users SET status = 'ACTIVE' WHERE status IS NULL OR status = ''");
-    } catch (e) {
-      console.error('Error migrating user status:', e.message);
-    }
-
-    await db.promise().query(`
-      INSERT IGNORE INTO users (employee_id, name, email, password, role, phone, department, profile_image) VALUES
-      ('ADM001', 'Admin', 'admin@zyroflow.com', 'admin123', 'admin', '', '', ''),
-      ('ACC001', 'Accounts', 'accounts@zyroflow.com', 'acc123', 'accounts', '', '', ''),
-      ('MGR001', 'Manager', 'manager@zyroflow.com', 'man123', 'manager', '', '', ''),
-      ('CFO001', 'CFO', 'cfo@zyroflow.com', 'cfo123', 'cfo', '', '', ''),
-      ('MD001', 'MD', 'md@zyroflow.com', 'md123', 'md', '', '', ''),
-      ('EMP001', 'Employee One', 'employee1@zyroflow.com', 'emp123', 'employee', '', '', '')
-    `);
-
-    // Migrate/Backfill all existing users with correct role-based prefixes
-    try {
-      const getRolePrefix = (role) => {
-        const r = String(role || '').toLowerCase().trim();
-        if (r === 'admin') return 'ADM';
-        if (r === 'employee') return 'EMP';
-        if (r === 'manager') return 'MGR';
-        if (r === 'accounts') return 'ACC';
-        if (r === 'cfo') return 'CFO';
-        if (r === 'md') return 'MD';
-        return 'EMP';
-      };
-
-      const [allUsers] = await db.promise().query("SELECT id, role, employee_id FROM users ORDER BY id ASC");
-      for (const u of allUsers) {
-        const prefix = getRolePrefix(u.role);
-        // If employee_id doesn't match the new role-based prefix format, regenerate it
-        const idRegex = new RegExp(`^${prefix}\\d{3}$`);
-        if (!u.employee_id || !idRegex.test(u.employee_id)) {
-          // Find next available number for this specific prefix
-          const [maxRow] = await db.promise().query(
-            "SELECT employee_id FROM users WHERE employee_id LIKE ? ORDER BY CAST(SUBSTRING(employee_id, ?) AS UNSIGNED) DESC LIMIT 1",
-            [`${prefix}%`, prefix.length + 1]
-          );
-          let nextNum = 1;
-          if (maxRow && maxRow[0] && maxRow[0].employee_id) {
-            const numPart = maxRow[0].employee_id.substring(prefix.length);
-            nextNum = parseInt(numPart, 10) + 1;
-          }
-          const empId = `${prefix}${String(nextNum).padStart(3, '0')}`;
-          await db.promise().query("UPDATE users SET employee_id = ? WHERE id = ?", [empId, u.id]);
-        }
-      }
-    } catch (e) {
-      console.error('Error backfilling role-based employee_id:', e.message);
-    }
-    await db.promise().query(`
-      CREATE TABLE IF NOT EXISTS request_history (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        request_id BIGINT,
-        action VARCHAR(100),
-        performed_by VARCHAR(100),
-        timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )
-    `);
-    await db.promise().query('ALTER TABLE request_history MODIFY request_id BIGINT');
 
     dbPool = mysql.createPool({
       host,
@@ -209,12 +322,19 @@ async function initializeMysqlStorage() {
 // Serve frontend static files
 app.use(express.static('frontend'));
 
+// Mount Modular API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/rules', rulesRoutes);
-app.use('/api/requests', requestsRoutes);
-app.use('/api/approvals', approvalsRoutes);
-app.use('/api/track', trackRoutes);
-app.use('/api/profile', profileRoutes);
+app.use('/api', approvalsRoutes); // /api/approve, /api/reject, /api/pending-approvals
+app.use('/', approvalsRoutes);    // /approve, /reject, /requests/:id/approve, /requests/:id/reject
+app.use('/api', trackRoutes);     // /api/track/:requestId
+app.use('/api', profileRoutes);   // /api/profile, /api/change-password
+app.use('/api/accounts', accountsRoutes); // /api/accounts/requests
+app.use('/accounts', accountsRoutes);     // /accounts/requests
+
+// ==========================================
+// HELPER FUNCTIONS FOR REQUEST MAPPING
+// ==========================================
 
 function parseJsonValue(value, fallback = null) {
   if (value == null || value === '') return fallback;
@@ -269,47 +389,162 @@ function mapRequestRow(row) {
   };
 }
 
-function normalizeRequestInput(body = {}) {
+/**
+ * Determine approval chain by checking rules table or using provided workflow.
+ * Automatically filters out non-approver roles (e.g., 'Employee', 'Completed')
+ * so that current_role and step 0 always start at the first actual financial approver.
+ */
+async function getApprovalChain(type, amount, customWorkflow) {
+  const sanitizeApprovers = (chain) => {
+    if (!Array.isArray(chain)) return [];
+    const seen = new Set();
+    const result = [];
+    for (const rawRole of chain) {
+      const role = String(rawRole).trim();
+      const lower = role.toLowerCase();
+      if (role && !['employee', 'requester', 'completed'].includes(lower)) {
+        let cleanRole = role;
+        if (lower === 'accounts') cleanRole = 'Accounts';
+        else if (lower === 'manager') cleanRole = 'Manager';
+        else if (lower === 'cfo') cleanRole = 'CFO';
+        else if (lower === 'md') cleanRole = 'MD';
+
+        const cleanLower = cleanRole.toLowerCase();
+        if (!seen.has(cleanLower)) {
+          seen.add(cleanLower);
+          result.push(cleanRole);
+        }
+      }
+    }
+    return result;
+  };
+
+  let chain = [];
+
+  // 1. Query the rules table first for a matching rule based on request_type and amount
+  if (dbPool) {
+    try {
+      const [rules] = await dbPool.execute(
+        'SELECT * FROM rules WHERE LOWER(request_type) = LOWER(?) AND ? BETWEEN min_amount AND max_amount ORDER BY min_amount DESC LIMIT 1',
+        [type, amount]
+      );
+      if (rules && rules.length > 0 && rules[0].approvers) {
+        const ruleChain = String(rules[0].approvers).split(',').map(s => s.trim()).filter(Boolean);
+        chain = sanitizeApprovers(ruleChain);
+      }
+      if (chain.length === 0) {
+        const [fallback] = await dbPool.execute(
+          'SELECT * FROM rules WHERE LOWER(request_type) = LOWER(?) ORDER BY min_amount ASC LIMIT 1',
+          [type]
+        );
+        if (fallback && fallback.length > 0 && fallback[0].approvers) {
+          const fallbackChain = String(fallback[0].approvers).split(',').map(s => s.trim()).filter(Boolean);
+          chain = sanitizeApprovers(fallbackChain);
+        }
+      }
+    } catch (err) {
+      console.error('[getApprovalChain] Error querying rules table:', err.message);
+    }
+  }
+
+  // 2. If customWorkflow provided by client and rules yielded nothing
+  if (chain.length === 0 && customWorkflow) {
+    const parsed = parseJsonValue(customWorkflow, []);
+    chain = sanitizeApprovers(parsed);
+  }
+
+  // 3. Fallback default approver chain
+  if (chain.length === 0) {
+    chain = ['Accounts', 'Manager', 'CFO', 'MD'];
+  }
+
+  return sanitizeApprovers(chain);
+}
+
+function normalizeRequestInput(body = {}, user = {}) {
   const workflow = parseJsonValue(body.workflow, []);
   const workflowArray = Array.isArray(workflow) ? workflow : [];
   const currentLevel = Number(body.current_level ?? body.currentLevel ?? 0);
   const currentRole = body.current_role || body.currentRole || workflowArray[Math.min(currentLevel, Math.max(workflowArray.length - 1, 0))] || '';
   const payload = parseJsonValue(body.payload, null) || body;
 
+  const reqName = user.name || body.requester_name || body.requesterName || payload.requester_name || payload.requester || user.email || 'Employee';
+  const reqEmail = user.email || body.requester_email || body.requesterEmail || payload.requester_email || payload.email || '';
+
   return {
-    title: body.title || body.request_type || body.type || payload.title || payload.request_type || payload.type || null,
-    type: body.type || body.request_type || body.title || payload.type || payload.request_type || payload.title || null,
-    description: body.description || payload.description || null,
+    title: body.title || body.request_type || body.type || payload.title || payload.request_type || payload.type || 'General Request',
+    type: body.type || body.request_type || body.title || payload.type || payload.request_type || payload.title || 'general',
+    description: body.description || payload.description || '',
     amount: Number(body.amount ?? payload.amount ?? 0),
-    department: body.department || payload.department || null,
-    priority: body.priority || payload.priority || null,
+    department: body.department || payload.department || '',
+    priority: body.priority || payload.priority || 'medium',
     status: String(body.status || payload.status || 'pending').toLowerCase(),
-    requester_name: body.requester_name || body.requesterName || payload.requester_name || payload.requesterName || payload.requester || null,
-    requester_email: body.requester_email || body.requesterEmail || payload.requester_email || payload.requesterEmail || payload.email || null,
-    current_role: currentRole || null,
-    current_approver: body.current_approver || body.currentApprover || currentRole || null,
+    requester_name: reqName,
+    requester_email: reqEmail,
+    current_role: currentRole || 'Manager',
+    current_approver: body.current_approver || body.currentApprover || currentRole || 'Manager',
     workflow: JSON.stringify(workflowArray),
     payload: JSON.stringify(payload),
     current_level: currentLevel,
   };
 }
 
-app.use('/api/auth', authRoutes);
-app.use('/api/rules', rulesRoutes);
-app.use('/api/requests', requestsRoutes);
-app.use('/api', approvalsRoutes); // /api/approve, /api/reject, /api/pending-approvals
-app.use('/api', trackRoutes); // /api/track/:requestId
-app.use('/api', profileRoutes); // /api/profile, /api/change-password
+// Optional Auth Middleware helper to allow requests with token while supporting legacy public routes
+function optionalAuth(req, res, next) {
+  const authHeader = req.headers.authorization || req.headers['authorization'];
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    return authMiddleware(req, res, next);
+  }
+  next();
+}
 
-app.get('/requests', async (req, res) => {
+// ==========================================
+// UNIFIED /requests ENDPOINTS (workflow_requests)
+// ==========================================
+
+/**
+ * GET /requests
+ * Role-Based Filtering:
+ * - Employee: Views only their own requests.
+ * - Approver (Accounts, Manager, CFO, MD): Views requests assigned to their role/level.
+ * - Admin: Views all requests.
+ */
+app.get('/requests', optionalAuth, async (req, res) => {
   if (!dbPool) {
     return res.status(500).json({ message: 'Database unavailable' });
   }
 
   try {
-    const [rows] = await dbPool.query('SELECT * FROM workflow_requests ORDER BY id DESC');
-    const data = rows.map(mapRequestRow);
+    const user = req.user;
+    let query = 'SELECT * FROM workflow_requests ORDER BY id DESC';
+    let params = [];
 
+    if (user && user.role) {
+      const role = String(user.role).toLowerCase().trim();
+
+      if (role === 'employee') {
+        // Employee sees only their own requests
+        query = `
+          SELECT * FROM workflow_requests
+          WHERE LOWER(requester_email) = LOWER(?) OR LOWER(requester_name) = LOWER(?)
+          ORDER BY id DESC
+        `;
+        params = [user.email || '', user.name || ''];
+      } else if (['manager', 'accounts', 'cfo', 'md'].includes(role)) {
+        // Approver sees requests currently assigned to their role
+        query = `
+          SELECT * FROM workflow_requests
+          WHERE LOWER(status) = 'pending'
+            AND LOWER(current_role) = LOWER(?)
+          ORDER BY id DESC
+        `;
+        params = [role];
+      }
+      // Admin sees all (default query)
+    }
+
+    const [rows] = await dbPool.query(query, params);
+    const data = rows.map(mapRequestRow);
     res.json(data);
   } catch (error) {
     console.error('GET /requests failed:', error.message);
@@ -317,7 +552,11 @@ app.get('/requests', async (req, res) => {
   }
 });
 
-app.get('/requests/:id', async (req, res) => {
+/**
+ * GET /requests/:id
+ * Fetches a single request by ID.
+ */
+app.get('/requests/:id', optionalAuth, async (req, res) => {
   if (!dbPool) {
     return res.status(500).json({ message: 'Database unavailable' });
   }
@@ -333,20 +572,60 @@ app.get('/requests/:id', async (req, res) => {
       return res.status(404).json({ message: 'Request not found' });
     }
 
-    res.json(mapRequestRow(rows[0]));
+    const requestData = mapRequestRow(rows[0]);
+
+    // Check ownership if user is logged in as employee
+    if (req.user && String(req.user.role).toLowerCase() === 'employee') {
+      const userEmail = String(req.user.email || '').toLowerCase();
+      const reqEmail = String(requestData.requester_email || '').toLowerCase();
+      if (reqEmail && userEmail && reqEmail !== userEmail) {
+        return res.status(403).json({ message: 'Access denied to this request' });
+      }
+    }
+
+    res.json(requestData);
   } catch (error) {
     console.error('GET /requests/:id failed:', error.message);
     res.status(500).json({ message: 'Failed to fetch request' });
   }
 });
 
-app.post('/requests', async (req, res) => {
+/**
+ * POST /requests
+ * Creates a new request in workflow_requests, generates approval steps, and logs history.
+ * Uses logged-in user details from JWT token (req.user).
+ */
+app.post('/requests', optionalAuth, async (req, res) => {
+  console.log("========== POST /requests ==========");
+  console.log("Logged-in user:", req.user);
+  console.log("Request Body:", req.body);
+
   if (!dbPool) {
     return res.status(500).json({ success: false, error: 'Database unavailable' });
   }
 
   try {
-    const requestData = normalizeRequestInput(req.body || {});
+    const user = req.user || {};
+    const input = req.body || {};
+
+    const type = input.request_type || input.type || input.title || 'general';
+    const amount = Number(input.amount ?? 0);
+
+    // Determine approval chain from rules table (or sanitized custom workflow)
+    const approverChain = await getApprovalChain(type, amount, input.workflow);
+
+    // FIX: Set current_role and current_approver to the actual first financial approver (e.g., 'Accounts')
+    const firstApprover = approverChain[0] || 'Accounts';
+
+    // Prepare normalized request data with JWT user details and initial approval state
+    const requestData = normalizeRequestInput({
+      ...input,
+      workflow: JSON.stringify(approverChain),
+      current_role: firstApprover,
+      current_approver: firstApprover,
+      current_level: 0,
+      status: 'pending'
+    }, user);
 
     const [result] = await dbPool.execute(
       `INSERT INTO workflow_requests
@@ -371,30 +650,53 @@ app.post('/requests', async (req, res) => {
     );
 
     const requestId = result.insertId;
-    const workflowArray = getWorkflowList({ workflow: requestData.workflow });
+    console.log("Inserted Request ID:", requestId);
+    console.log("Approval Chain:", approverChain);
 
-    for (let i = 0; i < workflowArray.length; i += 1) {
+    // Delete any existing approvals for this request ID before inserting fresh rows
+    await dbPool.execute('DELETE FROM approvals WHERE request_id = ?', [requestId]);
+
+    // Insert corresponding steps into approvals table
+    for (let i = 0; i < approverChain.length; i += 1) {
       await dbPool.execute(
         `INSERT INTO approvals (request_id, approver_role, step, status)
          VALUES (?, ?, ?, ?)`,
         [
           requestId,
-          workflowArray[i],
+          approverChain[i],
           i,
           i === 0 ? 'pending' : 'waiting'
         ]
       );
     }
 
+    // Insert initial history record into request_history table
+    await dbPool.execute(
+      `INSERT INTO request_history (request_id, action, performed_by)
+       VALUES (?, ?, ?)`,
+      [requestId, 'Created request', requestData.requester_name]
+    );
+
     const [createdRows] = await dbPool.execute('SELECT * FROM workflow_requests WHERE id = ? LIMIT 1', [requestId]);
-    res.json({ success: true, id: requestId, request: mapRequestRow(createdRows[0]) });
+    const createdRequest = mapRequestRow(createdRows[0]);
+
+    res.status(201).json({
+      success: true,
+      id: requestId,
+      request_id: requestId,
+      request: createdRequest
+    });
   } catch (err) {
-    console.error('INSERT ERROR:', err.message);
+    console.error('POST /requests failed:', err.message);
     res.status(500).json({ success: false, error: err.message });
   }
 });
 
-app.put('/requests/:id', async (req, res) => {
+/**
+ * PUT /requests/:id
+ * Allows employees to edit only PENDING requests.
+ */
+app.put('/requests/:id', optionalAuth, async (req, res) => {
   if (!dbPool) {
     return res.status(500).json({ success: false, error: 'Database unavailable' });
   }
@@ -415,10 +717,19 @@ app.put('/requests/:id', async (req, res) => {
       return res.status(409).json({ success: false, error: 'Only pending requests can be edited' });
     }
 
-    const updateData = normalizeRequestInput(req.body || {});
+    // Check ownership if user is logged in as employee
+    if (req.user && String(req.user.role).toLowerCase() === 'employee') {
+      const userEmail = String(req.user.email || '').toLowerCase();
+      const reqEmail = String(existing.requester_email || '').toLowerCase();
+      if (reqEmail && userEmail && reqEmail !== userEmail) {
+        return res.status(403).json({ success: false, error: 'You can only edit your own requests' });
+      }
+    }
+
+    const updateData = normalizeRequestInput(req.body || {}, req.user || {});
     await dbPool.execute(
       `UPDATE workflow_requests
-       SET title = ?, type = ?, description = ?, amount = ?, department = ?, priority = ?, status = ?, requester_name = ?, requester_email = ?, current_role = ?, current_approver = ?, workflow = ?, payload = ?, current_level = ?
+       SET title = ?, type = ?, description = ?, amount = ?, department = ?, priority = ?, status = ?, requester_name = ?, requester_email = ?, workflow = ?, payload = ?
        WHERE id = ?`,
       [
         updateData.title,
@@ -427,16 +738,20 @@ app.put('/requests/:id', async (req, res) => {
         updateData.amount,
         updateData.department,
         updateData.priority,
-        existing.status,
+        existing.status, // Preserve status
         updateData.requester_name || existing.requester,
         updateData.requester_email || existing.requesterEmail,
-        updateData.current_role || existing.currentRole,
-        updateData.current_approver || existing.currentApprover,
-        updateData.workflow,
+        updateData.workflow || JSON.stringify(existing.workflow),
         updateData.payload,
-        updateData.current_level,
         requestId,
       ]
+    );
+
+    // Log update in request_history
+    const performer = req.user?.name || req.user?.email || existing.requester || 'User';
+    await dbPool.execute(
+      `INSERT INTO request_history (request_id, action, performed_by) VALUES (?, ?, ?)`,
+      [requestId, 'Updated request', performer]
     );
 
     const [updatedRows] = await dbPool.execute('SELECT * FROM workflow_requests WHERE id = ? LIMIT 1', [requestId]);
@@ -447,7 +762,11 @@ app.put('/requests/:id', async (req, res) => {
   }
 });
 
-app.patch('/requests/:id/status', async (req, res) => {
+/**
+ * PATCH /requests/:id/status
+ * Allows employees to cancel PENDING requests or update status.
+ */
+app.patch('/requests/:id/status', optionalAuth, async (req, res) => {
   if (!dbPool) {
     return res.status(500).json({ success: false, error: 'Database unavailable' });
   }
@@ -478,6 +797,13 @@ app.patch('/requests/:id/status', async (req, res) => {
       [newStatus, requestId]
     );
 
+    // Log status update in request_history
+    const performer = req.user?.name || req.user?.email || existing.requester || 'User';
+    await dbPool.execute(
+      `INSERT INTO request_history (request_id, action, performed_by) VALUES (?, ?, ?)`,
+      [requestId, `Status updated to ${newStatus}`, performer]
+    );
+
     const [updatedRows] = await dbPool.execute('SELECT * FROM workflow_requests WHERE id = ? LIMIT 1', [requestId]);
     res.json({ success: true, request: mapRequestRow(updatedRows[0]) });
   } catch (err) {
@@ -486,14 +812,48 @@ app.patch('/requests/:id/status', async (req, res) => {
   }
 });
 
-app.get('/approvals/:requestId', async (req, res) => {
+/**
+ * DELETE /requests/:id
+ * Deletes a request and cleans up associated approvals and history records.
+ */
+app.delete('/requests/:id', optionalAuth, async (req, res) => {
+  if (!dbPool) {
+    return res.status(500).json({ success: false, error: 'Database unavailable' });
+  }
+
+  try {
+    const requestId = Number(req.params.id);
+    if (!Number.isInteger(requestId) || requestId <= 0) {
+      return res.status(400).json({ success: false, error: 'Invalid request id' });
+    }
+
+    const [rows] = await dbPool.execute('SELECT * FROM workflow_requests WHERE id = ? LIMIT 1', [requestId]);
+    if (!rows.length) {
+      return res.status(404).json({ success: false, error: 'Request not found' });
+    }
+
+    await dbPool.execute('DELETE FROM approvals WHERE request_id = ?', [requestId]);
+    await dbPool.execute('DELETE FROM request_history WHERE request_id = ?', [requestId]);
+    await dbPool.execute('DELETE FROM workflow_requests WHERE id = ?', [requestId]);
+
+    res.json({ success: true, message: 'Request deleted successfully', id: requestId });
+  } catch (err) {
+    console.error('DELETE /requests/:id failed:', err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ==========================================
+// APPROVAL & WORKFLOW ENDPOINTS
+// ==========================================
+
+app.get('/approvals/:requestId', optionalAuth, async (req, res) => {
   if (!dbPool) {
     return res.status(500).json({ error: 'Database unavailable' });
   }
 
   try {
     const { requestId } = req.params;
-
     const [rows] = await dbPool.execute(
       `SELECT approver_role, step, status
        FROM approvals
@@ -501,64 +861,15 @@ app.get('/approvals/:requestId', async (req, res) => {
        ORDER BY step ASC`,
       [requestId]
     );
-
     res.json(rows);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-app.post('/approve', async (req, res) => {
-  if (!dbPool) {
-    return res.status(500).json({ error: 'Database unavailable' });
-  }
 
-  try {
-    const { requestId, role, action } = req.body || {};
 
-    await dbPool.execute(
-      `UPDATE approvals
-       SET status = ?
-       WHERE request_id = ? AND approver_role = ?`,
-      [action, requestId, role]
-    );
-
-    if (action === 'approved') {
-      await dbPool.execute(
-        `UPDATE approvals
-         SET status = 'pending'
-         WHERE request_id = ? AND step = (
-           SELECT step + 1 FROM (
-             SELECT step FROM approvals
-             WHERE request_id = ? AND approver_role = ?
-           ) as temp
-         )`,
-        [requestId, requestId, role]
-      );
-
-      const [pendingRows] = await dbPool.execute(
-        `SELECT step FROM approvals WHERE request_id = ? AND status = 'pending' ORDER BY step ASC LIMIT 1`,
-        [requestId]
-      );
-
-      if (pendingRows.length === 0) {
-        await dbPool.execute('UPDATE workflow_requests SET status = ?, current_level = current_level WHERE id = ?', ['approved', requestId]);
-      } else {
-        await dbPool.execute('UPDATE workflow_requests SET status = ?, current_level = ? WHERE id = ?', ['pending', Number(pendingRows[0].step || 0), requestId]);
-      }
-    }
-
-    if (action === 'rejected') {
-      await dbPool.execute('UPDATE workflow_requests SET status = ? WHERE id = ?', ['rejected', requestId]);
-    }
-
-    res.json({ success: true });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-app.post('/history', async (req, res) => {
+app.post('/history', optionalAuth, async (req, res) => {
   if (!dbPool) {
     return res.status(500).json({ error: 'Database unavailable' });
   }
@@ -578,10 +889,12 @@ app.post('/history', async (req, res) => {
       return res.status(400).json({ error: 'request_id must be a valid workflow_requests.id' });
     }
 
+    const performer = performed_by || req.user?.name || req.user?.email || 'User';
+
     await dbPool.execute(
       `INSERT INTO request_history (request_id, action, performed_by)
        VALUES (?, ?, ?)`,
-      [Number.isFinite(normalizedRequestId) ? normalizedRequestId : null, action || null, performed_by || null]
+      [normalizedRequestId, action || 'Updated history', performer]
     );
 
     res.json({ success: true });
@@ -591,6 +904,24 @@ app.post('/history', async (req, res) => {
   }
 });
 
+app.get('/history/:requestId', optionalAuth, async (req, res) => {
+  if (!dbPool) {
+    return res.status(500).json({ error: 'Database unavailable' });
+  }
+
+  try {
+    const requestId = Number(req.params.requestId);
+    const [rows] = await dbPool.execute(
+      'SELECT * FROM request_history WHERE request_id = ? ORDER BY id ASC',
+      [requestId]
+    );
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Direct login endpoint (mirrors /api/auth/login for compatibility)
 app.post('/login', async (req, res) => {
   if (!dbPool) {
     return res.status(500).json({ success: false, error: 'Database unavailable' });
@@ -616,7 +947,8 @@ app.post('/login', async (req, res) => {
         id: user.id,
         name: user.name,
         email: user.email,
-        role: user.role
+        role: user.role,
+        employee_id: user.employee_id
       }
     });
   } catch (err) {
@@ -642,11 +974,13 @@ app.get('/', (req, res) => {
   res.json({ message: 'Multi-Level Approval Workflow API is running' });
 });
 
+// Global Error Handler
 app.use((err, req, res, next) => {
   console.error(err);
   res.status(err.status || 500).json({ message: err.message || 'Server error' });
 });
 
+// Start Server on PORT and LOGIN_PORT mirror
 initializeMysqlStorage().finally(() => {
   const PORT = Number(process.env.PORT || 5000);
   app.listen(PORT, () => {

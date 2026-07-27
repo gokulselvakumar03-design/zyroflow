@@ -548,18 +548,16 @@
         console.log('[Employee Submit] Request payload created', requestPayload);
         setSubmitButtonState(true);
         try{
-          console.log('[Employee Submit] Fetch request started');
           if(editingRequestId){
+            console.log('Updating request', editingRequestId, requestPayload);
             const response = await fetch(`${REQUESTS_API_URL}/${encodeURIComponent(editingRequestId)}`, {
               method: 'PUT',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify(requestPayload),
             });
-            console.log('[Employee Submit] Backend response received');
-            console.log('[Employee Submit] Response status', response.status);
+            const errorData = await response.json().catch(() => ({}));
+            console.log('API response:', errorData);
             if(!response.ok){
-              const errorData = await response.json().catch(() => ({}));
-              console.log('[Employee Submit] Response JSON', errorData);
               throw new Error(errorData.error || errorData.message || 'Only pending requests can be edited.');
             }
             exitEditMode();
@@ -569,36 +567,29 @@
             return;
           }
 
+          console.log('Creating request', requestPayload);
           const response = await fetch(REQUESTS_API_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(requestPayload),
           });
-          console.log('[Employee Submit] Backend response received');
-          console.log('[Employee Submit] Response status', response.status);
+          const data = await response.json().catch(() => ({}));
+          console.log('API response:', data);
           if(!response.ok){
-            const errorData = await response.json().catch(() => ({}));
-            console.log('[Employee Submit] Response JSON', errorData);
-            throw new Error(errorData.error || errorData.message || 'Request submission failed.');
+            throw new Error(data.error || data.message || 'Request submission failed.');
           }
-          const data = await response.json();
-          console.log('[Employee Submit] Response JSON', data);
           document.getElementById('request-form').reset();
           addSubmissionFeedback(data || {});
-          console.log('[Employee Submit] Success block entered');
           showFormFeedback('✅ Request submitted successfully.', 'success');
           await loadRequests();
           if(data && data.id){
             console.log('Request created:', data.id);
           }
         }catch(err){
-          console.log('[Employee Submit] Error block entered');
           console.error(err);
           showFormFeedback(err.message || 'Request submission failed. Please try again.', 'error');
         }finally{
-          console.log('[Employee Submit] Finally block entered');
           setSubmitButtonState(false);
-          console.log('[Employee Submit] Button text restored');
         }
       }
 
@@ -657,13 +648,16 @@
       }
 
       async function loadRequests(){
+        console.log('Loading requests');
         try{
           const response = await fetch(REQUESTS_API_URL);
           if(!response.ok) throw new Error('Failed to load requests');
           const remote = await response.json();
+          console.log('API response:', remote);
           requestsCache = Array.isArray(remote) ? remote : [];
           renderAll(requestsCache);
         }catch(err){
+          console.error('Failed to load requests:', err);
           requestsCache = [];
           renderAll([]);
         }
@@ -1018,23 +1012,27 @@
         }
       }
       async function cancelRequest(id){
+        console.log('Deleting request', id);
         try{
-          const response = await fetch(`${REQUESTS_API_URL}/${encodeURIComponent(id)}/status`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ status: 'Cancelled' }),
+          const response = await fetch(`${REQUESTS_API_URL}/${encodeURIComponent(id)}`, {
+            method: 'DELETE',
           });
+          const data = await response.json().catch(() => ({}));
+          console.log('API response:', data);
           if(!response.ok){
-            const errorData = await response.json().catch(() => ({}));
-            if((errorData.error || '').includes('can no longer be cancelled')){
+            if((data.error || '').includes('can no longer be cancelled')){
               return alert('This request can no longer be cancelled.');
             }
-            return alert(errorData.error || errorData.message || 'Unable to cancel request.');
+            return alert(data.error || data.message || 'Unable to cancel request.');
           }
           await loadRequests();
         }catch(err){
+          console.error('Error deleting request:', err);
           alert('Unable to cancel request.');
         }
+      }
+      async function deleteRequest(id){
+        await cancelRequest(id);
       }
 
       function renderTracker(requests){

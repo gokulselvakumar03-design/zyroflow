@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Review Request - ZyroFlow</title>
+    <link rel="stylesheet" href="accounts-dashboard.css">
+    <link rel="stylesheet" href="review-request.css">
+</head>
+<body>
+    <!-- Top Navigation Bar -->
+    <div class="navbar">
+        <div class="navbar-left">
+            <a href="accounts-dashboard.html" class="back-link">← Back to Accounts Dashboard</a>
+            <div class="navbar-title">Review Financial Request</div>
+        </div>
+        <div class="navbar-user">
+            <div class="notification">🔔 <span id="notifCount" class="notif-count">1</span></div>
+            <div class="user-info">
+                <div id="welcomeText" class="welcome-text">Good Morning, Accounts Team</div>
+                <div class="role-summary">Accounts Approval Review</div>
+            </div>
+            <a href="profile.html" class="profile-link">Profile</a>
+            <button class="logout-button" onclick="logout()">Logout</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Error Banner -->
+        <div id="error-banner" class="alert-banner alert-error d-none">
+            <span id="error-message">Error loading request details.</span>
+            <a href="accounts-dashboard.html" class="action-button secondary inline-btn">Return to Dashboard</a>
+        </div>
+
+        <!-- Success Feedback Banner -->
+        <div id="success-banner" class="alert-banner alert-success d-none">
+            <span id="success-message">Request action processed successfully! Redirecting...</span>
+        </div>
+
+        <!-- Loading State Spinner -->
+        <div id="loading-state" class="card loading-card">
+            <div class="spinner"></div>
+            <p>Loading financial request details from backend...</p>
+        </div>
+
+        <!-- Main Content Area (hidden until loaded) -->
+        <div id="request-content" class="request-content-grid d-none">
+            <!-- Header Card -->
+            <section class="card header-card">
+                <div class="header-top">
+                    <div>
+                        <span class="hero-badge">Financial Review</span>
+                        <h1 id="request-title" class="request-title-heading">Financial Request</h1>
+                        <p class="request-id-subtitle">Request ID: <strong id="request-id-display">#—</strong></p>
+                    </div>
+                    <div class="header-status-box">
+                        <span id="priority-badge" class="priority-badge priority-high">HIGH</span>
+                        <span id="status-pill" class="status-pill status-pending">Pending Accounts Review</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Details Grid Card -->
+            <section class="card details-card">
+                <h2 class="section-title">Request Information</h2>
+                <div class="details-grid">
+                    <div class="detail-box">
+                        <span class="detail-label">Employee (Requester)</span>
+                        <strong id="detail-employee" class="detail-value">—</strong>
+                    </div>
+                    <div class="detail-box">
+                        <span class="detail-label">Department</span>
+                        <strong id="detail-department" class="detail-value">—</strong>
+                    </div>
+                    <div class="detail-box">
+                        <span class="detail-label">Request Type</span>
+                        <strong id="detail-type" class="detail-value">—</strong>
+                    </div>
+                    <div class="detail-box accent-box">
+                        <span class="detail-label">Total Amount</span>
+                        <strong id="detail-amount" class="detail-value amount-highlight">$0</strong>
+                    </div>
+                    <div class="detail-box">
+                        <span class="detail-label">Submitted Date</span>
+                        <strong id="detail-date" class="detail-value">—</strong>
+                    </div>
+                    <div class="detail-box">
+                        <span class="detail-label">Current Approver</span>
+                        <strong id="detail-approver" class="detail-value">—</strong>
+                    </div>
+                </div>
+
+                <div class="description-section">
+                    <h3 class="subsection-title">Description & Business Justification</h3>
+                    <div id="detail-description" class="description-box">
+                        No description provided.
+                    </div>
+                </div>
+            </section>
+
+            <!-- Workflow Progress Timeline Card -->
+            <section class="card timeline-card">
+                <div class="section-header">
+                    <div>
+                        <h2 class="section-title">Workflow Progress Timeline</h2>
+                        <p class="section-subtitle">Multi-stage financial approval pipeline status</p>
+                    </div>
+                </div>
+                <div id="workflow-timeline" class="timeline-stepper">
+                    <!-- Dynamic timeline steps generated by review-request.js -->
+                </div>
+            </section>
+
+            <!-- Action Section Card -->
+            <section id="action-section" class="card action-card">
+                <div class="section-header">
+                    <div>
+                        <h2 class="section-title">Accounts Review Action</h2>
+                        <p class="section-subtitle">Enter notes and confirm financial approval or rejection</p>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="comments-input" class="form-label">Reviewer Comments / Audit Notes</label>
+                    <textarea id="comments-input" class="comments-textarea" placeholder="Add optional or required notes for this financial request review..." rows="4"></textarea>
+                </div>
+
+                <div class="action-buttons-row">
+                    <button id="approve-btn" class="review-action-btn approve-btn" onclick="promptAction('approve')">
+                        ✓ Approve Request
+                    </button>
+                    <button id="reject-btn" class="review-action-btn reject-btn" onclick="promptAction('reject')">
+                        ✕ Reject Request
+                    </button>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal Dialog -->
+    <div id="confirm-modal" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 id="confirm-modal-title" class="modal-title">Confirm Action</h3>
+                <button class="modal-close" onclick="closeConfirmModal()">✕</button>
+            </div>
+            <div id="confirm-modal-body" class="modal-body">
+                Are you sure you want to process this request?
+            </div>
+            <div class="modal-actions">
+                <button class="action-button secondary" onclick="closeConfirmModal()">Cancel</button>
+                <button id="confirm-submit-btn" class="action-button primary" onclick="submitConfirmedAction()">Confirm & Submit</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="review-request.js"></script>
+</body>
+</html>
