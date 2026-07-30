@@ -44,7 +44,7 @@ exports.approve = async (req, res, next) => {
     conn = await pool.getConnection();
     await conn.beginTransaction();
 
-    const [requestRows] = await conn.execute('SELECT status FROM workflow_requests WHERE id = ? FOR UPDATE', [id]);
+    const [requestRows] = await conn.execute('SELECT status, payment_verified, current_role, requester_email FROM workflow_requests WHERE id = ? FOR UPDATE', [id]);
     const request = requestRows[0];
     if (!request || request.status === 'rejected' || request.status === 'approved') {
       await conn.rollback();
@@ -69,6 +69,19 @@ exports.approve = async (req, res, next) => {
       return res.status(403).json({ success: false, message: 'No matching pending approval for you' });
     }
 
+    // Modify ONLY Accounts approval: Check payment_verified before moving to Manager
+    const isAccountsRole = String(role).toLowerCase() === 'accounts' || String(current.approver_role || request.current_role).toLowerCase() === 'accounts';
+    if (isAccountsRole) {
+      const isVerified = Number(request.payment_verified ?? 0) === 1;
+      if (!isVerified) {
+        await conn.rollback();
+        return res.status(400).json({
+          success: false,
+          message: 'Payment Verification must be completed before approving this request.'
+        });
+      }
+    }
+
     await conn.execute('UPDATE approvals SET status = ? WHERE id = ?', ['approved', current.id]);
 
     const nextStep = current.step + 1;
@@ -90,6 +103,52 @@ exports.approve = async (req, res, next) => {
       `INSERT INTO request_history (request_id, action, performed_by) VALUES (?, ?, ?)`,
       [id, actionText, performer]
     );
+
+    const lowerRole = String(role).toLowerCase().trim();
+    const empEmail = request.requester_email;
+
+    // Send notifications based on approver role
+    if (lowerRole === 'accounts') {
+      if (empEmail) {
+        await conn.execute(
+          `INSERT INTO notifications (user_email, user_role, request_id, title, message, type) VALUES (?, 'employee', ?, 'Accounts Approved', 'Your request has moved to Manager.', 'info')`,
+          [empEmail, id]
+        ).catch(() => {});
+      }
+      await conn.execute(
+        `INSERT INTO notifications (user_role, request_id, title, message, type) VALUES ('manager', ?, 'Approval Required', 'New request waiting for approval.', 'info')`,
+        [id]
+      ).catch(() => {});
+    } else if (lowerRole === 'manager') {
+      if (empEmail) {
+        await conn.execute(
+          `INSERT INTO notifications (user_email, user_role, request_id, title, message, type) VALUES (?, 'employee', ?, 'Manager Approved', 'Manager approved your request. Waiting for CFO.', 'info')`,
+          [empEmail, id]
+        ).catch(() => {});
+      }
+      await conn.execute(
+        `INSERT INTO notifications (user_role, request_id, title, message, type) VALUES ('cfo', ?, 'Approval Required', 'Manager approved a request. Waiting for your approval.', 'info')`,
+        [id]
+      ).catch(() => {});
+    } else if (lowerRole === 'cfo') {
+      if (empEmail) {
+        await conn.execute(
+          `INSERT INTO notifications (user_email, user_role, request_id, title, message, type) VALUES (?, 'employee', ?, 'CFO Approved', 'Waiting for MD Approval.', 'info')`,
+          [empEmail, id]
+        ).catch(() => {});
+      }
+      await conn.execute(
+        `INSERT INTO notifications (user_role, request_id, title, message, type) VALUES ('md', ?, 'Approval Required', 'CFO approved request. Waiting for final approval.', 'info')`,
+        [id]
+      ).catch(() => {});
+    } else if (lowerRole === 'md' || nextRows.length === 0) {
+      if (empEmail) {
+        await conn.execute(
+          `INSERT INTO notifications (user_email, user_role, request_id, title, message, type) VALUES (?, 'employee', ?, 'Request Approved', 'Congratulations. Your request has been approved.', 'success')`,
+          [empEmail, id]
+        ).catch(() => {});
+      }
+    }
 
     await conn.commit();
     res.json({ success: true, message: 'Approved successfully' });
@@ -113,7 +172,7 @@ exports.reject = async (req, res, next) => {
     conn = await pool.getConnection();
     await conn.beginTransaction();
 
-    const [requestRows] = await conn.execute('SELECT status FROM workflow_requests WHERE id = ? FOR UPDATE', [id]);
+    const [requestRows] = await conn.execute('SELECT status, requester_email FROM workflow_requests WHERE id = ? FOR UPDATE', [id]);
     const request = requestRows[0];
     if (!request || request.status === 'rejected' || request.status === 'approved') {
       await conn.rollback();
@@ -145,6 +204,14 @@ exports.reject = async (req, res, next) => {
       `INSERT INTO request_history (request_id, action, performed_by) VALUES (?, ?, ?)`,
       [id, actionText, performer]
     );
+
+    // Notification for Employee: Request rejected by [Role]
+    if (request && request.requester_email) {
+      await conn.execute(
+        `INSERT INTO notifications (user_email, user_role, request_id, title, message, type) VALUES (?, 'employee', ?, 'Request Rejected', ?, 'error')`,
+        [request.requester_email, id, `Request rejected by ${role}`]
+      ).catch(() => {});
+    }
 
     await conn.commit();
     res.json({ success: true, message: 'Rejected successfully' });

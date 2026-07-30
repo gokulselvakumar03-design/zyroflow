@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - Workflow Builder</title>
+    <link rel="stylesheet" href="theme-system.css">
+    <link rel="stylesheet" href="settings-menu.css">
     <style>
         * {
             margin: 0;
@@ -1313,8 +1315,7 @@
                 <div id="welcomeText" class="welcome-text"></div>
                 <div id="roleSummary" class="welcome-text"></div>
             </div>
-            <a href="profile.html" class="profile-link" style="color:white; margin-right:8px; font-weight:600; text-decoration:none;">Profile</a>
-            <button class="logout-button" onclick="logout()">Logout</button>
+            <button id="zyroSettingsBtn" class="settings-btn" type="button">⚙️ Settings</button>
         </div>
     </div>
 
@@ -2994,5 +2995,6 @@
 
         setInterval(loadRequests, 4000);
     </script>
+    <script src="settings-menu.js"></script>
 </body>
 </html>

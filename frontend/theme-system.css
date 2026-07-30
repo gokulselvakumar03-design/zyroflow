@@ -1,0 +1,218 @@
+/* =========================================================
+   ZyroFlow Centralized Enterprise Theme System (Dark Theme Only)
+   ========================================================= */
+
+:root {
+  /* Color Tokens - Dark Mode (Default & Fixed Enterprise Theme) */
+  --background: #08121F;
+  --bg-gradient: linear-gradient(180deg, #050E1A 0%, #08121F 100%);
+  --surface: #13243C;
+  --card: #13243C;
+  --card-hover: #1A2F4C;
+  --panel: #13243C;
+  --glass: rgba(255, 255, 255, 0.04);
+  --glass-border: rgba(56, 189, 248, 0.15);
+  
+  /* Primary & Accent Tokens */
+  --primary: #38bdf8;
+  --primary-hover: #0ea5e9;
+  --primary-text: #071029;
+  --secondary: #8899B0;
+  --secondary-hover: #A0B2CD;
+  --accent: #38bdf8;
+
+  /* Typography Tokens */
+  --text-primary: #FFFFFF;
+  --text-secondary: #B8C4D6;
+  --text-muted: #8899B0;
+  --text-inverse: #0F172A;
+
+  /* Borders & Shadows */
+  --border: #2D415F;
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+  --shadow-sm: 0 4px 14px rgba(0, 0, 0, 0.25);
+
+  /* Status Colors */
+  --success: #22c55e;
+  --success-bg: rgba(34, 197, 94, 0.15);
+  --success-border: rgba(34, 197, 94, 0.3);
+
+  --warning: #f59e0b;
+  --warning-bg: rgba(245, 158, 11, 0.15);
+  --warning-border: rgba(245, 158, 11, 0.3);
+
+  --danger: #ef4444;
+  --danger-bg: rgba(239, 68, 68, 0.15);
+  --danger-border: rgba(239, 68, 68, 0.3);
+
+  /* Form Controls & Dropdowns */
+  --input-bg: rgba(255, 255, 255, 0.04);
+  --input-border: #2D415F;
+  --input-text: #FFFFFF;
+  --input-placeholder: #8899B0;
+  
+  --dropdown-bg: #0D1B2D;
+  --dropdown-text: #FFFFFF;
+  --dropdown-border: #2D415F;
+  --dropdown-hover: rgba(56, 189, 248, 0.15);
+
+  --badge-bg: rgba(255, 255, 255, 0.08);
+  --badge-text: #E2E8F0;
+
+  --table-header-bg: rgba(255, 255, 255, 0.04);
+  --table-row-hover: rgba(255, 255, 255, 0.06);
+  
+  --tab-bg: rgba(255, 255, 255, 0.04);
+  --tab-active-bg: rgba(56, 189, 248, 0.18);
+  --tab-text: #B8C4D6;
+  --tab-active-text: #38bdf8;
+
+  --modal-overlay: rgba(4, 12, 29, 0.75);
+}
+
+/* =========================================================
+   Centralized Dark Theme Master Style Rules
+   ========================================================= */
+
+/* Body & Page Container */
+body {
+  background: var(--bg-gradient) !important;
+  color: var(--text-primary) !important;
+  min-height: 100vh;
+}
+
+/* Headers & Navigation Bar */
+.nav, .navbar, .topbar, .header-top, header.nav {
+  background: var(--card) !important;
+  border-color: var(--border) !important;
+  color: var(--text-primary) !important;
+  box-shadow: var(--shadow-sm);
+}
+
+/* Typography Hierarchy */
+.title, .navbar-title, .page-title, .section-title, .modal-title,
+h1, h2, h3, h4, h5, h6 {
+  color: var(--text-primary) !important;
+}
+
+.subtitle, .navbar-subtitle, .page-subtitle, .muted, .detail-label,
+.role-summary, .hero-description, .stat-label, .dropdown-item-desc,
+.kpi .label {
+  color: var(--text-secondary) !important;
+}
+
+/* Cards, Panels, KPI Cards & Containers */
+.card, .hero-card, .glass-card, .kpi, .metric-card, .profile-card,
+.comment-item, .detail-value, .stat-card, .panel, .box, .chart-card,
+.dynamic-section-card, .chart-panel, .timeline-item, .modal-card,
+.review-card, .rules-card, .workflow-card, .dashboard-card {
+  background: var(--card) !important;
+  border-color: var(--border) !important;
+  color: var(--text-primary) !important;
+  box-shadow: var(--shadow-sm);
+}
+
+.card:hover, .kpi:hover, .stat-card:hover, .metric-card:hover {
+  border-color: var(--border) !important;
+}
+
+/* Form Controls & Inputs */
+input:not([type="button"]):not([type="submit"]):not([type="checkbox"]):not([type="radio"]),
+select,
+textarea,
+.form-input {
+  background: var(--input-bg) !important;
+  border: 1px solid var(--input-border) !important;
+  color: var(--input-text) !important;
+}
+
+input::placeholder, textarea::placeholder {
+  color: var(--input-placeholder) !important;
+  opacity: 1;
+}
+
+select option {
+  background: var(--dropdown-bg) !important;
+  color: var(--dropdown-text) !important;
+}
+
+/* Data Tables */
+table, th, td {
+  border-color: var(--border) !important;
+  color: var(--text-primary) !important;
+}
+
+th {
+  background: var(--table-header-bg) !important;
+  color: var(--text-secondary) !important;
+}
+
+tr:hover td {
+  background: var(--table-row-hover) !important;
+}
+
+/* Buttons */
+.btn-primary, button.primary, .primary-button, .primary {
+  background: var(--primary) !important;
+  color: var(--primary-text) !important;
+  border: none !important;
+}
+
+.btn-secondary, button.ghost, .ghost-button, .secondary-button, .profile-pill {
+  background: var(--input-bg) !important;
+  border: 1px solid var(--border) !important;
+  color: var(--text-primary) !important;
+}
+
+.btn-danger, .zyro-btn-danger {
+  background: var(--danger-bg) !important;
+  color: var(--danger) !important;
+  border: 1px solid var(--danger-border) !important;
+}
+
+/* Workflow Steps & Badges */
+.status-approved, .badge-approved, .stage-step.completed {
+  background: var(--success-bg) !important;
+  color: var(--success) !important;
+  border: 1px solid var(--success-border) !important;
+}
+
+.status-pending, .badge-pending, .stage-step.active {
+  background: var(--warning-bg) !important;
+  color: var(--warning) !important;
+  border: 1px solid var(--warning-border) !important;
+}
+
+.status-rejected, .badge-rejected {
+  background: var(--danger-bg) !important;
+  color: var(--danger) !important;
+  border: 1px solid var(--danger-border) !important;
+}
+
+/* Modals & Backdrops */
+.modal-backdrop, .zyro-settings-overlay {
+  background: var(--modal-overlay) !important;
+}
+
+/* Side Panels & Settings Drawer */
+.zyro-settings-drawer {
+  background: var(--surface) !important;
+  border-color: var(--border) !important;
+  color: var(--text-primary) !important;
+}
+
+.zyro-drawer-header {
+  background: var(--card) !important;
+  border-color: var(--border) !important;
+}
+
+.zyro-drawer-footer {
+  background: var(--card) !important;
+  border-color: var(--border) !important;
+}
+
+.zyro-drawer-tabs {
+  background: var(--surface) !important;
+  border-color: var(--border) !important;
+}

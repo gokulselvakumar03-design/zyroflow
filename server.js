@@ -13,6 +13,8 @@ const approvalsRoutes = require('./routes/approvalsRoutes');
 const trackRoutes = require('./routes/trackRoutes');
 const profileRoutes = require('./routes/profileRoutes');
 const accountsRoutes = require('./routes/accountsRoutes');
+const notificationRoutes = require('./routes/notificationRoutes');
+const draftRoutes = require('./routes/draftRoutes');
 
 dotenv.config();
 
@@ -195,6 +197,7 @@ async function initializeMysqlStorage() {
         CREATE TABLE IF NOT EXISTS notifications (
           id INT AUTO_INCREMENT PRIMARY KEY,
           user_role VARCHAR(50) DEFAULT 'accounts',
+          user_email VARCHAR(100) NULL,
           request_id INT NULL,
           title VARCHAR(255) NOT NULL,
           message TEXT NOT NULL,
@@ -203,6 +206,25 @@ async function initializeMysqlStorage() {
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
       `);
+
+      // 7. draft_requests table
+      await db.promise().execute(`
+        CREATE TABLE IF NOT EXISTS draft_requests (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          employee_id VARCHAR(100) NOT NULL,
+          request_type VARCHAR(100),
+          department VARCHAR(100),
+          priority VARCHAR(50),
+          payload JSON NULL,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+          INDEX idx_draft_emp (employee_id)
+        )
+      `);
+
+      try {
+        await db.promise().query("ALTER TABLE notifications ADD COLUMN user_email VARCHAR(100) NULL");
+      } catch (e) {}
 
       // Ensure essential payment_verifications, workflow_requests and user columns exist
       try {
@@ -328,9 +350,14 @@ app.use('/api/rules', rulesRoutes);
 app.use('/api', approvalsRoutes); // /api/approve, /api/reject, /api/pending-approvals
 app.use('/', approvalsRoutes);    // /approve, /reject, /requests/:id/approve, /requests/:id/reject
 app.use('/api', trackRoutes);     // /api/track/:requestId
+app.use('/', trackRoutes);        // /track/:requestId
 app.use('/api', profileRoutes);   // /api/profile, /api/change-password
 app.use('/api/accounts', accountsRoutes); // /api/accounts/requests
 app.use('/accounts', accountsRoutes);     // /accounts/requests
+app.use('/api/notifications', notificationRoutes);
+app.use('/notifications', notificationRoutes);
+app.use('/api/drafts', draftRoutes);
+app.use('/drafts', draftRoutes);
 
 // ==========================================
 // HELPER FUNCTIONS FOR REQUEST MAPPING
@@ -352,6 +379,7 @@ function getWorkflowList(row) {
 }
 
 function mapRequestRow(row) {
+  console.log('[DEBUG mapRequestRow] DB row:', row);
   const workflow = getWorkflowList(row);
   const payload = parseJsonValue(row.payload, {});
   const createdAt = row.created_at ? new Date(row.created_at).getTime() : Date.now();
@@ -360,7 +388,9 @@ function mapRequestRow(row) {
   const currentRole = row.current_role || workflow[Math.min(currentLevel, Math.max(workflow.length - 1, 0))] || '';
   const currentApprover = row.current_approver || currentRole || '';
 
-  return {
+  const isVerified = Number(row.payment_verified ?? 0) === 1 || String(row.payment_verification_status || '').toLowerCase() === 'verified';
+
+  const mapped = {
     id: Number(row.id),
     title: row.title || row.type || payload.title || '',
     request_type: row.type || row.request_type || row.title || payload.request_type || '',
@@ -381,12 +411,19 @@ function mapRequestRow(row) {
     currentLevel,
     current_level: currentLevel,
     workflow,
+    payment_verified: isVerified ? 1 : 0,
+    payment_verified_by: row.payment_verified_by || null,
+    payment_verified_at: row.payment_verified_at || null,
+    payment_verification_status: isVerified ? "Verified" : "Pending",
     payload,
     createdAt,
     created_at: createdAt,
     updatedAt,
     updated_at: updatedAt,
   };
+
+  console.log('[DEBUG mapRequestRow] Mapped result:', mapped);
+  return mapped;
 }
 
 /**
@@ -567,7 +604,14 @@ app.get('/requests/:id', optionalAuth, async (req, res) => {
       return res.status(400).json({ message: 'Invalid request id' });
     }
 
-    const [rows] = await dbPool.execute('SELECT * FROM workflow_requests WHERE id = ? LIMIT 1', [requestId]);
+    const [rows] = await dbPool.execute(
+      `SELECT id, title, type, description, amount, department, priority, status,
+              requester_name, requester_email, current_role, current_approver, workflow,
+              payload, current_level, created_at, updated_at,
+              payment_verified, payment_verified_by, payment_verified_at, payment_verification_status
+       FROM workflow_requests WHERE id = ? LIMIT 1`,
+      [requestId]
+    );
     if (!rows.length) {
       return res.status(404).json({ message: 'Request not found' });
     }
@@ -583,6 +627,7 @@ app.get('/requests/:id', optionalAuth, async (req, res) => {
       }
     }
 
+    console.log('[DEBUG GET /requests/:id] Sending responseJson:', requestData);
     res.json(requestData);
   } catch (error) {
     console.error('GET /requests/:id failed:', error.message);
@@ -653,6 +698,18 @@ app.post('/requests', optionalAuth, async (req, res) => {
     console.log("Inserted Request ID:", requestId);
     console.log("Approval Chain:", approverChain);
 
+    // Auto-delete associated draft upon successful request submission
+    const draftId = req.body.draft_id || req.body.draftId || (req.body.payload && (req.body.payload.draft_id || req.body.payload.draftId));
+    if (draftId) {
+      await dbPool.execute('DELETE FROM draft_requests WHERE id = ?', [draftId]).catch(() => {});
+    }
+    if (requestData.requester_email) {
+      await dbPool.execute(
+        'DELETE FROM draft_requests WHERE LOWER(employee_id) = LOWER(?) AND LOWER(request_type) = LOWER(?)',
+        [requestData.requester_email, requestData.type || '']
+      ).catch(() => {});
+    }
+
     // Delete any existing approvals for this request ID before inserting fresh rows
     await dbPool.execute('DELETE FROM approvals WHERE request_id = ?', [requestId]);
 
@@ -676,6 +733,22 @@ app.post('/requests', optionalAuth, async (req, res) => {
        VALUES (?, ?, ?)`,
       [requestId, 'Created request', requestData.requester_name]
     );
+
+    // 1. Employee Notification: Request submitted successfully.
+    if (requestData.requester_email) {
+      await dbPool.execute(
+        `INSERT INTO notifications (user_email, user_role, request_id, title, message, type)
+         VALUES (?, 'employee', ?, 'Request Submitted', 'Request submitted successfully.', 'success')`,
+        [requestData.requester_email, requestId]
+      ).catch(() => {});
+    }
+
+    // 2. Accounts Notification: New request submitted.
+    await dbPool.execute(
+      `INSERT INTO notifications (user_role, request_id, title, message, type)
+       VALUES ('accounts', ?, 'New Request', 'New request submitted.', 'info')`,
+      [requestId]
+    ).catch(() => {});
 
     const [createdRows] = await dbPool.execute('SELECT * FROM workflow_requests WHERE id = ? LIMIT 1', [requestId]);
     const createdRequest = mapRequestRow(createdRows[0]);
@@ -977,7 +1050,7 @@ app.get('/', (req, res) => {
 // Global Error Handler
 app.use((err, req, res, next) => {
   console.error(err);
-  res.status(err.status || 500).json({ message: err.message || 'Server error' });
+  res.status(err.status || 500).json({ success: false, message: err.message || 'Server error' });
 });
 
 // Start Server on PORT and LOGIN_PORT mirror

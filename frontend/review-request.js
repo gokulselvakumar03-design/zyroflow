@@ -216,6 +216,24 @@ function renderRequestDetails(req) {
     document.getElementById('detail-date').textContent = createdDateStr;
     document.getElementById('detail-approver').textContent = currentApproverStr;
 
+    // Payment Verification Card
+    const isVerified = Number(req.payment_verified ?? 0) === 1 || String(req.payment_verification_status).toLowerCase() === 'verified';
+    const pvStatusEl = document.getElementById('pv-card-status');
+    const pvByEl = document.getElementById('pv-card-by');
+    const pvAtEl = document.getElementById('pv-card-at');
+
+    if (pvStatusEl) {
+        pvStatusEl.innerHTML = isVerified
+            ? `<span style="color: #10b981; font-weight: 600;">Verified</span>`
+            : `<span style="color: #f59e0b; font-weight: 600;">Pending</span>`;
+    }
+    if (pvByEl) {
+        pvByEl.textContent = req.payment_verified_by || '—';
+    }
+    if (pvAtEl) {
+        pvAtEl.textContent = req.payment_verified_at ? new Date(req.payment_verified_at).toLocaleString() : '—';
+    }
+
     // Description Box
     const descBox = document.getElementById('detail-description');
     if (descBox) {

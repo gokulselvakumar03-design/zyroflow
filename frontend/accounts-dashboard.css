@@ -5,16 +5,14 @@
 }
 
 :root {
-    color-scheme: dark;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    color: #edf2f7;
-    background-color: #07101f;
+    color: var(--text-primary);
+    background-color: var(--background);
 }
 
 body {
-    background: radial-gradient(circle at top left, rgba(59, 130, 246, 0.18), transparent 25%),
-                radial-gradient(circle at bottom right, rgba(96, 165, 250, 0.18), transparent 20%),
-                linear-gradient(180deg, #05101f 0%, #071b2f 45%, #0d2a46 100%);
+    background: var(--bg-gradient);
+    color: var(--text-primary);
     min-height: 100vh;
     padding: 24px;
 }
@@ -44,10 +42,10 @@ a:hover {
     gap: 16px;
     padding: 22px 28px;
     border-radius: 20px;
-    background: rgba(12, 31, 54, 0.85);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: var(--card);
+    border: 1px solid var(--border);
     backdrop-filter: blur(18px);
-    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.25);
+    box-shadow: var(--shadow-sm);
     margin-bottom: 26px;
 }
 
@@ -55,7 +53,7 @@ a:hover {
     font-size: 28px;
     font-weight: 800;
     letter-spacing: -0.5px;
-    color: #f8fafc;
+    color: var(--text-primary);
 }
 
 .navbar-user {
@@ -70,10 +68,10 @@ a:hover {
     align-items: center;
     justify-content: center;
     padding: 10px 18px;
-    background: rgba(255, 255, 255, 0.08);
-    color: #e2e8f0;
+    background: var(--input-bg);
+    color: var(--text-primary);
     border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--border);
     font-weight: 600;
 }
 
@@ -81,9 +79,9 @@ a:hover {
     padding: 11px 20px;
     border-radius: 14px;
     border: 1px solid transparent;
-    background: linear-gradient(135deg, #2563eb, #60a5fa);
-    color: #ffffff;
-    box-shadow: 0 12px 26px rgba(37, 99, 235, 0.25);
+    background: var(--primary);
+    color: var(--primary-text);
+    box-shadow: var(--shadow-sm);
     cursor: pointer;
     font-weight: 700;
     transition: transform 0.25s ease, box-shadow 0.25s ease;
@@ -91,7 +89,7 @@ a:hover {
 
 .logout-button:hover {
     transform: translateY(-1px);
-    box-shadow: 0 16px 28px rgba(37, 99, 235, 0.35);
+    background: var(--primary-hover);
 }
 
 .notification {
@@ -100,9 +98,9 @@ a:hover {
     gap: 10px;
     padding: 10px 16px;
     border-radius: 999px;
-    background: rgba(59, 130, 246, 0.14);
-    border: 1px solid rgba(96, 165, 250, 0.2);
-    color: #dbeafe;
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
     font-weight: 700;
 }
 
@@ -113,8 +111,8 @@ a:hover {
     align-items: center;
     justify-content: center;
     border-radius: 999px;
-    background: #60a5fa;
-    color: #0f172a;
+    background: var(--primary);
+    color: var(--primary-text);
     font-size: 12px;
 }
 
@@ -126,21 +124,21 @@ a:hover {
     display: block;
     font-size: 14px;
     font-weight: 700;
-    color: #f8fafc;
+    color: var(--text-primary);
 }
 
 .role-summary {
     display: block;
     margin-top: 4px;
-    color: #cbd5e1;
+    color: var(--text-secondary);
     font-size: 13px;
 }
 
 .card {
-    background: rgba(9, 22, 38, 0.92);
+    background: var(--card);
     border-radius: 24px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    box-shadow: 0 22px 50px rgba(0, 0, 0, 0.22);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-sm);
     padding: 28px;
     margin-bottom: 24px;
 }
@@ -156,8 +154,8 @@ a:hover {
     display: inline-flex;
     padding: 10px 16px;
     border-radius: 999px;
-    background: rgba(37, 99, 235, 0.16);
-    color: #bfdbfe;
+    background: var(--tab-active-bg);
+    color: var(--primary);
     font-size: 12px;
     font-weight: 700;
     letter-spacing: 0.8px;
@@ -168,7 +166,7 @@ a:hover {
 .hero-heading {
     font-size: clamp(2rem, 2.4vw, 3rem);
     line-height: 1.05;
-    color: #ffffff;
+    color: var(--text-primary);
     margin-bottom: 16px;
 }
 
@@ -176,7 +174,7 @@ a:hover {
     max-width: 560px;
     font-size: 15px;
     line-height: 1.75;
-    color: #cbd5e1;
+    color: var(--text-secondary);
     margin-bottom: 28px;
 }
 
@@ -187,15 +185,15 @@ a:hover {
 }
 
 .hero-metric {
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: var(--input-bg);
+    border: 1px solid var(--border);
     border-radius: 18px;
     padding: 20px;
 }
 
 .hero-metric-label {
     display: block;
-    color: #94a3b8;
+    color: var(--text-secondary);
     font-size: 12px;
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -204,15 +202,15 @@ a:hover {
 
 .hero-metric-value {
     font-size: 2rem;
-    color: #ffffff;
+    color: var(--text-primary);
 }
 
 .hero-visual {
     height: 100%;
     min-height: 260px;
     border-radius: 24px;
-    background: linear-gradient(180deg, rgba(37, 99, 235, 0.2), rgba(37, 99, 235, 0.08));
-    border: 1px solid rgba(96, 165, 250, 0.22);
+    background: var(--input-bg);
+    border: 1px solid var(--border);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -221,8 +219,7 @@ a:hover {
 .hero-chart {
     width: 100%;
     height: 100%;
-    background: radial-gradient(circle at top left, rgba(96, 165, 250, 0.42), transparent 30%),
-                radial-gradient(circle at bottom right, rgba(59, 130, 246, 0.28), transparent 20%);
+    background: var(--input-bg);
     border-radius: 24px;
 }
 
@@ -232,8 +229,8 @@ a:hover {
     min-height: 420px;
     padding: 26px;
     border-radius: 28px;
-    background: rgba(12, 31, 54, 0.98);
-    border: 1px solid rgba(96, 165, 250, 0.12);
+    background: var(--card);
+    border: 1px solid var(--border);
 }
 
 .insights-header {
@@ -246,7 +243,7 @@ a:hover {
 
 .insights-label {
     display: block;
-    color: #7dd3fc;
+    color: var(--primary);
     letter-spacing: 0.14em;
     text-transform: uppercase;
     font-size: 11px;
@@ -255,7 +252,7 @@ a:hover {
 }
 
 .insights-title {
-    color: #ffffff;
+    color: var(--text-primary);
     font-size: 1.3rem;
     line-height: 1.2;
 }
@@ -316,7 +313,7 @@ a:hover {
 .alert-card {
     padding: 24px;
     border-radius: 28px;
-    background: rgba(12, 28, 46, 0.95);
+    background: var(--card);
 }
 
 .alert-list {
@@ -329,14 +326,14 @@ a:hover {
 .alert-item {
     padding: 18px 20px;
     border-radius: 18px;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    color: #e2e8f0;
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
 }
 
-.alert-warning { background: rgba(251, 191, 36, 0.12); border-color: rgba(251, 191, 36, 0.25); color: #fbbf24; }
-.alert-critical { background: rgba(248, 113, 113, 0.12); border-color: rgba(248, 113, 113, 0.25); color: #f87171; }
-.alert-info { background: rgba(96, 165, 250, 0.08); border-color: rgba(96, 165, 250, 0.2); color: #93c5fd; }
+.alert-warning { background: var(--warning-bg); border-color: var(--warning-border); color: var(--warning); }
+.alert-critical { background: var(--danger-bg); border-color: var(--danger-border); color: var(--danger); }
+.alert-info { background: var(--tab-active-bg); border-color: var(--border); color: var(--primary); }
 
 .timeline-list {
     list-style: none;
@@ -351,12 +348,12 @@ a:hover {
     align-items: flex-start;
     padding: 18px 20px;
     border-radius: 20px;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: var(--card);
+    border: 1px solid var(--border);
 }
 
 .timeline-time {
-    color: #60a5fa;
+    color: var(--primary);
     font-size: 0.85rem;
     font-weight: 800;
     white-space: nowrap;
@@ -364,14 +361,14 @@ a:hover {
 
 .timeline-title {
     margin: 0 0 6px;
-    color: #f8fafc;
+    color: var(--text-primary);
     font-size: 1rem;
     font-weight: 800;
 }
 
 .timeline-note {
     margin: 0;
-    color: #cbd5e1;
+    color: var(--text-secondary);
     font-size: 0.92rem;
     line-height: 1.5;
 }
@@ -380,7 +377,7 @@ a:hover {
     position: fixed;
     inset: 0;
     z-index: 1000;
-    background: rgba(4, 9, 24, 0.7);
+    background: var(--modal-overlay);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -396,10 +393,10 @@ a:hover {
 
 .modal-card {
     width: min(640px, calc(100% - 40px));
-    background: rgba(9, 18, 36, 0.96);
+    background: var(--card);
     border-radius: 24px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 32px 80px rgba(0, 0, 0, 0.45);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
     padding: 28px;
 }
 
@@ -419,13 +416,13 @@ a:hover {
     justify-content: center;
     border: none;
     border-radius: 12px;
-    background: rgba(255, 255, 255, 0.08);
-    color: #f8fafc;
+    background: var(--input-bg);
+    color: var(--text-primary);
     cursor: pointer;
 }
 
 .modal-body {
-    color: #dbeafe;
+    color: var(--text-primary);
     font-size: 0.97rem;
     line-height: 1.75;
     margin-bottom: 24px;

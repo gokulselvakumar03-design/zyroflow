@@ -205,18 +205,20 @@ exports.createPaymentVerification = async (req, res, next) => {
       [requestId, verifier]
     ).catch(err => console.error('History audit error:', err.message));
 
-    // 4. Create Notifications for Accounts and Manager
+    // 4. Create Notification for Accounts & Employee
     await pool.query(
       `INSERT INTO notifications (user_role, request_id, title, message, type)
-       VALUES ('accounts', ?, 'Payment Verified', ?, 'success')`,
-      [requestId, `Payment for Request #${requestId} (${targetReq.title || 'Financial Request'}) verified by ${verifier}`]
+       VALUES ('accounts', ?, 'Payment Verified', 'Payment verification completed.', 'success')`,
+      [requestId]
     ).catch(() => {});
 
-    await pool.query(
-      `INSERT INTO notifications (user_role, request_id, title, message, type)
-       VALUES ('manager', ?, 'Payment Verified', ?, 'success')`,
-      [requestId, `Payment for Request #${requestId} (${targetReq.title || 'Financial Request'}) verified by ${verifier}`]
-    ).catch(() => {});
+    if (targetReq && targetReq.requester_email) {
+      await pool.query(
+        `INSERT INTO notifications (user_email, user_role, request_id, title, message, type)
+         VALUES (?, 'employee', ?, 'Payment Verified', 'Payment verification completed.', 'success')`,
+        [targetReq.requester_email, requestId]
+      ).catch(() => {});
+    }
 
     res.json({
       success: true,

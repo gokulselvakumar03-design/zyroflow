@@ -16,6 +16,9 @@ CREATE TABLE IF NOT EXISTS workflow_requests (
   workflow TEXT,
   payload JSON NULL,
   current_level INT DEFAULT 0,
+  payment_verified BOOLEAN DEFAULT FALSE,
+  payment_verified_by VARCHAR(100) NULL,
+  payment_verified_at DATETIME NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );

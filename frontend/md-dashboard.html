@@ -1,9 +1,11 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ZyroFlow Executive MD Dashboard</title>
+    <link rel="stylesheet" href="theme-system.css">
+    <link rel="stylesheet" href="settings-menu.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
         :root {
@@ -789,9 +791,8 @@
                     <span>Welcome</span>
                     <strong id="mdWelcomeName">Managing Director</strong>
                 </div>
-                <button class="header-icon-btn" onclick="alert('Notifications center')" title="Notifications">🔔</button>
-                <button class="header-icon-btn" onclick="alert('Profile settings')" title="Profile">👤</button>
-                <button class="secondary-button" onclick="logout()" style="min-height: 44px; padding: 0 16px;">Logout</button>
+                <button class="header-icon-btn" id="notifBtn" title="Notifications">🔔 <span id="notifCount" class="notif-badge hidden">0</span></button>
+                <button id="zyroSettingsBtn" class="settings-btn" type="button">⚙️ Settings</button>
             </div>
         </header>
 
@@ -1225,5 +1226,8 @@
             window.location.href = 'login.html';
         }
     </script>
+    <script src="app.js"></script>
+    <script src="notification-center.js"></script>
+    <script src="settings-menu.js"></script>
 </body>
 </html>

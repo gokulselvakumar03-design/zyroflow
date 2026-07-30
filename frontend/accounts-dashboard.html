@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Accounts Dashboard - ZyroFlow</title>
+    <link rel="stylesheet" href="theme-system.css">
     <link rel="stylesheet" href="accounts-dashboard.css">
+    <link rel="stylesheet" href="settings-menu.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body>
@@ -30,8 +32,7 @@
                 <div id="welcomeText" class="welcome-text">Good Morning, Accounts Team</div>
                 <div id="roleSummary" class="role-summary">Quick summary of financial requests</div>
             </div>
-            <a href="profile.html" class="profile-link">Profile</a>
-            <button class="logout-button" onclick="logout()">Logout</button>
+            <button id="zyroSettingsBtn" class="settings-btn" type="button">⚙️ Settings</button>
         </div>
     </div>
 
@@ -245,6 +246,9 @@
         </div>
     </div>
 
+    <script src="app.js"></script>
     <script src="accounts-dashboard.js"></script>
+    <script src="notification-center.js"></script>
+    <script src="settings-menu.js"></script>
 </body>
 </html>

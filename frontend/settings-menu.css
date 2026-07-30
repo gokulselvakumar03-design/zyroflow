@@ -1,0 +1,587 @@
+/* ZyroFlow Settings Menu & Enterprise Theme Integration */
+
+:root {
+  --zyro-bg: var(--background);
+  --zyro-card-bg: var(--surface);
+  --zyro-text-primary: var(--text-primary);
+  --zyro-text-secondary: var(--text-secondary);
+  --zyro-accent: var(--primary);
+  --zyro-accent-hover: var(--primary-hover);
+  --zyro-border: var(--border);
+  --zyro-input-bg: var(--input-bg);
+  --zyro-shadow: var(--shadow);
+  --zyro-glass-border: var(--glass-border);
+}
+
+/* Settings Trigger Button */
+.settings-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--text-primary);
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  user-select: none;
+}
+
+.settings-btn:hover {
+  background: var(--tab-active-bg);
+  border-color: var(--primary);
+  color: var(--primary);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(56, 189, 248, 0.15);
+}
+
+.settings-btn:active {
+  transform: translateY(0);
+}
+
+/* Backdrop Overlay */
+.zyro-settings-overlay {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background: var(--modal-overlay);
+  backdrop-filter: blur(8px);
+  z-index: 99998 !important;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.25s ease, visibility 0.25s ease;
+}
+
+.zyro-settings-overlay.visible {
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+}
+
+/* Slide-out Drawer Panel */
+.zyro-settings-drawer {
+  position: fixed !important;
+  top: 0 !important;
+  right: 0 !important;
+  width: 480px !important;
+  max-width: 95vw !important;
+  height: 100vh !important;
+  background: var(--surface) !important;
+  border-left: 1px solid var(--border) !important;
+  box-shadow: -10px 0 40px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(16px);
+  z-index: 99999 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  transform: translateX(100%);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  color: var(--text-primary) !important;
+  font-family: inherit;
+  pointer-events: auto !important;
+}
+
+.zyro-settings-drawer.open {
+  transform: translateX(0) !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+/* Drawer Header */
+.zyro-drawer-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--card);
+}
+
+.zyro-drawer-title-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.zyro-drawer-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: var(--tab-active-bg);
+  border: 1px solid var(--glass-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+}
+
+.zyro-drawer-title {
+  font-weight: 800;
+  font-size: 1.25rem;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.zyro-drawer-subtitle {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+.zyro-drawer-close {
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+}
+
+.zyro-drawer-close:hover {
+  background: var(--danger-bg);
+  color: var(--danger);
+  border-color: var(--danger-border);
+}
+
+/* Nav Tabs Bar */
+.zyro-drawer-tabs {
+  display: flex;
+  padding: 10px 16px;
+  gap: 6px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.zyro-tab-btn {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-secondary);
+  font-weight: 600;
+  font-size: 0.84rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.zyro-tab-btn:hover {
+  color: var(--text-primary);
+  background: var(--input-bg);
+}
+
+.zyro-tab-btn.active {
+  background: var(--tab-active-bg);
+  color: var(--primary);
+  border-color: var(--border);
+  font-weight: 700;
+}
+
+/* Drawer Body Content */
+.zyro-drawer-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+}
+
+/* Sticky Drawer Footer for Logout */
+.zyro-drawer-footer {
+  padding: 16px 24px;
+  border-top: 1px solid var(--border);
+  background: var(--card);
+  margin-top: auto;
+}
+
+.zyro-tab-content {
+  display: none;
+  animation: zyroFadeIn 0.25s ease forwards;
+}
+
+.zyro-tab-content.active {
+  display: block;
+}
+
+@keyframes zyroFadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Profile Card Box */
+.zyro-profile-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 20px;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.zyro-avatar-wrapper {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 14px;
+}
+
+.zyro-avatar-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--primary);
+  box-shadow: var(--shadow-sm);
+}
+
+.zyro-avatar-fallback {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary), #0ea5e9);
+  color: var(--primary-text);
+  font-weight: 800;
+  font-size: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-sm);
+}
+
+.zyro-user-name {
+  font-size: 1.15rem;
+  font-weight: 800;
+  margin-bottom: 4px;
+  color: var(--text-primary);
+}
+
+.zyro-user-role {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--tab-active-bg);
+  color: var(--primary);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 12px;
+}
+
+.zyro-info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  text-align: left;
+  margin-top: 14px;
+}
+
+.zyro-info-item {
+  background: var(--input-bg);
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+}
+
+.zyro-info-lbl {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.zyro-info-val {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-top: 2px;
+  word-break: break-all;
+}
+
+/* Theme Option Cards */
+.zyro-theme-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 10px;
+}
+
+.zyro-theme-card {
+  border: 2px solid var(--border);
+  background: var(--card);
+  border-radius: 14px;
+  padding: 16px;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s ease;
+  color: var(--text-primary);
+}
+
+.zyro-theme-card:hover {
+  border-color: var(--primary);
+  transform: translateY(-2px);
+}
+
+.zyro-theme-card.active {
+  border-color: var(--primary);
+  background: var(--tab-active-bg);
+  box-shadow: 0 0 20px rgba(56, 189, 248, 0.15);
+}
+
+.zyro-theme-preview {
+  height: 60px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+}
+
+.zyro-theme-preview.dark-prev {
+  background: #08121F;
+  color: #38bdf8;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.zyro-theme-preview.light-prev {
+  background: #F5F7FA;
+  color: #0284c7;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.zyro-theme-name {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--text-primary);
+}
+
+/* Form Controls inside Drawer */
+.zyro-form-group {
+  margin-bottom: 16px;
+}
+
+.zyro-form-label {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.zyro-input {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--input-bg);
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.zyro-input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15);
+}
+
+.zyro-input:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+/* Password Strength Bar */
+.zyro-strength-container {
+  margin-top: 6px;
+}
+
+.zyro-strength-track {
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.zyro-strength-bar {
+  height: 100%;
+  width: 0%;
+  transition: width 0.3s ease, background 0.3s ease;
+}
+
+.zyro-strength-text {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+/* Buttons inside Drawer */
+.zyro-btn-primary {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  background: var(--primary);
+  color: var(--primary-text);
+  font-weight: 800;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: var(--shadow-sm);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.zyro-btn-primary:hover {
+  transform: translateY(-1px);
+  background: var(--primary-hover);
+}
+
+.zyro-btn-secondary {
+  width: 100%;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--input-bg);
+  color: var(--text-primary);
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.zyro-btn-secondary:hover {
+  background: var(--border);
+}
+
+.zyro-btn-danger {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid var(--danger-border);
+  background: var(--danger-bg);
+  color: var(--danger);
+  font-weight: 800;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.zyro-btn-danger:hover {
+  background: var(--danger);
+  color: #ffffff;
+}
+
+/* Alert Notification Banner */
+.zyro-msg-box {
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  margin-bottom: 16px;
+  display: none;
+  font-weight: 600;
+}
+
+.zyro-msg-box.ok {
+  display: block;
+  background: var(--success-bg);
+  border: 1px solid var(--success-border);
+  color: var(--success);
+}
+
+.zyro-msg-box.err {
+  display: block;
+  background: var(--danger-bg);
+  border: 1px solid var(--danger-border);
+  color: var(--danger);
+}
+
+/* Custom Mini Toggle Switch */
+.zyro-switch {
+  position: relative;
+  display: inline-block;
+  width: 34px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.zyro-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.zyro-slider {
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background-color: var(--input-border);
+  transition: .3s cubic-bezier(0.16, 1, 0.3, 1);
+  border-radius: 999px;
+  border: 1px solid var(--border);
+}
+
+.zyro-slider:before {
+  position: absolute;
+  content: "";
+  height: 12px;
+  width: 12px;
+  left: 2px;
+  bottom: 2px;
+  background-color: #ffffff;
+  transition: .3s cubic-bezier(0.16, 1, 0.3, 1);
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+.zyro-switch input:checked + .zyro-slider {
+  background-color: var(--primary);
+  border-color: var(--primary);
+}
+
+.zyro-switch input:checked + .zyro-slider:before {
+  transform: translateX(16px);
+}
+
+.zyro-sm-btn {
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: var(--input-bg);
+  color: var(--text-primary);
+  transition: all 0.2s ease;
+}
+
+.zyro-sm-btn:hover {
+  background: var(--border);
+}

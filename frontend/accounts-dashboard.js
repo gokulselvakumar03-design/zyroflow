@@ -7,7 +7,7 @@ let accountsRequestsCache = [];
 let currentFilter = 'ALL';
 let chartInstances = {};
 
-const API_BASE = 'http://localhost:4000';
+// Reuses global API_BASE from app.js (e.g. http://localhost:4000/api)
 
 // Utility helper to get authorization token
 function getAuthToken() {
@@ -230,6 +230,11 @@ function renderAccountsQueue() {
     const statusNormalized = normalizeStatus(req.status);
     const statusLabel = toStatusLabel(req.status);
 
+    const isVerified = Number(req.payment_verified ?? 0) === 1 || String(req.payment_verification_status).toLowerCase() === 'verified';
+    const pvBadge = isVerified
+      ? `<span class="pv-badge pv-badge-verified" style="display:inline-block; margin-left:6px; background:#10b981; color:#ffffff; padding:3px 8px; border-radius:12px; font-size:11px; font-weight:600;">Payment Verified</span>`
+      : `<span class="pv-badge pv-badge-pending" style="display:inline-block; margin-left:6px; background:#f59e0b; color:#ffffff; padding:3px 8px; border-radius:12px; font-size:11px; font-weight:600;">Payment Verification Pending</span>`;
+
     return `
       <tr class="queue-row">
         <td>#${escapeHtml(String(reqId))}</td>
@@ -237,7 +242,10 @@ function renderAccountsQueue() {
         <td>${department}</td>
         <td>${requestType}</td>
         <td><strong>${amountFormatted}</strong></td>
-        <td><span class="status-pill status-${statusNormalized}">${statusLabel}</span></td>
+        <td>
+          <span class="status-pill status-${statusNormalized}">${statusLabel}</span>
+          ${pvBadge}
+        </td>
         <td>
           <button class="review-button" onclick="navigateToReview('${reqId}')">Review</button>
         </td>
@@ -397,7 +405,7 @@ function renderPaymentVerificationModal(selectedId) {
 
   const bodyHtml = `
     <div class="pv-container">
-      ${isVerified ? '<div class="pv-status-verified">✅ Payment Already Verified</div>' : ''}
+      ${isVerified ? '<div class="pv-status-verified" style="background:#10b981; color:#fff; padding:8px 12px; border-radius:6px; font-weight:600; margin-bottom:12px; display:inline-block;">Payment Verified</div>' : ''}
 
       <div class="pv-select-group">
         <label class="pv-label">Select Request for Verification:</label>
@@ -407,48 +415,44 @@ function renderPaymentVerificationModal(selectedId) {
       </div>
 
       <div class="pv-details-grid">
-        <div class="pv-detail-item"><span class="pv-detail-label">Request ID</span><strong class="pv-detail-val">#${pvSelectedRequest.id}</strong></div>
         <div class="pv-detail-item"><span class="pv-detail-label">Employee</span><strong class="pv-detail-val">${escapeHtml(pvSelectedRequest.employee_name)}</strong></div>
         <div class="pv-detail-item"><span class="pv-detail-label">Department</span><strong class="pv-detail-val">${escapeHtml(pvSelectedRequest.department)}</strong></div>
-        <div class="pv-detail-item"><span class="pv-detail-label">Request Type</span><strong class="pv-detail-val">${escapeHtml(pvSelectedRequest.request_type)}</strong></div>
         <div class="pv-detail-item"><span class="pv-detail-label">Amount</span><strong class="pv-detail-val highlight">${formatCurrency(pvSelectedRequest.amount)}</strong></div>
-        <div class="pv-detail-item"><span class="pv-detail-label">Invoice Number</span><strong class="pv-detail-val">${escapeHtml(pvSelectedRequest.invoice_number || `INV-2026-0${pvSelectedRequest.id}`)}</strong></div>
-        <div class="pv-detail-item"><span class="pv-detail-label">Vendor Name</span><strong class="pv-detail-val">${escapeHtml(pvSelectedRequest.vendor_name || 'Verified Corporate Vendor')}</strong></div>
+        <div class="pv-detail-item"><span class="pv-detail-label">Vendor</span><strong class="pv-detail-val">${escapeHtml(pvSelectedRequest.vendor_name || 'Verified Corporate Vendor')}</strong></div>
         <div class="pv-detail-item"><span class="pv-detail-label">Purchase Order</span><strong class="pv-detail-val">${escapeHtml(pvSelectedRequest.po_number || `PO-2026-0${pvSelectedRequest.id}`)}</strong></div>
-        <div class="pv-detail-item"><span class="pv-detail-label">Payment Method</span><strong class="pv-detail-val">${escapeHtml(pvSelectedRequest.payment_method || 'Bank Wire Transfer')}</strong></div>
-        <div class="pv-detail-item"><span class="pv-detail-label">Priority</span><strong class="pv-detail-val">${escapeHtml(String(pvSelectedRequest.priority || 'Medium').toUpperCase())}</strong></div>
-        <div class="pv-detail-item"><span class="pv-detail-label">Created Date</span><strong class="pv-detail-val">${createdDateStr}</strong></div>
-        <div class="pv-detail-item"><span class="pv-detail-label">Workflow Stage</span><strong class="pv-detail-val">${escapeHtml(pvSelectedRequest.current_approver || pvSelectedRequest.current_role || 'Accounts')}</strong></div>
+        <div class="pv-detail-item"><span class="pv-detail-label">Invoice</span><strong class="pv-detail-val">${escapeHtml(pvSelectedRequest.invoice_number || `INV-2026-0${pvSelectedRequest.id}`)}</strong></div>
+        <div class="pv-detail-item"><span class="pv-detail-label">Budget Status</span><strong class="pv-detail-val">Budget Available</strong></div>
+        <div class="pv-detail-item"><span class="pv-detail-label">Current Workflow</span><strong class="pv-detail-val">${escapeHtml(pvSelectedRequest.current_approver || pvSelectedRequest.current_role || 'Accounts')}</strong></div>
       </div>
 
       <div class="pv-checklist-card">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px;">
           <div>
-            <h4 class="pv-checklist-title">Required Audit Verification Checklist</h4>
-            <p class="pv-checklist-sub">All 5 compliance checks must be verified before payment authorization.</p>
+            <h4 class="pv-checklist-title">Checklist</h4>
+            <p class="pv-checklist-sub">All compliance checks must be verified before payment authorization.</p>
           </div>
           <span id="pv-progress-badge" class="pv-progress-badge">0/5 Completed</span>
         </div>
 
         <div class="pv-checklist">
           <label class="pv-check-item">
-            <input type="checkbox" class="pv-chk" ${isVerified ? 'disabled' : ''} onchange="onPvChecklistChange()" />
-            <span>Invoice Uploaded</span>
+            <input type="checkbox" class="pv-chk" ${isVerified ? 'disabled checked' : ''} onchange="onPvChecklistChange()" />
+            <span>Purchase Order Verified</span>
           </label>
           <label class="pv-check-item">
-            <input type="checkbox" class="pv-chk" ${isVerified ? 'disabled' : ''} onchange="onPvChecklistChange()" />
-            <span>Purchase Order Uploaded</span>
+            <input type="checkbox" class="pv-chk" ${isVerified ? 'disabled checked' : ''} onchange="onPvChecklistChange()" />
+            <span>Invoice Verified</span>
           </label>
           <label class="pv-check-item">
-            <input type="checkbox" class="pv-chk" ${isVerified ? 'disabled' : ''} onchange="onPvChecklistChange()" />
+            <input type="checkbox" class="pv-chk" ${isVerified ? 'disabled checked' : ''} onchange="onPvChecklistChange()" />
             <span>Vendor Verified</span>
           </label>
           <label class="pv-check-item">
-            <input type="checkbox" class="pv-chk" ${isVerified ? 'disabled' : ''} onchange="onPvChecklistChange()" />
+            <input type="checkbox" class="pv-chk" ${isVerified ? 'disabled checked' : ''} onchange="onPvChecklistChange()" />
             <span>Budget Available</span>
           </label>
           <label class="pv-check-item">
-            <input type="checkbox" class="pv-chk" ${isVerified ? 'disabled' : ''} onchange="onPvChecklistChange()" />
+            <input type="checkbox" class="pv-chk" ${isVerified ? 'disabled checked' : ''} onchange="onPvChecklistChange()" />
             <span>Amount Verified</span>
           </label>
         </div>
@@ -456,17 +460,17 @@ function renderPaymentVerificationModal(selectedId) {
 
       <div class="pv-remarks-group">
         <div style="display:flex; justify-content:space-between; align-items:center;">
-          <label class="pv-label">Verification Remarks (Min 10 chars):</label>
+          <label class="pv-label">Remarks:</label>
           <span id="pv-char-count" class="pv-char-counter">0 / 500 characters</span>
         </div>
-        <textarea id="pv-remarks" class="pv-textarea" ${isVerified ? 'disabled' : ''} placeholder="Enter verification remarks for audit purposes..." oninput="onPvRemarksInput()"></textarea>
+        <textarea id="pv-remarks" class="pv-textarea" ${isVerified ? 'disabled' : ''} placeholder="Enter verification remarks..." oninput="onPvRemarksInput()">${isVerified ? escapeHtml(pvSelectedRequest.remarks || 'Payment Verified') : ''}</textarea>
       </div>
     </div>
   `;
 
   const footerHtml = `
     <button class="action-button secondary" onclick="closeModal()">Close</button>
-    <button id="pv-verify-btn" class="action-button primary" disabled onclick="submitPaymentVerification()">Verify Payment</button>
+    <button id="pv-verify-btn" class="action-button primary" ${isVerified ? 'disabled' : ''} onclick="submitPaymentVerification()">Verify Payment</button>
   `;
 
   openModal(`Payment Verification - Request #${pvSelectedRequest.id}`, bodyHtml, footerHtml);
@@ -484,11 +488,6 @@ function onPvRemarksInput() {
 
   const len = remarksEl.value.trim().length;
   counterEl.textContent = `${len} / 500 characters`;
-  if (len < 10 && len > 0) {
-    counterEl.classList.add('error');
-  } else {
-    counterEl.classList.remove('error');
-  }
   onPvChecklistChange();
 }
 
@@ -514,7 +513,7 @@ function onPvChecklistChange() {
   const btn = document.getElementById('pv-verify-btn');
 
   if (btn) {
-    btn.disabled = isVerified || checkedCount !== 5 || remarksLen < 10 || remarksLen > 500;
+    btn.disabled = isVerified || checkedCount !== 5 || remarksLen < 1;
   }
 }
 
@@ -526,18 +525,8 @@ async function submitPaymentVerification() {
   const checkable = Array.from(document.querySelectorAll('.pv-chk'));
   const checkedCount = checkable.filter(c => c.checked).length;
 
-  if (checkedCount < 5) {
-    showToast('Please check all 5 checklist items before verification.', 'error');
-    return;
-  }
-
-  if (remarks.length < 10) {
-    showToast('Verification remarks must be at least 10 characters long.', 'error');
-    return;
-  }
-
-  if (remarks.length > 500) {
-    showToast('Verification remarks cannot exceed 500 characters.', 'error');
+  if (checkedCount < 5 || !remarks) {
+    showToast('Complete all verification checks.', 'error');
     return;
   }
 

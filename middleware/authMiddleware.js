@@ -31,4 +31,28 @@ function authMiddleware(req, res, next) {
   });
 }
 
+function optionalAuth(req, res, next) {
+  const authHeader = req.headers.authorization || req.headers['authorization'];
+  let token = null;
+
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    token = authHeader.split(' ')[1];
+  } else if (req.query && req.query.token) {
+    token = req.query.token;
+  }
+
+  if (!token) {
+    return next();
+  }
+
+  const secret = process.env.JWT_SECRET || 'secret';
+  jwt.verify(token, secret, (err, decoded) => {
+    if (!err && decoded) {
+      req.user = decoded;
+    }
+    next();
+  });
+}
+
 module.exports = authMiddleware;
+module.exports.optionalAuth = optionalAuth;

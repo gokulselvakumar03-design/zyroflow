@@ -1,0 +1,761 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Request Tracking Details - ZyroFlow</title>
+    <link rel="stylesheet" href="theme-system.css">
+    <link rel="stylesheet" href="settings-menu.css">
+    <style>
+      :root {
+        --bg: #061427;
+        --card: #091224;
+        --muted: #94a3b8;
+        --accent: #38bdf8;
+        --success: #22c55e;
+        --warning: #f59e0b;
+        --danger: #ef4444;
+        --glass: rgba(255, 255, 255, 0.04);
+        --border: rgba(255, 255, 255, 0.08);
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: 'Segoe UI', Roboto, -apple-system, sans-serif;
+        background: linear-gradient(180deg, #05111d, #081f36);
+        color: #e6eef8;
+        min-height: 100vh;
+        padding: 24px 20px;
+      }
+      a { color: inherit; text-decoration: none; }
+      .container { max-width: 1100px; margin: 0 auto; }
+
+      /* Navigation Header */
+      .nav {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 18px 24px;
+        border-radius: 16px;
+        background: rgba(9, 18, 36, 0.92);
+        border: 1px solid var(--border);
+        box-shadow: 0 12px 36px rgba(0, 0, 0, 0.25);
+        margin-bottom: 24px;
+        flex-wrap: wrap;
+        gap: 14px;
+      }
+      .brand { display: flex; flex-direction: column; }
+      .brand .title { font-size: 1.4rem; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 8px; }
+      .brand .subtitle { color: var(--muted); font-size: 0.88rem; margin-top: 2px; }
+      .nav-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+      .btn {
+        cursor: pointer;
+        padding: 10px 16px;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 0.88rem;
+        transition: all 0.2s ease;
+        border: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .primary {
+        background: linear-gradient(135deg, var(--accent), #0ea5e9);
+        color: #071029;
+        box-shadow: 0 4px 14px rgba(56, 189, 248, 0.25);
+      }
+      .primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(56, 189, 248, 0.35); }
+      .secondary {
+        background: rgba(34, 197, 94, 0.16);
+        border: 1px solid rgba(34, 197, 94, 0.35);
+        color: #4ade80;
+      }
+      .secondary:hover { background: rgba(34, 197, 94, 0.25); }
+      .ghost {
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid var(--border);
+        color: #e6eef8;
+      }
+      .ghost:hover { background: rgba(255, 255, 255, 0.08); border-color: rgba(255, 255, 255, 0.16); }
+
+      /* Cards & Sections */
+      .card {
+        background: var(--card);
+        border-radius: 18px;
+        padding: 24px;
+        border: 1px solid var(--border);
+        margin-bottom: 24px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      }
+      .card-title {
+        font-size: 1.1rem;
+        font-weight: 800;
+        color: #fff;
+        margin: 0 0 18px 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      /* Request Summary Details Grid */
+      .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+      }
+      .detail-box {
+        background: rgba(255, 255, 255, 0.02);
+        padding: 14px 16px;
+        border-radius: 14px;
+        border: 1px solid rgba(255, 255, 255, 0.04);
+      }
+      .detail-label { color: var(--muted); font-size: 0.76rem; text-transform: uppercase; font-weight: 700; letter-spacing: 0.06em; }
+      .detail-val { color: #fff; font-weight: 700; font-size: 1.05rem; margin-top: 4px; word-break: break-word; }
+
+      /* Status Badges */
+      .badge {
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-size: 0.76rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+      }
+      .badge-pending { background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); }
+      .badge-verified { background: rgba(34, 197, 94, 0.15); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3); }
+      .badge-unverified { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
+      .badge-approved { background: rgba(34, 197, 94, 0.2); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.4); }
+      .badge-rejected { background: rgba(239, 68, 68, 0.18); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.35); }
+
+      /* Progress Bar */
+      .progress-card {
+        background: linear-gradient(135deg, rgba(9, 18, 36, 0.95), rgba(15, 23, 42, 0.95));
+      }
+      .progress-bar-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+        font-weight: 800;
+      }
+      .progress-title { font-size: 0.95rem; color: #fff; }
+      .progress-stats { font-size: 1rem; color: var(--accent); }
+      .progress-track {
+        height: 12px;
+        background: rgba(255, 255, 255, 0.06);
+        border-radius: 999px;
+        overflow: hidden;
+        position: relative;
+        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+      }
+      .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #0ea5e9, var(--accent));
+        border-radius: 999px;
+        transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      .progress-fill.completed { background: linear-gradient(90deg, #10b981, var(--success)); }
+      .progress-fill.rejected { background: linear-gradient(90deg, #dc2626, var(--danger)); }
+
+      /* Amazon / Jira Styled Workflow Timeline */
+      .timeline-track {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        position: relative;
+        padding: 30px 10px 10px 10px;
+        margin: 20px 0;
+      }
+      .timeline-track::before {
+        content: '';
+        position: absolute;
+        top: 52px;
+        left: 50px;
+        right: 50px;
+        height: 4px;
+        background: rgba(255, 255, 255, 0.08);
+        z-index: 1;
+      }
+      .timeline-step {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+        z-index: 2;
+        flex: 1;
+        text-align: center;
+      }
+      
+      .step-icon-node {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: #0d1d33;
+        border: 2px solid rgba(255, 255, 255, 0.16);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        color: var(--muted);
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      }
+
+      /* Completed State - Green */
+      .timeline-step.completed .step-icon-node {
+        background: rgba(34, 197, 94, 0.15);
+        border-color: var(--success);
+        color: var(--success);
+        box-shadow: 0 0 16px rgba(34, 197, 94, 0.35);
+        animation: popCheck 0.4s ease forwards;
+      }
+      @keyframes popCheck {
+        0% { transform: scale(0.8); }
+        50% { transform: scale(1.15); }
+        100% { transform: scale(1); }
+      }
+
+      /* Current Active State - Blue Pulse */
+      .timeline-step.current .step-icon-node {
+        background: rgba(56, 189, 248, 0.2);
+        border-color: var(--accent);
+        color: #fff;
+        box-shadow: 0 0 20px rgba(56, 189, 248, 0.5);
+        animation: pulseGlow 1.8s infinite ease-in-out;
+      }
+      @keyframes pulseGlow {
+        0% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.6); }
+        70% { box-shadow: 0 0 0 14px rgba(56, 189, 248, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0); }
+      }
+
+      /* Rejected State - Red */
+      .timeline-step.rejected .step-icon-node {
+        background: rgba(239, 68, 68, 0.2);
+        border-color: var(--danger);
+        color: var(--danger);
+        box-shadow: 0 0 18px rgba(239, 68, 68, 0.4);
+      }
+
+      .step-label {
+        font-size: 0.85rem;
+        font-weight: 700;
+        margin-top: 10px;
+        color: var(--muted);
+        transition: color 0.3s ease;
+      }
+      .timeline-step.completed .step-label { color: #4ade80; }
+      .timeline-step.current .step-label { color: #38bdf8; font-weight: 800; }
+      .timeline-step.rejected .step-label { color: #f87171; font-weight: 800; }
+
+      .step-subtext {
+        font-size: 0.72rem;
+        color: var(--muted);
+        margin-top: 2px;
+      }
+
+      /* Vertical Timeline for Approval History */
+      .history-list {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        position: relative;
+        padding-left: 20px;
+        border-left: 2px solid rgba(255, 255, 255, 0.08);
+        margin-top: 10px;
+      }
+      .history-item {
+        position: relative;
+        background: rgba(255, 255, 255, 0.02);
+        padding: 14px 18px;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.04);
+      }
+      .history-item::before {
+        content: '';
+        position: absolute;
+        left: -27px;
+        top: 18px;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: var(--accent);
+        border: 2px solid var(--card);
+      }
+      .history-action { font-weight: 800; color: #fff; font-size: 0.95rem; }
+      .history-meta { color: var(--muted); font-size: 0.82rem; margin-top: 4px; display: flex; gap: 12px; }
+
+      /* Payment Verification Card */
+      .payment-card {
+        background: rgba(255, 255, 255, 0.02);
+        border-radius: 14px;
+        padding: 18px;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 14px;
+      }
+
+      /* Toast Notification */
+      .toast {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        background: rgba(9, 18, 36, 0.96);
+        border: 1px solid var(--accent);
+        color: #fff;
+        padding: 12px 20px;
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+        opacity: 0;
+        transform: translateY(12px);
+        transition: all 0.3s ease;
+        pointer-events: none;
+        z-index: 2000;
+        font-weight: 600;
+      }
+      .toast.visible { opacity: 1; transform: translateY(0); }
+
+      /* Responsive Mobile view */
+      @media (max-width: 850px) {
+        .timeline-track {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 20px;
+          padding-left: 20px;
+        }
+        .timeline-track::before {
+          top: 30px;
+          left: 34px;
+          width: 4px;
+          height: calc(100% - 60px);
+        }
+        .timeline-step {
+          flex-direction: row;
+          text-align: left;
+          gap: 16px;
+        }
+        .step-label { margin-top: 0; }
+      }
+
+      /* Printable PDF Styling (@media print) */
+      @media print {
+        body {
+          background: #ffffff !important;
+          color: #111827 !important;
+          padding: 0 !important;
+        }
+        .nav-actions, #refreshBadge, .btn { display: none !important; }
+        .card, .detail-box, .history-item {
+          background: #ffffff !important;
+          color: #111827 !important;
+          border: 1px solid #d1d5db !important;
+          box-shadow: none !important;
+        }
+        .card-title, .detail-val, .history-action, .brand .title { color: #111827 !important; }
+        .detail-label, .step-label, .history-meta { color: #4b5563 !important; }
+        .timeline-track::before { background: #e5e7eb !important; }
+        .step-icon-node { background: #f3f4f6 !important; border-color: #9ca3af !important; color: #111827 !important; }
+        .timeline-step.completed .step-icon-node { background: #dcfce7 !important; color: #15803d !important; }
+        .timeline-step.current .step-icon-node { background: #e0f2fe !important; color: #0369a1 !important; }
+        .timeline-step.rejected .step-icon-node { background: #fee2e2 !important; color: #b91c1c !important; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <!-- Navigation Header -->
+      <header class="nav">
+        <div class="brand">
+          <div class="title">
+            <span>🔍</span> Request Tracking Timeline
+          </div>
+          <div class="subtitle" id="navSubtitle">Loading real-time workflow status...</div>
+        </div>
+        <div class="nav-actions">
+          <button id="refreshBadge" class="btn ghost" onclick="fetchTrackingData(true)">
+            <span>🔄</span> <span id="autoRefreshCounter">Auto-refresh (30s)</span>
+          </button>
+          <button class="btn secondary" onclick="downloadReport()">
+            <span>📄</span> Download Report
+          </button>
+          <button class="btn ghost" onclick="shareTracking()">
+            <span>🔗</span> Share Tracking
+          </button>
+          <a href="employee-track-requests.html" class="btn ghost">← All Requests</a>
+          <a href="employee.html" class="btn primary">Dashboard</a>
+        </div>
+      </header>
+
+      <!-- Main Request Details Card -->
+      <section class="card">
+        <div class="card-title">
+          <span>Request Details</span>
+          <span id="headerStatusBadge" class="badge badge-pending">Pending</span>
+        </div>
+        <div class="summary-grid">
+          <div class="detail-box">
+            <div class="detail-label">Request ID</div>
+            <div class="detail-val" id="valId">—</div>
+          </div>
+          <div class="detail-box">
+            <div class="detail-label">Request Type</div>
+            <div class="detail-val" id="valType">—</div>
+          </div>
+          <div class="detail-box">
+            <div class="detail-label">Department</div>
+            <div class="detail-val" id="valDept">—</div>
+          </div>
+          <div class="detail-box">
+            <div class="detail-label">Amount</div>
+            <div class="detail-val" id="valAmount">—</div>
+          </div>
+          <div class="detail-box">
+            <div class="detail-label">Priority</div>
+            <div class="detail-val" id="valPriority">—</div>
+          </div>
+          <div class="detail-box">
+            <div class="detail-label">Current Status</div>
+            <div class="detail-val" id="valStatus">—</div>
+          </div>
+          <div class="detail-box">
+            <div class="detail-label">Current Approver</div>
+            <div class="detail-val" id="valApprover">—</div>
+          </div>
+          <div class="detail-box">
+            <div class="detail-label">Submitted Date</div>
+            <div class="detail-val" id="valDate">—</div>
+          </div>
+          <div class="detail-box">
+            <div class="detail-label">Payment Verification</div>
+            <div class="detail-val" id="valPaymentStatus"><span class="badge badge-unverified">Pending</span></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Progress Bar Card -->
+      <section class="card progress-card">
+        <div class="progress-bar-header">
+          <span class="progress-title">Overall Approval Progress</span>
+          <span class="progress-stats" id="progressStatsText">0%</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" id="progressFillBar" style="width: 0%;"></div>
+        </div>
+      </section>
+
+      <!-- Live Workflow Timeline Card -->
+      <section class="card">
+        <div class="card-title">
+          <span>Live Workflow Timeline</span>
+          <span style="font-size:0.82rem;color:var(--muted);font-weight:600;">Real-time Stage Progression</span>
+        </div>
+        
+        <div class="timeline-track" id="workflowTimelineTrack">
+          <!-- Rendered dynamically -->
+        </div>
+      </section>
+
+      <!-- Payment Verification Card -->
+      <section class="card">
+        <div class="card-title">Payment Verification Details</div>
+        <div class="payment-card">
+          <div>
+            <div class="detail-label">Status</div>
+            <div class="detail-val" id="pvStatusBadge"><span class="badge badge-unverified">Pending Verification</span></div>
+          </div>
+          <div>
+            <div class="detail-label">Verified By</div>
+            <div class="detail-val" id="pvVerifiedBy">Accounts Team</div>
+          </div>
+          <div>
+            <div class="detail-label">Verified Date</div>
+            <div class="detail-val" id="pvVerifiedAt">Pending</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Approval History Card -->
+      <section class="card">
+        <div class="card-title">Approval History & Audit Trail</div>
+        <div class="history-list" id="historyListContainer">
+          <!-- Rendered dynamically -->
+        </div>
+      </section>
+    </div>
+
+    <!-- Toast Component -->
+    <div class="toast" id="toastMsg"></div>
+
+    <script src="app.js"></script>
+    <script src="notification-center.js"></script>
+    <script>
+      const TRACK_API = 'http://localhost:4000/track';
+      const REQUESTS_API = 'http://localhost:4000/requests';
+      let requestId = null;
+      let refreshSeconds = 30;
+      let timerInterval = null;
+
+      document.addEventListener('DOMContentLoaded', () => {
+        checkAuth();
+        const params = new URLSearchParams(window.location.search);
+        requestId = params.get('id');
+
+        if (!requestId) {
+          showToast('No Request ID specified in URL.');
+          setTimeout(() => window.location.href = 'employee-track-requests.html', 1500);
+          return;
+        }
+
+        fetchTrackingData();
+        startAutoRefresh();
+      });
+
+      function startAutoRefresh() {
+        if (timerInterval) clearInterval(timerInterval);
+        refreshSeconds = 30;
+        timerInterval = setInterval(() => {
+          refreshSeconds--;
+          const el = document.getElementById('autoRefreshCounter');
+          if (el) el.textContent = `Auto-refresh (${refreshSeconds}s)`;
+          if (refreshSeconds <= 0) {
+            refreshSeconds = 30;
+            fetchTrackingData(true);
+          }
+        }, 1000);
+      }
+
+      async function fetchTrackingData(isSilent = false) {
+        if (!requestId) return;
+        try {
+          const token = getToken();
+          const response = await fetch(`${TRACK_API}/${encodeURIComponent(requestId)}`, {
+            headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+          });
+
+          if (!response.ok) {
+            // Fallback to /requests/:id if track route error
+            const fallbackRes = await fetch(`${REQUESTS_API}/${encodeURIComponent(requestId)}`, {
+              headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+            });
+            if (!fallbackRes.ok) throw new Error('Request tracking details not found');
+            const reqData = await fallbackRes.json();
+            renderTrackingDetails({ request: reqData, history: [], approvals: [], payment_verification: {} });
+            return;
+          }
+
+          const data = await response.json();
+          renderTrackingDetails(data);
+          if (!isSilent) showToast('Tracking timeline updated.');
+        } catch (err) {
+          console.error('Error fetching tracking data:', err);
+          if (!isSilent) showToast(err.message || 'Error loading tracking data.');
+        }
+      }
+
+      function renderTrackingDetails(data) {
+        const req = data.request || {};
+        const history = Array.isArray(data.history) ? data.history : [];
+        const approvals = Array.isArray(data.approvals) ? data.approvals : [];
+        const pv = data.payment_verification || {};
+
+        document.getElementById('navSubtitle').textContent = `Tracking Request #${req.id || requestId} (${req.type || req.request_type || 'General'})`;
+        document.getElementById('valId').textContent = `REQ-${req.id || requestId}`;
+        document.getElementById('valType').textContent = req.request_type || req.title || req.type || 'General Request';
+        document.getElementById('valDept').textContent = req.department || 'Operations';
+        document.getElementById('valAmount').textContent = req.amount ? `₹${Number(req.amount).toLocaleString()}` : '$0';
+        document.getElementById('valPriority').textContent = req.priority || 'Medium';
+        
+        const rawStatus = String(req.status || 'pending').toLowerCase();
+        let statusLabel = 'Pending';
+        let badgeClass = 'badge-pending';
+
+        if (rawStatus === 'approved' || rawStatus === 'completed') {
+          statusLabel = 'Approved';
+          badgeClass = 'badge-approved';
+        } else if (rawStatus === 'rejected') {
+          statusLabel = 'Rejected';
+          badgeClass = 'badge-rejected';
+        }
+
+        document.getElementById('valStatus').textContent = req.status || statusLabel;
+        document.getElementById('valApprover').textContent = rawStatus === 'approved' ? 'Completed' : (req.current_approver || req.current_role || 'Accounts');
+        document.getElementById('valDate').textContent = req.created_at ? new Date(Number(req.created_at) || req.created_at).toLocaleString() : new Date().toLocaleString();
+
+        const badgeHeader = document.getElementById('headerStatusBadge');
+        badgeHeader.className = `badge ${badgeClass}`;
+        badgeHeader.textContent = statusLabel;
+
+        // Payment Verification Card
+        const isVerified = Number(req.payment_verified ?? 0) === 1 || String(req.payment_verification_status || '').toLowerCase() === 'verified' || pv.status === 'Verified';
+        const pvBadgeHtml = isVerified ? `<span class="badge badge-verified">Verified</span>` : `<span class="badge badge-unverified">Pending Verification</span>`;
+        document.getElementById('valPaymentStatus').innerHTML = pvBadgeHtml;
+        document.getElementById('pvStatusBadge').innerHTML = pvBadgeHtml;
+        document.getElementById('pvVerifiedBy').textContent = req.payment_verified_by || pv.verified_by || (isVerified ? 'Accounts Team' : 'Pending');
+        document.getElementById('pvVerifiedAt').textContent = req.payment_verified_at ? new Date(req.payment_verified_at).toLocaleString() : (isVerified ? 'Verified' : 'Pending');
+
+        // Timeline Stages Evaluation
+        renderWorkflowTimeline(req, isVerified);
+        
+        // Approval History List
+        renderHistoryList(history, req);
+      }
+
+      function renderWorkflowTimeline(req, isPaymentVerified) {
+        const rawStatus = String(req.status || 'pending').toLowerCase();
+        const isCompleted = rawStatus === 'approved' || rawStatus === 'completed';
+        const isRejected = rawStatus === 'rejected';
+        const currentRole = String(req.current_role || req.currentRole || 'Accounts').toLowerCase();
+
+        // 7 Standard Stages
+        const stages = [
+          { id: 'submitted', label: 'Submitted', icon: '📝' },
+          { id: 'accounts', label: 'Accounts Review', icon: '🧾' },
+          { id: 'payment', label: 'Payment Verified', icon: '💳' },
+          { id: 'manager', label: 'Manager', icon: '👔' },
+          { id: 'cfo', label: 'CFO', icon: '💼' },
+          { id: 'md', label: 'MD', icon: '🏢' },
+          { id: 'completed', label: 'Completed', icon: '🏁' },
+        ];
+
+        let activeStageIndex = 0; // Default Submitted completed
+        if (isCompleted) {
+          activeStageIndex = 6; // All completed
+        } else if (isRejected) {
+          if (currentRole === 'accounts') activeStageIndex = 1;
+          else if (currentRole === 'manager') activeStageIndex = 3;
+          else if (currentRole === 'cfo') activeStageIndex = 4;
+          else if (currentRole === 'md') activeStageIndex = 5;
+        } else {
+          if (currentRole === 'accounts') activeStageIndex = isPaymentVerified ? 2 : 1;
+          else if (currentRole === 'manager') activeStageIndex = 3;
+          else if (currentRole === 'cfo') activeStageIndex = 4;
+          else if (currentRole === 'md') activeStageIndex = 5;
+        }
+
+        const trackEl = document.getElementById('workflowTimelineTrack');
+        trackEl.innerHTML = stages.map((st, idx) => {
+          let stepState = ''; // '' = upcoming
+          let iconContent = st.icon;
+
+          if (isCompleted) {
+            stepState = 'completed';
+            iconContent = '✓';
+          } else if (isRejected && idx === activeStageIndex) {
+            stepState = 'rejected';
+            iconContent = '❌';
+          } else if (idx < activeStageIndex) {
+            stepState = 'completed';
+            iconContent = '✓';
+          } else if (idx === activeStageIndex) {
+            stepState = 'current';
+            iconContent = '⏳';
+          }
+
+          let subtext = 'Upcoming';
+          if (stepState === 'completed') subtext = 'Done';
+          else if (stepState === 'current') subtext = 'In Progress';
+          else if (stepState === 'rejected') subtext = 'Rejected';
+
+          return `
+            <div class="timeline-step ${stepState}">
+              <div class="step-icon-node">${iconContent}</div>
+              <div class="step-label">${st.label}</div>
+              <div class="step-subtext">${subtext}</div>
+            </div>
+          `;
+        }).join('');
+
+        // Calculate progress percentage & stage count
+        let completedCount = isCompleted ? 7 : activeStageIndex;
+        if (!isCompleted && !isRejected && isPaymentVerified && activeStageIndex < 3) completedCount = 3;
+        const progressPercent = isCompleted ? 100 : (isRejected ? Math.round((completedCount / 7) * 100) : Math.min(Math.round((completedCount / 7) * 100), 95));
+
+        const progressFill = document.getElementById('progressFillBar');
+        progressFill.style.width = `${progressPercent}%`;
+        progressFill.className = `progress-fill ${isCompleted ? 'completed' : ''} ${isRejected ? 'rejected' : ''}`;
+        
+        document.getElementById('progressStatsText').textContent = `${progressPercent}% (${completedCount} / 7 stages completed)`;
+      }
+
+      function renderHistoryList(history, req) {
+        const container = document.getElementById('historyListContainer');
+        const items = [];
+
+        // Add initial submission event if exists or fallback
+        items.push({
+          action: 'Submitted by Employee',
+          performer: req.requester_name || req.requester || 'Employee',
+          timestamp: req.created_at ? new Date(Number(req.created_at) || req.created_at).toLocaleString() : new Date().toLocaleString(),
+        });
+
+        if (Number(req.payment_verified ?? 0) === 1 || String(req.payment_verification_status).toLowerCase() === 'verified') {
+          items.push({
+            action: 'Accounts verified payment.',
+            performer: req.payment_verified_by || 'Accounts Team',
+            timestamp: req.payment_verified_at ? new Date(req.payment_verified_at).toLocaleString() : 'Verified',
+          });
+        }
+
+        history.forEach(h => {
+          items.push({
+            action: h.action || 'Updated workflow',
+            performer: h.performed_by || 'Approver',
+            timestamp: h.timestamp ? new Date(h.timestamp).toLocaleString() : '',
+          });
+        });
+
+        if (String(req.status).toLowerCase() === 'pending') {
+          items.push({
+            action: `Waiting for ${req.current_approver || req.current_role || 'Manager'} Approval`,
+            performer: req.current_approver || req.current_role || 'Approver',
+            timestamp: 'Pending Action',
+          });
+        }
+
+        container.innerHTML = items.map(item => `
+          <div class="history-item">
+            <div class="history-action">${escapeHtml(item.action)}</div>
+            <div class="history-meta">
+              <span>👤 ${escapeHtml(item.performer)}</span>
+              <span>📅 ${escapeHtml(item.timestamp)}</span>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      function downloadReport() {
+        showToast('Opening printable report preview...');
+        window.print();
+      }
+
+      function shareTracking() {
+        const url = window.location.href;
+        navigator.clipboard.writeText(url).then(() => {
+          showToast('Tracking link copied to clipboard!');
+        }).catch(() => {
+          showToast(`Tracking URL: ${url}`);
+        });
+      }
+
+      function showToast(msg) {
+        const toast = document.getElementById('toastMsg');
+        toast.textContent = msg;
+        toast.classList.add('visible');
+        setTimeout(() => toast.classList.remove('visible'), 3000);
+      }
+
+      function escapeHtml(str) {
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+      }
+    </script>
+    <script src="settings-menu.js"></script>
+  </body>
+</html>

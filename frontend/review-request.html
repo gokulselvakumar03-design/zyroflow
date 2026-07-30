@@ -4,8 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Review Request - ZyroFlow</title>
+    <link rel="stylesheet" href="theme-system.css">
     <link rel="stylesheet" href="accounts-dashboard.css">
     <link rel="stylesheet" href="review-request.css">
+    <link rel="stylesheet" href="settings-menu.css">
 </head>
 <body>
     <!-- Top Navigation Bar -->
@@ -20,7 +22,6 @@
                 <div id="welcomeText" class="welcome-text">Good Morning, Accounts Team</div>
                 <div class="role-summary">Accounts Approval Review</div>
             </div>
-            <a href="profile.html" class="profile-link">Profile</a>
             <button class="logout-button" onclick="logout()">Logout</button>
         </div>
     </div>
@@ -98,6 +99,25 @@
                 </div>
             </section>
 
+            <!-- Payment Verification Card -->
+            <section class="card pv-card">
+                <h2 class="section-title">Payment Verification</h2>
+                <div class="details-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
+                    <div class="detail-box">
+                        <span class="detail-label">Status</span>
+                        <strong id="pv-card-status" class="detail-value">—</strong>
+                    </div>
+                    <div class="detail-box">
+                        <span class="detail-label">Verified By</span>
+                        <strong id="pv-card-by" class="detail-value">—</strong>
+                    </div>
+                    <div class="detail-box">
+                        <span class="detail-label">Verified At</span>
+                        <strong id="pv-card-at" class="detail-value">—</strong>
+                    </div>
+                </div>
+            </section>
+
             <!-- Workflow Progress Timeline Card -->
             <section class="card timeline-card">
                 <div class="section-header">
@@ -155,5 +175,6 @@
     </div>
 
     <script src="review-request.js"></script>
+    <script src="settings-menu.js"></script>
 </body>
 </html>
