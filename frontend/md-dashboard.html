@@ -772,6 +772,321 @@
                 text-transform: uppercase;
             }
         }
+
+        /* =========================================================
+           MD DASHBOARD LIGHT THEME OVERRIDES
+           (Active only when body.light-theme or [data-theme="light"] is present)
+           ========================================================= */
+        body.light-theme, [data-theme="light"] body {
+            background: #f5f7fb;
+            color: #1e293b;
+        }
+
+        body.light-theme::before {
+            display: none;
+        }
+
+        body.light-theme .page-title {
+            color: #1e293b;
+        }
+
+        body.light-theme .page-subtitle {
+            color: #64748b;
+        }
+
+        body.light-theme .brand-chip {
+            background: linear-gradient(135deg, #2563eb, #7c3aed);
+            color: #ffffff;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
+        }
+
+        body.light-theme .header-welcome {
+            color: #64748b;
+        }
+
+        body.light-theme .header-welcome strong {
+            color: #1e293b;
+        }
+
+        body.light-theme .header-icon-btn {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            color: #1e293b;
+        }
+
+        body.light-theme .header-icon-btn:hover {
+            background: #f8fafc;
+            border-color: #cbd5e1;
+        }
+
+        body.light-theme .pill {
+            border: 1px solid #e2e8f0;
+            background: #ffffff;
+            color: #1e293b;
+        }
+
+        body.light-theme .pill.accent {
+            background: #eff6ff;
+            border-color: #bfdbfe;
+            color: #1d4ed8;
+        }
+
+        body.light-theme .glass-card,
+        body.light-theme .queue-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        body.light-theme .glass-card::after {
+            display: none;
+        }
+
+        body.light-theme .section-head h2 {
+            color: #1e293b;
+        }
+
+        body.light-theme .section-head p {
+            color: #64748b;
+        }
+
+        body.light-theme .metric-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            box-shadow: none;
+        }
+
+        body.light-theme .metric-label {
+            color: #64748b;
+        }
+
+        body.light-theme .metric-value {
+            color: #1e293b;
+        }
+
+        body.light-theme .metric-foot {
+            color: #2563eb;
+        }
+
+        body.light-theme .action-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+        }
+
+        body.light-theme .action-card h3 {
+            color: #1e293b;
+        }
+
+        body.light-theme .action-card p {
+            color: #64748b;
+        }
+
+        body.light-theme .primary-button {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            color: #ffffff;
+            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.2);
+        }
+
+        body.light-theme .primary-button:hover {
+            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.3);
+        }
+
+        body.light-theme .secondary-button {
+            background: #ffffff;
+            color: #2563eb;
+            border: 1px solid #2563eb;
+        }
+
+        body.light-theme .secondary-button:hover {
+            background: #2563eb;
+            color: #ffffff;
+        }
+
+        body.light-theme .queue-wrapper::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+        }
+
+        body.light-theme .queue-table thead th {
+            color: #64748b;
+            border-bottom: 1px solid #e2e8f0;
+            background: #f8fafc;
+        }
+
+        body.light-theme .queue-table tbody tr {
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        body.light-theme .queue-table tbody td {
+            color: #1e293b;
+        }
+
+        body.light-theme .queue-table tbody tr:hover {
+            background: #f8fafc;
+        }
+
+        body.light-theme .status-chip.Pending { background: #fef3c7; color: #92400e; }
+        body.light-theme .status-chip.Escalated { background: #fee2e2; color: #991b1b; }
+        body.light-theme .status-chip.Approved { background: #dcfce7; color: #166534; }
+        body.light-theme .status-chip.CFOForwarded { background: #dbeafe; color: #1e40af; }
+        body.light-theme .status-chip.Strategic { background: #f3e8ff; color: #6b21a8; }
+
+        body.light-theme .risk-pill.Low { background: #dcfce7; color: #166534; }
+        body.light-theme .risk-pill.Medium { background: #fef3c7; color: #92400e; }
+        body.light-theme .risk-pill.High { background: #fee2e2; color: #991b1b; }
+
+        body.light-theme .chart-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+        }
+
+        body.light-theme .chart-card h3 {
+            color: #1e293b;
+        }
+
+        body.light-theme .insight-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+        }
+
+        body.light-theme .insight-card h4 {
+            color: #1e293b;
+        }
+
+        body.light-theme .insight-card p {
+            color: #64748b;
+        }
+
+        body.light-theme .insight-value {
+            color: #1e293b;
+        }
+
+        body.light-theme .summary-card-md {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+        }
+
+        body.light-theme .summary-card-md h4 {
+            color: #64748b;
+        }
+
+        body.light-theme .summary-card-md strong {
+            color: #1e293b;
+        }
+
+        body.light-theme .progress-pill {
+            background: #e2e8f0;
+        }
+
+        body.light-theme .notification-item,
+        body.light-theme .timeline-item {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+        }
+
+        body.light-theme .notification-item h4,
+        body.light-theme .timeline-item h4 {
+            color: #1e293b;
+        }
+
+        body.light-theme .notification-item p,
+        body.light-theme .timeline-item p {
+            color: #64748b;
+        }
+
+        body.light-theme .badge-pill.info { background: #dbeafe; color: #1e40af; }
+        body.light-theme .badge-pill.warning { background: #fef3c7; color: #92400e; }
+        body.light-theme .badge-pill.danger { background: #fee2e2; color: #991b1b; }
+        body.light-theme .badge-pill.success { background: #dcfce7; color: #166534; }
+
+        body.light-theme .decision-panel textarea,
+        body.light-theme .decision-panel select {
+            border: 1px solid #e2e8f0;
+            background: #ffffff;
+            color: #1e293b;
+        }
+
+        body.light-theme .decision-panel textarea::placeholder {
+            color: #94a3b8;
+        }
+
+        body.light-theme .decision-row button.approve { background: #2563eb; color: #ffffff; }
+        body.light-theme .decision-row button.reject { background: #ef4444; color: #ffffff; }
+        body.light-theme .decision-row button.sendback { background: #f59e0b; color: #ffffff; }
+        body.light-theme .decision-row button.escalate { background: #7c3aed; color: #ffffff; }
+
+        body.light-theme .footer {
+            color: #64748b;
+        }
+
+        /* Modals in Light Theme */
+        body.light-theme .modal-overlay {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px);
+        }
+
+        body.light-theme .modal-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        body.light-theme .modal-title {
+            color: #1e293b;
+        }
+
+        body.light-theme .modal-subtitle {
+            color: #64748b;
+        }
+
+        body.light-theme .modal-close {
+            color: #64748b;
+        }
+
+        body.light-theme .modal-close:hover {
+            color: #1e293b;
+        }
+
+        body.light-theme .modal-section {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+        }
+
+        body.light-theme .modal-section h3 {
+            color: #1e293b;
+        }
+
+        body.light-theme .modal-body p,
+        body.light-theme .modal-body li {
+            color: #64748b;
+        }
+
+        body.light-theme .modal-table th,
+        body.light-theme .modal-table td {
+            border-bottom: 1px solid #e2e8f0;
+            color: #1e293b;
+        }
+
+        body.light-theme .modal-table th {
+            background: #f1f5f9;
+            color: #64748b;
+        }
+
+        body.light-theme .modal-action-button {
+            background: #2563eb;
+            border: 1px solid #2563eb;
+            color: #ffffff;
+        }
+
+        body.light-theme .modal-action-button:hover {
+            background: #1d4ed8;
+        }
+
+        body.light-theme .modal-empty {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            color: #64748b;
+        }
     </style>
 </head>
 <body>

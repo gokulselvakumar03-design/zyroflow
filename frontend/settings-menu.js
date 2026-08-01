@@ -9,8 +9,8 @@
   const API_BASE = typeof window.API_BASE !== 'undefined' ? window.API_BASE : 'http://localhost:4000/api';
   let currentUserData = null;
 
-  // Always apply Dark Theme & remove light-theme class
-  ensureDarkTheme();
+  // Initialize Theme from localStorage (default: light)
+  applyThemeFromStorage();
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initZyroSettings);
@@ -58,14 +58,42 @@
     }
   }
 
-  function ensureDarkTheme() {
-    localStorage.removeItem('zyroflow_theme');
-    if (document.documentElement) document.documentElement.classList.remove('light-theme');
-    if (document.body) document.body.classList.remove('light-theme');
+  function applyThemeFromStorage() {
+    const theme = localStorage.getItem("theme") || "light";
+    if (theme === "dark") {
+      if (document.body) {
+        document.body.classList.remove("light-theme");
+        document.body.classList.add("dark-theme");
+      }
+    } else {
+      if (document.body) {
+        document.body.classList.remove("dark-theme");
+        document.body.classList.add("light-theme");
+      }
+    }
+  }
+
+  function handleThemeChange(selectedTheme) {
+    if (selectedTheme === "dark") {
+      localStorage.setItem("theme", "dark");
+      if (document.body) {
+        document.body.classList.remove("light-theme");
+        document.body.classList.add("dark-theme");
+      }
+    } else {
+      localStorage.setItem("theme", "light");
+      if (document.body) {
+        document.body.classList.remove("dark-theme");
+        document.body.classList.add("light-theme");
+      }
+    }
+    if (typeof window.updateChartColors === 'function') {
+      window.updateChartColors(selectedTheme);
+    }
   }
 
   function initZyroSettings() {
-    ensureDarkTheme();
+    applyThemeFromStorage();
     injectSettingsDrawerDOM();
     setupHeaderSettingsButton();
     setupGlobalEventListeners();
@@ -148,7 +176,7 @@
         <button type="button" class="zyro-tab-btn active" data-tab="profile">👤 My Profile</button>
         <button type="button" class="zyro-tab-btn" data-tab="security">🔐 Security</button>
         <button type="button" class="zyro-tab-btn" data-tab="notifications">🔔 Notifications</button>
-        <button type="button" class="zyro-tab-btn" data-tab="drafts">📄 My Drafts</button>
+        <button type="button" class="zyro-tab-btn" data-tab="theme">🎨 Theme</button>
       </div>
 
       <div class="zyro-drawer-body">
@@ -282,14 +310,34 @@
           </div>
         </div>
 
-        <!-- 📄 MY DRAFTS TAB -->
-        <div class="zyro-tab-content" id="zyroTab-drafts">
-          <div style="font-weight:700; margin-bottom: 6px; color:var(--text-primary);">Saved Draft Requests</div>
+        <!-- 🎨 THEME TAB -->
+        <div class="zyro-tab-content" id="zyroTab-theme">
+          <div style="font-weight:700; margin-bottom: 6px; color:var(--text-primary);">Appearance</div>
           <div style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:16px;">
-            Resume editing unfinished draft requests or remove pending draft submissions.
+            Choose your preferred theme.
           </div>
-          <div id="zyroDraftsListContainer" style="display:flex; flex-direction:column; gap:12px;">
-            <div style="text-align:center; padding:20px; color:var(--text-secondary);">Loading drafts...</div>
+          <div style="display:flex; flex-direction:column; gap:12px;">
+            <label class="zyro-theme-card" style="display:flex; align-items:center; justify-content:space-between; padding:14px 16px; background:var(--input-bg); border:1px solid var(--border); border-radius:12px; cursor:pointer;">
+              <div style="display:flex; align-items:center; gap:10px;">
+                <span style="font-size:1.2rem;">🌞</span>
+                <div>
+                  <div style="font-weight:700; color:var(--text-primary);">Light Theme</div>
+                  <div style="font-size:0.78rem; color:var(--text-secondary);">Clean enterprise light interface</div>
+                </div>
+              </div>
+              <input type="radio" name="zyro_theme_setting" value="light" id="themeRadioLight" style="width:18px; height:18px; cursor:pointer;" />
+            </label>
+
+            <label class="zyro-theme-card" style="display:flex; align-items:center; justify-content:space-between; padding:14px 16px; background:var(--input-bg); border:1px solid var(--border); border-radius:12px; cursor:pointer;">
+              <div style="display:flex; align-items:center; gap:10px;">
+                <span style="font-size:1.2rem;">🌙</span>
+                <div>
+                  <div style="font-weight:700; color:var(--text-primary);">Dark Theme</div>
+                  <div style="font-size:0.78rem; color:var(--text-secondary);">Sleek enterprise dark interface</div>
+                </div>
+              </div>
+              <input type="radio" name="zyro_theme_setting" value="dark" id="themeRadioDark" style="width:18px; height:18px; cursor:pointer;" />
+            </label>
           </div>
         </div>
 
@@ -322,10 +370,14 @@
         const activeContent = document.getElementById(`zyroTab-${targetTab}`);
         if (activeContent) activeContent.classList.add('active');
         hideDrawerMessage();
+      });
+    });
 
-        if (targetTab === 'drafts') {
-          fetchAndRenderDrawerDrafts();
-        }
+    // Theme selection listeners
+    const themeRadios = drawer.querySelectorAll('input[name="zyro_theme_setting"]');
+    themeRadios.forEach(radio => {
+      radio.addEventListener('change', (e) => {
+        handleThemeChange(e.target.value);
       });
     });
 
@@ -380,10 +432,11 @@
       drawer.classList.add('open');
       overlay.classList.add('visible');
 
-      const activeTab = drawer.querySelector('.zyro-tab-btn.active');
-      if (activeTab && activeTab.getAttribute('data-tab') === 'drafts') {
-        fetchAndRenderDrawerDrafts();
-      }
+      const currentTheme = localStorage.getItem("theme") || "light";
+      const radioLight = document.getElementById('themeRadioLight');
+      const radioDark = document.getElementById('themeRadioDark');
+      if (radioLight) radioLight.checked = (currentTheme === "light");
+      if (radioDark) radioDark.checked = (currentTheme === "dark");
     }
   }
 

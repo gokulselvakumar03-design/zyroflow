@@ -3,7 +3,183 @@
    ========================================================= */
 
 :root {
-  /* Color Tokens - Dark Mode (Default & Fixed Enterprise Theme) */
+  /* Color Tokens - Light Mode Default */
+  --background: #F5F7FA;
+  --bg-gradient: #F5F7FA;
+  --surface: #FFFFFF;
+  --card: #FFFFFF;
+  --card-hover: #EEF4FF;
+  --panel: #FFFFFF;
+  --glass: #FFFFFF;
+  --glass-border: #E5E7EB;
+  
+  --primary: #2563EB;
+  --primary-hover: #1D4ED8;
+  --primary-text: #FFFFFF;
+  --secondary: #6B7280;
+  --secondary-hover: #4B5563;
+  --accent: #2563EB;
+
+  --text-primary: #111827;
+  --text-secondary: #6B7280;
+  --text-muted: #6B7280;
+  --text-inverse: #FFFFFF;
+
+  --border: #E5E7EB;
+  --border-subtle: #F3F4F6;
+  --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
+
+  --success: #22C55E;
+  --success-bg: #F0FDF4;
+  --success-border: #DCFCE7;
+
+  --warning: #F59E0B;
+  --warning-bg: #FFFBEB;
+  --warning-border: #FEF3C7;
+
+  --danger: #EF4444;
+  --danger-bg: #FEF2F2;
+  --danger-border: #FEE2E2;
+
+  --input-bg: #FFFFFF;
+  --input-border: #E5E7EB;
+  --input-text: #111827;
+  --input-placeholder: #9CA3AF;
+  
+  --dropdown-bg: #FFFFFF;
+  --dropdown-text: #111827;
+  --dropdown-border: #E5E7EB;
+  --dropdown-hover: #EEF4FF;
+
+  --badge-bg: #F3F4F6;
+  --badge-text: #374151;
+
+  --table-header-bg: #F9FAFB;
+  --table-row-hover: #EEF4FF;
+
+  --tab-bg: #F9FAFB;
+  --tab-active-bg: #EEF4FF;
+  --tab-text: #6B7280;
+  --tab-active-text: #2563EB;
+
+  --modal-overlay: rgba(17, 24, 39, 0.4);
+
+  --modal-bg: #ffffff;
+  --modal-header-bg: #ffffff;
+  --modal-header-border: #e5e7eb;
+  --modal-title: #111827;
+  --modal-subtitle: #64748b;
+  --modal-body-bg: #ffffff;
+  --modal-label: #64748b;
+  --modal-value: #111827;
+  --modal-card-bg: #f8fafc;
+  --modal-card-border: #e2e8f0;
+  --modal-input-bg: #ffffff;
+  --modal-input-border: #d1d5db;
+  --modal-input-text: #111827;
+  --modal-input-placeholder: #94a3b8;
+  --modal-btn-primary-bg: #2563eb;
+  --modal-btn-primary-text: #ffffff;
+  --modal-btn-secondary-bg: #ffffff;
+  --modal-btn-secondary-text: #111827;
+  --modal-btn-secondary-border: #d1d5db;
+  --modal-btn-secondary-hover-bg: #eff6ff;
+  --modal-btn-secondary-hover-border: #2563eb;
+  --modal-btn-secondary-hover-text: #2563eb;
+  --modal-progress-track: #e5e7eb;
+  --modal-progress-fill: #f59e0b;
+  --modal-badge-pending-bg: #fef3c7;
+  --modal-badge-pending-text: #92400e;
+  --modal-badge-approved-bg: #dcfce7;
+  --modal-badge-approved-text: #166534;
+  --modal-badge-rejected-bg: #fee2e2;
+  --modal-badge-rejected-text: #991b1b;
+  --modal-close-bg: #f8fafc;
+  --modal-close-text: #111827;
+  --modal-close-hover-bg: #e2e8f0;
+}
+
+/* Light Theme explicit overrides */
+html.light-theme, body.light-theme, :root[data-theme="light"] {
+  --background: #F5F7FA;
+  --bg-gradient: #F5F7FA;
+  --surface: #FFFFFF;
+  --card: #FFFFFF;
+  --card-hover: #EEF4FF;
+  --panel: #FFFFFF;
+  --glass: #FFFFFF;
+  --glass-border: #E5E7EB;
+  
+  --primary: #2563EB;
+  --primary-hover: #1D4ED8;
+  --primary-text: #FFFFFF;
+  --secondary: #6B7280;
+  --secondary-hover: #4B5563;
+  --accent: #2563EB;
+
+  --text-primary: #111827;
+  --text-secondary: #6B7280;
+  --text-muted: #6B7280;
+  --text-inverse: #FFFFFF;
+
+  --border: #E5E7EB;
+  --border-subtle: #F3F4F6;
+  --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
+
+  --input-bg: #FFFFFF;
+  --input-border: #E5E7EB;
+  --input-text: #111827;
+  --input-placeholder: #9CA3AF;
+  
+  --dropdown-bg: #FFFFFF;
+  --dropdown-text: #111827;
+  --dropdown-border: #E5E7EB;
+  --dropdown-hover: #EEF4FF;
+
+  --table-header-bg: #F9FAFB;
+  --table-row-hover: #EEF4FF;
+
+  --modal-overlay: rgba(17, 24, 39, 0.4);
+
+  --modal-bg: #ffffff;
+  --modal-header-bg: #ffffff;
+  --modal-header-border: #e5e7eb;
+  --modal-title: #111827;
+  --modal-subtitle: #64748b;
+  --modal-body-bg: #ffffff;
+  --modal-label: #64748b;
+  --modal-value: #111827;
+  --modal-card-bg: #f8fafc;
+  --modal-card-border: #e2e8f0;
+  --modal-input-bg: #ffffff;
+  --modal-input-border: #d1d5db;
+  --modal-input-text: #111827;
+  --modal-input-placeholder: #94a3b8;
+  --modal-btn-primary-bg: #2563eb;
+  --modal-btn-primary-text: #ffffff;
+  --modal-btn-secondary-bg: #ffffff;
+  --modal-btn-secondary-text: #111827;
+  --modal-btn-secondary-border: #d1d5db;
+  --modal-btn-secondary-hover-bg: #eff6ff;
+  --modal-btn-secondary-hover-border: #2563eb;
+  --modal-btn-secondary-hover-text: #2563eb;
+  --modal-progress-track: #e5e7eb;
+  --modal-progress-fill: #f59e0b;
+  --modal-badge-pending-bg: #fef3c7;
+  --modal-badge-pending-text: #92400e;
+  --modal-badge-approved-bg: #dcfce7;
+  --modal-badge-approved-text: #166534;
+  --modal-badge-rejected-bg: #fee2e2;
+  --modal-badge-rejected-text: #991b1b;
+  --modal-close-bg: #f8fafc;
+  --modal-close-text: #111827;
+  --modal-close-hover-bg: #e2e8f0;
+}
+
+/* Dark Theme explicit overrides */
+html.dark-theme, body.dark-theme, :root[data-theme="dark"] {
   --background: #08121F;
   --bg-gradient: linear-gradient(180deg, #050E1A 0%, #08121F 100%);
   --surface: #13243C;
@@ -13,7 +189,6 @@
   --glass: rgba(255, 255, 255, 0.04);
   --glass-border: rgba(56, 189, 248, 0.15);
   
-  /* Primary & Accent Tokens */
   --primary: #38bdf8;
   --primary-hover: #0ea5e9;
   --primary-text: #071029;
@@ -21,32 +196,16 @@
   --secondary-hover: #A0B2CD;
   --accent: #38bdf8;
 
-  /* Typography Tokens */
   --text-primary: #FFFFFF;
   --text-secondary: #B8C4D6;
   --text-muted: #8899B0;
   --text-inverse: #0F172A;
 
-  /* Borders & Shadows */
   --border: #2D415F;
   --border-subtle: rgba(255, 255, 255, 0.08);
   --shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
   --shadow-sm: 0 4px 14px rgba(0, 0, 0, 0.25);
 
-  /* Status Colors */
-  --success: #22c55e;
-  --success-bg: rgba(34, 197, 94, 0.15);
-  --success-border: rgba(34, 197, 94, 0.3);
-
-  --warning: #f59e0b;
-  --warning-bg: rgba(245, 158, 11, 0.15);
-  --warning-border: rgba(245, 158, 11, 0.3);
-
-  --danger: #ef4444;
-  --danger-bg: rgba(239, 68, 68, 0.15);
-  --danger-border: rgba(239, 68, 68, 0.3);
-
-  /* Form Controls & Dropdowns */
   --input-bg: rgba(255, 255, 255, 0.04);
   --input-border: #2D415F;
   --input-text: #FFFFFF;
@@ -57,18 +216,54 @@
   --dropdown-border: #2D415F;
   --dropdown-hover: rgba(56, 189, 248, 0.15);
 
-  --badge-bg: rgba(255, 255, 255, 0.08);
-  --badge-text: #E2E8F0;
-
   --table-header-bg: rgba(255, 255, 255, 0.04);
   --table-row-hover: rgba(255, 255, 255, 0.06);
-  
-  --tab-bg: rgba(255, 255, 255, 0.04);
-  --tab-active-bg: rgba(56, 189, 248, 0.18);
-  --tab-text: #B8C4D6;
-  --tab-active-text: #38bdf8;
 
   --modal-overlay: rgba(4, 12, 29, 0.75);
+
+  --modal-bg: #091626;
+  --modal-header-bg: #091626;
+  --modal-header-border: rgba(255, 255, 255, 0.08);
+  --modal-title: #ffffff;
+  --modal-subtitle: #94a3b8;
+  --modal-body-bg: #091626;
+  --modal-label: #94a3b8;
+  --modal-value: #f8fafc;
+  --modal-card-bg: rgba(15, 23, 42, 0.7);
+  --modal-card-border: rgba(96, 165, 250, 0.2);
+  --modal-input-bg: #182435;
+  --modal-input-border: #3b82f6;
+  --modal-input-text: #ffffff;
+  --modal-input-placeholder: #8899B0;
+  --modal-btn-primary-bg: #2563eb;
+  --modal-btn-primary-text: #ffffff;
+  --modal-btn-secondary-bg: rgba(255, 255, 255, 0.06);
+  --modal-btn-secondary-text: #e2e8f0;
+  --modal-btn-secondary-border: rgba(255, 255, 255, 0.16);
+  --modal-btn-secondary-hover-bg: rgba(255, 255, 255, 0.12);
+  --modal-btn-secondary-hover-border: #38bdf8;
+  --modal-btn-secondary-hover-text: #38bdf8;
+  --modal-progress-track: rgba(255, 255, 255, 0.08);
+  --modal-progress-fill: #f59e0b;
+  --modal-badge-pending-bg: rgba(245, 158, 11, 0.2);
+  --modal-badge-pending-text: #fde68a;
+  --modal-badge-approved-bg: rgba(34, 197, 94, 0.2);
+  --modal-badge-approved-text: #86efac;
+  --modal-badge-rejected-bg: rgba(239, 68, 68, 0.2);
+  --modal-badge-rejected-text: #fca5a5;
+  --modal-close-bg: #1f2937;
+  --modal-close-text: #ffffff;
+  --modal-close-hover-bg: #ef4444;
+}
+
+/* Smooth 0.3s Theme Transitions */
+body, .nav, .navbar, .card, .kpi, .metric-card, .profile-card,
+.comment-item, .detail-value, .stat-card, .panel, .box, .chart-card,
+.dynamic-section-card, .chart-panel, .timeline-item, .modal-card,
+.review-card, .rules-card, .workflow-card, .dashboard-card,
+input, select, textarea, table, th, td, button, .btn, .profile-pill,
+.zyro-settings-drawer {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease !important;
 }
 
 /* =========================================================

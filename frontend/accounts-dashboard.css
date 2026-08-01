@@ -61,6 +61,13 @@ a:hover {
     align-items: center;
     gap: 16px;
     flex-wrap: wrap;
+    flex: 1;
+}
+
+.settings-dropdown-wrapper {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
 }
 
 .profile-link {
@@ -117,7 +124,7 @@ a:hover {
 }
 
 .user-info {
-    text-align: right;
+    text-align: left;
 }
 
 .welcome-text {
@@ -264,8 +271,8 @@ a:hover {
 }
 
 .insight-tile {
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: var(--input-bg);
+    border: 1px solid var(--border);
     border-radius: 20px;
     padding: 18px 20px;
     display: flex;
@@ -274,7 +281,7 @@ a:hover {
 }
 
 .tile-title {
-    color: #94a3b8;
+    color: var(--text-secondary);
     text-transform: uppercase;
     letter-spacing: 0.12em;
     font-size: 11px;
@@ -285,7 +292,7 @@ a:hover {
     font-size: 1.8rem;
     line-height: 1.1;
     font-weight: 800;
-    color: #fff;
+    color: var(--text-primary);
 }
 
 .priority-badge {
@@ -504,8 +511,9 @@ a:hover {
 }
 
 .kpi-card {
-    background: rgba(12, 31, 54, 0.95);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: var(--card);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-sm);
     border-radius: 20px;
     padding: 24px;
     min-height: 130px;
@@ -513,7 +521,7 @@ a:hover {
 
 .kpi-label {
     display: block;
-    color: #94a3b8;
+    color: var(--text-secondary);
     font-size: 12px;
     letter-spacing: 0.12em;
     text-transform: uppercase;
@@ -524,7 +532,7 @@ a:hover {
     display: block;
     font-size: 2.15rem;
     font-weight: 800;
-    color: #ffffff;
+    color: var(--text-primary);
 }
 
 .action-center .section-header,
@@ -544,7 +552,7 @@ a:hover {
     font-size: 1.35rem;
     font-weight: 800;
     letter-spacing: -0.02em;
-    color: #f8fafc;
+    color: var(--text-primary);
 }
 
 .section-note,
@@ -557,69 +565,281 @@ a:hover {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 16px;
+    width: 100%;
 }
 
 .action-button {
-    padding: 18px 20px;
-    border-radius: 18px;
-    font-weight: 700;
-    color: #f8fafc;
-    border: 1px solid transparent;
-    cursor: pointer;
-    transition: transform 0.25s ease, background 0.25s ease, border-color 0.25s ease;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+    height: 64px !important;
+    min-height: 64px !important;
+    border-radius: 18px !important;
+    padding: 0 24px !important;
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    transition: all 0.25s ease !important;
+    user-select: none !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
 }
 
 .action-button.primary {
-    background: linear-gradient(135deg, #2563eb, #22d3ee);
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+    color: #ffffff !important;
+    border: 1px solid transparent !important;
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.25) !important;
 }
 
 .action-button.secondary {
-    background: rgba(255, 255, 255, 0.06);
-    border-color: rgba(96, 165, 250, 0.16);
+    background: #ffffff !important;
+    color: #1e293b !important;
+    border: 1px solid #dbe4f0 !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
 }
 
 .action-button:hover {
-    transform: translateY(-1px);
+    transform: translateY(-3px) !important;
+    border-color: #2563eb !important;
+    box-shadow: 0 6px 20px rgba(37, 99, 235, 0.2) !important;
+    cursor: pointer !important;
 }
 
-.queue {
-    padding-top: 14px;
+.action-button.primary:hover {
+    background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%) !important;
+    color: #ffffff !important;
+    border-color: #1d4ed8 !important;
+    box-shadow: 0 8px 22px rgba(37, 99, 235, 0.35) !important;
 }
 
-.toolbar-row {
+.action-button.secondary:hover {
+    background: #ffffff !important;
+    color: #2563eb !important;
+    border-color: #2563eb !important;
+    box-shadow: 0 6px 20px rgba(37, 99, 235, 0.18) !important;
+}
+
+.action-button:active {
+    transform: scale(0.98) !important;
+}
+
+.action-button:disabled,
+.action-button.secondary:disabled {
+    background: #f8fafc !important;
+    color: #94a3b8 !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: none !important;
+    cursor: not-allowed !important;
+    transform: none !important;
+}
+
+@media (max-width: 1024px) {
+    .action-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 640px) {
+    .action-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Financial Request Queue Filter Chips */
+.filters {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    justify-content: space-between;
-    gap: 16px;
+    gap: 12px !important;
 }
 
-.export-button,
 .filter-button {
-    padding: 12px 18px;
-    border-radius: 14px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    background: rgba(255, 255, 255, 0.05);
-    color: #e2e8f0;
-    cursor: pointer;
-    font-weight: 700;
-    transition: transform 0.2s ease, background 0.2s ease;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    height: 42px !important;
+    min-height: 42px !important;
+    padding: 0 18px !important;
+    border-radius: 999px !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    background: #ffffff !important;
+    border: 1px solid #dbe4f0 !important;
+    color: #475569 !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+    transition: all 0.25s ease !important;
+    user-select: none !important;
+}
+
+/* Inactive Filter Chip Hover */
+.filter-button:not(.active):hover {
+    background: #eff6ff !important;
+    border-color: #2563eb !important;
+    color: #2563eb !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.12) !important;
+}
+
+/* Click Active State */
+.filter-button:active {
+    transform: scale(0.97) !important;
+}
+
+/* Selected Filter Chip Base Active Style */
+.filter-button.active {
+    color: #ffffff !important;
+    border: 1px solid transparent !important;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15) !important;
+    cursor: pointer !important;
+}
+
+.filter-button.active:hover {
+    transform: translateY(-2px) !important;
+    cursor: pointer !important;
+}
+
+/* Status-Specific Active Gradients & Shadows */
+/* All - Blue Gradient */
+.filter-button.active,
+.filter-button.active[data-filter="ALL"],
+.filter-button.active[data-filter="all"] {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35) !important;
+}
+
+.filter-button.active:hover,
+.filter-button.active[data-filter="ALL"]:hover,
+.filter-button.active[data-filter="all"]:hover {
+    box-shadow: 0 6px 18px rgba(37, 99, 235, 0.45) !important;
+}
+
+/* Pending - Amber Gradient */
+.filter-button.active[data-filter="Pending"],
+.filter-button.active[data-filter="pending"] {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+    box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35) !important;
+}
+
+.filter-button.active[data-filter="Pending"]:hover,
+.filter-button.active[data-filter="pending"]:hover {
+    box-shadow: 0 6px 18px rgba(245, 158, 11, 0.45) !important;
+}
+
+/* Approved - Green Gradient */
+.filter-button.active[data-filter="Approved"],
+.filter-button.active[data-filter="approved"] {
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%) !important;
+    box-shadow: 0 4px 14px rgba(34, 197, 94, 0.35) !important;
+}
+
+.filter-button.active[data-filter="Approved"]:hover,
+.filter-button.active[data-filter="approved"]:hover {
+    box-shadow: 0 6px 18px rgba(34, 197, 94, 0.45) !important;
+}
+
+/* Rejected - Red Gradient */
+.filter-button.active[data-filter="Rejected"],
+.filter-button.active[data-filter="rejected"] {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+    box-shadow: 0 4px 14px rgba(239, 68, 68, 0.35) !important;
+}
+
+.filter-button.active[data-filter="Rejected"]:hover,
+.filter-button.active[data-filter="rejected"]:hover {
+    box-shadow: 0 6px 18px rgba(239, 68, 68, 0.45) !important;
+}
+
+/* Cancelled - Slate Gradient */
+.filter-button.active[data-filter="Cancelled"],
+.filter-button.active[data-filter="cancelled"] {
+    background: linear-gradient(135deg, #64748b 0%, #475569 100%) !important;
+    box-shadow: 0 4px 14px rgba(100, 116, 139, 0.35) !important;
+}
+
+.filter-button.active[data-filter="Cancelled"]:hover,
+.filter-button.active[data-filter="cancelled"]:hover {
+    box-shadow: 0 6px 18px rgba(100, 116, 139, 0.45) !important;
+}
+
+/* Dark Theme Inactive Filter Chip Compatibility */
+body.dark-theme .filter-button:not(.active),
+html.dark-theme .filter-button:not(.active) {
+    background: rgba(255, 255, 255, 0.06) !important;
+    border: 1px solid rgba(255, 255, 255, 0.14) !important;
+    color: #cbd5e1 !important;
+}
+
+body.dark-theme .filter-button:not(.active):hover,
+html.dark-theme .filter-button:not(.active):hover {
+    background: rgba(255, 255, 255, 0.12) !important;
+    border-color: #38bdf8 !important;
+    color: #38bdf8 !important;
+}
+
+/* Export Report Filter Chip Style */
+.export-button,
+.export-chip {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    height: 42px !important;
+    min-height: 42px !important;
+    padding: 0 20px !important;
+    border-radius: 999px !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    background: #ffffff !important;
+    border: 1px solid #2563eb !important;
+    color: #2563eb !important;
+    box-shadow: 0 1px 4px rgba(37, 99, 235, 0.08) !important;
+    transition: all 0.25s ease !important;
+    user-select: none !important;
+    white-space: nowrap !important;
 }
 
 .export-button:hover,
-.filter-button:hover {
-    background: rgba(255, 255, 255, 0.13);
-    transform: translateY(-1px);
+.export-chip:hover {
+    background: #2563eb !important;
+    color: #ffffff !important;
+    border-color: #2563eb !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.28) !important;
 }
 
-.filter-button.active {
-    background: rgba(37, 99, 235, 0.22);
-    border-color: rgba(37, 99, 235, 0.28);
+.export-button:active,
+.export-chip:active {
+    transform: scale(0.97) !important;
+}
+
+/* Dark Theme Export Chip Compatibility */
+body.dark-theme .export-button,
+body.dark-theme .export-chip,
+html.dark-theme .export-button,
+html.dark-theme .export-chip {
+    background: rgba(37, 99, 235, 0.15) !important;
+    border: 1px solid #38bdf8 !important;
+    color: #38bdf8 !important;
+}
+
+body.dark-theme .export-button:hover,
+body.dark-theme .export-chip:hover,
+html.dark-theme .export-button:hover,
+html.dark-theme .export-chip:hover {
+    background: #38bdf8 !important;
+    color: #071029 !important;
+    border-color: #38bdf8 !important;
+    box-shadow: 0 4px 14px rgba(56, 189, 248, 0.35) !important;
 }
 
 .list-controls {
     display: flex;
     flex-wrap: wrap;
-    gap: 14px;
+    gap: 16px;
     align-items: center;
     justify-content: space-between;
     margin-bottom: 22px;
@@ -1018,7 +1238,7 @@ a:hover {
     display: grid;
     grid-template-columns: 1.3fr 1fr 1fr;
     gap: 18px;
-    margin-bottom: 24px;
+    margin-bottom: 40px;
 }
 
 .analytics-card {
@@ -1260,6 +1480,7 @@ a:hover {
     display: flex;
     flex-direction: column;
     gap: 18px;
+    color: var(--modal-value);
 }
 
 .pv-select-group {
@@ -1273,22 +1494,22 @@ a:hover {
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    color: #94a3b8;
+    color: var(--modal-label);
 }
 
 .pv-select {
     width: 100%;
     padding: 14px 18px;
     border-radius: 14px;
-    background-color: #182435;
-    border: 1px solid #3b82f6;
-    color: #ffffff;
+    background-color: var(--modal-input-bg);
+    border: 1px solid var(--modal-input-border);
+    color: var(--modal-input-text);
     font-size: 14px;
     font-weight: 600;
     outline: none;
     cursor: pointer;
     appearance: none;
-    background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2360A5FA%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+    background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%232563EB%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
     background-repeat: no-repeat;
     background-position: right 16px top 50%;
     background-size: 12px auto;
@@ -1296,13 +1517,13 @@ a:hover {
 }
 
 .pv-select:hover, .pv-select:focus {
-    border-color: #60a5fa;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
 }
 
 .pv-select option {
-    background-color: #182435;
-    color: #ffffff;
+    background-color: var(--modal-input-bg);
+    color: var(--modal-input-text);
     padding: 12px;
     font-size: 14px;
 }
@@ -1316,9 +1537,9 @@ a:hover {
     width: 100%;
     padding: 14px 18px;
     border-radius: 14px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    color: #ffffff;
+    background: var(--modal-input-bg);
+    border: 1px solid var(--modal-input-border);
+    color: var(--modal-input-text);
     font-size: 14px;
     outline: none;
     min-height: 90px;
@@ -1326,9 +1547,13 @@ a:hover {
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
+.pv-textarea::placeholder {
+    color: var(--modal-input-placeholder);
+}
+
 .pv-textarea:focus {
-    border-color: #60a5fa;
-    box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2);
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
 }
 
 .pv-textarea:disabled {
@@ -1338,7 +1563,7 @@ a:hover {
 
 .pv-char-counter {
     font-size: 11px;
-    color: #94a3b8;
+    color: var(--modal-label);
     text-align: right;
     margin-top: 4px;
 }
@@ -1355,14 +1580,14 @@ a:hover {
     border-radius: 999px;
     font-size: 12px;
     font-weight: 700;
-    background: rgba(245, 158, 11, 0.2);
-    color: #fde68a;
+    background: var(--modal-badge-pending-bg);
+    color: var(--modal-badge-pending-text);
     border: 1px solid rgba(245, 158, 11, 0.3);
 }
 
 .pv-progress-badge.ready {
-    background: rgba(34, 197, 94, 0.2);
-    color: #86efac;
+    background: var(--modal-badge-approved-bg);
+    color: var(--modal-badge-approved-text);
     border-color: rgba(34, 197, 94, 0.35);
 }
 
@@ -1372,8 +1597,8 @@ a:hover {
     gap: 8px;
     padding: 12px 18px;
     border-radius: 14px;
-    background: rgba(34, 197, 94, 0.15);
-    color: #86efac;
+    background: var(--modal-badge-approved-bg);
+    color: var(--modal-badge-approved-text);
     border: 1px solid rgba(34, 197, 94, 0.3);
     font-weight: 700;
     font-size: 14px;
@@ -1384,8 +1609,8 @@ a:hover {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 12px;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: var(--modal-card-bg);
+    border: 1px solid var(--modal-card-border);
     border-radius: 16px;
     padding: 16px;
 }
@@ -1398,23 +1623,23 @@ a:hover {
 
 .pv-detail-label {
     font-size: 11px;
-    color: #94a3b8;
+    color: var(--modal-label);
     text-transform: uppercase;
 }
 
 .pv-detail-val {
     font-size: 14px;
-    color: #f8fafc;
+    color: var(--modal-value);
 }
 
 .pv-detail-val.highlight {
-    color: #60a5fa;
+    color: #2563eb;
     font-size: 16px;
 }
 
 .pv-checklist-card {
-    background: rgba(15, 23, 42, 0.7);
-    border: 1px solid rgba(96, 165, 250, 0.2);
+    background: var(--modal-card-bg);
+    border: 1px solid var(--modal-card-border);
     border-radius: 16px;
     padding: 18px;
 }
@@ -1422,13 +1647,13 @@ a:hover {
 .pv-checklist-title {
     font-size: 14px;
     font-weight: 700;
-    color: #60a5fa;
+    color: var(--modal-title);
     margin-bottom: 4px;
 }
 
 .pv-checklist-sub {
     font-size: 12px;
-    color: #94a3b8;
+    color: var(--modal-subtitle);
     margin-bottom: 14px;
 }
 
@@ -1444,16 +1669,16 @@ a:hover {
     gap: 12px;
     padding: 10px 14px;
     border-radius: 10px;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: var(--modal-card-bg);
+    border: 1px solid var(--modal-card-border);
     cursor: pointer;
     font-size: 14px;
-    color: #e2e8f0;
+    color: var(--modal-value);
     transition: background 0.2s;
 }
 
 .pv-check-item:hover {
-    background: rgba(255, 255, 255, 0.08);
+    background: var(--modal-btn-secondary-hover-bg);
 }
 
 .pv-check-item input[type="checkbox"] {
@@ -1523,20 +1748,21 @@ a:hover {
     justify-content: space-between;
     font-size: 12px;
     font-weight: 700;
-    color: #94a3b8;
+    color: var(--modal-label);
 }
 
 .budget-progress-bar-bg {
     width: 100%;
     height: 14px;
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.08);
+    background: var(--modal-progress-track);
     overflow: hidden;
 }
 
 .budget-progress-bar-fill {
     height: 100%;
     border-radius: 999px;
+    background: var(--modal-progress-fill);
     transition: width 0.6s ease;
 }
 
@@ -1551,8 +1777,8 @@ a:hover {
 }
 
 .budget-metric-card {
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: var(--modal-card-bg);
+    border: 1px solid var(--modal-card-border);
     border-radius: 16px;
     padding: 16px;
     display: flex;
@@ -1562,17 +1788,17 @@ a:hover {
 
 .budget-metric-label {
     font-size: 11px;
-    color: #94a3b8;
+    color: var(--modal-label);
     text-transform: uppercase;
 }
 
 .budget-metric-val {
     font-size: 18px;
     font-weight: 800;
-    color: #ffffff;
+    color: var(--modal-value);
 }
 
-.green-text { color: #34d399; }
+.green-text { color: #166534; }
 
 .budget-dept-table {
     width: 100%;
@@ -1584,11 +1810,11 @@ a:hover {
 .budget-dept-table th, .budget-dept-table td {
     padding: 10px 14px;
     text-align: left;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    border-bottom: 1px solid var(--modal-card-border);
 }
 
 .budget-dept-table th {
-    color: #94a3b8;
+    color: var(--modal-label);
     font-weight: 700;
     text-transform: uppercase;
     font-size: 11px;
@@ -1604,10 +1830,10 @@ a:hover {
     top: calc(100% + 12px);
     right: 0;
     width: 320px;
-    background: rgba(12, 31, 54, 0.96);
-    border: 1px solid rgba(96, 165, 250, 0.25);
+    background: var(--dropdown-bg);
+    border: 1px solid var(--dropdown-border);
     border-radius: 18px;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
     backdrop-filter: blur(20px);
     z-index: 1000;
     display: none;
@@ -1624,10 +1850,10 @@ a:hover {
     justify-content: space-between;
     align-items: center;
     padding: 14px 18px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    border-bottom: 1px solid var(--dropdown-border);
     font-weight: 700;
     font-size: 14px;
-    color: #ffffff;
+    color: var(--dropdown-text);
 }
 
 .notif-unread-badge {
@@ -1635,7 +1861,7 @@ a:hover {
     padding: 2px 8px;
     border-radius: 999px;
     background: rgba(59, 130, 246, 0.2);
-    color: #60a5fa;
+    color: #2563eb;
 }
 
 .notif-body {
@@ -1645,42 +1871,42 @@ a:hover {
 
 .notif-item {
     padding: 12px 18px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    border-bottom: 1px solid var(--dropdown-border);
     cursor: pointer;
     transition: background 0.2s;
 }
 
 .notif-item:hover {
-    background: rgba(255, 255, 255, 0.06);
+    background: var(--dropdown-hover);
 }
 
 .notif-item.unread {
-    border-left: 3px solid #3b82f6;
-    background: rgba(59, 130, 246, 0.05);
+    border-left: 3px solid #2563eb;
+    background: var(--dropdown-hover);
 }
 
 .notif-title {
     font-size: 13px;
     font-weight: 700;
-    color: #f8fafc;
+    color: var(--text-primary);
     margin-bottom: 2px;
 }
 
 .notif-msg {
     font-size: 12px;
-    color: #94a3b8;
+    color: var(--text-secondary);
 }
 
 .notif-time {
     font-size: 10px;
-    color: #64748b;
+    color: var(--text-muted);
     margin-top: 4px;
 }
 
 .notif-empty {
     padding: 24px;
     text-align: center;
-    color: #94a3b8;
+    color: var(--text-secondary);
     font-size: 13px;
 }
 
@@ -1725,7 +1951,7 @@ a:hover {
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(4, 10, 20, 0.82);
+    background: var(--modal-overlay);
     backdrop-filter: blur(10px);
     z-index: 9999;
     display: flex;
@@ -1744,18 +1970,19 @@ a:hover {
 /* Modal Card Dialog Container */
 .modal-card {
     position: relative;
-    background: #091626;
-    border: 1px solid rgba(96, 165, 250, 0.22);
+    background: var(--modal-bg) !important;
+    border: 1px solid var(--modal-header-border) !important;
     border-radius: 24px;
     width: min(900px, 95vw);
     max-height: 90vh;
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    box-shadow: 0 30px 70px rgba(0, 0, 0, 0.6);
+    box-shadow: 0 30px 70px rgba(0, 0, 0, 0.25);
     transform: scale(0.95);
     opacity: 0;
     transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
+    color: var(--modal-value) !important;
 }
 
 .modal-overlay.open .modal-card {
@@ -1766,19 +1993,21 @@ a:hover {
 /* Fixed Modal Header */
 .modal-header {
     padding: 22px 28px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    border-bottom: 1px solid var(--modal-header-border) !important;
     display: flex;
     align-items: center;
     justify-content: space-between;
     flex-shrink: 0;
     position: relative;
-    background: rgba(12, 31, 54, 0.98);
+    background: var(--modal-header-bg) !important;
 }
 
-.modal-header h3 {
+.modal-header h3,
+#modal-title,
+.modal-title {
     font-size: 1.35rem;
     font-weight: 800;
-    color: #ffffff;
+    color: var(--modal-title) !important;
     padding-right: 48px;
 }
 
@@ -1789,12 +2018,12 @@ a:hover {
     right: 18px;
     width: 40px;
     height: 40px;
-    border: none;
+    border: 1px solid var(--modal-card-border) !important;
     border-radius: 50%;
     cursor: pointer;
     font-size: 22px;
-    background: #1f2937;
-    color: white;
+    background: var(--modal-close-bg) !important;
+    color: var(--modal-close-text) !important;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1803,7 +2032,7 @@ a:hover {
 }
 
 .modal-close:hover {
-    background: #ef4444;
+    background: var(--modal-close-hover-bg) !important;
 }
 
 /* Scrollable Modal Body */
@@ -1813,6 +2042,22 @@ a:hover {
     max-height: calc(90vh - 120px);
     padding: 24px 28px;
     padding-right: 10px;
+    background: var(--modal-body-bg) !important;
+    color: var(--modal-value) !important;
+}
+
+.modal-body p,
+.modal-body label,
+.modal-body span {
+    color: var(--modal-label);
+}
+
+.modal-body strong,
+.modal-body h4,
+.modal-body select,
+.modal-body input,
+.modal-body textarea {
+    color: var(--modal-value);
 }
 
 /* Custom Scrollbar for Modal Body */
@@ -1821,29 +2066,47 @@ a:hover {
 }
 
 .modal-body::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.04);
+    background: var(--modal-progress-track);
     border-radius: 4px;
 }
 
 .modal-body::-webkit-scrollbar-thumb {
-    background: rgba(96, 165, 250, 0.35);
+    background: var(--modal-btn-primary-bg);
     border-radius: 4px;
-}
-
-.modal-body::-webkit-scrollbar-thumb:hover {
-    background: rgba(96, 165, 250, 0.55);
 }
 
 /* Fixed Modal Footer */
 .modal-footer {
     padding: 18px 28px;
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
-    background: rgba(12, 31, 54, 0.98);
+    border-top: 1px solid var(--modal-header-border) !important;
+    background: var(--modal-header-bg) !important;
     display: flex;
     justify-content: flex-end;
     align-items: center;
     gap: 14px;
     flex-shrink: 0;
+}
+
+.modal-card button.action-button.secondary,
+.modal-footer button.action-button.secondary,
+.modal-card button:not(.primary):not(.modal-close) {
+    background: var(--modal-btn-secondary-bg) !important;
+    color: var(--modal-btn-secondary-text) !important;
+    border: 1px solid var(--modal-btn-secondary-border) !important;
+}
+
+.modal-card button.action-button.secondary:hover,
+.modal-footer button.action-button.secondary:hover,
+.modal-card button:not(.primary):not(.modal-close):hover {
+    background: var(--modal-btn-secondary-hover-bg) !important;
+    border-color: var(--modal-btn-secondary-hover-border) !important;
+    color: var(--modal-btn-secondary-hover-text) !important;
+}
+
+.modal-card button.action-button.primary,
+.modal-footer button.action-button.primary {
+    background: var(--modal-btn-primary-bg) !important;
+    color: var(--modal-btn-primary-text) !important;
 }
 
 /* Responsive Modal Breakpoints */

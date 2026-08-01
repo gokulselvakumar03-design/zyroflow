@@ -32,7 +32,9 @@
                 <div id="welcomeText" class="welcome-text">Good Morning, Accounts Team</div>
                 <div id="roleSummary" class="role-summary">Quick summary of financial requests</div>
             </div>
-            <button id="zyroSettingsBtn" class="settings-btn" type="button">⚙️ Settings</button>
+            <div class="settings-dropdown-wrapper">
+                <button id="zyroSettingsBtn" class="settings-btn" type="button">⚙️ Settings</button>
+            </div>
         </div>
     </div>
 
@@ -140,7 +142,6 @@
                     <h2 class="card-title">Financial Request Queue</h2>
                     <p class="section-subtitle">Review requests from employees, finance teams, and stakeholders.</p>
                 </div>
-                <button class="export-button" onclick="exportCSV()">Export Financial Report</button>
             </div>
             <div id="message" class="message"></div>
             <div class="list-controls">
@@ -150,6 +151,7 @@
                     <button class="filter-button" data-filter="Approved" onclick="filterRequests('Approved')">Approved</button>
                     <button class="filter-button" data-filter="Rejected" onclick="filterRequests('Rejected')">Rejected</button>
                     <button class="filter-button" data-filter="Cancelled" onclick="filterRequests('Cancelled')">Cancelled</button>
+                    <button class="export-button export-chip" onclick="exportCSV()">📄 Export Report</button>
                 </div>
                 <input type="text" id="searchBox" class="search-box" placeholder="Search by ID, employee, department..." oninput="renderRequests()" />
             </div>
@@ -215,21 +217,6 @@
                 <div class="chart-card chart-pie-container">
                     <canvas id="approval-chart-canvas"></canvas>
                 </div>
-            </div>
-        </section>
-
-        <section class="lower-grid">
-            <div class="card activities-card">
-                <div class="section-header">
-                    <h2 class="section-title">Recent Financial Activities</h2>
-                </div>
-                <ul id="recent-activities" class="timeline-list"></ul>
-            </div>
-            <div class="card notifications-card">
-                <div class="section-header">
-                    <h2 class="section-title">Notification Center</h2>
-                </div>
-                <ul id="notification-list" class="notification-list-panel"></ul>
             </div>
         </section>
     </div>

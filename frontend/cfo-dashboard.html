@@ -538,6 +538,297 @@
                 min-width: 0;
             }
         }
+
+        /* =========================================================
+           CFO DASHBOARD LIGHT THEME OVERRIDES
+           (Active only when body.light-theme or [data-theme="light"] is present)
+           ========================================================= */
+        body.light-theme, [data-theme="light"] body {
+            background: #f5f7fb;
+            color: #1e293b;
+        }
+
+        body.light-theme a {
+            color: #2563eb;
+        }
+
+        body.light-theme .navbar {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        body.light-theme .brand-pill {
+            color: #2563eb;
+            background: #eff6ff;
+        }
+
+        body.light-theme .navbar-title {
+            color: #1e293b;
+        }
+
+        body.light-theme .navbar-subtitle {
+            color: #64748b;
+        }
+
+        body.light-theme .notification {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            color: #1e293b;
+        }
+
+        body.light-theme .notif-count {
+            background: #2563eb;
+            color: #ffffff;
+        }
+
+        body.light-theme .welcome-text {
+            color: #1e293b;
+        }
+
+        body.light-theme .role-summary {
+            color: #64748b;
+        }
+
+        body.light-theme .profile-link {
+            background: #ffffff;
+            color: #2563eb;
+            border: 1px solid #2563eb;
+        }
+
+        body.light-theme .logout-button {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: #ffffff;
+            border-color: transparent;
+        }
+
+        body.light-theme .card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        body.light-theme .metric-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+        }
+
+        body.light-theme .metric-label {
+            color: #64748b;
+        }
+
+        body.light-theme .metric-value {
+            color: #1e293b;
+        }
+
+        body.light-theme .metric-note {
+            color: #64748b;
+        }
+
+        body.light-theme .eyebrow {
+            color: #2563eb;
+        }
+
+        body.light-theme .section-title {
+            color: #1e293b;
+        }
+
+        body.light-theme .primary-button {
+            background: #2563eb;
+            color: #ffffff;
+        }
+
+        body.light-theme .primary-button:hover {
+            background: #1d4ed8;
+        }
+
+        body.light-theme .secondary-button {
+            background: #ffffff;
+            color: #2563eb;
+            border: 1px solid #2563eb;
+        }
+
+        body.light-theme .secondary-button:hover {
+            background: #2563eb;
+            color: #ffffff;
+        }
+
+        body.light-theme .pill-button {
+            background: #ffffff;
+            color: #1e293b;
+            border: 1px solid #e2e8f0;
+        }
+
+        body.light-theme .pill-button:hover {
+            background: #2563eb;
+            color: #ffffff;
+            border-color: #2563eb;
+        }
+
+        body.light-theme .table-wrap {
+            border: 1px solid #e2e8f0;
+            background: #ffffff;
+        }
+
+        body.light-theme th {
+            background: #f8fafc;
+            color: #64748b;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        body.light-theme td {
+            color: #1e293b;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        body.light-theme tr:hover td {
+            background: #f8fafc;
+        }
+
+        body.light-theme .status-pending { background: #fef3c7; color: #92400e; }
+        body.light-theme .status-approved { background: #dcfce7; color: #166534; }
+        body.light-theme .status-rejected { background: #fee2e2; color: #991b1b; }
+        body.light-theme .status-cancelled { background: #f1f5f9; color: #64748b; }
+
+        body.light-theme .priority-high { background: #fee2e2; color: #991b1b; }
+        body.light-theme .priority-medium { background: #fef3c7; color: #92400e; }
+        body.light-theme .priority-low { background: #dcfce7; color: #166534; }
+
+        body.light-theme .approve-pill { background: #2563eb; color: #ffffff; }
+        body.light-theme .approve-pill:hover { background: #1d4ed8; }
+        body.light-theme .reject-pill { background: #ef4444; color: #ffffff; }
+        body.light-theme .reject-pill:hover { background: #dc2626; }
+        body.light-theme .escalate-pill { background: #f59e0b; color: #ffffff; }
+        body.light-theme .escalate-pill:hover { background: #d97706; }
+
+        body.light-theme .risk-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+        }
+
+        body.light-theme .risk-label {
+            color: #64748b;
+        }
+
+        body.light-theme .risk-value {
+            color: #1e293b;
+        }
+
+        body.light-theme .risk-detail {
+            color: #64748b;
+        }
+
+        body.light-theme .chart-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+        }
+
+        body.light-theme .insights-panel,
+        body.light-theme .timeline-panel,
+        body.light-theme .notifications-panel {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+        }
+
+        body.light-theme .insight-item,
+        body.light-theme .timeline-item,
+        body.light-theme .notification-item {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            color: #64748b;
+        }
+
+        body.light-theme .insight-item strong,
+        body.light-theme .timeline-item strong {
+            color: #1e293b;
+        }
+
+        body.light-theme .timeline-item time {
+            color: #64748b;
+        }
+
+        body.light-theme .notification-item strong {
+            color: #2563eb;
+        }
+
+        body.light-theme .message {
+            background: #f8fafc;
+            color: #1e293b;
+            border: 1px solid #e2e8f0;
+        }
+
+        body.light-theme .message.success { background: #dcfce7; color: #166534; border-color: #bbf7d0; }
+        body.light-theme .message.warning { background: #fef3c7; color: #92400e; border-color: #fde68a; }
+        body.light-theme .message.error { background: #fee2e2; color: #991b1b; border-color: #fecaca; }
+
+        /* Modals in Light Theme */
+        body.light-theme .modal-overlay {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px);
+        }
+
+        body.light-theme .modal-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        body.light-theme .modal-title {
+            color: #1e293b;
+        }
+
+        body.light-theme .modal-subtitle {
+            color: #64748b;
+        }
+
+        body.light-theme .modal-close {
+            color: #64748b;
+        }
+
+        body.light-theme .modal-close:hover {
+            color: #1e293b;
+        }
+
+        body.light-theme .modal-section {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+        }
+
+        body.light-theme .modal-section h3 {
+            color: #1e293b;
+        }
+
+        body.light-theme .modal-body p,
+        body.light-theme .modal-body li {
+            color: #64748b;
+        }
+
+        body.light-theme .modal-table th,
+        body.light-theme .modal-table td {
+            border-bottom: 1px solid #e2e8f0;
+            color: #1e293b;
+        }
+
+        body.light-theme .modal-table th {
+            background: #f1f5f9;
+            color: #64748b;
+        }
+
+        body.light-theme .modal-action-button {
+            background: #2563eb;
+            border: 1px solid #2563eb;
+            color: #ffffff;
+        }
+
+        body.light-theme .modal-action-button:hover {
+            background: #1d4ed8;
+        }
+
+        body.light-theme .modal-empty {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            color: #64748b;
+        }
     </style>
 </head>
 <body>

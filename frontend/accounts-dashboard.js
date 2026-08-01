@@ -67,6 +67,7 @@ function showToast(message, type = 'success', duration = 3500) {
 document.addEventListener('DOMContentLoaded', () => {
   checkAuthentication();
   displayUserHeader();
+  updateDashboardMetrics(accountsRequestsCache);
   loadAccountsRequests();
   loadFinancialAlerts();
   loadAnalyticsCharts();
@@ -155,6 +156,7 @@ async function loadAccountsRequests() {
     if (requestsList) {
       requestsList.innerHTML = '<tr class="empty-state"><td colspan="7">Failed to load requests. Please refresh or try logging in again.</td></tr>';
     }
+    updateDashboardMetrics(accountsRequestsCache);
   }
 }
 

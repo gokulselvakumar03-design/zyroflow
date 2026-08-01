@@ -15,17 +15,10 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #4facfe 75%, #00f2fe 100%);
-            background-size: 400% 400%;
-            animation: gradient-shift 15s ease infinite;
+            background: #F5F7FA !important;
+            color: #111827 !important;
             min-height: 100vh;
             padding: 20px;
-        }
-
-        @keyframes gradient-shift {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
         }
 
         /* Top Navigation */
@@ -35,15 +28,15 @@
             align-items: center;
             margin-bottom: 30px;
             padding: 20px 30px;
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(10px);
+            background: #FFFFFF !important;
             border-radius: 15px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid #E5E7EB !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            color: #111827 !important;
         }
 
         .navbar-title {
-            color: white;
+            color: #111827 !important;
             font-size: 24px;
             font-weight: 700;
         }
@@ -58,9 +51,9 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            color: rgba(255, 255, 255, 0.95);
-            background: rgba(255, 255, 255, 0.12);
-            border: 1px solid rgba(255, 255, 255, 0.25);
+            color: #111827 !important;
+            background: #F9FAFB !important;
+            border: 1px solid #E5E7EB !important;
             border-radius: 999px;
             padding: 8px 12px;
             font-size: 13px;
@@ -74,14 +67,14 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            background: rgba(255, 193, 7, 0.9);
-            color: #1f2937;
+            background: #F59E0B !important;
+            color: #FFFFFF !important;
             font-size: 12px;
             font-weight: 700;
         }
 
         .user-info {
-            color: rgba(255, 255, 255, 0.9);
+            color: #111827 !important;
             font-size: 14px;
             text-align: right;
         }
@@ -92,21 +85,21 @@
         }
 
         .welcome-text {
-            color: rgba(255, 255, 255, 0.9);
+            color: #6B7280 !important;
             font-size: 13px;
         }
 
         .role-summary {
-            color: rgba(255, 255, 255, 0.82);
+            color: #6B7280 !important;
             font-size: 12px;
             margin-top: 2px;
         }
 
         .logout-button {
             padding: 10px 20px;
-            background: rgba(255, 107, 107, 0.8);
-            color: white;
-            border: none;
+            background: #FEF2F2 !important;
+            color: #EF4444 !important;
+            border: 1px solid #FEE2E2 !important;
             border-radius: 8px;
             cursor: pointer;
             font-weight: 600;
@@ -114,7 +107,8 @@
         }
 
         .logout-button:hover {
-            background: rgba(255, 107, 107, 1);
+            background: #EF4444 !important;
+            color: #FFFFFF !important;
             transform: scale(1.05);
         }
 
@@ -129,16 +123,16 @@
 
         /* Card Style */
         .card {
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(10px);
+            background: #FFFFFF !important;
             border-radius: 15px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            border: 1px solid #E5E7EB !important;
             padding: 30px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            color: #111827 !important;
         }
 
         .card-title {
-            color: white;
+            color: #111827 !important;
             font-size: 20px;
             font-weight: 700;
             margin-bottom: 20px;
@@ -151,7 +145,7 @@
 
         .form-label {
             display: block;
-            color: rgba(255, 255, 255, 0.9);
+            color: #6B7280 !important;
             font-size: 13px;
             font-weight: 600;
             margin-bottom: 8px;
@@ -164,10 +158,10 @@
         .form-textarea {
             width: 100%;
             padding: 12px 16px;
-            border: 2px solid rgba(255, 255, 255, 0.2);
+            border: 1px solid #E5E7EB !important;
             border-radius: 8px;
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
+            background: #FFFFFF !important;
+            color: #111827 !important;
             font-size: 14px;
             font-family: inherit;
             transition: all 0.3s ease;
@@ -175,20 +169,21 @@
 
         .form-input::placeholder,
         .form-textarea::placeholder {
-            color: rgba(255, 255, 255, 0.6);
+            color: #9CA3AF !important;
         }
 
         .form-select option {
-            color: #1a1a1a;
+            color: #111827 !important;
+            background: #FFFFFF !important;
         }
 
         .form-input:focus,
         .form-select:focus,
         .form-textarea:focus {
             outline: none;
-            border-color: rgba(255, 255, 255, 0.6);
-            background: rgba(255, 255, 255, 0.25);
-            box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+            border-color: #2563EB !important;
+            background: #FFFFFF !important;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15) !important;
         }
 
         .form-textarea {
@@ -200,8 +195,8 @@
         .submit-button {
             width: 100%;
             padding: 12px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+            background: #2563EB !important;
+            color: #FFFFFF !important;
             border: none;
             border-radius: 8px;
             font-size: 15px;
@@ -210,12 +205,12 @@
             transition: all 0.3s ease;
             text-transform: uppercase;
             letter-spacing: 1px;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.2);
         }
 
         .submit-button:hover {
+            background: #1D4ED8 !important;
             transform: scale(1.02);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
         }
 
         .submit-button:disabled {
@@ -247,9 +242,9 @@
         }
 
         .filter-button {
-            border: 1px solid rgba(255, 255, 255, 0.35);
-            background: rgba(255, 255, 255, 0.14);
-            color: white;
+            border: 1px solid #E5E7EB !important;
+            background: #F9FAFB !important;
+            color: #4B5563 !important;
             border-radius: 999px;
             padding: 7px 11px;
             font-size: 12px;
@@ -260,8 +255,9 @@
 
         .filter-button:hover,
         .filter-button.active {
-            background: rgba(255, 255, 255, 0.28);
-            border-color: rgba(255, 255, 255, 0.6);
+            background: #2563EB !important;
+            color: #FFFFFF !important;
+            border-color: #2563EB !important;
         }
 
         .search-box {
@@ -269,38 +265,39 @@
             min-width: 220px;
             padding: 10px 14px;
             border-radius: 10px;
-            border: 1px solid rgba(255, 255, 255, 0.25);
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
+            border: 1px solid #E5E7EB !important;
+            background: #FFFFFF !important;
+            color: #111827 !important;
             font-size: 13px;
         }
 
         .search-box::placeholder {
-            color: rgba(255, 255, 255, 0.62);
+            color: #9CA3AF !important;
         }
 
         .search-box:focus {
             outline: none;
-            border-color: rgba(255, 255, 255, 0.6);
-            box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+            border-color: #2563EB !important;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15) !important;
         }
 
         .request-item {
-            background: rgba(255, 255, 255, 0.1);
+            background: #F9FAFB !important;
             padding: 15px;
             border-radius: 8px;
-            border-left: 4px solid #667eea;
-            color: white;
+            border-left: 4px solid #2563EB !important;
+            color: #111827 !important;
         }
 
-        .request-card.pending { border-left: 4px solid #ff9800; }
-        .request-card.approved { border-left: 4px solid #4caf50; }
-        .request-card.rejected { border-left: 4px solid #f44336; }
-        .request-card.cancelled { border-left: 4px solid #9ca3af; }
+        .request-card.pending { border-left: 4px solid #F59E0B !important; }
+        .request-card.approved { border-left: 4px solid #22C55E !important; }
+        .request-card.rejected { border-left: 4px solid #EF4444 !important; }
+        .request-card.cancelled { border-left: 4px solid #9CA3AF !important; }
 
         .request-title {
             font-weight: 600;
             margin-bottom: 5px;
+            color: #111827 !important;
         }
 
         .request-status {
@@ -314,23 +311,23 @@
         }
 
         .status-pending {
-            background: rgba(255, 193, 7, 0.3);
-            color: #ffc107;
+            background: #FEF3C7 !important;
+            color: #D97706 !important;
         }
 
         .status-approved {
-            background: rgba(76, 175, 80, 0.3);
-            color: #4caf50;
+            background: #DCFCE7 !important;
+            color: #15803D !important;
         }
 
         .status-rejected {
-            background: rgba(244, 67, 54, 0.3);
-            color: #f44336;
+            background: #FEE2E2 !important;
+            color: #DC2626 !important;
         }
 
         .status-cancelled {
-            background: rgba(148, 163, 184, 0.3);
-            color: #e2e8f0;
+            background: #F3F4F6 !important;
+            color: #4B5563 !important;
         }
 
         .request-actions {
@@ -342,9 +339,9 @@
         }
 
         .cancel-btn {
-            border: 1px solid rgba(244, 67, 54, 0.4);
-            background: rgba(244, 67, 54, 0.2);
-            color: #fecaca;
+            border: 1px solid #FEE2E2 !important;
+            background: #FEF2F2 !important;
+            color: #DC2626 !important;
             border-radius: 8px;
             padding: 6px 10px;
             cursor: pointer;
