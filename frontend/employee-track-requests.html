@@ -1,517 +1,690 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Track Requests - ZyroFlow</title>
-    <link rel="stylesheet" href="theme-system.css">
-    <link rel="stylesheet" href="settings-menu.css">
-    <style>
-      :root {
-        --bg: #F5F7FA;
-        --card: #FFFFFF;
-        --muted: #6B7280;
-        --accent: #2563EB;
-        --success: #22c55e;
-        --warning: #f59e0b;
-        --danger: #ef4444;
-        --glass: #FFFFFF;
-        --border: #E5E7EB;
-      }
-      * { box-sizing: border-box; }
-      body {
-        margin: 0;
-        font-family: 'Segoe UI', Roboto, -apple-system, sans-serif;
-        background: #F5F7FA !important;
-        color: #111827 !important;
-        min-height: 100vh;
-        padding: 24px 20px;
-      }
-      a { color: inherit; text-decoration: none; }
-      .container { max-width: 1240px; margin: 0 auto; }
-      
-      /* Navigation Header */
-      .nav {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 18px 24px;
-        border-radius: 16px;
-        background: #FFFFFF !important;
-        border: 1px solid #E5E7EB !important;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-        margin-bottom: 24px;
-        flex-wrap: wrap;
-        gap: 14px;
-        color: #111827 !important;
-      }
-      .brand { display: flex; flex-direction: column; }
-      .brand .title { font-size: 1.5rem; font-weight: 800; color: #111827 !important; display: flex; align-items: center; gap: 8px; }
-      .brand .subtitle { color: #6B7280 !important; font-size: 0.92rem; margin-top: 2px; }
-      .nav-actions { display: flex; align-items: center; gap: 12px; }
-      
-      .btn {
-        cursor: pointer;
-        padding: 10px 16px;
-        border-radius: 12px;
-        font-weight: 700;
-        font-size: 0.9rem;
-        transition: all 0.2s ease;
-        border: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-      }
-      .primary {
-        background: #2563EB !important;
-        color: #FFFFFF !important;
-        box-shadow: 0 2px 6px rgba(37, 99, 235, 0.2);
-      }
-      .primary:hover { background: #1D4ED8 !important; }
-      .ghost {
-        background: #FFFFFF !important;
-        border: 1px solid #E5E7EB !important;
-        color: #374151 !important;
-      }
-      .ghost:hover { background: #EEF4FF !important; border-color: #BFDBFE !important; color: #2563EB !important; }
 
-      /* Summary KPIs */
-      .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 14px;
-        margin-bottom: 24px;
-      }
-      .stat-card {
-        background: #FFFFFF !important;
-        padding: 16px 20px;
-        border-radius: 14px;
-        border: 1px solid #E5E7EB !important;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-      }
-      .stat-label { color: #6B7280 !important; font-size: 0.78rem; text-transform: uppercase; font-weight: 700; letter-spacing: 0.08em; }
-      .stat-val { font-size: 1.6rem; font-weight: 800; color: #111827 !important; margin-top: 6px; }
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Track Requests - ZyroFlow</title>
+  <link rel="stylesheet" href="theme-system.css">
+  <link rel="stylesheet" href="settings-menu.css">
+  <style>
+    :root {
+      --bg: #F5F7FA;
+      --card: #FFFFFF;
+      --muted: #6B7280;
+      --accent: #2563EB;
+      --success: #22c55e;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --glass: #FFFFFF;
+      --border: #E5E7EB;
+    }
 
-      /* Controls Section */
-      .controls-card {
-        background: #FFFFFF !important;
-        border-radius: 16px;
-        padding: 18px 20px;
-        border: 1px solid #E5E7EB !important;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-        margin-bottom: 24px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 16px;
-      }
-      .search-box {
-        position: relative;
-        flex: 1;
-        min-width: 260px;
-      }
-      .search-box input {
-        width: 100%;
-        padding: 11px 16px 11px 40px;
-        border-radius: 12px;
-        background: #FFFFFF !important;
-        border: 1px solid #E5E7EB !important;
-        color: #111827 !important;
-        font-size: 0.95rem;
-        outline: none;
-        transition: border-color 0.2s ease;
-      }
-      .search-box input:focus { border-color: #2563EB !important; }
-      .search-icon {
-        position: absolute;
-        left: 14px;
-        top: 50%;
-        transform: translateY(-50%);
-        color: #6B7280 !important;
-        pointer-events: none;
-      }
-      .filter-chips { display: flex; gap: 8px; flex-wrap: wrap; }
-      .chip {
-        padding: 8px 14px;
-        border-radius: 10px;
-        border: 1px solid #E5E7EB !important;
-        background: #F9FAFB !important;
-        color: #4B5563 !important;
-        font-size: 0.88rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.2s ease;
-      }
-      .chip.active {
-        background: #2563EB !important;
-        color: #FFFFFF !important;
-        border-color: #2563EB !important;
-        font-weight: 700;
-      }
+    * {
+      box-sizing: border-box;
+    }
 
-      /* Cards Grid */
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Roboto, -apple-system, sans-serif;
+      background: #F5F7FA !important;
+      color: #111827 !important;
+      min-height: 100vh;
+      padding: 24px 20px;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .container {
+      max-width: 1240px;
+      margin: 0 auto;
+    }
+
+    /* Navigation Header */
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 18px 24px;
+      border-radius: 16px;
+      background: #FFFFFF !important;
+      border: 1px solid #E5E7EB !important;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 14px;
+      color: #111827 !important;
+    }
+
+    .brand {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .brand .title {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: #111827 !important;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .brand .subtitle {
+      color: #6B7280 !important;
+      font-size: 0.92rem;
+      margin-top: 2px;
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .btn {
+      cursor: pointer;
+      padding: 10px 16px;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      transition: all 0.2s ease;
+      border: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .primary {
+      background: #2563EB !important;
+      color: #FFFFFF !important;
+      box-shadow: 0 2px 6px rgba(37, 99, 235, 0.2);
+    }
+
+    .primary:hover {
+      background: #1D4ED8 !important;
+    }
+
+    .ghost {
+      background: #FFFFFF !important;
+      border: 1px solid #E5E7EB !important;
+      color: #374151 !important;
+    }
+
+    .ghost:hover {
+      background: #EEF4FF !important;
+      border-color: #BFDBFE !important;
+      color: #2563EB !important;
+    }
+
+    /* Summary KPIs */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      background: #FFFFFF !important;
+      padding: 16px 20px;
+      border-radius: 14px;
+      border: 1px solid #E5E7EB !important;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .stat-label {
+      color: #6B7280 !important;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+    }
+
+    .stat-val {
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: #111827 !important;
+      margin-top: 6px;
+    }
+
+    /* Controls Section */
+    .controls-card {
+      background: #FFFFFF !important;
+      border-radius: 16px;
+      padding: 18px 20px;
+      border: 1px solid #E5E7EB !important;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .search-box {
+      position: relative;
+      flex: 1;
+      min-width: 260px;
+    }
+
+    .search-box input {
+      width: 100%;
+      padding: 11px 16px 11px 40px;
+      border-radius: 12px;
+      background: #FFFFFF !important;
+      border: 1px solid #E5E7EB !important;
+      color: #111827 !important;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s ease;
+    }
+
+    .search-box input:focus {
+      border-color: #2563EB !important;
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #6B7280 !important;
+      pointer-events: none;
+    }
+
+    .filter-chips {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .chip {
+      padding: 8px 14px;
+      border-radius: 10px;
+      border: 1px solid #E5E7EB !important;
+      background: #F9FAFB !important;
+      color: #4B5563 !important;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .chip.active {
+      background: #2563EB !important;
+      color: #FFFFFF !important;
+      border-color: #2563EB !important;
+      font-weight: 700;
+    }
+
+    /* Cards Grid */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+      gap: 20px;
+    }
+
+    .req-card {
+      background: #FFFFFF !important;
+      border-radius: 18px;
+      padding: 22px;
+      border: 1px solid #E5E7EB !important;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+      transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .req-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08) !important;
+      border-color: #BFDBFE !important;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .req-id {
+      font-size: 0.85rem;
+      font-weight: 800;
+      color: #2563EB !important;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .req-title {
+      font-size: 1.18rem;
+      font-weight: 800;
+      color: #111827 !important;
+      margin: 4px 0 0 0;
+    }
+
+    /* Badges */
+    .badge {
+      padding: 5px 12px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .badge-pending {
+      background: #FEF3C7 !important;
+      color: #D97706 !important;
+      border: 1px solid #FDE68A !important;
+    }
+
+    .badge-approved {
+      background: #DCFCE7 !important;
+      color: #15803D !important;
+      border: 1px solid #86EFAC !important;
+    }
+
+    .badge-completed {
+      background: #DCFCE7 !important;
+      color: #15803D !important;
+      border: 1px solid #86EFAC !important;
+    }
+
+    .badge-rejected {
+      background: #FEE2E2 !important;
+      color: #DC2626 !important;
+      border: 1px solid #FCA5A5 !important;
+    }
+
+    /* Card Content Grid */
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin: 16px 0;
+      padding: 14px;
+      background: #F9FAFB !important;
+      border-radius: 12px;
+      border: 1px solid #E5E7EB !important;
+    }
+
+    .info-item {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .info-label {
+      color: #6B7280 !important;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      font-weight: 700;
+    }
+
+    .info-value {
+      color: #111827 !important;
+      font-weight: 700;
+      font-size: 0.95rem;
+      margin-top: 3px;
+    }
+
+    .rejected-by {
+      color: #DC2626 !important;
+      font-weight: 700;
+      font-size: 0.88rem;
+      margin-top: 4px;
+      grid-column: 1 / -1;
+    }
+
+    /* Progress Bar */
+    .progress-container {
+      margin: 14px 0 18px 0;
+    }
+
+    .progress-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.82rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .progress-label {
+      color: #6B7280 !important;
+    }
+
+    .progress-percent {
+      color: #2563EB !important;
+    }
+
+    .progress-track {
+      height: 8px;
+      background: #F3F4F6 !important;
+      border-radius: 999px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: #2563EB !important;
+      border-radius: 999px;
+      transition: width 0.4s ease;
+    }
+
+    .progress-fill.completed {
+      background: #22C55E !important;
+    }
+
+    .progress-fill.rejected {
+      background: #EF4444 !important;
+    }
+
+    .card-actions {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 10px;
+    }
+
+    .card-actions .btn {
+      width: 100%;
+      justify-content: center;
+    }
+
+    /* Empty State */
+    .empty-state {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 60px 20px;
+      background: var(--card);
+      border-radius: 18px;
+      border: 1px dashed var(--border);
+      color: var(--muted);
+    }
+
+    .empty-state h3 {
+      color: #fff;
+      margin-bottom: 8px;
+    }
+
+    /* Refresh pulse */
+    .refresh-spinning {
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    @media (max-width: 768px) {
       .cards-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-        gap: 20px;
+        grid-template-columns: 1fr;
       }
-      
-      .req-card {
-        background: #FFFFFF !important;
-        border-radius: 18px;
-        padding: 22px;
-        border: 1px solid #E5E7EB !important;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-        transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
-        display: flex;
+
+      .controls-card {
         flex-direction: column;
-        justify-content: space-between;
-        position: relative;
-        overflow: hidden;
-      }
-      .req-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08) !important;
-        border-color: #BFDBFE !important;
-      }
-      .card-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        gap: 12px;
-        margin-bottom: 12px;
-      }
-      .req-id {
-        font-size: 0.85rem;
-        font-weight: 800;
-        color: #2563EB !important;
-        letter-spacing: 0.04em;
-        text-transform: uppercase;
-      }
-      .req-title {
-        font-size: 1.18rem;
-        font-weight: 800;
-        color: #111827 !important;
-        margin: 4px 0 0 0;
+        align-items: stretch;
       }
 
-      /* Badges */
-      .badge {
-        padding: 5px 12px;
-        border-radius: 999px;
-        font-size: 0.78rem;
-        font-weight: 800;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        display: inline-flex;
-        align-items: center;
-        gap: 5px;
+      .search-box {
+        width: 100%;
       }
-      .badge-pending { background: #FEF3C7 !important; color: #D97706 !important; border: 1px solid #FDE68A !important; }
-      .badge-approved { background: #DCFCE7 !important; color: #15803D !important; border: 1px solid #86EFAC !important; }
-      .badge-completed { background: #DCFCE7 !important; color: #15803D !important; border: 1px solid #86EFAC !important; }
-      .badge-rejected { background: #FEE2E2 !important; color: #DC2626 !important; border: 1px solid #FCA5A5 !important; }
 
-      /* Card Content Grid */
-      .info-grid {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 12px;
-        margin: 16px 0;
-        padding: 14px;
-        background: #F9FAFB !important;
-        border-radius: 12px;
-        border: 1px solid #E5E7EB !important;
+      .filter-chips {
+        overflow-x: auto;
+        padding-bottom: 6px;
       }
-      .info-item { display: flex; flex-direction: column; }
-      .info-label { color: #6B7280 !important; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700; }
-      .info-value { color: #111827 !important; font-weight: 700; font-size: 0.95rem; margin-top: 3px; }
-      .rejected-by { color: #DC2626 !important; font-weight: 700; font-size: 0.88rem; margin-top: 4px; grid-column: 1 / -1; }
+    }
+  </style>
+</head>
 
-      /* Progress Bar */
-      .progress-container { margin: 14px 0 18px 0; }
-      .progress-header { display: flex; justify-content: space-between; font-size: 0.82rem; font-weight: 700; margin-bottom: 6px; }
-      .progress-label { color: #6B7280 !important; }
-      .progress-percent { color: #2563EB !important; }
-      .progress-track {
-        height: 8px;
-        background: #F3F4F6 !important;
-        border-radius: 999px;
-        overflow: hidden;
-        position: relative;
-      }
-      .progress-fill {
-        height: 100%;
-        background: #2563EB !important;
-        border-radius: 999px;
-        transition: width 0.4s ease;
-      }
-      .progress-fill.completed { background: #22C55E !important; }
-      .progress-fill.rejected { background: #EF4444 !important; }
-
-      .card-actions {
-        display: flex;
-        justify-content: flex-end;
-        margin-top: 10px;
-      }
-      .card-actions .btn { width: 100%; justify-content: center; }
-
-      /* Empty State */
-      .empty-state {
-        grid-column: 1 / -1;
-        text-align: center;
-        padding: 60px 20px;
-        background: var(--card);
-        border-radius: 18px;
-        border: 1px dashed var(--border);
-        color: var(--muted);
-      }
-      .empty-state h3 { color: #fff; margin-bottom: 8px; }
-
-      /* Refresh pulse */
-      .refresh-spinning { animation: spin 0.8s linear infinite; }
-      @keyframes spin { 100% { transform: rotate(360deg); } }
-
-      @media (max-width: 768px) {
-        .cards-grid { grid-template-columns: 1fr; }
-        .controls-card { flex-direction: column; align-items: stretch; }
-        .search-box { width: 100%; }
-        .filter-chips { overflow-x: auto; padding-bottom: 6px; }
-      }
-    </style>
-  </head>
-  <body>
-    <div class="container">
-      <!-- Navigation Header -->
-      <header class="nav">
-        <div class="brand">
-          <div class="title">
-            <span>📍</span> Track Requests
-          </div>
-          <div class="subtitle">Individual real-time workflow tracking for your submitted requests.</div>
+<body>
+  <div class="container">
+    <!-- Navigation Header -->
+    <header class="nav">
+      <div class="brand">
+        <div class="title">
+          <span>📍</span> Track Requests
         </div>
-        <div class="nav-actions">
-          <button id="refreshBtn" class="btn ghost" onclick="loadUserRequests(true)">
-            <span id="refreshIcon">🔄</span> Refresh
-          </button>
-          <a href="employee.html" class="btn ghost">← Back to Workspace</a>
-          <button id="zyroSettingsBtn" class="settings-btn" type="button">⚙️ Settings</button>
-        </div>
-      </header>
+        <div class="subtitle">Individual real-time workflow tracking for your submitted requests.</div>
+      </div>
+      <div class="nav-actions">
+        <button id="refreshBtn" class="btn ghost" onclick="loadUserRequests(true)">
+          <span id="refreshIcon">🔄</span> Refresh
+        </button>
+        <a href="employee.html" class="btn ghost">← Back to Workspace</a>
+        <button id="zyroSettingsBtn" class="settings-btn" type="button">⚙️ Settings</button>
+      </div>
+    </header>
 
-      <!-- Stats Summary -->
-      <section class="stats-grid">
-        <div class="stat-card">
-          <span class="stat-label">Total Requests</span>
-          <span class="stat-val" id="statTotal">0</span>
-        </div>
-        <div class="stat-card">
-          <span class="stat-label">Pending Approval</span>
-          <span class="stat-val" id="statPending" style="color:var(--accent)">0</span>
-        </div>
-        <div class="stat-card">
-          <span class="stat-label">Approved & Completed</span>
-          <span class="stat-val" id="statApproved" style="color:var(--success)">0</span>
-        </div>
-        <div class="stat-card">
-          <span class="stat-label">Rejected Requests</span>
-          <span class="stat-val" id="statRejected" style="color:var(--danger)">0</span>
-        </div>
-      </section>
+    <!-- Stats Summary -->
+    <section class="stats-grid">
+      <div class="stat-card">
+        <span class="stat-label">Total Requests</span>
+        <span class="stat-val" id="statTotal">0</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Pending Approval</span>
+        <span class="stat-val" id="statPending" style="color:var(--accent)">0</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Approved & Completed</span>
+        <span class="stat-val" id="statApproved" style="color:var(--success)">0</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Rejected Requests</span>
+        <span class="stat-val" id="statRejected" style="color:var(--danger)">0</span>
+      </div>
+    </section>
 
-      <!-- Controls: Search & Filters -->
-      <section class="controls-card">
-        <div class="search-box">
-          <span class="search-icon">🔍</span>
-          <input type="text" id="searchInput" placeholder="Search by Request ID, Type, or Department..." oninput="filterAndRenderCards()">
-        </div>
-        <div class="filter-chips" id="filterChips">
-          <button class="chip active" data-filter="All" onclick="setFilter('All')">All</button>
-          <button class="chip" data-filter="Pending" onclick="setFilter('Pending')">Pending</button>
-          <button class="chip" data-filter="Approved" onclick="setFilter('Approved')">Approved</button>
-          <button class="chip" data-filter="Rejected" onclick="setFilter('Rejected')">Rejected</button>
-          <button class="chip" data-filter="Completed" onclick="setFilter('Completed')">Completed</button>
-        </div>
-      </section>
+    <!-- Controls: Search & Filters -->
+    <section class="controls-card">
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="searchInput" placeholder="Search by Request ID, Type, or Department..."
+          oninput="filterAndRenderCards()">
+      </div>
+      <div class="filter-chips" id="filterChips">
+        <button class="chip active" data-filter="All" onclick="setFilter('All')">All</button>
+        <button class="chip" data-filter="Pending" onclick="setFilter('Pending')">Pending</button>
+        <button class="chip" data-filter="Approved" onclick="setFilter('Approved')">Approved</button>
+        <button class="chip" data-filter="Rejected" onclick="setFilter('Rejected')">Rejected</button>
+        <button class="chip" data-filter="Completed" onclick="setFilter('Completed')">Completed</button>
+      </div>
+    </section>
 
-      <!-- Request Cards Grid -->
-      <main id="cardsContainer" class="cards-grid">
-        <!-- Rendered dynamically -->
-      </main>
-    </div>
+    <!-- Request Cards Grid -->
+    <main id="cardsContainer" class="cards-grid">
+      <!-- Rendered dynamically -->
+    </main>
+  </div>
 
-    <script src="app.js"></script>
-    <script src="notification-center.js"></script>
-    <script>
-      const REQUESTS_API = 'http://localhost:4000/requests';
-      let allRequests = [];
-      let currentFilter = 'All';
-      let autoRefreshTimer = null;
+  <script src="app.js"></script>
+  <script src="notification-center.js"></script>
+  <script>
+    const REQUESTS_API = 'http://localhost:4000/requests';
+    let allRequests = [];
+    let currentFilter = 'All';
+    let autoRefreshTimer = null;
 
-      document.addEventListener('DOMContentLoaded', () => {
-        checkAuth();
-        loadUserRequests();
-        // Auto refresh tracking list every 30 seconds
-        autoRefreshTimer = setInterval(() => loadUserRequests(true), 30000);
-      });
+    document.addEventListener('DOMContentLoaded', () => {
+      checkAuth();
+      loadUserRequests();
+      // Auto refresh tracking list every 30 seconds
+      autoRefreshTimer = setInterval(() => loadUserRequests(true), 30000);
+    });
 
-      function getCurrentUserEmail() {
-        try {
-          const u = JSON.parse(localStorage.getItem('currentUser') || 'null');
-          return u?.email || localStorage.getItem('userEmail') || localStorage.getItem('email') || '';
-        } catch(e) { return ''; }
-      }
+    function getCurrentUserEmail() {
+      try {
+        const u = JSON.parse(localStorage.getItem('currentUser') || 'null');
+        return u?.email || localStorage.getItem('userEmail') || localStorage.getItem('email') || '';
+      } catch (e) { return ''; }
+    }
 
-      async function loadUserRequests(isSilent = false) {
-        const refreshIcon = document.getElementById('refreshIcon');
-        if (!isSilent && refreshIcon) refreshIcon.classList.add('refresh-spinning');
+    async function loadUserRequests(isSilent = false) {
+      const refreshIcon = document.getElementById('refreshIcon');
+      if (!isSilent && refreshIcon) refreshIcon.classList.add('refresh-spinning');
 
-        try {
-          const token = getToken();
-          const response = await fetch(REQUESTS_API, {
-            headers: token ? { 'Authorization': `Bearer ${token}` } : {}
-          });
-          if (!response.ok) throw new Error('Failed to fetch requests');
-          const data = await response.json();
-          const userEmail = getCurrentUserEmail().toLowerCase();
-          
-          allRequests = Array.isArray(data) ? data.filter(r => {
-            if (!userEmail) return true;
-            const reqEmail = String(r.requester_email || r.requesterEmail || r.email || '').toLowerCase();
-            return reqEmail === userEmail;
-          }) : [];
+      try {
+        const token = getToken();
+        const response = await fetch(REQUESTS_API, {
+          headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+        });
+        if (!response.ok) throw new Error('Failed to fetch requests');
+        const data = await response.json();
+        const userEmail = getCurrentUserEmail().toLowerCase();
 
-          updateStats();
-          filterAndRenderCards();
-        } catch (err) {
-          console.error('Error loading tracking requests:', err);
-          if (!isSilent) {
-            document.getElementById('cardsContainer').innerHTML = `
+        allRequests = Array.isArray(data) ? data.filter(r => {
+          if (!userEmail) return true;
+          const reqEmail = String(r.requester_email || r.requesterEmail || r.email || '').toLowerCase();
+          return reqEmail === userEmail;
+        }) : [];
+
+        updateStats();
+        filterAndRenderCards();
+      } catch (err) {
+        console.error('Error loading tracking requests:', err);
+        if (!isSilent) {
+          document.getElementById('cardsContainer').innerHTML = `
               <div class="empty-state">
                 <h3>Error Loading Requests</h3>
                 <p>${err.message || 'Unable to connect to ZyroFlow server.'}</p>
                 <button class="btn primary" onclick="loadUserRequests()" style="margin-top:10px;">Retry</button>
               </div>
             `;
-          }
-        } finally {
-          if (refreshIcon) refreshIcon.classList.remove('refresh-spinning');
         }
+      } finally {
+        if (refreshIcon) refreshIcon.classList.remove('refresh-spinning');
+      }
+    }
+
+    function updateStats() {
+      document.getElementById('statTotal').textContent = allRequests.length;
+      document.getElementById('statPending').textContent = allRequests.filter(r => toStatusCategory(r.status) === 'Pending').length;
+      document.getElementById('statApproved').textContent = allRequests.filter(r => toStatusCategory(r.status) === 'Approved' || toStatusCategory(r.status) === 'Completed').length;
+      document.getElementById('statRejected').textContent = allRequests.filter(r => toStatusCategory(r.status) === 'Rejected').length;
+    }
+
+    function setFilter(filter) {
+      currentFilter = filter;
+      document.querySelectorAll('#filterChips .chip').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.filter === filter);
+      });
+      filterAndRenderCards();
+    }
+
+    function toStatusCategory(status) {
+      const s = String(status || '').toLowerCase().trim();
+      if (s === 'approved' || s === 'completed') return 'Completed';
+      if (s === 'rejected') return 'Rejected';
+      return 'Pending';
+    }
+
+    function calculateProgress(req) {
+      const s = String(req.status || '').toLowerCase().trim();
+      if (s === 'approved' || s === 'completed') return { percent: 100, label: '7 / 7 stages completed', isCompleted: true, isRejected: false };
+      if (s === 'rejected') {
+        const level = Number(req.current_level ?? 1);
+        const percent = Math.min(Math.round((level / 6) * 100), 90);
+        return { percent, label: 'Rejected', isCompleted: false, isRejected: true };
       }
 
-      function updateStats() {
-        document.getElementById('statTotal').textContent = allRequests.length;
-        document.getElementById('statPending').textContent = allRequests.filter(r => toStatusCategory(r.status) === 'Pending').length;
-        document.getElementById('statApproved').textContent = allRequests.filter(r => toStatusCategory(r.status) === 'Approved' || toStatusCategory(r.status) === 'Completed').length;
-        document.getElementById('statRejected').textContent = allRequests.filter(r => toStatusCategory(r.status) === 'Rejected').length;
-      }
+      const role = String(req.current_role || req.currentRole || 'Accounts').toLowerCase();
+      const isPv = Number(req.payment_verified ?? 0) === 1 || String(req.payment_verification_status).toLowerCase() === 'verified';
 
-      function setFilter(filter) {
-        currentFilter = filter;
-        document.querySelectorAll('#filterChips .chip').forEach(btn => {
-          btn.classList.toggle('active', btn.dataset.filter === filter);
-        });
-        filterAndRenderCards();
-      }
+      let completedSteps = 1; // Submitted
+      if (isPv) completedSteps = 3; // Payment verified
+      else if (role !== 'accounts') completedSteps = 2; // Past accounts
 
-      function toStatusCategory(status) {
-        const s = String(status || '').toLowerCase().trim();
-        if (s === 'approved' || s === 'completed') return 'Completed';
-        if (s === 'rejected') return 'Rejected';
-        return 'Pending';
-      }
+      if (role === 'manager') completedSteps = Math.max(completedSteps, 3);
+      else if (role === 'cfo') completedSteps = 4;
+      else if (role === 'md') completedSteps = 5;
 
-      function calculateProgress(req) {
-        const s = String(req.status || '').toLowerCase().trim();
-        if (s === 'approved' || s === 'completed') return { percent: 100, label: '7 / 7 stages completed', isCompleted: true, isRejected: false };
-        if (s === 'rejected') {
-          const level = Number(req.current_level ?? 1);
-          const percent = Math.min(Math.round((level / 6) * 100), 90);
-          return { percent, label: 'Rejected', isCompleted: false, isRejected: true };
-        }
+      const totalSteps = 7;
+      const percent = Math.min(Math.round((completedSteps / totalSteps) * 100), 95);
+      return { percent, label: `${completedSteps} / ${totalSteps} stages completed`, isCompleted: false, isRejected: false };
+    }
 
-        const role = String(req.current_role || req.currentRole || 'Accounts').toLowerCase();
-        const isPv = Number(req.payment_verified ?? 0) === 1 || String(req.payment_verification_status).toLowerCase() === 'verified';
-        
-        let completedSteps = 1; // Submitted
-        if (isPv) completedSteps = 3; // Payment verified
-        else if (role !== 'accounts') completedSteps = 2; // Past accounts
+    function filterAndRenderCards() {
+      const container = document.getElementById('cardsContainer');
+      const q = (document.getElementById('searchInput')?.value || '').toLowerCase().trim();
 
-        if (role === 'manager') completedSteps = Math.max(completedSteps, 3);
-        else if (role === 'cfo') completedSteps = 4;
-        else if (role === 'md') completedSteps = 5;
+      const filtered = allRequests.filter(r => {
+        const cat = toStatusCategory(r.status);
+        const matchesFilter = currentFilter === 'All' ||
+          (currentFilter === 'Pending' && cat === 'Pending') ||
+          (currentFilter === 'Approved' && (cat === 'Approved' || cat === 'Completed')) ||
+          (currentFilter === 'Completed' && cat === 'Completed') ||
+          (currentFilter === 'Rejected' && cat === 'Rejected');
 
-        const totalSteps = 7;
-        const percent = Math.min(Math.round((completedSteps / totalSteps) * 100), 95);
-        return { percent, label: `${completedSteps} / ${totalSteps} stages completed`, isCompleted: false, isRejected: false };
-      }
+        if (!matchesFilter) return false;
+        if (!q) return true;
 
-      function filterAndRenderCards() {
-        const container = document.getElementById('cardsContainer');
-        const q = (document.getElementById('searchInput')?.value || '').toLowerCase().trim();
+        const searchTarget = [
+          `req-${r.id}`,
+          `request #${r.id}`,
+          r.id,
+          r.request_type,
+          r.title,
+          r.type,
+          r.department,
+          r.current_role,
+          r.status
+        ].map(v => String(v || '').toLowerCase()).join(' ');
 
-        const filtered = allRequests.filter(r => {
-          const cat = toStatusCategory(r.status);
-          const matchesFilter = currentFilter === 'All' || 
-            (currentFilter === 'Pending' && cat === 'Pending') ||
-            (currentFilter === 'Approved' && (cat === 'Approved' || cat === 'Completed')) ||
-            (currentFilter === 'Completed' && cat === 'Completed') ||
-            (currentFilter === 'Rejected' && cat === 'Rejected');
+        return searchTarget.includes(q);
+      });
 
-          if (!matchesFilter) return false;
-          if (!q) return true;
-
-          const searchTarget = [
-            `req-${r.id}`,
-            `request #${r.id}`,
-            r.id,
-            r.request_type,
-            r.title,
-            r.type,
-            r.department,
-            r.current_role,
-            r.status
-          ].map(v => String(v || '').toLowerCase()).join(' ');
-
-          return searchTarget.includes(q);
-        });
-
-        if (filtered.length === 0) {
-          container.innerHTML = `
+      if (filtered.length === 0) {
+        container.innerHTML = `
             <div class="empty-state">
               <h3>No Requests Found</h3>
               <p>No submitted requests match your selected filter or search term.</p>
             </div>
           `;
-          return;
+        return;
+      }
+
+      container.innerHTML = filtered.map(r => {
+        const reqId = r.id || '—';
+        const title = r.request_type || r.title || r.type || 'General Request';
+        const dept = r.department || 'Operations';
+        const amount = r.amount ? `₹${Number(r.amount).toLocaleString()}` : '$0';
+        const statusCat = toStatusCategory(r.status);
+        const currentStage = statusCat === 'Completed' ? 'Completed' : (r.current_role || r.currentRole || 'Accounts');
+
+        let badgeClass = 'badge-pending';
+        let statusText = 'Pending';
+        if (statusCat === 'Completed') {
+          badgeClass = 'badge-completed';
+          statusText = 'Approved';
+        } else if (statusCat === 'Rejected') {
+          badgeClass = 'badge-rejected';
+          statusText = 'Rejected';
         }
 
-        container.innerHTML = filtered.map(r => {
-          const reqId = r.id || '—';
-          const title = r.request_type || r.title || r.type || 'General Request';
-          const dept = r.department || 'Operations';
-          const amount = r.amount ? `₹${Number(r.amount).toLocaleString()}` : '$0';
-          const statusCat = toStatusCategory(r.status);
-          const currentStage = statusCat === 'Completed' ? 'Completed' : (r.current_role || r.currentRole || 'Accounts');
-          
-          let badgeClass = 'badge-pending';
-          let statusText = 'Pending';
-          if (statusCat === 'Completed') {
-            badgeClass = 'badge-completed';
-            statusText = 'Approved';
-          } else if (statusCat === 'Rejected') {
-            badgeClass = 'badge-rejected';
-            statusText = 'Rejected';
-          }
+        const progress = calculateProgress(r);
+        const rejectedByInfo = statusCat === 'Rejected' ? `<div class="rejected-by">❌ Rejected By: ${r.current_role || r.currentRole || 'Approver'}</div>` : '';
 
-          const progress = calculateProgress(r);
-          const rejectedByInfo = statusCat === 'Rejected' ? `<div class="rejected-by">❌ Rejected By: ${r.current_role || r.currentRole || 'Approver'}</div>` : '';
-
-          return `
+        return `
             <div class="req-card">
               <div>
                 <div class="card-header">
@@ -560,15 +733,16 @@
               </div>
             </div>
           `;
-        }).join('');
-      }
+      }).join('');
+    }
 
-      function escapeHtml(str) {
-        const div = document.createElement('div');
-        div.textContent = str;
-        return div.innerHTML;
-      }
-    </script>
-    <script src="settings-menu.js"></script>
-  </body>
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+  </script>
+  <script src="settings-menu.js"></script>
+</body>
+
 </html>

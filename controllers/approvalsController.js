@@ -1,5 +1,43 @@
 const pool = require('../config/db');
 
+async function recordApprovalHistory(conn, { request_id, decision, action, manager_name, role, comments }) {
+  try {
+    const [reqRows] = await conn.execute(
+      'SELECT requester_name, requester_email, department, type, title, created_at FROM workflow_requests WHERE id = ?',
+      [request_id]
+    );
+    const req = reqRows[0] || {};
+    const employee_name = req.requester_name || req.requester_email || 'Employee';
+    const department = req.department || 'Finance';
+    const request_type = req.type || req.title || 'Financial Request';
+    const dec = String(decision || action || '').toLowerCase().includes('approve') ? 'Approved' : 'Rejected';
+    const stage = role || 'Manager';
+    const performer = manager_name || role || 'Manager';
+
+    const createdAtMs = req.created_at ? new Date(req.created_at).getTime() : Date.now();
+    const decision_time_seconds = Math.max(0, Math.round((Date.now() - createdAtMs) / 1000));
+
+    // Deduplication check: prevent duplicate insertion for the same request decision & stage
+    const [existing] = await conn.execute(
+      `SELECT id FROM approval_history WHERE request_id = ? AND LOWER(decision) = LOWER(?) AND LOWER(approval_stage) = LOWER(?) ORDER BY id DESC LIMIT 1`,
+      [request_id, dec, stage]
+    );
+    if (existing && existing.length > 0) {
+      console.log(`[APPROVAL HISTORY] Duplicate decision entry prevented for Request #${request_id} -> ${dec} (${stage})`);
+      return;
+    }
+
+    await conn.execute(`
+      INSERT INTO approval_history (request_id, employee_name, department, request_type, manager_name, approval_stage, decision, action, decision_timestamp, timestamp, decision_time_seconds, comments)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW(), ?, ?)
+    `, [request_id, employee_name, department, request_type, performer, stage, dec, dec, decision_time_seconds, comments || null]);
+
+    console.log(`[APPROVAL HISTORY] Saved Manager decision in controller: Request #${request_id} -> ${dec} (Comments: ${comments || 'None'})`);
+  } catch (err) {
+    console.error('recordApprovalHistory error:', err.message);
+  }
+}
+
 exports.getPendingApprovals = async (req, res, next) => {
   try {
     const role = req.user ? req.user.role : '';
@@ -23,12 +61,24 @@ async function updateRequestStatus(conn, requestId) {
   );
 
   if (pendingRows.length === 0) {
-    await conn.execute('UPDATE workflow_requests SET status = ? WHERE id = ?', ['approved', requestId]);
+    await conn.execute(
+      "UPDATE workflow_requests SET status = 'Approved', approval_stage = 'Completed', current_role = 'Completed', current_approver = 'Completed' WHERE id = ?",
+      [requestId]
+    );
   } else {
     const active = pendingRows.find(r => r.status === 'pending') || pendingRows[0];
+    const role = active.approver_role;
+    let cleanRole = 'Manager';
+    const lower = String(role).toLowerCase().trim();
+    if (lower === 'manager') cleanRole = 'Manager';
+    else if (lower === 'cfo') cleanRole = 'CFO';
+    else if (lower === 'md') cleanRole = 'MD';
+    else if (lower === 'accounts') cleanRole = 'Accounts';
+
+    const statusText = `Pending ${cleanRole} Approval`;
     await conn.execute(
-      'UPDATE workflow_requests SET status = ?, current_role = ?, current_approver = ?, current_level = ? WHERE id = ?',
-      ['pending', active.approver_role, active.approver_role, Number(active.step || 0), requestId]
+      'UPDATE workflow_requests SET status = ?, approval_stage = ?, current_role = ?, current_approver = ?, current_level = ? WHERE id = ?',
+      [statusText, cleanRole, cleanRole, cleanRole, Number(active.step || 0), requestId]
     );
   }
 }
@@ -82,7 +132,11 @@ exports.approve = async (req, res, next) => {
       }
     }
 
-    await conn.execute('UPDATE approvals SET status = ? WHERE id = ?', ['approved', current.id]);
+    try {
+      await conn.execute('UPDATE approvals SET status = ?, comments = ? WHERE id = ?', ['approved', comments || null, current.id]);
+    } catch (e) {
+      await conn.execute('UPDATE approvals SET status = ? WHERE id = ?', ['approved', current.id]);
+    }
 
     const nextStep = current.step + 1;
     const [nextRows] = await conn.execute(
@@ -96,13 +150,21 @@ exports.approve = async (req, res, next) => {
 
     await updateRequestStatus(conn, id);
 
-    // Record action in request_history
+    // Record action in request_history and approval_history
     const performer = req.user ? (req.user.name || req.user.email) : role;
     const actionText = comments ? `APPROVED by ${role}: ${comments}` : `APPROVED by ${role}`;
     await conn.execute(
       `INSERT INTO request_history (request_id, action, performed_by) VALUES (?, ?, ?)`,
       [id, actionText, performer]
     );
+
+    await recordApprovalHistory(conn, {
+      request_id: id,
+      action: 'Approved',
+      manager_name: performer,
+      role: role,
+      comments: comments
+    });
 
     const lowerRole = String(role).toLowerCase().trim();
     const empEmail = request.requester_email;
@@ -193,17 +255,32 @@ exports.reject = async (req, res, next) => {
     }
 
     if (current) {
-      await conn.execute('UPDATE approvals SET status = ? WHERE id = ?', ['rejected', current.id]);
+      try {
+        await conn.execute('UPDATE approvals SET status = ?, comments = ? WHERE id = ?', ['rejected', comments || null, current.id]);
+      } catch (e) {
+        await conn.execute('UPDATE approvals SET status = ? WHERE id = ?', ['rejected', current.id]);
+      }
     }
-    await conn.execute('UPDATE workflow_requests SET status = ? WHERE id = ?', ['rejected', id]);
+    await conn.execute(
+      "UPDATE workflow_requests SET status = 'Rejected', approval_stage = 'Rejected', current_role = 'Rejected', current_approver = 'Rejected' WHERE id = ?",
+      [id]
+    );
 
-    // Record action in request_history
+    // Record action in request_history and approval_history
     const performer = req.user ? (req.user.name || req.user.email) : role;
     const actionText = comments ? `REJECTED by ${role}: ${comments}` : `REJECTED by ${role}`;
     await conn.execute(
       `INSERT INTO request_history (request_id, action, performed_by) VALUES (?, ?, ?)`,
       [id, actionText, performer]
     );
+
+    await recordApprovalHistory(conn, {
+      request_id: id,
+      action: 'Rejected',
+      manager_name: performer,
+      role: role,
+      comments: comments
+    });
 
     // Notification for Employee: Request rejected by [Role]
     if (request && request.requester_email) {

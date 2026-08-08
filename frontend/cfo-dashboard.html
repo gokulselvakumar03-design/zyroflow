@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CFO Dashboard - ZyroFlow</title>
     <link rel="stylesheet" href="theme-system.css">
+    <link rel="stylesheet" href="zyro-advanced-workflow.css">
     <link rel="stylesheet" href="settings-menu.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
@@ -23,8 +25,8 @@
             margin: 0;
             min-height: 100vh;
             background: radial-gradient(circle at top left, rgba(56, 189, 248, 0.18), transparent 25%),
-                        radial-gradient(circle at bottom right, rgba(59, 130, 246, 0.18), transparent 20%),
-                        linear-gradient(180deg, #05111d 0%, #081f36 45%, #0e2d51 100%);
+                radial-gradient(circle at bottom right, rgba(59, 130, 246, 0.18), transparent 20%),
+                linear-gradient(180deg, #05111d 0%, #081f36 45%, #0e2d51 100%);
             padding: 24px;
         }
 
@@ -313,10 +315,25 @@
             font-weight: 700;
         }
 
-        .status-pending { background: rgba(240, 171, 0, 0.14); color: #fde68a; }
-        .status-approved { background: rgba(34, 197, 94, 0.14); color: #86efac; }
-        .status-rejected { background: rgba(239, 68, 68, 0.14); color: #fecaca; }
-        .status-cancelled { background: rgba(148, 163, 184, 0.12); color: #cbd5e1; }
+        .status-pending {
+            background: rgba(240, 171, 0, 0.14);
+            color: #fde68a;
+        }
+
+        .status-approved {
+            background: rgba(34, 197, 94, 0.14);
+            color: #86efac;
+        }
+
+        .status-rejected {
+            background: rgba(239, 68, 68, 0.14);
+            color: #fecaca;
+        }
+
+        .status-cancelled {
+            background: rgba(148, 163, 184, 0.12);
+            color: #cbd5e1;
+        }
 
         .priority-chip {
             display: inline-flex;
@@ -328,9 +345,20 @@
             text-transform: uppercase;
         }
 
-        .priority-high { background: rgba(248, 113, 113, 0.16); color: #fecaca; }
-        .priority-medium { background: rgba(250, 204, 21, 0.16); color: #fde68a; }
-        .priority-low { background: rgba(34, 197, 94, 0.16); color: #bbf7d0; }
+        .priority-high {
+            background: rgba(248, 113, 113, 0.16);
+            color: #fecaca;
+        }
+
+        .priority-medium {
+            background: rgba(250, 204, 21, 0.16);
+            color: #fde68a;
+        }
+
+        .priority-low {
+            background: rgba(34, 197, 94, 0.16);
+            color: #bbf7d0;
+        }
 
         .request-buttons {
             display: flex;
@@ -349,10 +377,262 @@
             transition: transform 0.2s ease, opacity 0.2s ease;
         }
 
-        .action-pill:hover { transform: translateY(-1px); }
-        .approve-pill { background: rgba(34, 197, 94, 0.18); color: #d9f99d; }
-        .reject-pill { background: rgba(239, 68, 68, 0.18); color: #fecaca; }
-        .escalate-pill { background: rgba(59, 130, 246, 0.18); color: #bfdbfe; }
+        .action-pill:hover {
+            transform: translateY(-1px);
+        }
+
+        .approve-pill {
+            background: rgba(34, 197, 94, 0.2);
+            color: #4ade80;
+            border: 1px solid rgba(34, 197, 94, 0.4);
+        }
+
+        .reject-pill {
+            background: rgba(239, 68, 68, 0.2);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.4);
+        }
+
+        .escalate-pill {
+            background: rgba(245, 158, 11, 0.2);
+            color: #fbbf24;
+            border: 1px solid rgba(245, 158, 11, 0.4);
+        }
+
+        /* Light Theme Pill Overrides */
+        body.light-theme .approve-pill {
+            background: #dcfce7 !important;
+            color: #166534 !important;
+            border-color: #86efac !important;
+        }
+
+        body.light-theme .reject-pill {
+            background: #fee2e2 !important;
+            color: #991b1b !important;
+            border-color: #fca5a5 !important;
+        }
+
+        body.light-theme .escalate-pill {
+            background: #fef3c7 !important;
+            color: #92400e !important;
+            border-color: #fde68a !important;
+        }
+
+        /* Custom CFO Action Modal Styling */
+        .cfo-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(4, 12, 29, 0.75);
+            backdrop-filter: blur(6px);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .cfo-modal-card {
+            background: #0b1a2d;
+            border: 1px solid rgba(56, 189, 248, 0.2);
+            border-radius: 20px;
+            width: 100%;
+            max-width: 520px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            animation: cfoModalFadeIn 0.2s ease-out;
+        }
+
+        @keyframes cfoModalFadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .cfo-modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 24px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .cfo-modal-title {
+            margin: 0;
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #f8fafc;
+        }
+
+        .cfo-modal-close {
+            background: transparent;
+            border: none;
+            color: #94a3b8;
+            font-size: 1.5rem;
+            line-height: 1;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 6px;
+            transition: color 0.2s;
+        }
+
+        .cfo-modal-close:hover {
+            color: #ef4444;
+        }
+
+        .cfo-modal-body {
+            padding: 20px 24px;
+        }
+
+        .cfo-modal-info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 16px;
+        }
+
+        .cfo-info-item {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .cfo-info-label {
+            font-size: 0.75rem;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .cfo-info-item strong {
+            font-size: 0.92rem;
+            color: #f8fafc;
+        }
+
+        .cfo-modal-msg {
+            margin: 0 0 12px;
+            font-size: 0.95rem;
+            color: #e2e8f0;
+            line-height: 1.5;
+        }
+
+        .cfo-modal-textarea {
+            width: 100%;
+            min-height: 80px;
+            padding: 10px 14px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #f8fafc;
+            font-size: 0.9rem;
+            outline: none;
+            resize: vertical;
+        }
+
+        .cfo-modal-textarea:focus {
+            border-color: #38bdf8;
+        }
+
+        .cfo-modal-footer {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 12px;
+            padding: 16px 24px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .cfo-modal-btn {
+            border: none;
+            border-radius: 10px;
+            padding: 10px 18px;
+            font-size: 0.88rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .cfo-modal-btn-cancel {
+            background: rgba(255, 255, 255, 0.08);
+            color: #cbd5e1;
+        }
+
+        .cfo-modal-btn-cancel:hover {
+            background: rgba(255, 255, 255, 0.14);
+        }
+
+        .cfo-modal-btn-approve {
+            background: #10b981;
+            color: #ffffff;
+        }
+
+        .cfo-modal-btn-approve:hover {
+            background: #059669;
+        }
+
+        .cfo-modal-btn-reject {
+            background: #ef4444;
+            color: #ffffff;
+        }
+
+        .cfo-modal-btn-reject:hover {
+            background: #dc2626;
+        }
+
+        .cfo-modal-btn-escalate {
+            background: #f59e0b;
+            color: #ffffff;
+        }
+
+        .cfo-modal-btn-escalate:hover {
+            background: #d97706;
+        }
+
+        /* Light Theme Overrides for Modal */
+        body.light-theme .cfo-modal-card {
+            background: #ffffff !important;
+            border: 1px solid #cbd5e1 !important;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1) !important;
+        }
+
+        body.light-theme .cfo-modal-header,
+        body.light-theme .cfo-modal-footer {
+            background: #f8fafc !important;
+            border-color: #e2e8f0 !important;
+        }
+
+        body.light-theme .cfo-modal-title,
+        body.light-theme .cfo-info-item strong {
+            color: #0f172a !important;
+        }
+
+        body.light-theme .cfo-modal-info-grid {
+            background: #f1f5f9 !important;
+            border-color: #e2e8f0 !important;
+        }
+
+        body.light-theme .cfo-info-label,
+        body.light-theme .cfo-modal-msg {
+            color: #334155 !important;
+        }
+
+        body.light-theme .cfo-modal-textarea {
+            background: #ffffff !important;
+            border-color: #cbd5e1 !important;
+            color: #0f172a !important;
+        }
+
+        body.light-theme .cfo-modal-btn-cancel {
+            background: #e2e8f0 !important;
+            color: #1e293b !important;
+        }
 
         .risk-grid {
             display: grid;
@@ -501,11 +781,23 @@
             display: block;
         }
 
-        .message.success { background: rgba(34, 197, 94, 0.12); border-color: rgba(34, 197, 94, 0.2); }
-        .message.warning { background: rgba(240, 171, 0, 0.12); border-color: rgba(240, 171, 0, 0.22); }
-        .message.error { background: rgba(239, 68, 68, 0.12); border-color: rgba(239, 68, 68, 0.22); }
+        .message.success {
+            background: rgba(34, 197, 94, 0.12);
+            border-color: rgba(34, 197, 94, 0.2);
+        }
+
+        .message.warning {
+            background: rgba(240, 171, 0, 0.12);
+            border-color: rgba(240, 171, 0, 0.22);
+        }
+
+        .message.error {
+            background: rgba(239, 68, 68, 0.12);
+            border-color: rgba(239, 68, 68, 0.22);
+        }
 
         @media (max-width: 1240px) {
+
             .overview-grid,
             .analytics-grid,
             .risk-grid {
@@ -543,7 +835,8 @@
            CFO DASHBOARD LIGHT THEME OVERRIDES
            (Active only when body.light-theme or [data-theme="light"] is present)
            ========================================================= */
-        body.light-theme, [data-theme="light"] body {
+        body.light-theme,
+        [data-theme="light"] body {
             background: #f5f7fb;
             color: #1e293b;
         }
@@ -685,21 +978,67 @@
             background: #f8fafc;
         }
 
-        body.light-theme .status-pending { background: #fef3c7; color: #92400e; }
-        body.light-theme .status-approved { background: #dcfce7; color: #166534; }
-        body.light-theme .status-rejected { background: #fee2e2; color: #991b1b; }
-        body.light-theme .status-cancelled { background: #f1f5f9; color: #64748b; }
+        body.light-theme .status-pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
 
-        body.light-theme .priority-high { background: #fee2e2; color: #991b1b; }
-        body.light-theme .priority-medium { background: #fef3c7; color: #92400e; }
-        body.light-theme .priority-low { background: #dcfce7; color: #166534; }
+        body.light-theme .status-approved {
+            background: #dcfce7;
+            color: #166534;
+        }
 
-        body.light-theme .approve-pill { background: #2563eb; color: #ffffff; }
-        body.light-theme .approve-pill:hover { background: #1d4ed8; }
-        body.light-theme .reject-pill { background: #ef4444; color: #ffffff; }
-        body.light-theme .reject-pill:hover { background: #dc2626; }
-        body.light-theme .escalate-pill { background: #f59e0b; color: #ffffff; }
-        body.light-theme .escalate-pill:hover { background: #d97706; }
+        body.light-theme .status-rejected {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        body.light-theme .status-cancelled {
+            background: #f1f5f9;
+            color: #64748b;
+        }
+
+        body.light-theme .priority-high {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        body.light-theme .priority-medium {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        body.light-theme .priority-low {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        body.light-theme .approve-pill {
+            background: #2563eb;
+            color: #ffffff;
+        }
+
+        body.light-theme .approve-pill:hover {
+            background: #1d4ed8;
+        }
+
+        body.light-theme .reject-pill {
+            background: #ef4444;
+            color: #ffffff;
+        }
+
+        body.light-theme .reject-pill:hover {
+            background: #dc2626;
+        }
+
+        body.light-theme .escalate-pill {
+            background: #f59e0b;
+            color: #ffffff;
+        }
+
+        body.light-theme .escalate-pill:hover {
+            background: #d97706;
+        }
 
         body.light-theme .risk-card {
             background: #f8fafc;
@@ -757,9 +1096,23 @@
             border: 1px solid #e2e8f0;
         }
 
-        body.light-theme .message.success { background: #dcfce7; color: #166534; border-color: #bbf7d0; }
-        body.light-theme .message.warning { background: #fef3c7; color: #92400e; border-color: #fde68a; }
-        body.light-theme .message.error { background: #fee2e2; color: #991b1b; border-color: #fecaca; }
+        body.light-theme .message.success {
+            background: #dcfce7;
+            color: #166534;
+            border-color: #bbf7d0;
+        }
+
+        body.light-theme .message.warning {
+            background: #fef3c7;
+            color: #92400e;
+            border-color: #fde68a;
+        }
+
+        body.light-theme .message.error {
+            background: #fee2e2;
+            color: #991b1b;
+            border-color: #fecaca;
+        }
 
         /* Modals in Light Theme */
         body.light-theme .modal-overlay {
@@ -831,12 +1184,14 @@
         }
     </style>
 </head>
+
 <body>
     <div class="navbar">
         <div class="navbar-brand">
             <span class="brand-pill">CFO Executive Suite</span>
             <div class="navbar-title">ZyroFlow Finance Command</div>
-            <div class="navbar-subtitle">Review high-value approvals, control budget risk, and act with confidence.</div>
+            <div class="navbar-subtitle">Review high-value approvals, control budget risk, and act with confidence.
+            </div>
         </div>
         <div class="navbar-actions">
             <div class="notification">🔔 <span id="notifCount" class="notif-count">0</span></div>
@@ -915,7 +1270,10 @@
                         </tr>
                     </thead>
                     <tbody id="highvalue-list">
-                        <tr><td colspan="6" style="padding: 24px; color: #94a3b8; text-align:center;">Demo approvals ready</td></tr>
+                        <tr>
+                            <td colspan="6" style="padding: 24px; color: #94a3b8; text-align:center;">Demo approvals
+                                ready</td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
@@ -926,7 +1284,8 @@
             <article class="risk-card">
                 <span class="risk-label">Budget Risk</span>
                 <span id="risk-budget" class="risk-value">Stable</span>
-                <p class="risk-detail">Calculated from total pending commitments, departmental budgets, and spend concentration.</p>
+                <p class="risk-detail">Calculated from total pending commitments, departmental budgets, and spend
+                    concentration.</p>
             </article>
             <article class="risk-card">
                 <span class="risk-label">Compliance Risk</span>
@@ -947,19 +1306,27 @@
 
         <section class="analytics-grid">
             <article class="chart-card">
-                <div class="section-header"><span class="eyebrow">Spend Mix</span><h3 class="section-title">Department Spending</h3></div>
+                <div class="section-header"><span class="eyebrow">Spend Mix</span>
+                    <h3 class="section-title">Department Spending</h3>
+                </div>
                 <div class="chart-container"><canvas id="department-chart"></canvas></div>
             </article>
             <article class="chart-card">
-                <div class="section-header"><span class="eyebrow">Capital Allocation</span><h3 class="section-title">Budget Utilization</h3></div>
+                <div class="section-header"><span class="eyebrow">Capital Allocation</span>
+                    <h3 class="section-title">Budget Utilization</h3>
+                </div>
                 <div class="chart-container"><canvas id="budget-chart"></canvas></div>
             </article>
             <article class="chart-card">
-                <div class="section-header"><span class="eyebrow">Trend Intelligence</span><h3 class="section-title">Monthly Cost Trend</h3></div>
+                <div class="section-header"><span class="eyebrow">Trend Intelligence</span>
+                    <h3 class="section-title">Monthly Cost Trend</h3>
+                </div>
                 <div class="chart-container"><canvas id="monthly-chart"></canvas></div>
             </article>
             <article class="chart-card">
-                <div class="section-header"><span class="eyebrow">Decision Flow</span><h3 class="section-title">Approval Distribution</h3></div>
+                <div class="section-header"><span class="eyebrow">Decision Flow</span>
+                    <h3 class="section-title">Approval Distribution</h3>
+                </div>
                 <div class="chart-container"><canvas id="approval-chart"></canvas></div>
             </article>
         </section>
@@ -969,9 +1336,12 @@
                 <span class="eyebrow">Strategic Insights</span>
                 <h2 class="section-title">CFO decision intelligence</h2>
                 <ul class="insights-list" id="insights-list">
-                    <li class="insight-item"><strong>Approval velocity</strong> Track how quickly capital is moving from request to sign-off.</li>
-                    <li class="insight-item"><strong>Capital runway</strong> Measure remaining budget coverage with pending approvals.</li>
-                    <li class="insight-item"><strong>Risk concentration</strong> See which departments are driving highest exposure.</li>
+                    <li class="insight-item"><strong>Approval velocity</strong> Track how quickly capital is moving from
+                        request to sign-off.</li>
+                    <li class="insight-item"><strong>Capital runway</strong> Measure remaining budget coverage with
+                        pending approvals.</li>
+                    <li class="insight-item"><strong>Risk concentration</strong> See which departments are driving
+                        highest exposure.</li>
                 </ul>
             </article>
             <article class="timeline-panel">
@@ -985,7 +1355,8 @@
                 <span class="eyebrow">Notification Center</span>
                 <h2 class="section-title">Actionable alerts</h2>
                 <ul class="notification-list" id="notification-list">
-                    <li class="notification-item"><span>Demo notifications will appear here.</span><strong>—</strong></li>
+                    <li class="notification-item"><span>Demo notifications will appear here.</span><strong>—</strong>
+                    </li>
                 </ul>
             </article>
         </section>
@@ -996,7 +1367,7 @@
         let currentFilter = 'ALL';
         const UNDO_WINDOW_MS = 25000;
         const undoTimers = new Map();
-        const REQUESTS_API_URL = 'http://localhost:5000/requests';
+        const REQUESTS_API_URL = 'http://localhost:4000/requests';
         let requestsCache = [];
 
         let departmentChart = null;
@@ -1023,7 +1394,7 @@
                     department: 'Operations',
                     amount: 75000,
                     status: 'approved',
-                    workflow: ['Accounts','Manager','CFO'],
+                    workflow: ['Accounts', 'Manager', 'CFO'],
                     currentLevel: 2,
                     createdAt: now - (2 * 60 * 60 * 1000),
                     history: [
@@ -1037,7 +1408,7 @@
                     department: 'Sales',
                     amount: 25000,
                     status: 'rejected',
-                    workflow: ['Accounts','Manager','CFO'],
+                    workflow: ['Accounts', 'Manager', 'CFO'],
                     currentLevel: 2,
                     createdAt: now - (4 * 60 * 60 * 1000),
                     history: [
@@ -1051,7 +1422,7 @@
                     department: 'Finance',
                     amount: 120000,
                     status: 'pending',
-                    workflow: ['Accounts','Manager','MD','CFO'],
+                    workflow: ['Accounts', 'Manager', 'MD', 'CFO'],
                     currentLevel: 1,
                     createdAt: now - (oneDay + 6 * 60 * 60 * 1000),
                     history: [
@@ -1064,7 +1435,7 @@
                     department: 'IT',
                     amount: 50000,
                     status: 'approved',
-                    workflow: ['Accounts','Manager','CFO'],
+                    workflow: ['Accounts', 'Manager', 'CFO'],
                     currentLevel: 2,
                     createdAt: now - (oneDay + 10 * 60 * 60 * 1000),
                     history: [
@@ -1078,7 +1449,7 @@
                     department: 'Operations',
                     amount: 420000,
                     status: 'pending',
-                    workflow: ['Accounts','Manager','CFO'],
+                    workflow: ['Accounts', 'Manager', 'CFO'],
                     currentLevel: 2,
                     createdAt: now - (5 * 24 * 60 * 60 * 1000),
                     history: []
@@ -1089,7 +1460,7 @@
                     department: 'Finance',
                     amount: 300000,
                     status: 'pending',
-                    workflow: ['Accounts','Manager','CFO'],
+                    workflow: ['Accounts', 'Manager', 'CFO'],
                     currentLevel: 2,
                     createdAt: now - (10 * 24 * 60 * 60 * 1000),
                     history: []
@@ -1341,14 +1712,151 @@
             return `<span class="priority-chip priority-${priority}">${priority}</span>`;
         }
 
+        function getRequestById(requestId) {
+            const requests = readRequestsFromLocalStorage().map(normalizeRequest);
+            return requests.find((r) => Number(r.id) === Number(requestId));
+        }
+
+        function closeCfoModal() {
+            const modalOverlay = document.getElementById('cfo-action-modal-overlay');
+            if (modalOverlay) modalOverlay.style.display = 'none';
+        }
+
+        function openApproveModal(requestId) {
+            const r = getRequestById(requestId);
+            if (!r) return;
+
+            const modalOverlay = document.getElementById('cfo-action-modal-overlay');
+            const modalTitle = document.getElementById('cfo-modal-title');
+            const infoGrid = document.getElementById('cfo-modal-request-info');
+            const msgEl = document.getElementById('cfo-modal-message');
+            const extraInput = document.getElementById('cfo-modal-extra-input');
+            const confirmBtn = document.getElementById('cfo-modal-confirm-btn');
+
+            modalTitle.textContent = 'Approve Request';
+            infoGrid.innerHTML = `
+                <div class="cfo-info-item"><span class="cfo-info-label">Request ID</span><strong>#${r.id}</strong></div>
+                <div class="cfo-info-item"><span class="cfo-info-label">Department</span><strong>${escapeHtml(r.department || 'Corporate')}</strong></div>
+                <div class="cfo-info-item"><span class="cfo-info-label">Amount</span><strong style="color: #38bdf8;">${formatCurrency(r.amount)}</strong></div>
+                <div class="cfo-info-item"><span class="cfo-info-label">Priority</span><strong>${getPriority(r.amount)}</strong></div>
+                <div class="cfo-info-item"><span class="cfo-info-label">Current Status</span><strong>${toStatusLabel(r.status)}</strong></div>
+            `;
+            msgEl.textContent = 'Are you sure you want to approve this request?';
+            extraInput.innerHTML = '';
+
+            confirmBtn.className = 'cfo-modal-btn cfo-modal-btn-approve';
+            confirmBtn.innerHTML = '✓ Approve Request';
+            confirmBtn.disabled = false;
+            confirmBtn.onclick = async function () {
+                confirmBtn.disabled = true;
+                confirmBtn.innerHTML = 'Processing...';
+                try {
+                    await updateRequestStatus(requestId, 'approved');
+                    closeCfoModal();
+                } catch (err) {
+                    confirmBtn.disabled = false;
+                    confirmBtn.innerHTML = '✓ Approve Request';
+                    showMessage('Failed to approve request.', 'error');
+                }
+            };
+
+            modalOverlay.style.display = 'flex';
+        }
+
+        function openRejectModal(requestId) {
+            const r = getRequestById(requestId);
+            if (!r) return;
+
+            const modalOverlay = document.getElementById('cfo-action-modal-overlay');
+            const modalTitle = document.getElementById('cfo-modal-title');
+            const infoGrid = document.getElementById('cfo-modal-request-info');
+            const msgEl = document.getElementById('cfo-modal-message');
+            const extraInput = document.getElementById('cfo-modal-extra-input');
+            const confirmBtn = document.getElementById('cfo-modal-confirm-btn');
+
+            modalTitle.textContent = 'Reject Request';
+            infoGrid.innerHTML = `
+                <div class="cfo-info-item"><span class="cfo-info-label">Request ID</span><strong>#${r.id}</strong></div>
+                <div class="cfo-info-item"><span class="cfo-info-label">Department</span><strong>${escapeHtml(r.department || 'Corporate')}</strong></div>
+                <div class="cfo-info-item"><span class="cfo-info-label">Amount</span><strong style="color: #38bdf8;">${formatCurrency(r.amount)}</strong></div>
+                <div class="cfo-info-item"><span class="cfo-info-label">Priority</span><strong>${getPriority(r.amount)}</strong></div>
+                <div class="cfo-info-item"><span class="cfo-info-label">Current Status</span><strong>${toStatusLabel(r.status)}</strong></div>
+            `;
+            msgEl.textContent = 'Please provide a reason for rejecting this request.';
+            extraInput.innerHTML = `
+                <div style="margin-top: 14px;">
+                    <textarea id="cfo-reject-reason-input" class="cfo-modal-textarea" placeholder="Enter rejection reason..."></textarea>
+                </div>
+            `;
+
+            confirmBtn.className = 'cfo-modal-btn cfo-modal-btn-reject';
+            confirmBtn.innerHTML = '✕ Reject Request';
+            confirmBtn.disabled = false;
+            confirmBtn.onclick = async function () {
+                const reasonInput = document.getElementById('cfo-reject-reason-input');
+                const reason = reasonInput ? reasonInput.value.trim() : '';
+                confirmBtn.disabled = true;
+                confirmBtn.innerHTML = 'Processing...';
+                try {
+                    await updateRequestStatus(requestId, 'rejected', reason);
+                    closeCfoModal();
+                } catch (err) {
+                    confirmBtn.disabled = false;
+                    confirmBtn.innerHTML = '✕ Reject Request';
+                    showMessage('Failed to reject request.', 'error');
+                }
+            };
+
+            modalOverlay.style.display = 'flex';
+        }
+
+        function openEscalateModal(requestId) {
+            const r = getRequestById(requestId);
+            if (!r) return;
+
+            const modalOverlay = document.getElementById('cfo-action-modal-overlay');
+            const modalTitle = document.getElementById('cfo-modal-title');
+            const infoGrid = document.getElementById('cfo-modal-request-info');
+            const msgEl = document.getElementById('cfo-modal-message');
+            const extraInput = document.getElementById('cfo-modal-extra-input');
+            const confirmBtn = document.getElementById('cfo-modal-confirm-btn');
+
+            modalTitle.textContent = 'Escalate Request';
+            infoGrid.innerHTML = `
+                <div class="cfo-info-item"><span class="cfo-info-label">Request ID</span><strong>#${r.id}</strong></div>
+                <div class="cfo-info-item"><span class="cfo-info-label">Department</span><strong>${escapeHtml(r.department || 'Corporate')}</strong></div>
+                <div class="cfo-info-item"><span class="cfo-info-label">Amount</span><strong style="color: #38bdf8;">${formatCurrency(r.amount)}</strong></div>
+                <div class="cfo-info-item"><span class="cfo-info-label">Priority</span><strong>${getPriority(r.amount)}</strong></div>
+                <div class="cfo-info-item"><span class="cfo-info-label">Current Status</span><strong>${toStatusLabel(r.status)}</strong></div>
+            `;
+            msgEl.textContent = 'Are you sure you want to escalate this request to the MD?';
+            extraInput.innerHTML = '';
+
+            confirmBtn.className = 'cfo-modal-btn cfo-modal-btn-escalate';
+            confirmBtn.innerHTML = '↑ Escalate to MD';
+            confirmBtn.disabled = false;
+            confirmBtn.onclick = async function () {
+                confirmBtn.disabled = true;
+                confirmBtn.innerHTML = 'Processing...';
+                try {
+                    await escalateRequest(requestId);
+                    closeCfoModal();
+                } catch (err) {
+                    confirmBtn.disabled = false;
+                    confirmBtn.innerHTML = '↑ Escalate to MD';
+                    showMessage('Failed to escalate request.', 'error');
+                }
+            };
+
+            modalOverlay.style.display = 'flex';
+        }
+
         function approveRequest(requestId) {
-            if (!confirm('Are you sure you want to approve this request?')) return;
-            updateRequestStatus(requestId, 'approved');
+            openApproveModal(requestId);
         }
 
         function rejectRequest(requestId) {
-            if (!confirm('Are you sure you want to reject this request?')) return;
-            updateRequestStatus(requestId, 'rejected');
+            openRejectModal(requestId);
         }
 
         async function escalateRequest(requestId) {
@@ -1378,7 +1886,7 @@
             renderRequests();
         }
 
-        async function updateRequestStatus(requestId, status) {
+        async function updateRequestStatus(requestId, status, optionalComment) {
             const requests = readRequestsFromLocalStorage().map(normalizeRequest);
             const requestIndex = requests.findIndex((r) => Number(r.id) === Number(requestId));
             if (requestIndex === -1) return;
@@ -1391,6 +1899,7 @@
             }
             const now = Date.now();
             const actionStatus = normalizeStatus(status) === 'approved' ? 'Approved' : 'Rejected';
+            const finalComment = optionalComment && optionalComment.trim() ? optionalComment.trim() : actionStatus;
             const snapshot = {
                 status: request.status,
                 currentLevel: request.currentLevel,
@@ -1398,7 +1907,7 @@
                 historyLength: request.history.length,
                 commentsLength: request.comments.length
             };
-            request.comments.push({ role: currentRole, comment: actionStatus, time: now });
+            request.comments.push({ role: currentRole, comment: finalComment, time: now });
             request.updatedAt = now;
             if (normalizeStatus(status) === 'approved') {
                 request.currentLevel += 1;
@@ -1552,9 +2061,9 @@
                         <td><span class="table-status status-${statusClass}">${toStatusLabel(request.status)}</span></td>
                         <td>
                             <div class="request-buttons">
-                                ${canAct ? `<button class="action-pill approve-pill" onclick="approveRequest(${request.id})">Approve</button>` : ''}
-                                ${canAct ? `<button class="action-pill reject-pill" onclick="rejectRequest(${request.id})">Reject</button>` : ''}
-                                ${canAct ? `<button class="action-pill escalate-pill" onclick="escalateRequest(${request.id})">Escalate to MD</button>` : ''}
+                                ${canAct ? `<button class="action-pill approve-pill" onclick="openApproveModal(${request.id})">✓ Approve</button>` : ''}
+                                ${canAct ? `<button class="action-pill reject-pill" onclick="openRejectModal(${request.id})">✕ Reject</button>` : ''}
+                                ${canAct ? `<button class="action-pill escalate-pill" onclick="openEscalateModal(${request.id})">↑ Escalate to MD</button>` : ''}
                             </div>
                         </td>
                     </tr>
@@ -1597,7 +2106,7 @@
                 const rejectedAmount = 25000;
                 renderChart('budget-chart', 'doughnut', ['Pending', 'Approved', 'Rejected'], [{ data: [pendingAmount, approvedAmount, rejectedAmount], label: 'Budget Utilization' }], ['#f59e0b', '#22c55e', '#ef4444']);
 
-                const last6Months = (function(){
+                const last6Months = (function () {
                     const months = [];
                     for (let i = 5; i >= 0; i--) {
                         const d = new Date(); d.setMonth(d.getMonth() - i);
@@ -1826,8 +2335,31 @@
             window.location.href = 'login.html';
         }
     </script>
+
+    <!-- Custom CFO Action Confirmation Modal -->
+    <div id="cfo-action-modal-overlay" class="cfo-modal-overlay" style="display: none;">
+        <div class="cfo-modal-card">
+            <div class="cfo-modal-header">
+                <h3 id="cfo-modal-title" class="cfo-modal-title">Action Request</h3>
+                <button class="cfo-modal-close" onclick="closeCfoModal()">&times;</button>
+            </div>
+            <div class="cfo-modal-body">
+                <div id="cfo-modal-request-info" class="cfo-modal-info-grid"></div>
+                <p id="cfo-modal-message" class="cfo-modal-msg"></p>
+                <div id="cfo-modal-extra-input"></div>
+            </div>
+            <div class="cfo-modal-footer">
+                <button id="cfo-modal-cancel-btn" class="cfo-modal-btn cfo-modal-btn-cancel" onclick="closeCfoModal()">Cancel</button>
+                <button id="cfo-modal-confirm-btn" class="cfo-modal-btn">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="zyro-analytics-charts.js"></script>
+    <script src="zyro-advanced-workflow.js"></script>
     <script src="app.js"></script>
     <script src="notification-center.js"></script>
     <script src="settings-menu.js"></script>
 </body>
+
 </html>

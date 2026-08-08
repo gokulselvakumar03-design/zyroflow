@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -289,10 +290,21 @@
             color: #111827 !important;
         }
 
-        .request-card.pending { border-left: 4px solid #F59E0B !important; }
-        .request-card.approved { border-left: 4px solid #22C55E !important; }
-        .request-card.rejected { border-left: 4px solid #EF4444 !important; }
-        .request-card.cancelled { border-left: 4px solid #9CA3AF !important; }
+        .request-card.pending {
+            border-left: 4px solid #F59E0B !important;
+        }
+
+        .request-card.approved {
+            border-left: 4px solid #22C55E !important;
+        }
+
+        .request-card.rejected {
+            border-left: 4px solid #EF4444 !important;
+        }
+
+        .request-card.cancelled {
+            border-left: 4px solid #9CA3AF !important;
+        }
 
         .request-title {
             font-weight: 600;
@@ -389,9 +401,20 @@
             font-weight: 600;
         }
 
-        .step.done { background: #4caf50; color: white; }
-        .step.current { background: #ff9800; color: white; }
-        .step.pending { background: #d1d5db; color: #111827; }
+        .step.done {
+            background: #4caf50;
+            color: white;
+        }
+
+        .step.current {
+            background: #ff9800;
+            color: white;
+        }
+
+        .step.pending {
+            background: #d1d5db;
+            color: #111827;
+        }
 
         .priority {
             padding: 4px 10px;
@@ -402,9 +425,20 @@
             letter-spacing: 0.3px;
         }
 
-        .priority.high { background: #ef4444; color: white; }
-        .priority.medium { background: #f59e0b; color: white; }
-        .priority.low { background: #22c55e; color: white; }
+        .priority.high {
+            background: #ef4444;
+            color: white;
+        }
+
+        .priority.medium {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .priority.low {
+            background: #22c55e;
+            color: white;
+        }
 
         .status-message {
             margin-top: 8px;
@@ -521,22 +555,23 @@
             }
         }
     </style>
-<script>
-  // If login redirects employees to user-dashboard, forward them to the new employee workspace.
-  (function(){
-    try{
-      const roleNormalized = (localStorage.getItem('userRole') || localStorage.getItem('role') || '').toString().toLowerCase().trim();
-      if(roleNormalized === 'employee'){
-        // Avoid infinite redirect loops: only redirect if we're on user-dashboard
-        const p = window.location.pathname || '';
-        if(p.endsWith('/user-dashboard.html') || p.endsWith('user-dashboard.html')){
-          window.location.replace('employee.html');
-        }
-      }
-    }catch(e){/* no-op */}
-  })();
-</script>
+    <script>
+        // If login redirects employees to user-dashboard, forward them to the new employee workspace.
+        (function () {
+            try {
+                const roleNormalized = (localStorage.getItem('userRole') || localStorage.getItem('role') || '').toString().toLowerCase().trim();
+                if (roleNormalized === 'employee') {
+                    // Avoid infinite redirect loops: only redirect if we're on user-dashboard
+                    const p = window.location.pathname || '';
+                    if (p.endsWith('/user-dashboard.html') || p.endsWith('user-dashboard.html')) {
+                        window.location.replace('employee.html');
+                    }
+                }
+            } catch (e) {/* no-op */ }
+        })();
+    </script>
 </head>
+
 <body>
     <!-- Navigation Bar -->
     <div class="navbar">
@@ -591,12 +626,17 @@
             <div class="list-controls">
                 <div class="filters">
                     <button class="filter-button active" data-filter="ALL" onclick="filterRequests('ALL')">All</button>
-                    <button class="filter-button" data-filter="Pending" onclick="filterRequests('Pending')">Pending</button>
-                    <button class="filter-button" data-filter="Approved" onclick="filterRequests('Approved')">Approved</button>
-                    <button class="filter-button" data-filter="Rejected" onclick="filterRequests('Rejected')">Rejected</button>
-                    <button class="filter-button" data-filter="Cancelled" onclick="filterRequests('Cancelled')">Cancelled</button>
+                    <button class="filter-button" data-filter="Pending"
+                        onclick="filterRequests('Pending')">Pending</button>
+                    <button class="filter-button" data-filter="Approved"
+                        onclick="filterRequests('Approved')">Approved</button>
+                    <button class="filter-button" data-filter="Rejected"
+                        onclick="filterRequests('Rejected')">Rejected</button>
+                    <button class="filter-button" data-filter="Cancelled"
+                        onclick="filterRequests('Cancelled')">Cancelled</button>
                 </div>
-                <input type="text" id="searchBox" class="search-box" placeholder="Search requests..." oninput="renderRequests()" />
+                <input type="text" id="searchBox" class="search-box" placeholder="Search requests..."
+                    oninput="renderRequests()" />
             </div>
             <div class="requests-list" id="requests-list">
                 <div class="empty-state">No requests yet. Submit one to get started!</div>
@@ -606,7 +646,7 @@
 
     <script>
         let currentFilter = 'ALL';
-        const REQUESTS_API_URL = 'http://localhost:5000/requests';
+        const REQUESTS_API_URL = 'http://localhost:4000/requests';
         let requestsCache = [];
 
         // Initialize
@@ -1272,7 +1312,7 @@
             const requestsList = document.getElementById('requests-list');
 
             updateActiveFilterButtons();
-            
+
             if (userRequests.length === 0) {
                 requestsList.innerHTML = '<div class="empty-state">No requests yet. Submit one to get started!</div>';
                 return;
@@ -1487,4 +1527,5 @@
     </script>
     <script src="settings-menu.js"></script>
 </body>
+
 </html>

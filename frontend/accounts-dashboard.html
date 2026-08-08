@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Accounts Dashboard - ZyroFlow</title>
     <link rel="stylesheet" href="theme-system.css">
+    <link rel="stylesheet" href="zyro-advanced-workflow.css">
     <link rel="stylesheet" href="accounts-dashboard.css">
     <link rel="stylesheet" href="settings-menu.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -144,7 +145,8 @@
                 </div>
             </div>
             <div id="message" class="message"></div>
-            <div class="list-controls">
+            <div id="zyro-filter-container"></div>
+            <div class="list-controls" style="display:none;">
                 <div class="filters">
                     <button class="filter-button active" data-filter="ALL" onclick="filterRequests('ALL')">All</button>
                     <button class="filter-button" data-filter="Pending" onclick="filterRequests('Pending')">Pending</button>
@@ -233,7 +235,9 @@
         </div>
     </div>
 
+    <script src="zyro-analytics-charts.js"></script>
     <script src="app.js"></script>
+    <script src="zyro-advanced-workflow.js"></script>
     <script src="accounts-dashboard.js"></script>
     <script src="notification-center.js"></script>
     <script src="settings-menu.js"></script>

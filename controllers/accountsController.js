@@ -21,6 +21,7 @@ function mapAccountRequestRow(row) {
   const currentLevel = Number(row.current_level ?? 0);
   const currentRole = row.current_role || workflow[Math.min(currentLevel, Math.max(workflow.length - 1, 0))] || 'Accounts';
   const currentApprover = row.current_approver || currentRole || 'Accounts';
+  const approvalStage = row.approval_stage || currentRole || 'Accounts';
 
   const employeeName = row.requester_name || payload.requester || payload.requester_name || payload.employee || 'Employee';
   const employeeEmail = row.requester_email || payload.requesterEmail || payload.email || '';
@@ -37,6 +38,8 @@ function mapAccountRequestRow(row) {
     description: row.description || payload.description || '',
     amount: Number(row.amount || payload.amount || 0),
     status: row.status || payload.status || 'pending',
+    approval_stage: approvalStage,
+    approvalStage: approvalStage,
     requester: employeeName,
     requester_name: employeeName,
     employee: employeeName,
@@ -70,8 +73,12 @@ exports.getAccountsRequests = async (req, res, next) => {
   try {
     const [rows] = await pool.query(`
       SELECT * FROM workflow_requests
-      WHERE LOWER(status) = 'pending'
-        AND LOWER(current_role) = 'accounts'
+      WHERE (LOWER(status) = 'pending' OR LOWER(status) LIKE 'pending%')
+        AND (
+          LOWER(approval_stage) = 'accounts'
+          OR LOWER(current_approver) = 'accounts'
+          OR LOWER(current_role) = 'accounts'
+        )
       ORDER BY id DESC
     `);
     const formattedRequests = rows.map(mapAccountRequestRow);

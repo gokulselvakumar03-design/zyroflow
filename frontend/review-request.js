@@ -446,7 +446,7 @@ async function submitConfirmedAction() {
 window.promptAction = promptAction;
 window.closeConfirmModal = closeConfirmModal;
 window.submitConfirmedAction = submitConfirmedAction;
-window.logout = function() {
+window.logout = function () {
     localStorage.removeItem('authToken');
     localStorage.removeItem('auth_token');
     localStorage.removeItem('currentUser');

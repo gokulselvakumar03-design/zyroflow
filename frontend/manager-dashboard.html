@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manager Dashboard - Approval Workflow</title>
     <link rel="stylesheet" href="theme-system.css">
+    <link rel="stylesheet" href="zyro-advanced-workflow.css">
     <link rel="stylesheet" href="settings-menu.css">
     <style>
         * {
@@ -46,6 +47,7 @@
         }
 
         @keyframes glow {
+
             0%,
             100% {
                 box-shadow: 0 0 18px rgba(96, 232, 255, 0.08);
@@ -1010,7 +1012,8 @@
         /* =========================================================
            LIGHT THEME OVERRIDES (Applied only when light-theme is active)
            ========================================================= */
-        body.light-theme, [data-theme="light"] body {
+        body.light-theme,
+        [data-theme="light"] body {
             background: #f5f7fb;
             color: #1e293b;
         }
@@ -1453,6 +1456,35 @@
         body.light-theme .escalated {
             color: #b45309;
         }
+
+        body.light-theme .timeline-header-text {
+            color: #0f172a !important;
+        }
+
+        body.light-theme .timeline-time-text {
+            color: #475569 !important;
+        }
+
+        body.light-theme .timeline-details-text {
+            color: #1e293b !important;
+        }
+
+        body.light-theme .timeline-comment-text {
+            color: #334155 !important;
+        }
+
+        .manager-2x2-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 900px) {
+            .manager-2x2-grid {
+                grid-template-columns: 1fr !important;
+            }
+        }
     </style>
 </head>
 
@@ -1512,67 +1544,107 @@
                     <button class="quick-action-button" onclick="openTeamAnalyticsModal()">Team Analytics</button>
                 </div>
             </div>
-            <div class="action-center-list" id="action-center-list"></div>
+            <!-- Search & Filter Controls -->
+            <div style="display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; align-items: center;">
+                <input type="text" id="managerSearchInput" placeholder="Search Request ID, Employee, Dept, Type..." style="flex: 2; min-width: 200px; padding: 8px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15); background: rgba(0,0,0,0.25); color: #fff; font-size: 13px;" oninput="onManagerFilterChange()" />
+                <select id="managerPriorityFilter" style="flex: 1; min-width: 120px; padding: 8px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15); background: rgba(10,22,52,0.9); color: #fff; font-size: 13px;" onchange="onManagerFilterChange()">
+                    <option value="ALL">All Priorities</option>
+                    <option value="HIGH">High Priority</option>
+                    <option value="MEDIUM">Medium Priority</option>
+                    <option value="LOW">Low Priority</option>
+                </select>
+                <select id="managerStatusFilter" style="flex: 1; min-width: 140px; padding: 8px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15); background: rgba(10,22,52,0.9); color: #fff; font-size: 13px;" onchange="onManagerFilterChange()">
+                    <option value="ALL">All Manager Requests</option>
+                    <option value="PENDING">Pending Manager Approval</option>
+                </select>
+            </div>
+            <div class="action-center-list" id="action-center-list" style="margin-top: 14px;"></div>
         </section>
 
-        <div class="dashboard-grid">
+        <!-- Analytics Section: 5 Modern Chart.js Visualizers -->
+        <div class="dashboard-grid" style="grid-template-columns: 2fr 1fr; gap: 20px; margin-top: 20px;">
             <section class="card chart-card">
                 <div class="card-title">Approval Trend</div>
-                <div class="chart-wrapper"><canvas id="trendChart"></canvas></div>
+                <div class="chart-wrapper" style="min-height: 260px; position: relative;"><canvas
+                        id="zyro-chart-approval-trend"></canvas></div>
             </section>
-            <section class="card insights-grid">
-                <div class="insight-card">
-                    <div class="insight-title">Overdue Requests</div>
-                    <div class="insight-value" id="insight-overdue">0</div>
-                    <div class="insight-note">Requests that exceeded SLA and require immediate attention.</div>
-                </div>
-                <div class="insight-card">
-                    <div class="insight-title">Approval Speed</div>
-                    <div class="insight-value" id="insight-speed">0 hrs</div>
-                    <div class="insight-note">Average time taken to complete approvals.</div>
-                </div>
-                <div class="insight-card">
-                    <div class="insight-title">Department Activity</div>
-                    <div class="insight-value" id="insight-dept">Finance</div>
-                    <div class="insight-note">Most active department by request volume.</div>
-                </div>
-                <div class="insight-card">
-                    <div class="insight-title">Escalation Alerts</div>
-                    <div class="insight-value" id="insight-escalations">0</div>
-                    <div class="insight-note">Requests that have moved to the next approval tier.</div>
-                </div>
+            <section class="card chart-card">
+                <div class="card-title">Approval Status Distribution</div>
+                <div class="chart-wrapper" style="min-height: 260px; position: relative;"><canvas
+                        id="zyro-chart-status-doughnut"></canvas></div>
             </section>
         </div>
 
-        <section class="card">
-            <div class="card-title">Recent Decisions</div>
-            <div class="timeline-list" id="recent-decisions-list">
-                <div class="empty-state">No decisions recorded yet.</div>
+        <div class="dashboard-grid" style="grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-top: 20px;">
+            <section class="card chart-card">
+                <div class="card-title">Manager Decisions by Department</div>
+                <div class="chart-wrapper" style="min-height: 240px; position: relative;"><canvas
+                        id="zyro-chart-mgr-dept-decisions"></canvas></div>
+            </section>
+            <section class="card chart-card">
+                <div class="card-title">Manager Approval vs Rejection</div>
+                <div class="chart-wrapper" style="min-height: 240px; position: relative;"><canvas
+                        id="zyro-chart-mgr-decisions"></canvas></div>
+            </section>
+            <section class="card chart-card">
+                <div class="card-title">Requests by Priority</div>
+                <div class="chart-wrapper" style="min-height: 240px; position: relative;"><canvas
+                        id="zyro-chart-requests-priority"></canvas></div>
+            </section>
+        </div>
+
+        <!-- Recent Decisions Activity Feed -->
+        <section class="card" style="margin-top: 20px;">
+            <div class="card-title">Recent Decisions Activity Feed</div>
+            <div id="recent-decisions-list" style="overflow-x: auto; margin-top: 10px;">
+                <div class="empty-state">No manager decisions yet. Decisions will appear here after your first approval.
+                </div>
             </div>
         </section>
 
-        <section class="card chart-card team-performance">
-            <div class="card-title">Team Performance</div>
-            <div class="team-chart-wrapper">
-                <div class="chart-wrapper team-chart-container">
-                    <canvas id="teamChart" class="team-chart-canvas"></canvas>
+        <!-- Manager 2x2 Feature Grid (Overdue Approvals, Escalation Alerts, High Priority Queue, Decision Timeline) -->
+        <div class="manager-2x2-grid">
+            <!-- TOP LEFT: Overdue Approvals -->
+            <section class="card" style="margin: 0;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <div class="card-title" style="margin: 0;">Overdue Approvals</div>
+                    <span class="badge" style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;" id="overdue-badge">0 Overdue</span>
                 </div>
-                <div class="team-summary" id="teamSummary">
-                    <div class="team-stat">
-                        <div class="team-stat-label">Approved</div>
-                        <div class="team-stat-value" id="team-approved">0</div>
-                    </div>
-                    <div class="team-stat">
-                        <div class="team-stat-label">Pending</div>
-                        <div class="team-stat-value" id="team-pending">0</div>
-                    </div>
-                    <div class="team-stat">
-                        <div class="team-stat-label">Rejected</div>
-                        <div class="team-stat-value" id="team-rejected">0</div>
-                    </div>
+                <div id="overdue-approvals-list" style="overflow-x: auto; min-height: 120px;">
+                    <div class="empty-state">No overdue manager approvals currently.</div>
                 </div>
-            </div>
-        </section>
+            </section>
+
+            <!-- TOP RIGHT: Escalation Alerts -->
+            <section class="card" style="margin: 0;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <div class="card-title" style="margin: 0;">Escalation Alerts</div>
+                    <span class="badge" style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;" id="escalation-alerts-badge">0 Alerts</span>
+                </div>
+                <div id="escalation-alerts-list" style="overflow-x: auto; min-height: 120px;">
+                    <div class="empty-state">No escalation alerts</div>
+                </div>
+            </section>
+
+            <!-- BOTTOM LEFT: High Priority Queue -->
+            <section class="card" style="margin: 0;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <div class="card-title" style="margin: 0;">High Priority Queue</div>
+                    <span class="badge" style="background: rgba(245, 158, 11, 0.2); color: #f59e0b; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;" id="high-priority-badge">0 Urgent</span>
+                </div>
+                <div id="high-priority-queue-list" style="overflow-x: auto; min-height: 120px;">
+                    <div class="empty-state">No high-priority requests in your queue.</div>
+                </div>
+            </section>
+
+            <!-- BOTTOM RIGHT: Decision Timeline -->
+            <section class="card" style="margin: 0;">
+                <div class="card-title" style="margin-bottom: 12px;">Decision Timeline</div>
+                <div id="decision-timeline-list" style="overflow-x: auto; min-height: 120px;">
+                    <div class="empty-state">No recent manager decisions recorded yet.</div>
+                </div>
+            </section>
+        </div>
         <div id="requests-list" class="requests-list" style="display:none;"></div>
 
         <div id="exportModal" class="modal-overlay">
@@ -1629,6 +1701,87 @@
                 </div>
             </div>
         </div>
+
+        <!-- Enterprise Manager Review & Approval Modal -->
+        <div id="managerReviewModal" class="modal-overlay">
+            <div class="modal-card" style="max-width: 650px;">
+                <div class="modal-header">
+                    <div>
+                        <div class="modal-title" id="mrm-title">Review Request</div>
+                        <div class="modal-subtitle">Review details, enter remarks, and submit your approval decision.
+                        </div>
+                    </div>
+                    <button class="modal-close" type="button" onclick="closeModal('managerReviewModal')">×</button>
+                </div>
+                <div class="modal-body">
+                    <div class="modal-section"
+                        style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px;">
+                        <div>
+                            <span
+                                style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.7; display: block;">Request
+                                ID</span>
+                            <strong id="mrm-id" style="font-size: 15px;">#--</strong>
+                        </div>
+                        <div>
+                            <span
+                                style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.7; display: block;">Employee
+                                Name</span>
+                            <strong id="mrm-employee" style="font-size: 15px;">--</strong>
+                        </div>
+                        <div>
+                            <span
+                                style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.7; display: block;">Department</span>
+                            <span id="mrm-dept">--</span>
+                        </div>
+                        <div>
+                            <span
+                                style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.7; display: block;">Request
+                                Type</span>
+                            <span id="mrm-type">--</span>
+                        </div>
+                        <div>
+                            <span
+                                style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.7; display: block;">Amount</span>
+                            <strong id="mrm-amount" style="font-size: 16px; color: #38bdf8;">--</strong>
+                        </div>
+                        <div>
+                            <span
+                                style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.7; display: block;">Priority</span>
+                            <span id="mrm-priority">--</span>
+                        </div>
+                        <div>
+                            <span
+                                style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.7; display: block;">Current
+                                Approval Stage</span>
+                            <span id="mrm-stage">--</span>
+                        </div>
+                        <div>
+                            <span
+                                style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.7; display: block;">Submitted
+                                Date</span>
+                            <span id="mrm-date">--</span>
+                        </div>
+                    </div>
+                    <div class="modal-section" style="padding: 14px;">
+                        <label for="mrm-remarks"
+                            style="display: block; font-weight: 700; font-size: 13px; margin-bottom: 8px;">Manager
+                            Remarks (Optional):</label>
+                        <textarea id="mrm-remarks" class="request-comment"
+                            placeholder="Add approval remarks or justification..."
+                            style="width: 100%; min-height: 75px; padding: 10px; border-radius: 10px; font-family: inherit; font-size: 13px; box-sizing: border-box;"></textarea>
+                    </div>
+                    <div class="modal-actions"
+                        style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 6px;">
+                        <button class="modal-action-button" type="button" onclick="closeModal('managerReviewModal')"
+                            style="background: rgba(148, 163, 184, 0.2); border-color: rgba(148, 163, 184, 0.3); color: inherit;">Cancel</button>
+                        <button class="action-button reject-button" type="button" id="mrm-reject-btn"
+                            style="padding: 10px 20px; font-weight: 700;">✕ Reject</button>
+                        <button class="action-button approve-button" type="button" id="mrm-approve-btn"
+                            style="padding: 10px 20px; font-weight: 700;">✓ Approve</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -1637,10 +1790,12 @@
         let currentFilter = 'ALL';
         const UNDO_WINDOW_MS = 25000;
         const undoTimers = new Map();
-        const REQUESTS_API_URL = 'http://localhost:5000/requests';
+        const REQUESTS_API_URL = 'http://localhost:4000/requests';
         let requestsCache = [];
+        let approvalHistoryCache = [];
         let trendChartInstance = null;
-        let teamChartInstance = null;
+        let statusDoughnutChartInstance = null;
+        let deptPendingChartInstance = null;
 
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
@@ -1679,40 +1834,69 @@
             }
         }
 
-        async function saveApprovalAction(requestId, role, action) {
+        async function saveApprovalAction(requestId, role, action, remarks) {
             try {
-                await fetch('http://localhost:4000/approve', {
-                    method: 'POST',
+                const token = localStorage.getItem('authToken') || localStorage.getItem('auth_token') || '';
+                const act = normalizeStatus(action) === 'approved' ? 'approve' : 'reject';
+                const commentsText = remarks && String(remarks).trim() ? String(remarks).trim() : (act === 'approve' ? 'Approved by Manager' : 'Rejected by Manager');
+
+                const response = await fetch(`http://localhost:4000/requests/${requestId}/${act}`, {
+                    method: 'PUT',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        'Authorization': token ? `Bearer ${token}` : ''
                     },
                     body: JSON.stringify({
-                        requestId,
-                        role,
-                        action
+                        role: role || 'Manager',
+                        comments: commentsText
                     })
                 });
+
+                if (!response.ok) {
+                    await fetch(`http://localhost:4000/${act}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': token ? `Bearer ${token}` : ''
+                        },
+                        body: JSON.stringify({
+                            requestId: Number(requestId),
+                            role: role || 'Manager',
+                            action: act === 'approve' ? 'approved' : 'rejected',
+                            comments: commentsText
+                        })
+                    });
+                }
             } catch (err) {
-                // Keep existing local flow as fallback.
+                console.error('saveApprovalAction error:', err);
             }
         }
 
-        function loadRequests() {
-            fetch(REQUESTS_API_URL)
-                .then((res) => {
-                    if (!res.ok) {
-                        throw new Error('API request failed');
-                    }
-                    return res.json();
-                })
-                .then((data) => {
-                    const requests = Array.isArray(data) ? data : [];
-                    writeRequestsToLocalStorage(requests, true);
-                    renderRequests();
-                })
-                .catch(() => {
-                    renderRequests();
-                });
+        async function loadRequests() {
+            const token = localStorage.getItem('authToken') || localStorage.getItem('auth_token') || '';
+            try {
+                const [reqRes, histRes] = await Promise.all([
+                    fetch('http://localhost:4000/requests', {
+                        headers: { 'Content-Type': 'application/json', 'Authorization': token ? `Bearer ${token}` : '' }
+                    }),
+                    fetch('http://localhost:4000/approval-history?role=Manager', {
+                        headers: { 'Content-Type': 'application/json', 'Authorization': token ? `Bearer ${token}` : '' }
+                    })
+                ]);
+
+                if (reqRes.ok) {
+                    const data = await reqRes.json();
+                    writeRequestsToLocalStorage(Array.isArray(data) ? data : []);
+                }
+
+                if (histRes.ok) {
+                    const histData = await histRes.json();
+                    approvalHistoryCache = Array.isArray(histData) ? histData : [];
+                }
+            } catch (err) {
+                console.error('loadRequests error:', err);
+            }
+            renderRequests();
         }
 
         function normalizeStatus(status) {
@@ -1882,13 +2066,21 @@
             renderActionCenter(requests);
             renderInsights(requests);
             renderTrendChart(requests);
-            renderTeamChart(requests);
+            renderStatusDoughnutChart(requests);
+            renderThreeManagerCharts(requests);
+            renderTodaysActivity(requests);
             renderRecentDecisions(requests);
-            const pendingRequests = requests.filter((r) => {
-                if (normalizeStatus(r.status) !== 'pending') return false;
-                const currentStepRole = canonicalRole((r.workflow || [])[r.currentLevel]);
-                return currentStepRole === currentRole;
-            });
+            renderOverdueApprovals(requests);
+            renderHighPriorityQueue(requests);
+            renderEscalationAlerts(requests);
+            renderDecisionTimeline(approvalHistoryCache);
+
+            const pendingRequests = requests.filter(isManagerPendingRequest);
+            updateSummary(requests, pendingRequests);
+
+            if (window.ZyroAnalytics && typeof window.ZyroAnalytics.renderDashboardCharts === 'function') {
+                window.ZyroAnalytics.renderDashboardCharts();
+            }
 
             const undoRequests = requests.filter((r) => isUndoWindowOpen(r));
             const combinedRequests = [...pendingRequests];
@@ -1949,6 +2141,7 @@
                     </div>
                     <textarea id="comment-${request.id}" class="request-comment" placeholder="Add comment before action (optional)"></textarea>
                     <div class="request-actions">
+                        <button class="action-button ghost-button" onclick="ZyroWorkflow.showRequestDetails(${request.id})">🔍 Details</button>
                         ${canAct ? `<button class="action-button approve-button" onclick="approveRequest(${request.id})">
                             ✓ Approve
                         </button>` : ''}
@@ -2067,87 +2260,94 @@
             }).join('');
         }
 
-        // Approve request
-        function approveRequest(requestId) {
-            if (!confirm('Are you sure you want to approve?')) {
-                return;
-            }
-            updateRequestStatus(requestId, 'approved');
-        }
+        let activeReviewRequestId = null;
 
-        // Reject request
-        function rejectRequest(requestId) {
-            if (!confirm('Are you sure you want to reject?')) {
-                return;
-            }
-            updateRequestStatus(requestId, 'rejected');
-        }
-
-        // Update request status
-        async function updateRequestStatus(requestId, status) {
+        function openReviewModal(requestId) {
             const requests = readRequestsFromLocalStorage().map(normalizeRequest);
-            const requestIndex = requests.findIndex(r => Number(r.id) === Number(requestId));
-            if (requestIndex === -1) return;
+            const req = requests.find((r) => Number(r.id) === Number(requestId));
+            if (!req) return;
 
-            const request = requests[requestIndex];
-            const assignedRole = canonicalRole((request.workflow || [])[request.currentLevel]);
+            activeReviewRequestId = Number(req.id);
 
-            if (assignedRole !== currentRole || normalizeStatus(request.status) !== 'pending') {
-                showMessage('This request is no longer assigned to your role.', 'success');
-                renderRequests();
-                return;
+            const titleEl = document.getElementById('mrm-title');
+            const idEl = document.getElementById('mrm-id');
+            const empEl = document.getElementById('mrm-employee');
+            const deptEl = document.getElementById('mrm-dept');
+            const typeEl = document.getElementById('mrm-type');
+            const amountEl = document.getElementById('mrm-amount');
+            const prioEl = document.getElementById('mrm-priority');
+            const stageEl = document.getElementById('mrm-stage');
+            const dateEl = document.getElementById('mrm-date');
+            const remarksEl = document.getElementById('mrm-remarks');
+
+            if (titleEl) titleEl.textContent = `Review Request #${req.id}`;
+            if (idEl) idEl.textContent = `#${req.id}`;
+            if (empEl) empEl.textContent = req.requester_name || req.requester || req.employee || req.employee_name || req.email || 'Employee';
+            if (deptEl) deptEl.textContent = req.department || req.team || 'Finance';
+            if (typeEl) typeEl.textContent = req.request_type || req.type || req.title || 'Financial Request';
+            if (amountEl) amountEl.textContent = formatCurrency(req.amount);
+            if (prioEl) prioEl.innerHTML = renderPriority(req.amount);
+            if (stageEl) stageEl.textContent = req.status || 'Pending Manager Approval';
+            if (dateEl) dateEl.textContent = req.createdAt ? new Date(Number(req.createdAt)).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Recent';
+            if (remarksEl) remarksEl.value = '';
+
+            const approveBtn = document.getElementById('mrm-approve-btn');
+            const rejectBtn = document.getElementById('mrm-reject-btn');
+            if (approveBtn) {
+                approveBtn.onclick = () => handleModalDecision('approved');
+            }
+            if (rejectBtn) {
+                rejectBtn.onclick = () => handleModalDecision('rejected');
             }
 
-            const commentEl = document.getElementById(`comment-${request.id}`);
-            const comment = commentEl ? commentEl.value.trim() : '';
-            const now = Date.now();
-            const actionStatus = normalizeStatus(status) === 'approved' ? 'Approved' : 'Rejected';
-            const snapshot = {
-                status: request.status,
-                currentLevel: request.currentLevel,
-                updatedAt: request.updatedAt,
-                historyLength: request.history.length,
-                commentsLength: request.comments.length
-            };
+            openModal('managerReviewModal');
+        }
 
-            request.comments.push({ role: currentRole, comment: comment || actionStatus, time: now });
-            request.updatedAt = now;
+        async function handleModalDecision(action) {
+            if (!activeReviewRequestId) return;
+            const reqId = activeReviewRequestId;
+            const remarksEl = document.getElementById('mrm-remarks');
+            const remarks = remarksEl ? remarksEl.value.trim() : '';
 
-            if (normalizeStatus(status) === 'approved') {
-                request.currentLevel += 1;
-                if (request.currentLevel >= request.workflow.length) {
-                    request.status = 'approved';
-                    request.currentLevel = Math.max(0, request.workflow.length - 1);
+            closeModal('managerReviewModal');
+
+            const isApprove = normalizeStatus(action) === 'approved';
+            const actionStatus = isApprove ? 'Approved' : 'Rejected';
+
+            const requests = readRequestsFromLocalStorage().map(normalizeRequest);
+            const req = requests.find((r) => Number(r.id) === Number(reqId));
+            if (req) {
+                if (isApprove) {
+                    req.approval_stage = 'CFO';
+                    req.current_role = 'CFO';
+                    req.current_approver = 'CFO';
+                    req.status = 'Pending CFO Approval';
                 } else {
-                    request.status = 'pending';
-                    request.currentRole = (request.workflow || [])[request.currentLevel] || request.currentRole;
-                    simulateEmail('approval', request.currentRole);
+                    req.approval_stage = 'Rejected';
+                    req.current_role = 'Rejected';
+                    req.current_approver = 'Rejected';
+                    req.status = 'Rejected';
                 }
-            } else {
-                request.status = 'rejected';
+                addHistory(req, actionStatus, currentRole);
+                await saveHistory(req.id, actionStatus, currentRole);
             }
 
-            addHistory(request, actionStatus, currentRole);
-            await saveHistory(request.id, actionStatus, currentRole);
-            await saveApprovalAction(request.id, currentRole, normalizeStatus(status));
+            await saveApprovalAction(reqId, 'Manager', isApprove ? 'approved' : 'rejected', remarks);
 
-            request.lastActionTime = now;
-            request.lastAction = normalizeStatus(status);
-            request.undoAvailable = request.undoUsed === false;
-            request.lastActionType = normalizeStatus(status);
-            request.lastActionBy = currentRole;
-            request.lastActionSnapshot = snapshot;
+            await loadRequests();
 
-            requests[requestIndex] = request;
-            writeRequestsToLocalStorage(requests);
-            scheduleUndoExpiryForRequest(request.id, now);
+            const toastMessage = isApprove
+                ? 'Request forwarded to CFO successfully.'
+                : 'Request rejected successfully.';
+            showMessage(toastMessage, isApprove ? 'success' : 'error');
+        }
 
-            showMessage(`Action applied. Undo available for 25 seconds.`, 'warning');
-            renderRequests();
+        function approveRequest(requestId) {
+            ZyroWorkflow.openDecisionModal('approve', requestId, () => loadRequests());
+        }
 
-            setTimeout(() => {
-                document.getElementById('message').classList.remove('show');
-            }, 3000);
+        function rejectRequest(requestId) {
+            ZyroWorkflow.openDecisionModal('reject', requestId, () => loadRequests());
         }
 
         function isUndoWindowOpen(request) {
@@ -2271,77 +2471,209 @@
             writeRequestsToLocalStorage(requests);
         }
 
-        // Update summary counts
+        function getManagerSpecificStats(historyList, requestsList) {
+            const history = Array.isArray(historyList) ? historyList : [];
+            const reqs = Array.isArray(requestsList) ? requestsList : [];
+
+            // Filter history records where decision belongs to Manager stage / Manager action
+            const managerDecisions = history.filter((item) => {
+                const stage = String(item.approval_stage || '').toLowerCase().trim();
+                const mgr = String(item.manager_name || '').toLowerCase().trim();
+                const role = String(item.role || '').toLowerCase().trim();
+                const performedBy = String(item.performed_by || '').toLowerCase().trim();
+                return stage === 'manager' || mgr === 'manager' || role === 'manager' || performedBy === 'manager';
+            });
+
+            let mgrApproved = 0;
+            let mgrRejected = 0;
+            let totalSecs = 0;
+            let timedCount = 0;
+            const approvedAmounts = [];
+
+            managerDecisions.forEach((item) => {
+                const dec = String(item.decision || item.action || '').toLowerCase();
+                const isApprove = dec.includes('approve');
+                const isReject = dec.includes('reject');
+
+                const reqMatch = reqs.find((r) => Number(r.id) === Number(item.request_id));
+                const amt = Number(item.amount || item.req_amount || 0) > 0 ? Number(item.amount || item.req_amount) : Number(reqMatch ? reqMatch.amount : 0);
+
+                if (isApprove) {
+                    mgrApproved += 1;
+                    if (amt > 0) approvedAmounts.push(amt);
+                } else if (isReject) {
+                    mgrRejected += 1;
+                }
+
+                const itemTime = item.decision_timestamp || item.timestamp ? new Date(item.decision_timestamp || item.timestamp).getTime() : 0;
+                const reqCreated = item.req_created_at || (reqMatch && reqMatch.createdAt) ? new Date(item.req_created_at || reqMatch.createdAt).getTime() : 0;
+                let sec = Number(item.decision_time_seconds || (item.decision_time ? item.decision_time * 60 : 0));
+                if (sec <= 0 && itemTime > 0 && reqCreated > 0 && itemTime >= reqCreated) {
+                    sec = Math.round((itemTime - reqCreated) / 1000);
+                }
+                if (sec > 0) {
+                    totalSecs += sec;
+                    timedCount += 1;
+                }
+            });
+
+            const totalDecisions = mgrApproved + mgrRejected;
+            const approvalRate = totalDecisions > 0 ? Math.round((mgrApproved / totalDecisions) * 100) : 0;
+            const avgDecisionTimeMins = timedCount > 0 ? Math.round((totalSecs / timedCount) / 60) : 0;
+
+            const highestApproved = approvedAmounts.length > 0 ? Math.max(...approvedAmounts) : 0;
+            const lowestApproved = approvedAmounts.length > 0 ? Math.min(...approvedAmounts) : 0;
+
+            const mgrPending = reqs.filter(isManagerPendingRequest).length;
+            const overallPending = reqs.filter(r => {
+                const st = String(r.status || '').trim().toLowerCase();
+                return st.includes('pending') || st === 'waiting';
+            }).length;
+
+            console.log('Manager decisions:', managerDecisions);
+            console.log('Manager approved:', mgrApproved);
+            console.log('Manager rejected:', mgrRejected);
+            console.log('Manager total:', totalDecisions);
+            console.log('Manager approval rate:', approvalRate + '%');
+
+            return {
+                mgrApproved,
+                mgrRejected,
+                totalDecisions,
+                approvalRate,
+                avgDecisionTimeMins,
+                highestApproved,
+                lowestApproved,
+                mgrPending,
+                overallPending
+            };
+        }
+
+        // Update summary counts using exact Manager approval decision formula
         function updateSummary(requests, assignedPending) {
             const pending = assignedPending.length;
             const highPriority = requests.filter(r => getPriority(r.amount) === 'HIGH').length;
-            const approved = requests.filter(r => normalizeStatus(r.status) === 'approved').length;
-            const total = requests.length;
-            const approvalRate = total ? Math.round((approved / total) * 100) : 0;
             const escalated = requests.filter(r => Boolean(r.escalated)).length;
-            const approvedRequests = requests.filter(r => normalizeStatus(r.status) === 'approved' && Number(r.createdAt) && Number(r.updatedAt));
-            let avgMinutes = 0;
-            if (approvedRequests.length) {
-                let totalTime = 0;
-                approvedRequests.forEach((r) => {
-                    const created = Number(r.createdAt);
-                    const updated = Number(r.updatedAt);
-                    if (Number.isFinite(created) && Number.isFinite(updated) && updated >= created) {
-                        totalTime += updated - created;
-                    }
-                });
-                avgMinutes = Math.round((totalTime / approvedRequests.length) / 60000);
-            }
 
-            document.getElementById('pending-count').textContent = pending;
-            document.getElementById('highPriority-count').textContent = highPriority;
-            document.getElementById('approvalRate-count').textContent = `${approvalRate}%`;
-            document.getElementById('avgDecisionTime-count').textContent = `${avgMinutes} mins`;
-            document.getElementById('escalated-count').textContent = escalated;
+            const mgrStats = getManagerSpecificStats(approvalHistoryCache, requests);
+
+            const pendingEl = document.getElementById('pending-count');
+            const hpEl = document.getElementById('highPriority-count');
+            const rateEl = document.getElementById('approvalRate-count');
+            const avgEl = document.getElementById('avgDecisionTime-count');
+            const escEl = document.getElementById('escalated-count');
+
+            if (pendingEl) pendingEl.textContent = String(pending);
+            if (hpEl) hpEl.textContent = String(highPriority);
+            if (rateEl) rateEl.textContent = `${mgrStats.approvalRate}%`;
+            if (avgEl) avgEl.textContent = `${mgrStats.avgDecisionTimeMins} mins`;
+            if (escEl) escEl.textContent = String(escalated);
+        }
+
+        function isManagerPendingRequest(r) {
+            if (!r) return false;
+            const statusNorm = String(r.status || '').trim().toLowerCase();
+            const roleNorm = String(r.currentRole || r.current_role || r.approval_stage || r.approvalStage || (r.workflow && r.workflow[r.currentLevel]) || '').trim().toLowerCase();
+            const isPending = statusNorm.includes('pending') || statusNorm === 'waiting';
+            const isManagerStage = statusNorm === 'pending manager approval' || (isPending && roleNorm === 'manager');
+            const isDecidedInHistory = (approvalHistoryCache || []).some(h => Number(h.request_id) === Number(r.id) && String(h.approval_stage).toLowerCase() === 'manager' && String(h.decision || h.action).toLowerCase().includes('reject'));
+            return isManagerStage && !isDecidedInHistory;
+        }
+
+        function calculatePriorityScore(r) {
+            if (!r) return 0;
+            let score = 0;
+            const prio = String(r.priority || getPriority(r.amount)).toUpperCase();
+            if (prio === 'HIGH') score += 50;
+            else if (prio === 'MEDIUM') score += 30;
+            else score += 10;
+
+            const created = new Date(r.createdAt || Date.now()).getTime();
+            const hoursWaiting = Math.floor(Math.max(0, Date.now() - created) / (1000 * 60 * 60));
+            score += Math.min(40, hoursWaiting * 2);
+
+            if (r.escalated) score += 20;
+            return score;
+        }
+
+        function filterManagerRequests(requests) {
+            const searchTerm = String(document.getElementById('managerSearchInput')?.value || '').toLowerCase().trim();
+            const priorityVal = String(document.getElementById('managerPriorityFilter')?.value || 'ALL').toUpperCase();
+            const statusVal = String(document.getElementById('managerStatusFilter')?.value || 'ALL').toUpperCase();
+
+            return requests.filter((r) => {
+                if (!isManagerPendingRequest(r)) return false;
+
+                if (statusVal === 'PENDING' && !isManagerPendingRequest(r)) {
+                    return false;
+                }
+
+                const prio = String(r.priority || getPriority(r.amount)).toUpperCase();
+                if (priorityVal !== 'ALL' && prio !== priorityVal) {
+                    return false;
+                }
+
+                if (searchTerm) {
+                    const idMatch = String(r.id).toLowerCase().includes(searchTerm);
+                    const empMatch = String(r.requester_name || r.requester || r.employee || '').toLowerCase().includes(searchTerm);
+                    const deptMatch = String(getDepartmentLabel(r)).toLowerCase().includes(searchTerm);
+                    const typeMatch = String(r.type || r.request_type || r.title || '').toLowerCase().includes(searchTerm);
+                    if (!idMatch && !empMatch && !deptMatch && !typeMatch) return false;
+                }
+
+                return true;
+            });
+        }
+
+        function onManagerFilterChange() {
+            const requests = readRequestsFromLocalStorage().map(normalizeRequest);
+            renderActionCenter(requests);
         }
 
         function renderActionCenter(requests) {
             const listEl = document.getElementById('action-center-list');
             if (!listEl) return;
 
-            const pendingRequests = requests.filter((r) => {
-                if (normalizeStatus(r.status) !== 'pending') return false;
-                const currentStepRole = canonicalRole((r.workflow || [])[r.currentLevel]);
-                return currentStepRole === currentRole;
-            });
+            const filteredRequests = filterManagerRequests(requests);
+            filteredRequests.sort((a, b) => calculatePriorityScore(b) - calculatePriorityScore(a));
 
-            const topRequests = pendingRequests
-                .sort((a, b) => Number(a.createdAt || 0) - Number(b.createdAt || 0))
-                .slice(0, 5);
-
-            if (!topRequests.length) {
-                listEl.innerHTML = '<div class="empty-state">No approvals pending for your role at the moment.</div>';
+            if (!filteredRequests.length) {
+                listEl.innerHTML = '<div class="empty-state">No approvals pending for Manager matching filters.</div>';
                 return;
             }
 
             listEl.innerHTML = `
                 <div class="action-row header">
-                    <div>Employee</div>
+                    <div>Req ID</div>
+                    <div>Employee Name</div>
+                    <div>Department</div>
                     <div>Request Type</div>
                     <div>Amount</div>
-                    <div>Waiting Time</div>
+                    <div>Status</div>
+                    <div>Priority / Score</div>
                     <div>Actions</div>
                 </div>
-                ${topRequests.map((request) => {
-                const employee = escapeHtml(request.createdBy || request.created_by || request.email || 'Employee');
-                const requestType = escapeHtml(request.type || request.requestType || request.category || 'General');
+                ${filteredRequests.map((request) => {
+                const reqId = `#${request.id}`;
+                const employee = escapeHtml(request.requester_name || request.requester || request.employee || request.employee_name || request.email || 'Employee');
+                const dept = escapeHtml(getDepartmentLabel(request));
+                const requestType = escapeHtml(request.request_type || request.type || request.title || 'Financial Request');
                 const amount = formatCurrency(request.amount);
-                const waitingTime = timeAgo(request.createdAt);
+                const statusStr = escapeHtml(request.status || 'Pending Manager Approval');
+                const priorityHtml = renderPriority(request.amount);
+                const score = calculatePriorityScore(request);
                 return `
                         <div class="action-row">
+                            <div><strong>${reqId}</strong></div>
                             <div class="action-name">${employee}</div>
+                            <div>${dept}</div>
                             <div>${requestType}</div>
                             <div>${amount}</div>
-                            <div>${waitingTime}</div>
+                            <div><span class="status-pill status-pending">${statusStr}</span></div>
+                            <div>${priorityHtml} <span class="badge" style="background: rgba(168, 85, 247, 0.2); color: #c084fc; font-weight: 700; padding: 2px 6px; border-radius: 4px; font-size: 10px; margin-left: 4px;">Score: ${score}</span></div>
                             <div class="action-buttons">
-                                <button class="action-button approve-button" onclick="approveRequest(${request.id})">Approve</button>
-                                <button class="action-button reject-button" onclick="rejectRequest(${request.id})">Reject</button>
-                                <button class="action-button export-button" onclick="viewRequest(${request.id})">View</button>
+                                <button class="action-button approve-button" onclick="approveRequest(${request.id})">✓ Approve</button>
+                                <button class="action-button reject-button" onclick="rejectRequest(${request.id})">✕ Reject</button>
                             </div>
                         </div>
                     `;
@@ -2395,25 +2727,29 @@
                 labels.push(key);
                 countsByDay[key] = 0;
             }
+
             requests.forEach((r) => {
-                const dateKey = new Date(Number(r.createdAt || Date.now())).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-                if (Object.prototype.hasOwnProperty.call(countsByDay, dateKey)) {
-                    countsByDay[dateKey] += 1;
+                const isApproved = normalizeStatus(r.status) === 'approved';
+                const createdDate = new Date(Number(r.createdAt || Date.now())).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                if (isApproved && Object.prototype.hasOwnProperty.call(countsByDay, createdDate)) {
+                    countsByDay[createdDate] += 1;
                 }
             });
+
             const data = labels.map((label) => countsByDay[label] || 0);
+
             if (!trendChartInstance) {
                 trendChartInstance = new Chart(ctx, {
                     type: 'line',
                     data: {
                         labels,
                         datasets: [{
-                            label: 'Requests',
+                            label: 'Approved Requests',
                             data,
-                            borderColor: '#60E8FF',
-                            backgroundColor: 'rgba(96, 232, 255, 0.15)',
-                            pointRadius: 4,
-                            pointBackgroundColor: '#60E8FF',
+                            borderColor: '#38bdf8',
+                            backgroundColor: 'rgba(56, 189, 248, 0.15)',
+                            pointRadius: 5,
+                            pointBackgroundColor: '#38bdf8',
                             tension: 0.35,
                             fill: true,
                         }]
@@ -2423,10 +2759,11 @@
                         maintainAspectRatio: false,
                         plugins: {
                             legend: { display: false },
+                            tooltip: { enabled: true }
                         },
                         scales: {
-                            x: { ticks: { color: 'rgba(231, 241, 255, 0.72)' }, grid: { color: 'rgba(255,255,255,0.08)' } },
-                            y: { ticks: { color: 'rgba(231, 241, 255, 0.72)' }, grid: { color: 'rgba(255,255,255,0.08)' }, beginAtZero: true }
+                            x: { ticks: { color: 'rgba(231, 241, 255, 0.72)' }, grid: { color: 'rgba(255,255,255,0.06)' } },
+                            y: { ticks: { color: 'rgba(231, 241, 255, 0.72)', stepSize: 1 }, grid: { color: 'rgba(255,255,255,0.06)' }, beginAtZero: true }
                         }
                     }
                 });
@@ -2437,95 +2774,580 @@
             }
         }
 
-        function renderTeamChart(requests) {
-            const ctx = document.getElementById('teamChart');
+        function renderStatusDoughnutChart(requests) {
+            const ctx = document.getElementById('statusDoughnutChart');
             if (!ctx) return;
-            const statusCounts = { approved: 0, rejected: 0, pending: 0 };
+
+            let pendingCount = 0;
+            let approvedCount = 0;
+            let rejectedCount = 0;
+
             requests.forEach((r) => {
-                const status = normalizeStatus(r.status);
-                if (Object.prototype.hasOwnProperty.call(statusCounts, status)) {
-                    statusCounts[status] += 1;
-                } else {
-                    statusCounts.pending += 1;
-                }
+                const st = normalizeStatus(r.status);
+                if (st === 'approved') approvedCount += 1;
+                else if (st === 'rejected') rejectedCount += 1;
+                else pendingCount += 1;
             });
-            const labels = ['Approved', 'Rejected', 'Pending'];
-            const data = [statusCounts.approved, statusCounts.rejected, statusCounts.pending];
 
-            // Update summary stats below chart
-            const approvedEl = document.getElementById('team-approved');
-            const pendingEl = document.getElementById('team-pending');
-            const rejectedEl = document.getElementById('team-rejected');
-            if (approvedEl) approvedEl.textContent = String(statusCounts.approved);
-            if (pendingEl) pendingEl.textContent = String(statusCounts.pending);
-            if (rejectedEl) rejectedEl.textContent = String(statusCounts.rejected);
+            const labels = ['Pending', 'Approved', 'Rejected'];
+            const data = [pendingCount, approvedCount, rejectedCount];
 
-            if (!teamChartInstance) {
-                teamChartInstance = new Chart(ctx, {
+            if (!statusDoughnutChartInstance) {
+                statusDoughnutChartInstance = new Chart(ctx, {
                     type: 'doughnut',
                     data: {
                         labels,
                         datasets: [{
-                            label: 'Status Distribution',
                             data,
-                            backgroundColor: ['rgba(52, 211, 153, 0.85)', 'rgba(248, 113, 113, 0.85)', 'rgba(255, 159, 67, 0.85)'],
-                            borderColor: ['#32D599', '#F87171', '#FF9F43'],
+                            backgroundColor: ['rgba(245, 158, 11, 0.85)', 'rgba(16, 185, 129, 0.85)', 'rgba(239, 68, 68, 0.85)'],
+                            borderColor: ['#f59e0b', '#10b981', '#ef4444'],
                             borderWidth: 2
                         }]
                     },
                     options: {
                         responsive: true,
-                        maintainAspectRatio: true,
-                        aspectRatio: 1.6,
+                        maintainAspectRatio: false,
                         plugins: {
                             legend: {
-                                position: 'right',
-                                labels: { color: 'rgba(231, 241, 255, 0.9)' }
+                                position: 'bottom',
+                                labels: { color: 'rgba(231, 241, 255, 0.9)', font: { size: 12 } }
                             },
                             tooltip: { enabled: true }
                         }
                     }
                 });
             } else {
-                teamChartInstance.data.labels = labels;
-                teamChartInstance.data.datasets[0].data = data;
-                teamChartInstance.update();
+                statusDoughnutChartInstance.data.datasets[0].data = data;
+                statusDoughnutChartInstance.update();
             }
+        }
+
+        let mgrDeptDecisionsChartInstance = null;
+        let mgrDecisionsChartInstance = null;
+        let requestsPriorityChartInstance = null;
+
+        function renderThreeManagerCharts(requests) {
+            const reqList = Array.isArray(requests) ? requests : [];
+            const mgrStats = getManagerSpecificStats(approvalHistoryCache, reqList);
+
+            // 1. Manager Decisions by Department (Horizontal Grouped Bar Chart)
+            const deptCtx = document.getElementById('zyro-chart-mgr-dept-decisions');
+            if (deptCtx) {
+                const history = Array.isArray(approvalHistoryCache) ? approvalHistoryCache : [];
+                const managerDecisions = history.filter((item) => {
+                    const stage = String(item.approval_stage || '').toLowerCase().trim();
+                    const mgr = String(item.manager_name || '').toLowerCase().trim();
+                    const role = String(item.role || '').toLowerCase().trim();
+                    const performedBy = String(item.performed_by || '').toLowerCase().trim();
+                    return stage === 'manager' || mgr === 'manager' || role === 'manager' || performedBy === 'manager';
+                });
+
+                const deptApproved = {};
+                const deptRejected = {};
+                const deptSet = new Set();
+
+                managerDecisions.forEach((item) => {
+                    const reqMatch = reqList.find((r) => Number(r.id) === Number(item.request_id));
+                    const dept = item.department || (reqMatch ? getDepartmentLabel(reqMatch) : 'Finance');
+                    deptSet.add(dept);
+
+                    const dec = String(item.decision || item.action || '').toLowerCase();
+                    if (dec.includes('approve')) {
+                        deptApproved[dept] = (deptApproved[dept] || 0) + 1;
+                    } else if (dec.includes('reject')) {
+                        deptRejected[dept] = (deptRejected[dept] || 0) + 1;
+                    }
+                });
+
+                const deptLabels = Array.from(deptSet).length > 0 ? Array.from(deptSet) : ['IT', 'Sales', 'Accounts', 'HR'];
+                const approvedData = deptLabels.map(d => deptApproved[d] || 0);
+                const rejectedData = deptLabels.map(d => deptRejected[d] || 0);
+
+                if (mgrDeptDecisionsChartInstance) {
+                    mgrDeptDecisionsChartInstance.destroy();
+                }
+                mgrDeptDecisionsChartInstance = new Chart(deptCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: deptLabels,
+                        datasets: [
+                            {
+                                label: 'Manager Approved',
+                                data: approvedData,
+                                backgroundColor: 'rgba(16, 185, 129, 0.85)',
+                                borderColor: '#10b981',
+                                borderRadius: 4
+                            },
+                            {
+                                label: 'Manager Rejected',
+                                data: rejectedData,
+                                backgroundColor: 'rgba(239, 68, 68, 0.85)',
+                                borderColor: '#ef4444',
+                                borderRadius: 4
+                            }
+                        ]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: {
+                                beginAtZero: true,
+                                ticks: { color: 'rgba(231, 241, 255, 0.72)', stepSize: 1 },
+                                grid: { color: 'rgba(255,255,255,0.06)' }
+                            },
+                            y: { ticks: { color: 'rgba(231, 241, 255, 0.72)' }, grid: { color: 'rgba(255,255,255,0.06)' } }
+                        },
+                        plugins: {
+                            legend: { position: 'top', labels: { color: 'rgba(231, 241, 255, 0.9)', font: { size: 11 } } },
+                            tooltip: { enabled: true }
+                        }
+                    }
+                });
+            }
+
+            // 2. Manager Approval vs Rejection (Doughnut Chart)
+            const mgrCtx = document.getElementById('zyro-chart-mgr-decisions');
+            if (mgrCtx) {
+                const mgrApproved = mgrStats.mgrApproved;
+                const mgrRejected = mgrStats.mgrRejected;
+
+                if (mgrDecisionsChartInstance) {
+                    mgrDecisionsChartInstance.destroy();
+                }
+                mgrDecisionsChartInstance = new Chart(mgrCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Manager Approved', 'Manager Rejected'],
+                        datasets: [{
+                            data: [mgrApproved, mgrRejected],
+                            backgroundColor: [
+                                'rgba(16, 185, 129, 0.85)',
+                                'rgba(239, 68, 68, 0.85)'
+                            ],
+                            borderColor: ['#10b981', '#ef4444'],
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'bottom', labels: { color: 'rgba(231, 241, 255, 0.9)', font: { size: 12 } } },
+                            tooltip: { enabled: true }
+                        }
+                    }
+                });
+            }
+
+            // 3. Requests by Priority (Vertical Bar Chart)
+            const prioCtx = document.getElementById('zyro-chart-requests-priority');
+            if (prioCtx) {
+                let high = 0, medium = 0, low = 0;
+                reqList.forEach((r) => {
+                    const p = String(r.priority || getPriority(r.amount)).toUpperCase();
+                    if (p === 'HIGH') high += 1;
+                    else if (p === 'LOW') low += 1;
+                    else medium += 1;
+                });
+
+                const prioLabels = ['High', 'Medium', 'Low'];
+                const prioData = [high, medium, low];
+
+                if (requestsPriorityChartInstance) {
+                    requestsPriorityChartInstance.destroy();
+                }
+                requestsPriorityChartInstance = new Chart(prioCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: prioLabels,
+                        datasets: [{
+                            label: 'Requests',
+                            data: prioData,
+                            backgroundColor: [
+                                'rgba(239, 68, 68, 0.85)',
+                                'rgba(245, 158, 11, 0.85)',
+                                'rgba(16, 185, 129, 0.85)'
+                            ],
+                            borderColor: ['#ef4444', '#f59e0b', '#10b981'],
+                            borderWidth: 1,
+                            borderRadius: 6
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: { ticks: { color: 'rgba(231, 241, 255, 0.72)' }, grid: { color: 'rgba(255,255,255,0.06)' } },
+                            y: { beginAtZero: true, ticks: { color: 'rgba(231, 241, 255, 0.72)', stepSize: 1 }, grid: { color: 'rgba(255,255,255,0.06)' } }
+                        },
+                        plugins: { legend: { display: false }, tooltip: { enabled: true } }
+                    }
+                });
+            }
+        }
+
+        function renderTodaysActivity(requests) {
+            const todayStart = new Date().setHours(0, 0, 0, 0);
+            const activePending = requests.filter(isManagerPendingRequest).length;
+
+            let approvedToday = 0;
+            let rejectedToday = 0;
+            let totalDecisionMs = 0;
+            let decisionCount = 0;
+            let lastApprovedTitle = 'None today';
+            let lastApprovedTime = 0;
+
+            if (approvalHistoryCache.length > 0) {
+                approvalHistoryCache.forEach((item) => {
+                    const itemTime = new Date(item.timestamp || item.created_at || 0).getTime();
+                    const isApprove = String(item.action).toLowerCase().includes('approve');
+                    const isReject = String(item.action).toLowerCase().includes('reject');
+
+                    if (isApprove) {
+                        if (itemTime >= todayStart) approvedToday += 1;
+                        if (itemTime > lastApprovedTime) {
+                            lastApprovedTime = itemTime;
+                            lastApprovedTitle = `#${item.request_id} - ${item.request_type || 'Request'}`;
+                        }
+                    } else if (isReject) {
+                        if (itemTime >= todayStart) rejectedToday += 1;
+                    }
+
+                    if (item.decision_time && Number(item.decision_time) > 0) {
+                        totalDecisionMs += Number(item.decision_time) * 60000;
+                        decisionCount += 1;
+                    }
+                });
+            } else {
+                requests.forEach((req) => {
+                    const reqType = req.request_type || req.type || req.title || `Request #${req.id}`;
+                    (req.history || []).forEach((entry) => {
+                        const time = Number(entry.time || req.updatedAt || 0);
+                        const actor = String(entry.role || entry.user || '').toLowerCase();
+                        const action = String(entry.status || entry.action || '').toLowerCase();
+
+                        if (actor === 'manager' || actor === currentRole.toLowerCase()) {
+                            if (action.includes('approved')) {
+                                if (time >= todayStart) approvedToday += 1;
+                                if (time > lastApprovedTime) {
+                                    lastApprovedTime = time;
+                                    lastApprovedTitle = `#${req.id} - ${reqType}`;
+                                }
+                                if (Number(req.createdAt) && time > Number(req.createdAt)) {
+                                    totalDecisionMs += (time - Number(req.createdAt));
+                                    decisionCount += 1;
+                                }
+                            } else if (action.includes('rejected')) {
+                                if (time >= todayStart) rejectedToday += 1;
+                                if (Number(req.createdAt) && time > Number(req.createdAt)) {
+                                    totalDecisionMs += (time - Number(req.createdAt));
+                                    decisionCount += 1;
+                                }
+                            }
+                        }
+                    });
+                });
+            }
+
+            const avgMins = decisionCount > 0 ? Math.round((totalDecisionMs / decisionCount) / 60000) : 0;
+
+            const pendingEl = document.getElementById('today-pending');
+            const approvedEl = document.getElementById('today-approved');
+            const rejectedEl = document.getElementById('today-rejected');
+            const avgTimeEl = document.getElementById('today-avg-time');
+            const lastApprovedEl = document.getElementById('today-last-approved');
+
+            if (pendingEl) pendingEl.textContent = String(activePending);
+            if (approvedEl) approvedEl.textContent = String(approvedToday);
+            if (rejectedEl) rejectedEl.textContent = String(rejectedToday);
+            if (avgTimeEl) avgTimeEl.textContent = `${avgMins} mins`;
+            if (lastApprovedEl) lastApprovedEl.textContent = lastApprovedTitle;
         }
 
         function renderRecentDecisions(requests) {
             const list = document.getElementById('recent-decisions-list');
             if (!list) return;
+
+            const seen = new Set();
             const entries = [];
-            requests.forEach((request) => {
-                (request.history || []).forEach((entry) => {
-                    const actor = String(entry.role || entry.user || 'System');
-                    const action = String(entry.status || entry.action || 'Updated');
-                    const normalizedAction = action.toLowerCase();
-                    if (actor !== currentRole || (normalizedAction !== 'approved' && normalizedAction !== 'rejected' && normalizedAction !== 'approved' && normalizedAction !== 'rejected')) {
-                        return;
-                    }
-                    const time = Number(entry.time || request.updatedAt || Date.now());
+
+            (approvalHistoryCache || []).forEach((item) => {
+                const dec = String(item.decision || item.action || '').toLowerCase();
+                const isApprove = dec.includes('approve');
+                const isReject = dec.includes('reject');
+                if (!isApprove && !isReject) return;
+
+                const key = `${item.request_id}_${isApprove ? 'approve' : 'reject'}_${item.approval_stage || item.manager_name}`;
+                if (!seen.has(key)) {
+                    seen.add(key);
                     entries.push({
-                        time,
-                        title: request.title || request.type || 'Request',
-                        action,
-                        actor
+                        id: `#${item.request_id}`,
+                        employee: escapeHtml(item.employee_name || 'Employee'),
+                        dept: escapeHtml(item.department || 'Finance'),
+                        type: escapeHtml(item.request_type || 'Financial Request'),
+                        amount: formatCurrency(item.amount || 0),
+                        decision: isApprove ? '✓ Approved' : '✕ Rejected',
+                        isApprove,
+                        time: new Date(item.decision_timestamp || item.timestamp || item.created_at || Date.now()).getTime()
                     });
-                });
+                }
             });
+
             entries.sort((a, b) => b.time - a.time);
+
             if (!entries.length) {
-                list.innerHTML = '<div class="empty-state">No manager decisions recorded yet.</div>';
+                list.innerHTML = '<div class="empty-state">No manager decisions yet. Decisions will appear here after your first approval.</div>';
                 return;
             }
-            list.innerHTML = entries.slice(0, 5).map((entry) => `
-                <div class="timeline-item">
-                    <div class="timeline-title">${escapeHtml(entry.title)}</div>
-                    <span>${escapeHtml(entry.action)} by ${escapeHtml(entry.actor)}</span>
-                    <span>${timeAgo(entry.time)}</span>
-                </div>
-            `).join('');
+
+            list.innerHTML = `
+                <table class="modal-table" style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr>
+                            <th>Decision</th>
+                            <th>Req ID</th>
+                            <th>Employee</th>
+                            <th>Department</th>
+                            <th>Amount</th>
+                            <th>Time</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${entries.slice(0, 10).map((entry) => `
+                            <tr>
+                                <td>
+                                    <span class="status-pill ${entry.isApprove ? 'status-approved' : 'status-rejected'}" style="padding: 4px 10px; font-weight: 700; font-size: 11px;">
+                                        ${entry.decision}
+                                    </span>
+                                </td>
+                                <td><strong>${entry.id}</strong></td>
+                                <td>${entry.employee}</td>
+                                <td>${entry.dept}</td>
+                                <td>${entry.amount}</td>
+                                <td>${timeAgo(entry.time)}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        function renderOverdueApprovals(requests) {
+            const list = document.getElementById('overdue-approvals-list');
+            const badge = document.getElementById('overdue-badge');
+            if (!list) return;
+
+            const now = Date.now();
+            const OVERDUE_THRESHOLD_MS = 24 * 60 * 60 * 1000; // 24 hours threshold
+            const managerPending = requests.filter(isManagerPendingRequest);
+            const overdueList = managerPending.filter((r) => {
+                const created = new Date(r.createdAt || Date.now()).getTime();
+                return (now - created) >= OVERDUE_THRESHOLD_MS || Boolean(r.escalated);
+            });
+
+            if (badge) badge.textContent = `${overdueList.length} Overdue`;
+
+            if (!overdueList.length) {
+                list.innerHTML = '<div class="empty-state">No overdue manager approvals currently.</div>';
+                return;
+            }
+
+            list.innerHTML = `
+                <table class="modal-table" style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr>
+                            <th>Req ID</th>
+                            <th>Employee</th>
+                            <th>Department</th>
+                            <th>Type</th>
+                            <th>Priority</th>
+                            <th>Waiting Time</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${overdueList.map((r) => `
+                            <tr>
+                                <td><strong>#${r.id}</strong></td>
+                                <td>${escapeHtml(r.requester_name || r.requester || 'Employee')}</td>
+                                <td>${escapeHtml(getDepartmentLabel(r))}</td>
+                                <td>${escapeHtml(r.type || r.request_type || 'Request')}</td>
+                                <td><span class="status-pill status-high" style="padding: 2px 6px; font-size: 10px;">${escapeHtml(r.priority || 'HIGH')}</span></td>
+                                <td><span style="color: #ef4444; font-weight: 600;">${timeAgo(r.createdAt)}</span></td>
+                                <td>
+                                    <button class="btn btn-primary" onclick="openReviewModal('${r.id}')" style="padding: 3px 10px; font-size: 11px;">Review</button>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        function renderHighPriorityQueue(requests) {
+            const list = document.getElementById('high-priority-queue-list');
+            const badge = document.getElementById('high-priority-badge');
+            if (!list) return;
+
+            const managerPending = requests.filter(isManagerPendingRequest);
+            const highPriorityList = managerPending.filter((r) => {
+                const prio = String(r.priority || getPriority(r.amount)).toUpperCase();
+                return prio === 'HIGH';
+            });
+
+            highPriorityList.sort((a, b) => calculatePriorityScore(b) - calculatePriorityScore(a));
+
+            if (badge) badge.textContent = `${highPriorityList.length} Urgent`;
+
+            if (!highPriorityList.length) {
+                list.innerHTML = '<div class="empty-state">No high-priority requests in your queue.</div>';
+                return;
+            }
+
+            list.innerHTML = `
+                <table class="modal-table" style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr>
+                            <th>Req ID</th>
+                            <th>Employee</th>
+                            <th>Department</th>
+                            <th>Type</th>
+                            <th>Score</th>
+                            <th>Amount</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${highPriorityList.map((r) => `
+                            <tr>
+                                <td><strong>#${r.id}</strong></td>
+                                <td>${escapeHtml(r.requester_name || r.requester || 'Employee')}</td>
+                                <td>${escapeHtml(getDepartmentLabel(r))}</td>
+                                <td>${escapeHtml(r.type || r.request_type || 'Request')}</td>
+                                <td><span class="badge" style="background: rgba(168, 85, 247, 0.2); color: #c084fc; font-weight: 700; padding: 2px 6px; border-radius: 4px; font-size: 10px;">Score: ${calculatePriorityScore(r)}</span></td>
+                                <td><strong>${formatCurrency(r.amount)}</strong></td>
+                                <td>
+                                    <button class="btn btn-primary" onclick="openReviewModal('${r.id}')" style="padding: 3px 10px; font-size: 11px;">Review</button>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        function renderEscalationAlerts(requests) {
+            const list = document.getElementById('escalation-alerts-list');
+            const badge = document.getElementById('escalation-alerts-badge');
+            if (!list) return;
+
+            const now = Date.now();
+            const OVERDUE_THRESHOLD_MS = 24 * 60 * 60 * 1000;
+            const managerPending = requests.filter(isManagerPendingRequest);
+
+            const alerts = managerPending.filter((r) => {
+                const created = new Date(r.createdAt || Date.now()).getTime();
+                const waitingMs = now - created;
+                const isOverdue = waitingMs >= OVERDUE_THRESHOLD_MS;
+                const prio = String(r.priority || getPriority(r.amount)).toUpperCase();
+                const isHighPrioLongWait = (prio === 'HIGH' && waitingMs >= 12 * 60 * 60 * 1000);
+                return isOverdue || isHighPrioLongWait || Boolean(r.escalated);
+            });
+
+            if (badge) badge.textContent = `${alerts.length} Alert${alerts.length === 1 ? '' : 's'}`;
+
+            if (!alerts.length) {
+                list.innerHTML = '<div class="empty-state">No escalation alerts</div>';
+                return;
+            }
+
+            list.innerHTML = `
+                <table class="modal-table" style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr>
+                            <th>Req ID</th>
+                            <th>Employee</th>
+                            <th>Dept</th>
+                            <th>Priority</th>
+                            <th>Waiting Time</th>
+                            <th>Reason for Escalation</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${alerts.map((r) => {
+                            const created = new Date(r.createdAt || Date.now()).getTime();
+                            const waitingMs = now - created;
+                            const prio = String(r.priority || getPriority(r.amount)).toUpperCase();
+                            let reason = 'Approval deadline exceeded';
+                            if (r.escalated) reason = 'Existing escalation status';
+                            else if (prio === 'HIGH' && waitingMs >= 12 * 60 * 60 * 1000) reason = 'High priority request waiting too long';
+
+                            return `
+                                <tr>
+                                    <td><strong>#${r.id}</strong></td>
+                                    <td>${escapeHtml(r.requester_name || r.requester || 'Employee')}</td>
+                                    <td>${escapeHtml(getDepartmentLabel(r))}</td>
+                                    <td><span class="status-pill status-high" style="padding: 2px 6px; font-size: 10px;">${escapeHtml(prio)}</span></td>
+                                    <td><span style="color: #ef4444; font-weight: 600;">${timeAgo(r.createdAt)}</span></td>
+                                    <td><em style="color: #f8fafc; font-size: 11px;">${escapeHtml(reason)}</em></td>
+                                </tr>
+                            `;
+                        }).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        function renderDecisionTimeline(historyList) {
+            const list = document.getElementById('decision-timeline-list');
+            if (!list) return;
+
+            const history = Array.isArray(historyList) ? historyList : [];
+            const managerDecisions = history.filter((item) => {
+                const stage = String(item.approval_stage || '').toLowerCase().trim();
+                const mgr = String(item.manager_name || '').toLowerCase().trim();
+                const role = String(item.role || '').toLowerCase().trim();
+                const performedBy = String(item.performed_by || '').toLowerCase().trim();
+                return stage === 'manager' || mgr === 'manager' || role === 'manager' || performedBy === 'manager';
+            });
+
+            managerDecisions.sort((a, b) => {
+                const ta = new Date(a.decision_timestamp || a.timestamp || a.created_at || 0).getTime();
+                const tb = new Date(b.decision_timestamp || b.timestamp || b.created_at || 0).getTime();
+                return tb - ta;
+            });
+
+            const recentTimeline = managerDecisions.slice(0, 6);
+
+            if (!recentTimeline.length) {
+                list.innerHTML = '<div class="empty-state">No recent manager decisions recorded yet.</div>';
+                return;
+            }
+
+            list.innerHTML = recentTimeline.map((item) => {
+                const decStr = String(item.decision || item.action || 'Approved');
+                const isApprove = decStr.toLowerCase().includes('approve');
+                const ts = item.decision_timestamp || item.timestamp || item.created_at;
+                const commentText = item.comments || item.rejection_reason || 'No comments';
+
+                return `
+                    <div style="display: flex; gap: 14px; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.06);">
+                        <div style="width: 10px; height: 10px; border-radius: 50%; background: ${isApprove ? '#10b981' : '#ef4444'}; margin-top: 6px; flex-shrink: 0; box-shadow: 0 0 8px ${isApprove ? 'rgba(16,185,129,0.5)' : 'rgba(239,68,68,0.5)'};"></div>
+                        <div style="flex: 1;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span class="timeline-header-text" style="font-weight: 700; font-size: 13px; color: #f8fafc;">#${item.request_id} — ${escapeHtml(item.employee_name || 'Employee')}</span>
+                                <span class="timeline-time-text" style="font-size: 11px; color: #94a3b8;">${formatRelativeTime(ts)}</span>
+                            </div>
+                            <div class="timeline-details-text" style="font-size: 12px; color: #cbd5e1; margin-top: 4px;">
+                                <span class="status-pill ${isApprove ? 'status-approved' : 'status-rejected'}" style="padding: 2px 6px; font-size: 10px; font-weight: 600; margin-right: 6px;">${escapeHtml(decStr)}</span>
+                                ${escapeHtml(item.request_type || 'Financial Request')} (${escapeHtml(item.department || 'Finance')}) — <em class="timeline-comment-text">${escapeHtml(commentText)}</em>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
         }
 
         function viewRequest(requestId) {
@@ -2533,15 +3355,34 @@
             window.location.href = `approvals.html?requestId=${requestId}`;
         }
 
-        function timeAgo(timestamp) {
-            const diffSeconds = Math.max(0, Math.floor((Date.now() - Number(timestamp || Date.now())) / 1000));
-            if (diffSeconds < 60) return `${diffSeconds}s ago`;
+        function formatRelativeTime(rawTimestamp) {
+            if (!rawTimestamp) return 'Date unavailable';
+            let timeMs = 0;
+            if (typeof rawTimestamp === 'number') {
+                timeMs = rawTimestamp;
+            } else if (typeof rawTimestamp === 'string') {
+                timeMs = new Date(rawTimestamp).getTime();
+            } else if (rawTimestamp instanceof Date) {
+                timeMs = rawTimestamp.getTime();
+            }
+
+            if (!timeMs || isNaN(timeMs) || timeMs <= 0) return 'Date unavailable';
+
+            const diffSeconds = Math.max(0, Math.floor((Date.now() - timeMs) / 1000));
+            if (diffSeconds < 60) return 'Just now';
+
             const mins = Math.floor(diffSeconds / 60);
-            if (mins < 60) return `${mins} min${mins === 1 ? '' : 's'} ago`;
+            if (mins < 60) return `${mins} ${mins === 1 ? 'minute' : 'minutes'} ago`;
+
             const hours = Math.floor(mins / 60);
-            if (hours < 24) return `${hours} hour${hours === 1 ? '' : 's'} ago`;
+            if (hours < 24) return `${hours} ${hours === 1 ? 'hour' : 'hours'} ago`;
+
             const days = Math.floor(hours / 24);
-            return `${days} day${days === 1 ? '' : 's'} ago`;
+            return `${days} ${days === 1 ? 'day' : 'days'} ago`;
+        }
+
+        function timeAgo(timestamp) {
+            return formatRelativeTime(timestamp);
         }
 
         function formatCurrency(amount) {
@@ -2553,24 +3394,57 @@
         }
 
         function downloadCSV() {
-            const requests = readRequestsFromLocalStorage().map(normalizeRequest);
-            let csv = 'Title,Status,Amount\n';
-            requests.forEach((r) => {
-                csv += `${String(r.title || '').replace(/,/g, ' ')},${toStatusLabel(r.status)},${Number(r.amount || 0)}\n`;
-            });
+            let csv = 'Request ID,Employee,Department,Request Type,Decision,Decision By,Comment,Amount,Timestamp\n';
+            const data = (approvalHistoryCache && approvalHistoryCache.length > 0) ? approvalHistoryCache : [];
 
-            const blob = new Blob([csv], { type: 'text/csv' });
+            if (data.length > 0) {
+                data.forEach((item) => {
+                    const reqId = item.request_id || item.id || '';
+                    const emp = String(item.employee_name || 'Employee').replace(/,/g, ' ');
+                    const dept = String(item.department || 'Finance').replace(/,/g, ' ');
+                    const type = String(item.request_type || 'Financial Request').replace(/,/g, ' ');
+                    const dec = String(item.decision || item.action || 'Approved').replace(/,/g, ' ');
+                    const decBy = String(item.manager_name || item.approval_stage || 'Manager').replace(/,/g, ' ');
+                    const comment = String(item.comments || item.rejection_reason || '-').replace(/,/g, ' ').replace(/\n/g, ' ');
+                    const amount = Number(item.amount || 0);
+                    const ts = item.decision_timestamp || item.timestamp || item.created_at ? new Date(item.decision_timestamp || item.timestamp || item.created_at).toLocaleString() : 'N/A';
+
+                    csv += `${reqId},"${emp}","${dept}","${type}","${dec}","${decBy}","${comment}",${amount},"${ts}"\n`;
+                });
+            } else {
+                const requests = readRequestsFromLocalStorage().map(normalizeRequest);
+                requests.forEach((r) => {
+                    const reqId = r.id;
+                    const emp = String(r.requester_name || r.requester || 'Employee').replace(/,/g, ' ');
+                    const dept = String(r.department || 'Finance').replace(/,/g, ' ');
+                    const type = String(r.type || r.request_type || 'Financial Request').replace(/,/g, ' ');
+                    const dec = toStatusLabel(r.status);
+                    const decBy = String(r.current_approver || r.current_role || 'Manager').replace(/,/g, ' ');
+                    const comment = '-';
+                    const amount = Number(r.amount || 0);
+                    const ts = r.createdAt ? new Date(r.createdAt).toLocaleString() : 'N/A';
+
+                    csv += `${reqId},"${emp}","${dept}","${type}","${dec}","${decBy}","${comment}",${amount},"${ts}"\n`;
+                });
+            }
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
-            a.download = 'requests.csv';
+            a.download = `manager_decisions_${Date.now()}.csv`;
+            document.body.appendChild(a);
             a.click();
+            document.body.removeChild(a);
             URL.revokeObjectURL(a.href);
+            closeModal('exportModal');
         }
 
         function openModal(modalId) {
             const modal = document.getElementById(modalId);
             if (modal) {
                 modal.classList.add('show');
+                modal.classList.add('open');
+                modal.style.display = 'flex';
             }
         }
 
@@ -2578,6 +3452,8 @@
             const modal = document.getElementById(modalId);
             if (modal) {
                 modal.classList.remove('show');
+                modal.classList.remove('open');
+                modal.style.display = 'none';
             }
         }
 
@@ -2585,112 +3461,176 @@
             openModal('exportModal');
         }
 
-        function openApprovalHistoryModal() {
+        async function openApprovalHistoryModal() {
             const body = document.getElementById('approvalHistoryBody');
             if (!body) return;
-            const requests = readRequestsFromLocalStorage().map(normalizeRequest);
-            const historyEntries = [];
-            requests.forEach((request) => {
-                (request.history || []).forEach((entry) => {
-                    const actor = String(entry.role || entry.user || 'System');
-                    const action = String(entry.status || entry.action || 'Updated');
-                    const normalizedAction = action.toLowerCase();
-                    if (actor !== currentRole || (normalizedAction !== 'approved' && normalizedAction !== 'rejected')) {
-                        return;
-                    }
-                    historyEntries.push({
-                        time: Number(entry.time || request.updatedAt || Date.now()),
-                        requestId: request.id,
-                        title: request.title || request.type || 'Request',
-                        action,
-                        actor
-                    });
-                });
-            });
-            historyEntries.sort((a, b) => b.time - a.time);
-            if (!historyEntries.length) {
-                body.innerHTML = '<div class="modal-empty">No manager approval history available yet.</div>';
-            } else {
-                body.innerHTML = `
-                    <div class="modal-grid">
-                        <div class="modal-section">
-                            <table class="modal-table">
-                                <thead>
-                                    <tr><th>Request</th><th>Action</th><th>Time</th></tr>
-                                </thead>
-                                <tbody>
-                                    ${historyEntries.slice(0, 10).map((entry) => `
-                                        <tr>
-                                            <td>${escapeHtml(entry.title)} #${escapeHtml(String(entry.requestId))}</td>
-                                            <td>${escapeHtml(entry.action)}</td>
-                                            <td>${escapeHtml(new Date(entry.time).toLocaleString())}</td>
-                                        </tr>
-                                    `).join('')}
-                                </tbody>
-                            </table>
-                        </div>
-                        <div class="modal-section">
-                            <h3>Recent Manager Decisions</h3>
-                            <p>Showing the latest 10 manager actions from current stored workflow history.</p>
-                            <p>Total actions: ${historyEntries.length}</p>
-                        </div>
-                    </div>
-                `;
-            }
+
             openModal('approvalHistoryModal');
+            body.innerHTML = '<div class="modal-empty">Loading live history from database...</div>';
+
+            try {
+                const token = localStorage.getItem('authToken') || localStorage.getItem('auth_token') || '';
+                const res = await fetch('http://localhost:4000/approval-history?role=Manager', {
+                    headers: { 'Content-Type': 'application/json', 'Authorization': token ? `Bearer ${token}` : '' }
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (Array.isArray(data)) approvalHistoryCache = data;
+                }
+            } catch (err) {
+                console.error('Fetch approval history error:', err);
+            }
+
+            const entries = [...approvalHistoryCache];
+
+            if (!entries.length) {
+                body.innerHTML = '<div class="modal-empty">No manager approval history available yet in database.</div>';
+                return;
+            }
+
+            window.renderHistoryTableRows = function (searchTerm) {
+                const term = String(searchTerm || '').toLowerCase().trim();
+                const filtered = entries.filter((item) => {
+                    if (!term) return true;
+                    const combined = `${item.request_id} ${item.employee_name} ${item.department} ${item.request_type} ${item.decision} ${item.manager_name}`.toLowerCase();
+                    return combined.includes(term);
+                });
+
+                const tbody = document.getElementById('approvalHistoryTbody');
+                if (!tbody) return;
+
+                if (!filtered.length) {
+                    tbody.innerHTML = '<tr><td colspan="10" style="text-align: center; padding: 20px;">No matching records found.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = filtered.map((item) => {
+                    const decStr = String(item.decision || item.action || 'Approved');
+                    const isApprove = decStr.toLowerCase().includes('approve');
+                    const dt = new Date(item.decision_timestamp || item.timestamp || item.created_at || Date.now());
+                    const dateStr = dt.toLocaleDateString();
+                    const timeStr = dt.toLocaleTimeString();
+                    const commentText = item.comments || item.rejection_reason || '-';
+
+                    return `
+                        <tr>
+                            <td><strong>#${item.request_id}</strong></td>
+                            <td>${escapeHtml(item.employee_name || 'Employee')}</td>
+                            <td>${escapeHtml(item.department || 'Finance')}</td>
+                            <td>${escapeHtml(item.request_type || 'Financial Request')}</td>
+                            <td><span class="status-pill ${isApprove ? 'status-approved' : 'status-rejected'}" style="padding: 3px 8px; font-size: 11px;">${escapeHtml(decStr)}</span></td>
+                            <td>${escapeHtml(item.manager_name || 'Manager')}</td>
+                            <td><em>${escapeHtml(commentText)}</em></td>
+                            <td>${escapeHtml(dateStr)} ${escapeHtml(timeStr)}</td>
+                        </tr>
+                    `;
+                }).join('');
+            };
+
+            body.innerHTML = `
+                <div style="margin-bottom: 12px;">
+                    <input type="text" id="historySearchInput" placeholder="Search by Employee, ID, Department, or Decision..." style="width: 100%; padding: 8px 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.15); background: rgba(0,0,0,0.2); color: #fff;" oninput="window.renderHistoryTableRows(this.value)" />
+                </div>
+                <div style="max-height: 420px; overflow-y: auto;">
+                    <table class="modal-table" style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr>
+                                <th>Req ID</th>
+                                <th>Employee</th>
+                                <th>Department</th>
+                                <th>Request Type</th>
+                                <th>Decision</th>
+                                <th>Decision By</th>
+                                <th>Decision Reason / Comment</th>
+                                <th>Timestamp</th>
+                            </tr>
+                        </thead>
+                        <tbody id="approvalHistoryTbody">
+                        </tbody>
+                    </table>
+                </div>
+            `;
+
+            window.renderHistoryTableRows('');
         }
 
-        function openTeamAnalyticsModal() {
+        async function openTeamAnalyticsModal() {
             const body = document.getElementById('teamAnalyticsBody');
             if (!body) return;
-            const requests = readRequestsFromLocalStorage().map(normalizeRequest);
-            const statusCounts = { approved: 0, rejected: 0, pending: 0 };
-            const departmentCounts = {};
-            const roleCounts = {};
-            requests.forEach((request) => {
-                const status = normalizeStatus(request.status);
-                if (Object.prototype.hasOwnProperty.call(statusCounts, status)) {
-                    statusCounts[status] += 1;
-                } else {
-                    statusCounts.pending += 1;
+
+            openModal('teamAnalyticsModal');
+            body.innerHTML = '<div class="modal-empty">Loading SQL analytics...</div>';
+
+            let data = null;
+            try {
+                const token = localStorage.getItem('authToken') || localStorage.getItem('auth_token') || '';
+                const res = await fetch('http://localhost:4000/api/manager/analytics', {
+                    headers: { 'Content-Type': 'application/json', 'Authorization': token ? `Bearer ${token}` : '' }
+                });
+                if (res.ok) {
+                    data = await res.json();
                 }
-                const department = getDepartmentLabel(request) || 'Unknown';
-                departmentCounts[department] = (departmentCounts[department] || 0) + 1;
-                const role = getRequestCurrentRole(request) || 'Unknown';
-                roleCounts[role] = (roleCounts[role] || 0) + 1;
-            });
-            const topDepartments = Object.entries(departmentCounts)
-                .sort((a, b) => b[1] - a[1])
-                .slice(0, 4);
+            } catch (err) {
+                console.error('Fetch manager analytics error:', err);
+            }
+
+            if (!data) {
+                body.innerHTML = '<div class="modal-empty">Failed to load live SQL analytics.</div>';
+                return;
+            }
+
+            const requests = readRequestsFromLocalStorage().map(normalizeRequest);
+            const hist = (data.history && Array.isArray(data.history) && data.history.length > 0) ? data.history : approvalHistoryCache;
+            const mgrStats = getManagerSpecificStats(hist, requests);
+
             body.innerHTML = `
-                <div class="modal-grid">
-                    <div class="modal-section">
-                        <h3>Workflow Status</h3>
-                        <ul>
-                            <li>Approved: ${statusCounts.approved}</li>
-                            <li>Rejected: ${statusCounts.rejected}</li>
-                            <li>Pending: ${statusCounts.pending}</li>
-                        </ul>
+                <div class="modal-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+                    <div class="stat-card" style="padding: 16px; border-radius: 10px; background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3);">
+                        <div style="font-size: 12px; color: #f59e0b; font-weight: 600;">Manager Pending</div>
+                        <div style="font-size: 28px; font-weight: 800; color: #f59e0b;">${mgrStats.mgrPending}</div>
                     </div>
-                    <div class="modal-section">
-                        <h3>Top Departments</h3>
-                        <ul>
-                            ${topDepartments.map(([label, count]) => `<li>${escapeHtml(label)}: ${count}</li>`).join('')}
-                        </ul>
+                    <div class="stat-card" style="padding: 16px; border-radius: 10px; background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.3);">
+                        <div style="font-size: 12px; color: #38bdf8; font-weight: 600;">Overall Workflow Pending</div>
+                        <div style="font-size: 28px; font-weight: 800; color: #38bdf8;">${mgrStats.overallPending}</div>
                     </div>
-                    <div class="modal-section">
-                        <h3>Approver Load</h3>
-                        <ul>
-                            ${Object.entries(roleCounts).sort((a, b) => b[1] - a[1]).map(([role, count]) => `<li>${escapeHtml(role)}: ${count}</li>`).join('')}
-                        </ul>
+                    <div class="stat-card" style="padding: 16px; border-radius: 10px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3);">
+                        <div style="font-size: 12px; color: #10b981; font-weight: 600;">Manager Approved</div>
+                        <div style="font-size: 28px; font-weight: 800; color: #10b981;">${mgrStats.mgrApproved}</div>
                     </div>
-                    <div class="modal-section">
-                        <h3>Data Notes</h3>
-                        <p>Analytics derived from current workflow request rows and stored history.</p>
+                    <div class="stat-card" style="padding: 16px; border-radius: 10px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3);">
+                        <div style="font-size: 12px; color: #ef4444; font-weight: 600;">Manager Rejected</div>
+                        <div style="font-size: 28px; font-weight: 800; color: #ef4444;">${mgrStats.mgrRejected}</div>
+                    </div>
+                    <div class="stat-card" style="padding: 16px; border-radius: 10px; background: rgba(168, 85, 247, 0.1); border: 1px solid rgba(168, 85, 247, 0.3);">
+                        <div style="font-size: 12px; color: #a855f7; font-weight: 600;">Manager Approval Rate</div>
+                        <div style="font-size: 28px; font-weight: 800; color: #a855f7;">${mgrStats.approvalRate}%</div>
+                    </div>
+                    <div class="stat-card" style="padding: 16px; border-radius: 10px; background: rgba(168, 85, 247, 0.1); border: 1px solid rgba(168, 85, 247, 0.3);">
+                        <div style="font-size: 12px; color: #a855f7; font-weight: 600;">Manager Average Decision Time</div>
+                        <div style="font-size: 24px; font-weight: 800; color: #a855f7;">${mgrStats.avgDecisionTimeMins} mins</div>
+                    </div>
+                    <div class="stat-card" style="padding: 16px; border-radius: 10px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);">
+                        <div style="font-size: 12px; color: #94a3b8; font-weight: 600;">Top Department</div>
+                        <div style="font-size: 20px; font-weight: 700; color: #f8fafc;">${escapeHtml(data.topDepartment || 'N/A')}</div>
+                    </div>
+                    <div class="stat-card" style="padding: 16px; border-radius: 10px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);">
+                        <div style="font-size: 12px; color: #94a3b8; font-weight: 600;">Most Active Day</div>
+                        <div style="font-size: 20px; font-weight: 700; color: #f8fafc;">${escapeHtml(data.mostActiveDay || 'N/A')}</div>
+                    </div>
+                    <div class="stat-card" style="padding: 16px; border-radius: 10px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);">
+                        <div style="font-size: 12px; color: #94a3b8; font-weight: 600;">Highest Approved by Manager</div>
+                        <div style="font-size: 20px; font-weight: 700; color: #10b981;">${formatCurrency(mgrStats.highestApproved)}</div>
+                    </div>
+                    <div class="stat-card" style="padding: 16px; border-radius: 10px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);">
+                        <div style="font-size: 12px; color: #94a3b8; font-weight: 600;">Lowest Approved by Manager</div>
+                        <div style="font-size: 20px; font-weight: 700; color: #cbd5e1;">${formatCurrency(mgrStats.lowestApproved)}</div>
+                    </div>
+                    <div class="stat-card" style="padding: 16px; border-radius: 10px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);">
+                        <div style="font-size: 12px; color: #94a3b8; font-weight: 600;">Manager Total Decisions</div>
+                        <div style="font-size: 28px; font-weight: 800; color: #f8fafc;">${mgrStats.totalDecisions}</div>
                     </div>
                 </div>
             `;
-            openModal('teamAnalyticsModal');
         }
 
         // Show message
@@ -2716,6 +3656,8 @@
             window.location.href = 'login.html';
         }
     </script>
+    <script src="zyro-analytics-charts.js"></script>
+    <script src="zyro-advanced-workflow.js"></script>
     <script src="app.js"></script>
     <script src="notification-center.js"></script>
     <script src="settings-menu.js"></script>

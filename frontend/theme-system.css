@@ -411,3 +411,103 @@ tr:hover td {
   background: var(--surface) !important;
   border-color: var(--border) !important;
 }
+
+/* =========================================================
+   Light Theme Visibility & Contrast Overrides
+   ========================================================= */
+
+html.light-theme, body.light-theme, :root[data-theme="light"] {
+  --text-primary: #0f172a;
+  --text-secondary: #334155;
+  --text-muted: #64748b;
+}
+
+/* Workflow Stage & Status Visibility Overrides in Light Theme */
+body.light-theme .step,
+body.light-theme .workflow-step,
+body.light-theme .stage-step,
+body.light-theme .step-role,
+body.light-theme .step-name,
+body.light-theme .workflow-chain,
+body.light-theme .workflow-label {
+  color: #1e293b !important;
+}
+
+body.light-theme .step.pending {
+  background: #f1f5f9 !important;
+  color: #475569 !important;
+  border: 1px solid #cbd5e1 !important;
+}
+
+body.light-theme .step.completed {
+  background: #dcfce7 !important;
+  color: #166534 !important;
+  border: 1px solid #86efac !important;
+}
+
+body.light-theme .status-pill.status-approved,
+body.light-theme .badge-approved,
+body.light-theme .status-approved {
+  background: #dcfce7 !important;
+  color: #166534 !important;
+  border: 1px solid #86efac !important;
+}
+
+body.light-theme .status-pill.status-rejected,
+body.light-theme .badge-rejected,
+body.light-theme .status-rejected {
+  background: #fee2e2 !important;
+  color: #991b1b !important;
+  border: 1px solid #fca5a5 !important;
+}
+
+body.light-theme .status-pill.status-pending,
+body.light-theme .badge-pending,
+body.light-theme .status-pending {
+  background: #fef3c7 !important;
+  color: #92400e !important;
+  border: 1px solid #fde68a !important;
+}
+
+/* Light Theme Text Color Overrides for Inline Hardcoded Light Text */
+body.light-theme [style*="color: #f8fafc"],
+body.light-theme [style*="color:#f8fafc"],
+body.light-theme [style*="color: #FFFFFF"],
+body.light-theme [style*="color:#FFFFFF"],
+body.light-theme [style*="color: #fff"],
+body.light-theme [style*="color:#fff"] {
+  color: #0f172a !important;
+}
+
+body.light-theme [style*="color: #cbd5e1"],
+body.light-theme [style*="color:#cbd5e1"],
+body.light-theme [style*="color: #e2e8f0"],
+body.light-theme [style*="color:#e2e8f0"] {
+  color: #1e293b !important;
+}
+
+body.light-theme [style*="color: #94a3b8"],
+body.light-theme [style*="color:#94a3b8"],
+body.light-theme [style*="color: #8899B0"],
+body.light-theme [style*="color:#8899B0"] {
+  color: #475569 !important;
+}
+
+body.light-theme .pv-detail-label,
+body.light-theme .pv-label,
+body.light-theme .pv-checklist-sub,
+body.light-theme .pv-char-counter {
+  color: #475569 !important;
+}
+
+body.light-theme .pv-detail-val,
+body.light-theme .pv-checklist-title,
+body.light-theme .pv-check-item {
+  color: #0f172a !important;
+}
+
+body.light-theme .pv-textarea {
+  background: #ffffff !important;
+  color: #0f172a !important;
+  border: 1px solid #cbd5e1 !important;
+}

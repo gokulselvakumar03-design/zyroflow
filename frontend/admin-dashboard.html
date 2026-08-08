@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - Workflow Builder</title>
     <link rel="stylesheet" href="theme-system.css">
+    <link rel="stylesheet" href="zyro-advanced-workflow.css">
     <link rel="stylesheet" href="settings-menu.css">
     <style>
         * {
@@ -405,7 +407,8 @@
             border-radius: 14px;
         }
 
-        .requests-table td, .requests-table th {
+        .requests-table td,
+        .requests-table th {
             white-space: nowrap;
         }
 
@@ -801,19 +804,23 @@
             background: #f8fafc;
         }
 
-        .summary-card.total { 
+        .summary-card.total {
             border-left-color: #2563eb;
         }
-        .summary-card.pending { 
+
+        .summary-card.pending {
             border-left-color: #f59e0b;
         }
-        .summary-card.approved { 
+
+        .summary-card.approved {
             border-left-color: #22c55e;
         }
-        .summary-card.rejected { 
+
+        .summary-card.rejected {
             border-left-color: #ef4444;
         }
-        .summary-card.cancelled { 
+
+        .summary-card.cancelled {
             border-left-color: #64748b;
         }
 
@@ -910,22 +917,25 @@
             letter-spacing: 0.3px;
         }
 
-        .badge-pending { 
+        .badge-pending {
             background: #fef3c7;
             color: #92400e;
             border: 1px solid #fde68a;
         }
-        .badge-approved { 
+
+        .badge-approved {
             background: #dcfce7;
             color: #166534;
             border: 1px solid #bbf7d0;
         }
-        .badge-rejected { 
+
+        .badge-rejected {
             background: #fee2e2;
             color: #991b1b;
             border: 1px solid #fca5a5;
         }
-        .badge-cancelled { 
+
+        .badge-cancelled {
             background: #f1f5f9;
             color: #475569;
             border: 1px solid #e2e8f0;
@@ -940,13 +950,17 @@
             font-weight: 600;
         }
 
-        .msg.show { display: block; }
-        .msg.ok { 
+        .msg.show {
+            display: block;
+        }
+
+        .msg.ok {
             background: #dcfce7;
             color: #166534;
             border: 1px solid #bbf7d0;
         }
-        .msg.err { 
+
+        .msg.err {
             background: #fee2e2;
             color: #991b1b;
             border: 1px solid #fca5a5;
@@ -1049,7 +1063,7 @@
             align-items: start;
         }
 
-        .activity-item + .activity-item {
+        .activity-item+.activity-item {
             margin-top: 12px;
         }
 
@@ -1254,36 +1268,43 @@
         }
 
         @media (max-width: 1100px) {
-            .layout { 
+            .layout {
                 grid-template-columns: 1fr;
             }
-            .form-grid { 
+
+            .form-grid {
                 grid-template-columns: 1fr;
             }
-            .charts-row { 
+
+            .charts-row {
                 flex-direction: column;
             }
+
             .navbar {
                 flex-direction: column;
                 gap: 14px;
                 text-align: center;
             }
+
             .navbar-user {
                 flex-direction: column;
                 width: 100%;
             }
-            .summary { 
+
+            .summary {
                 grid-template-columns: repeat(2, 1fr);
             }
         }
 
         @media (max-width: 720px) {
-            .summary { 
+            .summary {
                 grid-template-columns: 1fr;
             }
+
             .requests-table {
                 font-size: 12px;
             }
+
             .requests-table th,
             .requests-table td {
                 padding: 10px;
@@ -1292,6 +1313,7 @@
     </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
+
 <body>
     <div class="navbar">
         <div class="navbar-title">Admin Dashboard</div>
@@ -1318,7 +1340,8 @@
             <div class="modal-header">
                 <div>
                     <div class="modal-title">Audit Logs</div>
-                    <div class="modal-subtitle">Review system activity, role actions, and request history in a professional audit trail.</div>
+                    <div class="modal-subtitle">Review system activity, role actions, and request history in a
+                        professional audit trail.</div>
                 </div>
                 <button id="closeAuditLogsBtn" class="modal-close" type="button">×</button>
             </div>
@@ -1359,7 +1382,8 @@
             <div class="modal-header">
                 <div>
                     <div class="modal-title" id="userModalTitle">Create User</div>
-                    <div class="modal-subtitle" id="userModalSubtitle">Add a team member with role and department details.</div>
+                    <div class="modal-subtitle" id="userModalSubtitle">Add a team member with role and department
+                        details.</div>
                 </div>
                 <button id="closeAddUserBtn" class="modal-close" type="button">×</button>
             </div>
@@ -1371,7 +1395,8 @@
                 <div class="form-grid">
                     <div class="form-group" id="employeeIdGroup" style="display: none;">
                         <label class="form-label" for="editEmployeeId">Employee ID</label>
-                        <input id="editEmployeeId" class="form-input" type="text" readonly style="opacity: 0.7; cursor: not-allowed;" />
+                        <input id="editEmployeeId" class="form-input" type="text" readonly
+                            style="opacity: 0.7; cursor: not-allowed;" />
                     </div>
                     <div class="form-group">
                         <label class="form-label" for="newUserName">Name</label>
@@ -1379,7 +1404,8 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label" for="newUserEmail">Email</label>
-                        <input id="newUserEmail" class="form-input" type="email" placeholder="jane.doe@example.com" required />
+                        <input id="newUserEmail" class="form-input" type="email" placeholder="jane.doe@example.com"
+                            required />
                     </div>
                     <div class="form-group">
                         <label class="form-label" for="newUserPhone">Phone Number</label>
@@ -1403,7 +1429,8 @@
                     </div>
                     <div class="form-group" id="passwordGroup">
                         <label class="form-label" for="newUserPassword">Password</label>
-                        <input id="newUserPassword" class="form-input" type="password" placeholder="Enter password" required />
+                        <input id="newUserPassword" class="form-input" type="password" placeholder="Enter password"
+                            required />
                     </div>
                 </div>
                 <div class="button-row" style="justify-content: flex-end; gap: 12px; margin-top: 20px;">
@@ -1418,7 +1445,8 @@
         <div class="dashboard-intro">
             <div class="welcome-panel card">
                 <div class="welcome-panel-title" id="welcomePanelTitle">Good Morning</div>
-                <div class="welcome-panel-copy">Your executive dashboard provides an at-a-glance view of request flow, approval velocity, and key operational insights to keep the organization moving.</div>
+                <div class="welcome-panel-copy">Your executive dashboard provides an at-a-glance view of request flow,
+                    approval velocity, and key operational insights to keep the organization moving.</div>
             </div>
             <div class="dashboard-summary-grid">
                 <div class="dashboard-summary-card">
@@ -1541,35 +1569,48 @@
                 <div class="performance-item">
                     <span class="performance-label">Accounts</span>
                     <span class="progress-value">92%</span>
-                    <div class="progress-bar"><div class="progress-fill" style="width: 92%"></div></div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 92%"></div>
+                    </div>
                 </div>
                 <div class="performance-item">
                     <span class="performance-label">Manager</span>
                     <span class="progress-value">88%</span>
-                    <div class="progress-bar"><div class="progress-fill" style="width: 88%"></div></div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 88%"></div>
+                    </div>
                 </div>
                 <div class="performance-item">
                     <span class="performance-label">CFO</span>
                     <span class="progress-value">95%</span>
-                    <div class="progress-bar"><div class="progress-fill" style="width: 95%"></div></div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 95%"></div>
+                    </div>
                 </div>
                 <div class="performance-item">
                     <span class="performance-label">MD</span>
                     <span class="progress-value">97%</span>
-                    <div class="progress-bar"><div class="progress-fill" style="width: 97%"></div></div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 97%"></div>
+                    </div>
                 </div>
             </div>
             <div class="funnel-panel card">
                 <h3>Approval Funnel</h3>
-                <div class="funnel-step"><span class="step-label">Submitted</span><span class="step-value">120</span></div>
+                <div class="funnel-step"><span class="step-label">Submitted</span><span class="step-value">120</span>
+                </div>
                 <div class="funnel-arrow">↓</div>
-                <div class="funnel-step"><span class="step-label">Manager Review</span><span class="step-value">95</span></div>
+                <div class="funnel-step"><span class="step-label">Manager Review</span><span
+                        class="step-value">95</span></div>
                 <div class="funnel-arrow">↓</div>
-                <div class="funnel-step"><span class="step-label">CFO Review</span><span class="step-value">60</span></div>
+                <div class="funnel-step"><span class="step-label">CFO Review</span><span class="step-value">60</span>
+                </div>
                 <div class="funnel-arrow">↓</div>
-                <div class="funnel-step"><span class="step-label">MD Approval</span><span class="step-value">45</span></div>
+                <div class="funnel-step"><span class="step-label">MD Approval</span><span class="step-value">45</span>
+                </div>
                 <div class="funnel-arrow">↓</div>
-                <div class="funnel-step"><span class="step-label">Completed</span><span class="step-value">40</span></div>
+                <div class="funnel-step"><span class="step-label">Completed</span><span class="step-value">40</span>
+                </div>
             </div>
         </div>
 
@@ -1595,59 +1636,67 @@
             </div>
         </div>
 
-    <div id="statusUserModal" class="modal-overlay hidden">
-        <div class="modal-card">
-            <div class="modal-header">
-                <div>
-                    <div class="modal-title" id="statusModalTitle">Deactivate User?</div>
-                    <div class="modal-subtitle" id="statusModalSubtitle">Are you sure you want to change this user's status?</div>
+        <div id="statusUserModal" class="modal-overlay hidden">
+            <div class="modal-card">
+                <div class="modal-header">
+                    <div>
+                        <div class="modal-title" id="statusModalTitle">Deactivate User?</div>
+                        <div class="modal-subtitle" id="statusModalSubtitle">Are you sure you want to change this user's
+                            status?</div>
+                    </div>
+                    <button id="closeStatusUserBtn" class="modal-close" type="button"
+                        onclick="closeStatusModal()">×</button>
                 </div>
-                <button id="closeStatusUserBtn" class="modal-close" type="button" onclick="closeStatusModal()">×</button>
-            </div>
-            <div class="modal-controls">
-                <div id="statusUserMessage" class="msg" style="grid-column: 1 / -1; display: none;"></div>
-            </div>
-            <div class="modal-table-wrapper" style="padding: 15px 0;">
-                <input type="hidden" id="statusTargetUserId" value="" />
-                <input type="hidden" id="statusTargetAction" value="" />
-                <div style="background: rgba(255, 255, 255, 0.05); padding: 16px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.1); font-size: 14px; line-height: 1.8;">
-                    <div>Employee ID: <strong id="statusModalEmpId" style="color: #60E8FF;">-</strong></div>
-                    <div>Employee: <strong id="statusModalName">-</strong></div>
-                    <div id="statusModalRoleRow">Role: <strong id="statusModalRole">-</strong></div>
-                    <div id="statusModalNotice" style="margin-top: 10px; color: #FF6B6B; font-weight: 700;">This user will no longer be able to login.</div>
+                <div class="modal-controls">
+                    <div id="statusUserMessage" class="msg" style="grid-column: 1 / -1; display: none;"></div>
                 </div>
-                <div class="button-row" style="justify-content: flex-end; gap: 12px; margin-top: 20px;">
-                    <button class="btn btn-secondary" type="button" onclick="closeStatusModal()">Cancel</button>
-                    <button id="statusModalConfirmBtn" class="btn btn-danger" type="button" onclick="confirmUserStatusChange()">Deactivate</button>
+                <div class="modal-table-wrapper" style="padding: 15px 0;">
+                    <input type="hidden" id="statusTargetUserId" value="" />
+                    <input type="hidden" id="statusTargetAction" value="" />
+                    <div
+                        style="background: rgba(255, 255, 255, 0.05); padding: 16px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.1); font-size: 14px; line-height: 1.8;">
+                        <div>Employee ID: <strong id="statusModalEmpId" style="color: #60E8FF;">-</strong></div>
+                        <div>Employee: <strong id="statusModalName">-</strong></div>
+                        <div id="statusModalRoleRow">Role: <strong id="statusModalRole">-</strong></div>
+                        <div id="statusModalNotice" style="margin-top: 10px; color: #FF6B6B; font-weight: 700;">This
+                            user will no longer be able to login.</div>
+                    </div>
+                    <div class="button-row" style="justify-content: flex-end; gap: 12px; margin-top: 20px;">
+                        <button class="btn btn-secondary" type="button" onclick="closeStatusModal()">Cancel</button>
+                        <button id="statusModalConfirmBtn" class="btn btn-danger" type="button"
+                            onclick="confirmUserStatusChange()">Deactivate</button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <div class="card" style="margin-top: 20px;">
-        <div class="toolbar-row">
-            <h2 class="card-title" style="margin-bottom: 0;">User Management</h2>
-            <button type="button" class="btn btn-primary" onclick="openAddUserModal()">+ Create User</button>
+        <div class="card" style="margin-top: 20px;">
+            <div class="toolbar-row">
+                <h2 class="card-title" style="margin-bottom: 0;">User Management</h2>
+                <button type="button" class="btn btn-primary" onclick="openAddUserModal()">+ Create User</button>
+            </div>
+            <div class="modal-table-wrapper" style="margin-top: 15px; overflow-x: auto;">
+                <table class="audit-table">
+                    <thead>
+                        <tr>
+                            <th>Employee ID</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Department</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="userManagementTableBody">
+                        <tr>
+                            <td colspan="7" style="text-align: center; color: var(--text-secondary);">Loading users...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
-        <div class="modal-table-wrapper" style="margin-top: 15px; overflow-x: auto;">
-            <table class="audit-table">
-                <thead>
-                    <tr>
-                        <th>Employee ID</th>
-                        <th>Name</th>
-                        <th>Email</th>
-                        <th>Role</th>
-                        <th>Department</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="userManagementTableBody">
-                    <tr><td colspan="7" style="text-align: center; color: var(--text-secondary);">Loading users...</td></tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
 
         <div class="card" style="margin-top: 20px;">
             <div class="toolbar-row">
@@ -1736,10 +1785,10 @@
             document.getElementById('userModalTitle').textContent = 'Create User';
             document.getElementById('userModalSubtitle').textContent = 'Add a team member with role and department details.';
             document.getElementById('userModalSubmitBtn').textContent = 'Create User';
-            
+
             const empGroup = document.getElementById('employeeIdGroup');
             if (empGroup) empGroup.style.display = 'none';
-            
+
             const pwdGroup = document.getElementById('passwordGroup');
             if (pwdGroup) pwdGroup.style.display = 'block';
             const pwdInput = document.getElementById('newUserPassword');
@@ -2666,7 +2715,7 @@
         function initializeStatusChart() {
             const ctx = document.getElementById('statusChart');
             if (!ctx) return;
-            
+
             statusChartInstance = new Chart(ctx, {
                 type: 'doughnut',
                 data: {
@@ -2898,12 +2947,12 @@
                     </thead>
                     <tbody>
                         ${requests.map((req) => {
-                            const current = getCurrentLevelName(req);
-                            const status = normalizeStatus(req.status);
-                            const last = Array.isArray(req.history) && req.history.length ? req.history[req.history.length - 1] : null;
-                            const overdueTag = checkSLA(req) ? ' | Overdue' : '';
-                            const escalatedTag = req.escalated ? ' | Escalated' : '';
-                            return `
+                const current = getCurrentLevelName(req);
+                const status = normalizeStatus(req.status);
+                const last = Array.isArray(req.history) && req.history.length ? req.history[req.history.length - 1] : null;
+                const overdueTag = checkSLA(req) ? ' | Overdue' : '';
+                const escalatedTag = req.escalated ? ' | Escalated' : '';
+                return `
                                 <tr>
                                     <td>${escapeHtml(req.title || '-')}</td>
                                     <td>${formatCurrency(req.amount || 0)}</td>
@@ -2914,7 +2963,7 @@
                                     <td>${timeAgo(req.updatedAt || req.createdAt)}</td>
                                 </tr>
                             `;
-                        }).join('')}
+            }).join('')}
                     </tbody>
                 </table>
             </div>
@@ -2982,6 +3031,8 @@
 
         setInterval(loadRequests, 4000);
     </script>
+    <script src="zyro-advanced-workflow.js"></script>
     <script src="settings-menu.js"></script>
 </body>
+
 </html>

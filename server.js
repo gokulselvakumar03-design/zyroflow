@@ -177,6 +177,53 @@ async function initializeMysqlStorage() {
       `);
 
       // 5. payment_verifications table
+      // 5. approval_history table
+      await db.promise().execute(`
+        CREATE TABLE IF NOT EXISTS approval_history (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          request_id INT NOT NULL,
+          employee_name VARCHAR(100),
+          department VARCHAR(100),
+          request_type VARCHAR(100),
+          amount DECIMAL(12,2) DEFAULT 0.00,
+          priority VARCHAR(50) DEFAULT 'MEDIUM',
+          manager_name VARCHAR(100) DEFAULT 'Manager',
+          approval_stage VARCHAR(50) DEFAULT 'Manager',
+          decision VARCHAR(50) NOT NULL,
+          action VARCHAR(50) NULL,
+          decision_time INT DEFAULT 0,
+          decision_time_seconds INT DEFAULT 0,
+          decision_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          INDEX idx_ah_req (request_id),
+          INDEX idx_ah_stage (approval_stage)
+        )
+      `);
+
+      try { await db.promise().query("ALTER TABLE approval_history ADD COLUMN decision VARCHAR(50) DEFAULT 'Approved'"); } catch (e) { }
+      try { await db.promise().query("ALTER TABLE approval_history ADD COLUMN decision_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP"); } catch (e) { }
+      try { await db.promise().query("ALTER TABLE approval_history ADD COLUMN decision_time_seconds INT DEFAULT 0"); } catch (e) { }
+      try { await db.promise().query("ALTER TABLE approval_history ADD COLUMN amount DECIMAL(12,2) DEFAULT 0.00"); } catch (e) { }
+      try { await db.promise().query("ALTER TABLE approval_history ADD COLUMN priority VARCHAR(50) DEFAULT 'MEDIUM'"); } catch (e) { }
+      try { await db.promise().query("ALTER TABLE approval_history ADD COLUMN comments TEXT"); } catch (e) { }
+      try { await db.promise().query("ALTER TABLE approvals ADD COLUMN comments TEXT"); } catch (e) { }
+      try { await db.promise().query("ALTER TABLE request_history ADD COLUMN comments TEXT"); } catch (e) { }
+
+      // Clean up historic duplicate rows from approval_history
+      try {
+        await db.promise().query(`
+          DELETE t1 FROM approval_history t1
+          INNER JOIN approval_history t2 
+          WHERE t1.id > t2.id 
+            AND t1.request_id = t2.request_id 
+            AND LOWER(t1.decision) = LOWER(t2.decision)
+            AND LOWER(t1.approval_stage) = LOWER(t2.approval_stage)
+            AND ABS(TIMESTAMPDIFF(SECOND, t1.timestamp, t2.timestamp)) < 30
+        `);
+      } catch (e) { }
+
+      // 6. payment_verifications table
       await db.promise().execute(`
         CREATE TABLE IF NOT EXISTS payment_verifications (
           id INT AUTO_INCREMENT PRIMARY KEY,
@@ -224,25 +271,28 @@ async function initializeMysqlStorage() {
 
       try {
         await db.promise().query("ALTER TABLE notifications ADD COLUMN user_email VARCHAR(100) NULL");
-      } catch (e) {}
+      } catch (e) { }
 
       // Ensure essential payment_verifications, workflow_requests and user columns exist
       try {
         await db.promise().query("ALTER TABLE payment_verifications ADD COLUMN verified_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP");
-      } catch (e) {}
+      } catch (e) { }
 
       try {
         await db.promise().query("ALTER TABLE workflow_requests ADD COLUMN payment_verified INT DEFAULT 0");
-      } catch (e) {}
+      } catch (e) { }
       try {
         await db.promise().query("ALTER TABLE workflow_requests ADD COLUMN payment_verified_by VARCHAR(100) NULL");
-      } catch (e) {}
+      } catch (e) { }
       try {
         await db.promise().query("ALTER TABLE workflow_requests ADD COLUMN payment_verified_at TIMESTAMP NULL");
-      } catch (e) {}
+      } catch (e) { }
       try {
         await db.promise().query("ALTER TABLE workflow_requests ADD COLUMN payment_verification_status VARCHAR(50) DEFAULT 'Unverified'");
-      } catch (e) {}
+      } catch (e) { }
+      try {
+        await db.promise().query("ALTER TABLE workflow_requests ADD COLUMN approval_stage VARCHAR(100) DEFAULT 'Accounts'");
+      } catch (e) { }
 
       try {
         await db.promise().query("ALTER TABLE users ADD COLUMN IF NOT EXISTS employee_id VARCHAR(20) UNIQUE");
@@ -387,6 +437,7 @@ function mapRequestRow(row) {
   const currentLevel = Number(row.current_level ?? 0);
   const currentRole = row.current_role || workflow[Math.min(currentLevel, Math.max(workflow.length - 1, 0))] || '';
   const currentApprover = row.current_approver || currentRole || '';
+  const approvalStage = row.approval_stage || currentRole || '';
 
   const isVerified = Number(row.payment_verified ?? 0) === 1 || String(row.payment_verification_status || '').toLowerCase() === 'verified';
 
@@ -400,6 +451,8 @@ function mapRequestRow(row) {
     description: row.description || payload.description || '',
     amount: Number(row.amount || payload.amount || 0),
     status: row.status || payload.status || 'pending',
+    approval_stage: approvalStage,
+    approvalStage: approvalStage,
     requester: row.requester_name || payload.requester || payload.requester_name || '',
     requester_name: row.requester_name || payload.requester || payload.requester_name || '',
     requesterEmail: row.requester_email || payload.requesterEmail || payload.email || '',
@@ -546,38 +599,43 @@ function optionalAuth(req, res, next) {
  * - Approver (Accounts, Manager, CFO, MD): Views requests assigned to their role/level.
  * - Admin: Views all requests.
  */
-app.get('/requests', optionalAuth, async (req, res) => {
+app.get(['/requests', '/api/requests'], optionalAuth, async (req, res) => {
   if (!dbPool) {
     return res.status(500).json({ message: 'Database unavailable' });
   }
 
   try {
     const user = req.user;
+    const queryRole = req.query.role || (user ? user.role : null);
     let query = 'SELECT * FROM workflow_requests ORDER BY id DESC';
     let params = [];
 
-    if (user && user.role) {
-      const role = String(user.role).toLowerCase().trim();
+    if (queryRole) {
+      const role = String(queryRole).toLowerCase().trim();
 
       if (role === 'employee') {
-        // Employee sees only their own requests
         query = `
           SELECT * FROM workflow_requests
           WHERE LOWER(requester_email) = LOWER(?) OR LOWER(requester_name) = LOWER(?)
           ORDER BY id DESC
         `;
-        params = [user.email || '', user.name || ''];
+        params = [user?.email || '', user?.name || ''];
       } else if (['manager', 'accounts', 'cfo', 'md'].includes(role)) {
-        // Approver sees requests currently assigned to their role
+        const statusMatch = `pending ${role} approval`;
         query = `
           SELECT * FROM workflow_requests
-          WHERE LOWER(status) = 'pending'
-            AND LOWER(current_role) = LOWER(?)
+          WHERE LOWER(status) = LOWER(?)
+             OR (
+               (LOWER(status) = 'pending' OR LOWER(status) LIKE 'pending%')
+               AND (
+                 LOWER(current_approver) = LOWER(?)
+                 OR LOWER(current_role) = LOWER(?)
+               )
+             )
           ORDER BY id DESC
         `;
-        params = [role];
+        params = [statusMatch, role, role];
       }
-      // Admin sees all (default query)
     }
 
     const [rows] = await dbPool.query(query, params);
@@ -590,10 +648,10 @@ app.get('/requests', optionalAuth, async (req, res) => {
 });
 
 /**
- * GET /requests/:id
+ * GET /requests/:id or /api/requests/:id
  * Fetches a single request by ID.
  */
-app.get('/requests/:id', optionalAuth, async (req, res) => {
+app.get(['/requests/:id', '/api/requests/:id'], optionalAuth, async (req, res) => {
   if (!dbPool) {
     return res.status(500).json({ message: 'Database unavailable' });
   }
@@ -606,7 +664,7 @@ app.get('/requests/:id', optionalAuth, async (req, res) => {
 
     const [rows] = await dbPool.execute(
       `SELECT id, title, type, description, amount, department, priority, status,
-              requester_name, requester_email, current_role, current_approver, workflow,
+              requester_name, requester_email, current_role, current_approver, approval_stage, workflow,
               payload, current_level, created_at, updated_at,
               payment_verified, payment_verified_by, payment_verified_at, payment_verification_status
        FROM workflow_requests WHERE id = ? LIMIT 1`,
@@ -627,7 +685,45 @@ app.get('/requests/:id', optionalAuth, async (req, res) => {
       }
     }
 
-    console.log('[DEBUG GET /requests/:id] Sending responseJson:', requestData);
+    // Fetch approval timeline steps
+    try {
+      const [approvalRows] = await dbPool.execute(
+        `SELECT id, step, approver_role, status, updated_at, comments FROM approvals WHERE request_id = ? ORDER BY step ASC`,
+        [requestId]
+      );
+      requestData.timeline = approvalRows;
+      requestData.approvals = approvalRows;
+    } catch (e) {
+      requestData.timeline = [];
+      requestData.approvals = [];
+    }
+
+    // Fetch decision history / audit log
+    try {
+      const [historyRows] = await dbPool.execute(
+        `SELECT id, action, performed_by, timestamp FROM request_history WHERE request_id = ? ORDER BY id ASC`,
+        [requestId]
+      );
+      const [appHistRows] = await dbPool.execute(
+        `SELECT id, manager_name, approval_stage, decision, action, decision_timestamp, timestamp, comments FROM approval_history WHERE request_id = ? ORDER BY id ASC`,
+        [requestId]
+      );
+      requestData.history = historyRows;
+      requestData.approval_history = appHistRows;
+    } catch (e) {
+      requestData.history = [];
+      requestData.approval_history = [];
+    }
+
+    // Attachments handling from payload JSON if present
+    try {
+      const payloadObj = typeof requestData.payload === 'string' ? JSON.parse(requestData.payload) : (requestData.payload || {});
+      requestData.attachments = payloadObj.attachments || payloadObj.files || (payloadObj.attachment ? [payloadObj.attachment] : []);
+    } catch (e) {
+      requestData.attachments = [];
+    }
+
+    console.log('[DEBUG GET /requests/:id] Sending enriched responseJson with timeline & history');
     res.json(requestData);
   } catch (error) {
     console.error('GET /requests/:id failed:', error.message);
@@ -636,11 +732,11 @@ app.get('/requests/:id', optionalAuth, async (req, res) => {
 });
 
 /**
- * POST /requests
+ * POST /requests or /api/requests
  * Creates a new request in workflow_requests, generates approval steps, and logs history.
  * Uses logged-in user details from JWT token (req.user).
  */
-app.post('/requests', optionalAuth, async (req, res) => {
+app.post(['/requests', '/api/requests'], optionalAuth, async (req, res) => {
   console.log("========== POST /requests ==========");
   console.log("Logged-in user:", req.user);
   console.log("Request Body:", req.body);
@@ -659,8 +755,9 @@ app.post('/requests', optionalAuth, async (req, res) => {
     // Determine approval chain from rules table (or sanitized custom workflow)
     const approverChain = await getApprovalChain(type, amount, input.workflow);
 
-    // FIX: Set current_role and current_approver to the actual first financial approver (e.g., 'Accounts')
+    // FIX: Set current_role, current_approver, approval_stage to the actual first financial approver (e.g., 'Accounts')
     const firstApprover = approverChain[0] || 'Accounts';
+    const initialStatus = `Pending ${firstApprover} Approval`;
 
     // Prepare normalized request data with JWT user details and initial approval state
     const requestData = normalizeRequestInput({
@@ -668,14 +765,15 @@ app.post('/requests', optionalAuth, async (req, res) => {
       workflow: JSON.stringify(approverChain),
       current_role: firstApprover,
       current_approver: firstApprover,
+      approval_stage: firstApprover,
       current_level: 0,
-      status: 'pending'
+      status: initialStatus
     }, user);
 
     const [result] = await dbPool.execute(
       `INSERT INTO workflow_requests
-       (title, type, description, amount, department, priority, status, requester_name, requester_email, current_role, current_approver, workflow, payload, current_level)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       (title, type, description, amount, department, priority, status, approval_stage, requester_name, requester_email, current_role, current_approver, workflow, payload, current_level)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         requestData.title,
         requestData.type,
@@ -683,14 +781,15 @@ app.post('/requests', optionalAuth, async (req, res) => {
         requestData.amount,
         requestData.department,
         requestData.priority,
-        requestData.status,
+        initialStatus,
+        firstApprover,
         requestData.requester_name,
         requestData.requester_email,
-        requestData.current_role,
-        requestData.current_approver,
+        firstApprover,
+        firstApprover,
         requestData.workflow,
         requestData.payload,
-        requestData.current_level,
+        0,
       ]
     );
 
@@ -701,13 +800,13 @@ app.post('/requests', optionalAuth, async (req, res) => {
     // Auto-delete associated draft upon successful request submission
     const draftId = req.body.draft_id || req.body.draftId || (req.body.payload && (req.body.payload.draft_id || req.body.payload.draftId));
     if (draftId) {
-      await dbPool.execute('DELETE FROM draft_requests WHERE id = ?', [draftId]).catch(() => {});
+      await dbPool.execute('DELETE FROM draft_requests WHERE id = ?', [draftId]).catch(() => { });
     }
     if (requestData.requester_email) {
       await dbPool.execute(
         'DELETE FROM draft_requests WHERE LOWER(employee_id) = LOWER(?) AND LOWER(request_type) = LOWER(?)',
         [requestData.requester_email, requestData.type || '']
-      ).catch(() => {});
+      ).catch(() => { });
     }
 
     // Delete any existing approvals for this request ID before inserting fresh rows
@@ -740,7 +839,7 @@ app.post('/requests', optionalAuth, async (req, res) => {
         `INSERT INTO notifications (user_email, user_role, request_id, title, message, type)
          VALUES (?, 'employee', ?, 'Request Submitted', 'Request submitted successfully.', 'success')`,
         [requestData.requester_email, requestId]
-      ).catch(() => {});
+      ).catch(() => { });
     }
 
     // 2. Accounts Notification: New request submitted.
@@ -748,7 +847,7 @@ app.post('/requests', optionalAuth, async (req, res) => {
       `INSERT INTO notifications (user_role, request_id, title, message, type)
        VALUES ('accounts', ?, 'New Request', 'New request submitted.', 'info')`,
       [requestId]
-    ).catch(() => {});
+    ).catch(() => { });
 
     const [createdRows] = await dbPool.execute('SELECT * FROM workflow_requests WHERE id = ? LIMIT 1', [requestId]);
     const createdRequest = mapRequestRow(createdRows[0]);
@@ -940,9 +1039,258 @@ app.get('/approvals/:requestId', optionalAuth, async (req, res) => {
   }
 });
 
+app.get(['/api/manager/analytics', '/manager/analytics', '/api/analytics/dashboard'], async (req, res) => {
+  if (!dbPool) {
+    return res.status(500).json({ error: 'Database unavailable' });
+  }
 
 
-app.post('/history', optionalAuth, async (req, res) => {
+  try {
+    const targetRole = req.query.role || 'Manager';
+    const isFilteredByRole = targetRole && String(targetRole).toLowerCase() !== 'all';
+    const roleParam = isFilteredByRole ? String(targetRole).toLowerCase().trim() : null;
+
+    // 1. Counts directly from workflow_requests using exact status matching
+    const [mgrPendingRes] = await dbPool.query("SELECT COUNT(*) as count FROM workflow_requests WHERE LOWER(status) = 'pending manager approval'");
+    const [overallPendingRes] = await dbPool.query("SELECT COUNT(*) as count FROM workflow_requests WHERE LOWER(status) LIKE 'pending%' OR LOWER(status) = 'waiting'");
+    const [wfApprovedRes] = await dbPool.query("SELECT COUNT(*) as count FROM workflow_requests WHERE LOWER(status) = 'approved'");
+    const [wfRejectedRes] = await dbPool.query("SELECT COUNT(*) as count FROM workflow_requests WHERE LOWER(status) = 'rejected'");
+    const [totalRequestsRes] = await dbPool.query("SELECT COUNT(*) as count FROM workflow_requests");
+    const [escalatedRes] = await dbPool.query("SELECT COUNT(*) as count FROM workflow_requests WHERE LOWER(status) LIKE '%escalat%'");
+
+    const managerPending = mgrPendingRes[0]?.count || 0;
+    const overallPending = overallPendingRes[0]?.count || 0;
+    const approvedCount = wfApprovedRes[0]?.count || 0;
+    const rejectedCount = wfRejectedRes[0]?.count || 0;
+    const totalRequests = totalRequestsRes[0]?.count || 0;
+    const escalatedCount = escalatedRes[0]?.count || 0;
+
+    // 2. Fetch Latest Deduplicated Approval History (One record per request_id, latest decision) JOINED with workflow_requests
+    const latestQuery = `
+      SELECT ah.*,
+             wr.amount as req_amount,
+             wr.created_at as req_created_at,
+             COALESCE(NULLIF(ah.department, ''), wr.department, 'Finance') as final_department
+      FROM approval_history ah
+      INNER JOIN (
+        SELECT request_id, MAX(id) as max_id
+        FROM approval_history
+        ${isFilteredByRole ? 'WHERE LOWER(approval_stage) = LOWER(?) OR LOWER(manager_name) = LOWER(?)' : ''}
+        GROUP BY request_id
+      ) latest ON ah.id = latest.max_id
+      LEFT JOIN workflow_requests wr ON ah.request_id = wr.id
+    `;
+    const latestParams = isFilteredByRole ? [roleParam, roleParam] : [];
+    const [latestDecisions] = await dbPool.query(latestQuery, latestParams);
+
+    // 3. Raw Approval History list for table & matching /approval-history endpoint
+    let historyQuery = 'SELECT * FROM approval_history ORDER BY id DESC LIMIT 100';
+    let historyParams = [];
+    if (isFilteredByRole) {
+      historyQuery = 'SELECT * FROM approval_history WHERE LOWER(approval_stage) = LOWER(?) OR LOWER(manager_name) = LOWER(?) ORDER BY id DESC LIMIT 100';
+      historyParams = [roleParam, roleParam];
+    }
+    const [historyRows] = await dbPool.query(historyQuery, historyParams);
+
+    // 4. Decision metrics from approval history
+    let decApproved = 0;
+    let decRejected = 0;
+    latestDecisions.forEach((row) => {
+      const dec = String(row.decision || row.action || '').toLowerCase();
+      if (dec.includes('approve')) {
+        decApproved++;
+      } else if (dec.includes('reject')) {
+        decRejected++;
+      }
+    });
+
+    const totalDecisions = decApproved + decRejected;
+    const approvalRate = totalDecisions > 0 ? Math.round((decApproved / totalDecisions) * 100) : 0;
+
+    // 5. Budget Analysis (ONLY APPROVED requests from latest decisions JOINED with workflow_requests)
+    const approvedRequests = latestDecisions.filter((row) =>
+      String(row.decision || row.action || '').toLowerCase().includes('approve')
+    );
+
+    const approvedAmounts = approvedRequests.map((r) => Number(r.req_amount || r.amount || 0));
+
+    const highestApprovedAmount = approvedAmounts.length > 0 ? Math.max(...approvedAmounts) : 0;
+    const lowestApprovedAmount = approvedAmounts.length > 0 ? Math.min(...approvedAmounts) : 0;
+    const totalApprovedBudget = approvedAmounts.reduce((sum, val) => sum + val, 0);
+    const avgApprovedAmount = approvedAmounts.length > 0 ? Math.round(totalApprovedBudget / approvedAmounts.length) : 0;
+
+    // 6. Average Decision Time (Request created_at -> Latest decision_timestamp)
+    let totalTimeSec = 0;
+    let timedDecisionsCount = 0;
+
+    latestDecisions.forEach((row) => {
+      const startTime = row.req_created_at ? new Date(row.req_created_at).getTime() : null;
+      const endTime = row.decision_timestamp || row.timestamp ? new Date(row.decision_timestamp || row.timestamp).getTime() : null;
+
+      if (startTime && endTime && endTime >= startTime) {
+        totalTimeSec += (endTime - startTime) / 1000;
+        timedDecisionsCount++;
+      } else if (Number(row.decision_time_seconds || row.decision_time || 0) > 0) {
+        totalTimeSec += Number(row.decision_time_seconds || row.decision_time);
+        timedDecisionsCount++;
+      }
+    });
+
+    const avgDecisionTimeMins = timedDecisionsCount > 0 ? Math.round((totalTimeSec / timedDecisionsCount) / 60) : 0;
+
+    // 7. Top Department (Department with highest completed requests from latest decisions)
+    const deptCounts = {};
+    latestDecisions.forEach((row) => {
+      const dept = row.final_department || 'Finance';
+      deptCounts[dept] = (deptCounts[dept] || 0) + 1;
+    });
+
+    let topDepartment = 'N/A';
+    let maxDeptCount = 0;
+    Object.keys(deptCounts).forEach((dept) => {
+      if (deptCounts[dept] > maxDeptCount) {
+        maxDeptCount = deptCounts[dept];
+        topDepartment = dept;
+      }
+    });
+
+    // 8. Most Active Day (Day with highest completed approvals/rejections from latest decisions)
+    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const dayCounts = {};
+
+    latestDecisions.forEach((row) => {
+      const dt = row.decision_timestamp || row.timestamp ? new Date(row.decision_timestamp || row.timestamp) : null;
+      if (dt && !isNaN(dt.getTime())) {
+        const dName = dayNames[dt.getDay()];
+        dayCounts[dName] = (dayCounts[dName] || 0) + 1;
+      }
+    });
+
+    let mostActiveDay = 'N/A';
+    let maxDayCount = 0;
+    Object.keys(dayCounts).forEach((day) => {
+      if (dayCounts[day] > maxDayCount) {
+        maxDayCount = dayCounts[day];
+        mostActiveDay = day;
+      }
+    });
+
+    // 9. Chart Datasets
+    // Chart 1: Approval Trend (Grouped by Date from approval_history)
+    const [trendRows] = await dbPool.query(`
+      SELECT DATE_FORMAT(timestamp, '%Y-%m-%d') as date,
+             SUM(CASE WHEN LOWER(decision) LIKE 'approve%' THEN 1 ELSE 0 END) as approved,
+             SUM(CASE WHEN LOWER(decision) LIKE 'reject%' THEN 1 ELSE 0 END) as rejected
+      FROM approval_history
+      ${isFilteredByRole ? 'WHERE LOWER(approval_stage) = LOWER(?) OR LOWER(manager_name) = LOWER(?)' : ''}
+      GROUP BY DATE_FORMAT(timestamp, '%Y-%m-%d')
+      ORDER BY date ASC
+    `, latestParams);
+
+    // Chart 2: Approval Speed (Horizontal Bar Chart)
+    const [speedRows] = await dbPool.query(`
+      SELECT approval_stage as stage, ROUND(AVG(decision_time_seconds)/60, 1) as avg_mins
+      FROM approval_history
+      WHERE decision_time_seconds > 0
+      GROUP BY approval_stage
+    `);
+
+    // Chart 3: Monthly Requests
+    const [monthlyRows] = await dbPool.query(`
+      SELECT DATE_FORMAT(created_at, '%b %Y') as month, COUNT(*) as count
+      FROM workflow_requests
+      GROUP BY DATE_FORMAT(created_at, '%Y-%m'), DATE_FORMAT(created_at, '%b %Y')
+      ORDER BY MIN(created_at) ASC
+    `);
+
+    // Chart 4: Workflow Funnel (using current_role instead of non-existent approval_stage)
+    const [funnelRows] = await dbPool.query(`
+      SELECT COALESCE(current_role, 'Accounts') as stage, COUNT(*) as count
+      FROM workflow_requests
+      GROUP BY stage
+    `);
+
+    const [pendingRequests] = await dbPool.query(`
+      SELECT * FROM workflow_requests
+      WHERE LOWER(status) LIKE 'pending%'
+      ORDER BY id DESC
+    `);
+
+    const highestAmountApproved = highestApprovedAmount;
+    const lowestAmountApproved = lowestApprovedAmount;
+
+    res.json({
+      kpis: {
+        managerPending,
+        overallPending,
+        pending: managerPending,
+        approved: approvedCount,
+        rejected: rejectedCount,
+        total: totalRequests,
+        escalated: escalatedCount,
+        approvalRate,
+        avgDecisionTimeMins
+      },
+      managerPending,
+      overallPending,
+      approved: approvedCount,
+      rejected: rejectedCount,
+      pending: managerPending,
+      totalRequests,
+      escalated: escalatedCount,
+      approvalRate,
+      avgDecisionTimeMins,
+      totalDecisions,
+      topDepartment,
+      mostActiveDay,
+      highestAmountApproved,
+      lowestAmountApproved,
+      highestApprovedAmount,
+      lowestApprovedAmount,
+      avgApprovedAmount,
+      totalApprovedBudget,
+      history: historyRows,
+      recentDecisions: historyRows.slice(0, 10),
+      pendingRequests,
+      charts: {
+        trend: trendRows,
+        statusDistribution: { pending: overallPending, managerPending, approved: approvedCount, rejected: rejectedCount, escalated: escalatedCount },
+        approvalSpeed: speedRows,
+        monthlyRequests: monthlyRows,
+        workflowFunnel: funnelRows
+      }
+    });
+  } catch (err) {
+    console.error('GET /api/manager/analytics error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get(['/approval-history', '/api/approval-history'], async (req, res) => {
+  if (!dbPool) {
+    return res.status(500).json({ error: 'Database unavailable' });
+  }
+
+  try {
+    const queryRole = req.query.role || (req.user ? req.user.role : null);
+    let query = 'SELECT * FROM approval_history ORDER BY id DESC LIMIT 100';
+    let params = [];
+
+    if (queryRole) {
+      const role = String(queryRole).toLowerCase().trim();
+      query = 'SELECT * FROM approval_history WHERE LOWER(approval_stage) = LOWER(?) OR LOWER(manager_name) = LOWER(?) ORDER BY id DESC LIMIT 100';
+      params = [role, role];
+    }
+
+    const [rows] = await dbPool.query(query, params);
+    res.json(rows);
+  } catch (err) {
+    console.error('GET /approval-history failed:', err.message);
+    res.json([]);
+  }
+});
+
+app.post('/history', async (req, res) => {
   if (!dbPool) {
     return res.status(500).json({ error: 'Database unavailable' });
   }
@@ -977,7 +1325,7 @@ app.post('/history', optionalAuth, async (req, res) => {
   }
 });
 
-app.get('/history/:requestId', optionalAuth, async (req, res) => {
+app.get('/history/:requestId', async (req, res) => {
   if (!dbPool) {
     return res.status(500).json({ error: 'Database unavailable' });
   }

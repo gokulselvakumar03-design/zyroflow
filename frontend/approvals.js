@@ -100,8 +100,9 @@ function renderApprovals(data) {
     tr.innerHTML = `
       <td>${item.request_id}</td>
       <td>${item.request_type}</td>
-      <td>${item.amount}</td>
+      <td>$${item.amount}</td>
       <td>${item.description || ''}</td>
+      <td><button class="btn btn-sm btn-info" onclick="ZyroWorkflow.showRequestDetails(${item.request_id})">🔍 Details</button></td>
       <td><button class="btn btn-sm btn-success" data-action="approve" data-request="${item.request_id}">Approve</button></td>
       <td><button class="btn btn-sm btn-danger" data-action="reject" data-request="${item.request_id}">Reject</button></td>
     `;
@@ -132,18 +133,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const requestId = button.getAttribute('data-request');
     if (!action || !requestId) return;
 
-    let res;
-    if (action === 'approve') {
-      res = await approveRequest(Number(requestId));
+    if (window.ZyroWorkflow) {
+      ZyroWorkflow.openDecisionModal(action, requestId, () => loadApprovals());
     } else {
-      res = await rejectRequest(Number(requestId));
-    }
-
-    if (res.success) {
-      setAlert('success', `${action === 'approve' ? 'Approved' : 'Rejected'} request ${requestId}`);
-      loadApprovals();
-    } else {
-      setAlert('danger', res.message);
+      let res = action === 'approve' ? await approveRequest(Number(requestId)) : await rejectRequest(Number(requestId));
+      if (res.success) {
+        setAlert('success', `${action === 'approve' ? 'Approved' : 'Rejected'} request ${requestId}`);
+        loadApprovals();
+      } else {
+        setAlert('danger', res.message);
+      }
     }
   });
 

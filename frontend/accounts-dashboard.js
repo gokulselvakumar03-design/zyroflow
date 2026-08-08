@@ -150,6 +150,13 @@ async function loadAccountsRequests() {
 
     const data = await response.json();
     accountsRequestsCache = Array.isArray(data) ? data : [];
+    if (window.ZyroWorkflow) {
+      ZyroWorkflow.renderFilterToolbar('zyro-filter-container', {
+        data: accountsRequestsCache,
+        renderTable: (filtered) => renderAccountsQueue(filtered),
+        updateMetrics: (filtered) => updateDashboardMetrics(filtered)
+      });
+    }
     renderAccountsQueue();
   } catch (err) {
     console.error('[AccountsDashboard] Error loading requests:', err.message);
@@ -193,32 +200,31 @@ function matchesSearchQuery(req, query) {
 }
 
 // Render financial request table and update summary metrics
-function renderAccountsQueue() {
+function renderAccountsQueue(customList) {
   const requestsList = document.getElementById('requests-list');
   if (!requestsList) return;
 
-  const searchInput = document.getElementById('searchBox');
-  const searchQuery = searchInput ? searchInput.value : '';
+  let finalRequests = customList;
+  if (!finalRequests) {
+    const searchInput = document.getElementById('searchBox');
+    const searchQuery = searchInput ? searchInput.value : '';
 
-  const filterUpper = String(currentFilter || 'ALL').trim().toUpperCase();
-  const statusFiltered = accountsRequestsCache.filter((r) => {
-    const s = normalizeStatus(r.status);
-    if (filterUpper === 'ALL') return true;
-    if (filterUpper === 'PENDING') return s === 'pending';
-    if (filterUpper === 'APPROVED') return s === 'approved';
-    if (filterUpper === 'REJECTED') return s === 'rejected';
-    if (filterUpper === 'CANCELLED') return s === 'cancelled';
-    return s === filterUpper.toLowerCase();
-  });
+    const filterUpper = String(currentFilter || 'ALL').trim().toUpperCase();
+    const statusFiltered = accountsRequestsCache.filter((r) => {
+      const s = normalizeStatus(r.status);
+      if (filterUpper === 'ALL') return true;
+      if (filterUpper === 'PENDING') return s === 'pending';
+      if (filterUpper === 'APPROVED') return s === 'approved';
+      if (filterUpper === 'REJECTED') return s === 'rejected';
+      if (filterUpper === 'CANCELLED') return s === 'cancelled';
+      return s === filterUpper.toLowerCase();
+    });
 
-  const finalRequests = statusFiltered.filter((r) => matchesSearchQuery(r, searchQuery));
+    finalRequests = statusFiltered.filter((r) => matchesSearchQuery(r, searchQuery));
+  }
 
-  if (finalRequests.length === 0) {
-    if (accountsRequestsCache.length === 0 || (filterUpper === 'PENDING' && statusFiltered.length === 0)) {
-      requestsList.innerHTML = '<tr class="empty-state"><td colspan="7">No pending requests. All requests have been reviewed.</td></tr>';
-    } else {
-      requestsList.innerHTML = '<tr class="empty-state"><td colspan="7">No requests match current filter/search.</td></tr>';
-    }
+  if (!finalRequests || finalRequests.length === 0) {
+    requestsList.innerHTML = '<tr class="empty-state"><td colspan="7">No requests match current filter/search.</td></tr>';
     updateDashboardMetrics(accountsRequestsCache);
     return;
   }
@@ -238,7 +244,7 @@ function renderAccountsQueue() {
       : `<span class="pv-badge pv-badge-pending" style="display:inline-block; margin-left:6px; background:#f59e0b; color:#ffffff; padding:3px 8px; border-radius:12px; font-size:11px; font-weight:600;">Payment Verification Pending</span>`;
 
     return `
-      <tr class="queue-row">
+      <tr class="queue-row" style="cursor:pointer;" onclick="if (!event.target.closest('button')) ZyroWorkflow.showRequestDetails('${reqId}')">
         <td>#${escapeHtml(String(reqId))}</td>
         <td>${employeeName}</td>
         <td>${department}</td>
@@ -249,13 +255,14 @@ function renderAccountsQueue() {
           ${pvBadge}
         </td>
         <td>
+          <button class="btn-secondary" style="padding:6px 12px; font-size:12px; margin-right:4px;" onclick="ZyroWorkflow.showRequestDetails('${reqId}')">Details</button>
           <button class="review-button" onclick="navigateToReview('${reqId}')">Review</button>
         </td>
       </tr>
     `;
   }).join('');
 
-  updateDashboardMetrics(accountsRequestsCache);
+  updateDashboardMetrics(finalRequests);
 }
 
 // Navigation to Review page
@@ -387,10 +394,13 @@ async function openVerificationModal() {
   }
 }
 
+let isPvRemarksUserEdited = false;
+
 function renderPaymentVerificationModal(selectedId) {
   pvSelectedRequest = pvPendingRequests.find(r => Number(r.id) === Number(selectedId)) || pvPendingRequests[0];
 
   if (!pvSelectedRequest) return;
+  isPvRemarksUserEdited = false;
 
   const selectOptions = pvPendingRequests.map(r => {
     const isSel = Number(r.id) === Number(pvSelectedRequest.id) ? 'selected' : '';
@@ -437,6 +447,10 @@ function renderPaymentVerificationModal(selectedId) {
         </div>
 
         <div class="pv-checklist">
+          <label class="pv-check-item" style="border-bottom: 1px solid rgba(255,255,255,0.12); margin-bottom: 8px; padding-bottom: 8px; font-weight: 700;">
+            <input type="checkbox" id="pv-select-all" ${isVerified ? 'disabled checked' : ''} onchange="togglePvSelectAll()" />
+            <span>Select All</span>
+          </label>
           <label class="pv-check-item">
             <input type="checkbox" class="pv-chk" ${isVerified ? 'disabled checked' : ''} onchange="onPvChecklistChange()" />
             <span>Purchase Order Verified</span>
@@ -483,7 +497,20 @@ function onPaymentVerificationSelectChange(id) {
   renderPaymentVerificationModal(id);
 }
 
+function togglePvSelectAll() {
+  const selectAll = document.getElementById('pv-select-all');
+  if (!selectAll) return;
+  const checkable = Array.from(document.querySelectorAll('.pv-chk'));
+  checkable.forEach(c => {
+    if (!c.disabled) {
+      c.checked = selectAll.checked;
+    }
+  });
+  onPvChecklistChange();
+}
+
 function onPvRemarksInput() {
+  isPvRemarksUserEdited = true;
   const remarksEl = document.getElementById('pv-remarks');
   const counterEl = document.getElementById('pv-char-count');
   if (!remarksEl || !counterEl) return;
@@ -496,8 +523,14 @@ function onPvRemarksInput() {
 function onPvChecklistChange() {
   const checkable = Array.from(document.querySelectorAll('.pv-chk'));
   const checkedCount = checkable.filter(c => c.checked).length;
-  const badge = document.getElementById('pv-progress-badge');
+  const selectAll = document.getElementById('pv-select-all');
 
+  // Reverse synchronization for Select All
+  if (selectAll && !selectAll.disabled) {
+    selectAll.checked = (checkedCount === 5);
+  }
+
+  const badge = document.getElementById('pv-progress-badge');
   if (badge) {
     if (checkedCount === 5) {
       badge.className = 'pv-progress-badge ready';
@@ -509,9 +542,18 @@ function onPvChecklistChange() {
   }
 
   const remarksEl = document.getElementById('pv-remarks');
-  const remarksLen = remarksEl ? remarksEl.value.trim().length : 0;
-
+  const DEFAULT_REMARKS = 'All payment verification checks have been completed and verified.';
   const isVerified = pvSelectedRequest && (Number(pvSelectedRequest.payment_verified) === 1 || String(pvSelectedRequest.payment_verification_status).toLowerCase() === 'verified');
+
+  if (checkedCount === 5 && remarksEl && !isVerified) {
+    if (!isPvRemarksUserEdited || !remarksEl.value.trim()) {
+      remarksEl.value = DEFAULT_REMARKS;
+      const counterEl = document.getElementById('pv-char-count');
+      if (counterEl) counterEl.textContent = `${DEFAULT_REMARKS.length} / 500 characters`;
+    }
+  }
+
+  const remarksLen = remarksEl ? remarksEl.value.trim().length : 0;
   const btn = document.getElementById('pv-verify-btn');
 
   if (btn) {
