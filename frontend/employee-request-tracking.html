@@ -828,6 +828,60 @@
       }
     }
 
+    function getRejectionDetails(req, historyList = [], approvalsList = []) {
+      if (!req) return { rejectedBy: 'Approver', reason: '' };
+
+      const hist = Array.isArray(historyList) && historyList.length > 0
+        ? historyList
+        : (Array.isArray(req.approval_history) ? req.approval_history : (Array.isArray(req.history) ? req.history : []));
+
+      const apps = Array.isArray(approvalsList) && approvalsList.length > 0
+        ? approvalsList
+        : (Array.isArray(req.approvals) ? req.approvals : []);
+
+      const rejHist = [...hist].reverse().find(h => {
+        const dec = String(h.decision || h.action || '').toLowerCase();
+        return dec.includes('reject');
+      });
+
+      if (rejHist) {
+        let rawRole = rejHist.approval_stage || rejHist.performed_by || rejHist.stage || rejHist.role || '';
+        if (!rawRole || rawRole.toLowerCase() === 'rejected' || rawRole.toLowerCase() === 'system') {
+          const match = String(rejHist.action || '').match(/REJECTED by ([^:]+)/i);
+          if (match && match[1]) rawRole = match[1].trim();
+        }
+
+        let roleDisplay = rawRole || 'Approver';
+        const roleLower = roleDisplay.toLowerCase();
+        if (roleLower.includes('account')) roleDisplay = 'Accounts';
+        else if (roleLower.includes('manager')) roleDisplay = 'Manager';
+        else if (roleLower.includes('cfo')) roleDisplay = 'CFO';
+        else if (roleLower.includes('md')) roleDisplay = 'MD';
+
+        let reason = rejHist.comments || rejHist.rejection_reason || '';
+        if (!reason && String(rejHist.action || '').includes(':')) {
+          reason = String(rejHist.action).split(':').slice(1).join(':').trim();
+        }
+
+        return { rejectedBy: roleDisplay, reason: reason || req.rejection_reason || '' };
+      }
+
+      const rejStep = apps.find(a => String(a.status).toLowerCase() === 'rejected');
+      if (rejStep) {
+        let rawRole = rejStep.approver_role || rejStep.role || 'Approver';
+        let roleDisplay = rawRole;
+        const roleLower = rawRole.toLowerCase();
+        if (roleLower.includes('account')) roleDisplay = 'Accounts';
+        else if (roleLower.includes('manager')) roleDisplay = 'Manager';
+        else if (roleLower.includes('cfo')) roleDisplay = 'CFO';
+        else if (roleLower.includes('md')) roleDisplay = 'MD';
+
+        return { rejectedBy: roleDisplay, reason: rejStep.comments || req.rejection_reason || '' };
+      }
+
+      return { rejectedBy: 'Approver', reason: req.rejection_reason || '' };
+    }
+
     function renderTrackingDetails(data) {
       const req = data.request || {};
       const history = Array.isArray(data.history) ? data.history : [];
@@ -838,23 +892,27 @@
       document.getElementById('valId').textContent = `REQ-${req.id || requestId}`;
       document.getElementById('valType').textContent = req.request_type || req.title || req.type || 'General Request';
       document.getElementById('valDept').textContent = req.department || 'Operations';
-      document.getElementById('valAmount').textContent = req.amount ? `₹${Number(req.amount).toLocaleString()}` : '$0';
+      document.getElementById('valAmount').textContent = req.amount ? `₹${Number(req.amount).toLocaleString('en-IN')}` : '₹0';
       document.getElementById('valPriority').textContent = req.priority || 'Medium';
 
       const rawStatus = String(req.status || 'pending').toLowerCase();
+      const isCompleted = rawStatus === 'approved' || rawStatus === 'completed';
+      const isRejected = rawStatus === 'rejected';
+
+      const rejDetails = isRejected ? getRejectionDetails(req, history, approvals) : { rejectedBy: '', reason: '' };
+
       let statusLabel = 'Pending';
       let badgeClass = 'badge-pending';
-
-      if (rawStatus === 'approved' || rawStatus === 'completed') {
+      if (isCompleted) {
         statusLabel = 'Approved';
         badgeClass = 'badge-approved';
-      } else if (rawStatus === 'rejected') {
+      } else if (isRejected) {
         statusLabel = 'Rejected';
         badgeClass = 'badge-rejected';
       }
 
-      document.getElementById('valStatus').textContent = req.status || statusLabel;
-      document.getElementById('valApprover').textContent = rawStatus === 'approved' ? 'Completed' : (req.current_approver || req.current_role || 'Accounts');
+      document.getElementById('valStatus').textContent = isRejected ? 'Rejected' : (req.status || statusLabel);
+      document.getElementById('valApprover').textContent = isCompleted ? 'Completed' : (isRejected ? `Rejected by ${rejDetails.rejectedBy}` : (req.current_approver || req.current_role || 'Accounts'));
       document.getElementById('valDate').textContent = req.created_at ? new Date(Number(req.created_at) || req.created_at).toLocaleString() : new Date().toLocaleString();
 
       const badgeHeader = document.getElementById('headerStatusBadge');
@@ -869,68 +927,128 @@
       document.getElementById('pvVerifiedBy').textContent = req.payment_verified_by || pv.verified_by || (isVerified ? 'Accounts Team' : 'Pending');
       document.getElementById('pvVerifiedAt').textContent = req.payment_verified_at ? new Date(req.payment_verified_at).toLocaleString() : (isVerified ? 'Verified' : 'Pending');
 
+      // Rejection Reason Banner
+      let rejBanner = document.getElementById('rejectionReasonCard');
+      if (isRejected) {
+        if (!rejBanner) {
+          rejBanner = document.createElement('section');
+          rejBanner.id = 'rejectionReasonCard';
+          rejBanner.className = 'card';
+          rejBanner.style.cssText = 'background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.3); margin-bottom: 20px;';
+          const detailsGridSec = document.querySelector('.details-grid');
+          if (detailsGridSec && detailsGridSec.parentNode) {
+            detailsGridSec.parentNode.insertBefore(rejBanner, detailsGridSec.nextSibling);
+          }
+        }
+        rejBanner.style.display = 'block';
+        rejBanner.innerHTML = `
+          <div class="card-title" style="color: #ef4444; display: flex; align-items: center; gap: 8px; font-weight: 700;">
+            <span>❌ Request Rejected by ${escapeHtml(rejDetails.rejectedBy)}</span>
+          </div>
+          <div style="margin-top: 8px; font-size: 0.95rem; color: var(--text-primary);">
+            <strong>Reason for Rejection:</strong> ${escapeHtml(rejDetails.reason || 'No specific reason entered.')}
+          </div>
+        `;
+      } else if (rejBanner) {
+        rejBanner.style.display = 'none';
+      }
+
       // Timeline Stages Evaluation
-      renderWorkflowTimeline(req, isVerified);
+      renderWorkflowTimeline(req, isVerified, history, approvals);
 
       // Approval History List
-      renderHistoryList(history, req);
+      renderHistoryList(history, req, approvals);
     }
 
-    function renderWorkflowTimeline(req, isPaymentVerified) {
+    function renderWorkflowTimeline(req, isPaymentVerified, history = [], approvals = []) {
       const rawStatus = String(req.status || 'pending').toLowerCase();
       const isCompleted = rawStatus === 'approved' || rawStatus === 'completed';
       const isRejected = rawStatus === 'rejected';
-      const currentRole = String(req.current_role || req.currentRole || 'Accounts').toLowerCase();
 
-      // 7 Standard Stages
+      const rejDetails = isRejected ? getRejectionDetails(req, history, approvals) : { rejectedBy: '', reason: '' };
+      const rejRoleLower = rejDetails.rejectedBy.toLowerCase();
+
+      // 7 Standard Stages (Order: Submitted -> Payment Verified -> Accounts Review -> Manager -> CFO -> MD -> Completed)
       const stages = [
         { id: 'submitted', label: 'Submitted', icon: '📝' },
-        { id: 'accounts', label: 'Accounts Review', icon: '🧾' },
         { id: 'payment', label: 'Payment Verified', icon: '💳' },
+        { id: 'accounts', label: 'Accounts Review', icon: '🧾' },
         { id: 'manager', label: 'Manager', icon: '👔' },
         { id: 'cfo', label: 'CFO', icon: '💼' },
         { id: 'md', label: 'MD', icon: '🏢' },
         { id: 'completed', label: 'Completed', icon: '🏁' },
       ];
 
-      let activeStageIndex = 0; // Default Submitted completed
-      if (isCompleted) {
-        activeStageIndex = 6; // All completed
-      } else if (isRejected) {
-        if (currentRole === 'accounts') activeStageIndex = 1;
-        else if (currentRole === 'manager') activeStageIndex = 3;
-        else if (currentRole === 'cfo') activeStageIndex = 4;
-        else if (currentRole === 'md') activeStageIndex = 5;
-      } else {
-        if (currentRole === 'accounts') activeStageIndex = isPaymentVerified ? 2 : 1;
-        else if (currentRole === 'manager') activeStageIndex = 3;
-        else if (currentRole === 'cfo') activeStageIndex = 4;
-        else if (currentRole === 'md') activeStageIndex = 5;
+      // Stage indices: 0:Submitted, 1:Payment, 2:Accounts, 3:Manager, 4:CFO, 5:MD, 6:Completed
+      let rejStageIdx = -1;
+      if (isRejected) {
+        if (rejRoleLower.includes('account')) rejStageIdx = 2;
+        else if (rejRoleLower.includes('manager')) rejStageIdx = 3;
+        else if (rejRoleLower.includes('cfo')) rejStageIdx = 4;
+        else if (rejRoleLower.includes('md')) rejStageIdx = 5;
+        else rejStageIdx = 2;
       }
+
+      const currentRole = String(req.current_role || req.currentRole || 'Accounts').toLowerCase();
+      let currentStageIdx = 2;
+      if (currentRole.includes('manager')) currentStageIdx = 3;
+      else if (currentRole.includes('cfo')) currentStageIdx = 4;
+      else if (currentRole.includes('md')) currentStageIdx = 5;
 
       const trackEl = document.getElementById('workflowTimelineTrack');
       trackEl.innerHTML = stages.map((st, idx) => {
-        let stepState = ''; // '' = upcoming
+        let stepState = '';
         let iconContent = st.icon;
+        let subtext = 'Not Reached';
 
-        if (isCompleted) {
+        if (idx === 0) {
           stepState = 'completed';
           iconContent = '✓';
-        } else if (isRejected && idx === activeStageIndex) {
-          stepState = 'rejected';
-          iconContent = '❌';
-        } else if (idx < activeStageIndex) {
+          subtext = 'Done';
+        } else if (idx === 1) {
+          // Payment Verified stage
+          if (isPaymentVerified) {
+            stepState = 'completed';
+            iconContent = '✓';
+            subtext = 'Verified';
+          } else if (isRejected && rejStageIdx === 2) {
+            stepState = '';
+            subtext = 'Not Reached';
+          } else {
+            stepState = 'current';
+            subtext = 'Pending';
+          }
+        } else if (isCompleted) {
           stepState = 'completed';
           iconContent = '✓';
-        } else if (idx === activeStageIndex) {
-          stepState = 'current';
-          iconContent = '⏳';
+          subtext = 'Done';
+        } else if (isRejected) {
+          if (idx === rejStageIdx) {
+            stepState = 'rejected';
+            iconContent = '❌';
+            subtext = 'Rejected';
+          } else if (idx < rejStageIdx) {
+            stepState = 'completed';
+            iconContent = '✓';
+            subtext = 'Done';
+          } else {
+            stepState = '';
+            subtext = 'Not Reached';
+          }
+        } else {
+          if (idx < currentStageIdx) {
+            stepState = 'completed';
+            iconContent = '✓';
+            subtext = 'Done';
+          } else if (idx === currentStageIdx) {
+            stepState = 'current';
+            iconContent = '⏳';
+            subtext = 'In Progress';
+          } else {
+            stepState = '';
+            subtext = 'Upcoming';
+          }
         }
-
-        let subtext = 'Upcoming';
-        if (stepState === 'completed') subtext = 'Done';
-        else if (stepState === 'current') subtext = 'In Progress';
-        else if (stepState === 'rejected') subtext = 'Rejected';
 
         return `
             <div class="timeline-step ${stepState}">
@@ -941,30 +1059,36 @@
           `;
       }).join('');
 
-      // Calculate progress percentage & stage count
-      let completedCount = isCompleted ? 7 : activeStageIndex;
-      if (!isCompleted && !isRejected && isPaymentVerified && activeStageIndex < 3) completedCount = 3;
+      let completedCount = isCompleted ? 7 : (isRejected ? rejStageIdx : currentStageIdx);
+      if (completedCount < 1) completedCount = 1;
       const progressPercent = isCompleted ? 100 : (isRejected ? Math.round((completedCount / 7) * 100) : Math.min(Math.round((completedCount / 7) * 100), 95));
 
       const progressFill = document.getElementById('progressFillBar');
-      progressFill.style.width = `${progressPercent}%`;
-      progressFill.className = `progress-fill ${isCompleted ? 'completed' : ''} ${isRejected ? 'rejected' : ''}`;
+      if (progressFill) {
+        progressFill.style.width = `${progressPercent}%`;
+        progressFill.className = `progress-fill ${isCompleted ? 'completed' : ''} ${isRejected ? 'rejected' : ''}`;
+      }
 
-      document.getElementById('progressStatsText').textContent = `${progressPercent}% (${completedCount} / 7 stages completed)`;
+      const statsEl = document.getElementById('progressStatsText');
+      if (statsEl) {
+        statsEl.textContent = isRejected
+          ? `Rejected at Stage ${rejStageIdx} (${stages[rejStageIdx]?.label || 'Review'})`
+          : `${progressPercent}% (${completedCount} / 7 stages completed)`;
+      }
     }
 
-    function renderHistoryList(history, req) {
+    function renderHistoryList(history, req, approvals = []) {
       const container = document.getElementById('historyListContainer');
       const items = [];
 
-      // Add initial submission event if exists or fallback
       items.push({
         action: 'Submitted by Employee',
         performer: req.requester_name || req.requester || 'Employee',
         timestamp: req.created_at ? new Date(Number(req.created_at) || req.created_at).toLocaleString() : new Date().toLocaleString(),
       });
 
-      if (Number(req.payment_verified ?? 0) === 1 || String(req.payment_verification_status).toLowerCase() === 'verified') {
+      const isVerified = Number(req.payment_verified ?? 0) === 1 || String(req.payment_verification_status).toLowerCase() === 'verified';
+      if (isVerified) {
         items.push({
           action: 'Accounts verified payment.',
           performer: req.payment_verified_by || 'Accounts Team',
@@ -972,15 +1096,65 @@
         });
       }
 
+      // Consolidate repeated Escalated events & exclude "Created request"
+      let escalationCount = 0;
+      let latestEscalationTime = null;
+      let firstEscalationPerformer = 'System';
+
       history.forEach(h => {
-        items.push({
-          action: h.action || 'Updated workflow',
-          performer: h.performed_by || 'Approver',
-          timestamp: h.timestamp ? new Date(h.timestamp).toLocaleString() : '',
-        });
+        const actionStr = String(h.action || h.decision || '').trim();
+        if (actionStr.toLowerCase().includes('created request')) {
+          return; // Exclude separate "Created request" from visible audit trail
+        }
+
+        const isEscalation = actionStr.toLowerCase().includes('escalat');
+
+        if (isEscalation) {
+          escalationCount++;
+          const ts = h.timestamp ? new Date(h.timestamp).toLocaleString() : '';
+          if (ts) latestEscalationTime = ts;
+          if (h.performed_by) firstEscalationPerformer = h.performed_by;
+        } else {
+          if (escalationCount > 0) {
+            items.push({
+              action: escalationCount > 1
+                ? `Escalated (${escalationCount} escalation events, latest: ${latestEscalationTime || 'Recently'})`
+                : `Escalated`,
+              performer: firstEscalationPerformer || 'System',
+              timestamp: latestEscalationTime || 'Completed'
+            });
+            escalationCount = 0;
+            latestEscalationTime = null;
+          }
+
+          let actLabel = h.action || h.decision || 'Updated workflow';
+          let perf = h.performed_by || h.manager_name || h.approval_stage || 'Approver';
+          let commentText = h.comments || h.rejection_reason || '';
+
+          if (commentText && !actLabel.includes(commentText)) {
+            actLabel = `${actLabel} - "${commentText}"`;
+          }
+
+          items.push({
+            action: actLabel,
+            performer: perf,
+            timestamp: h.timestamp ? new Date(h.timestamp).toLocaleString() : '',
+          });
+        }
       });
 
-      if (String(req.status).toLowerCase() === 'pending') {
+      if (escalationCount > 0) {
+        items.push({
+          action: escalationCount > 1
+            ? `Escalated (${escalationCount} escalation events, latest: ${latestEscalationTime || 'Recently'})`
+            : `Escalated`,
+          performer: firstEscalationPerformer || 'System',
+          timestamp: latestEscalationTime || 'Completed'
+        });
+      }
+
+      const rawStatus = String(req.status || 'pending').toLowerCase();
+      if (rawStatus === 'pending') {
         items.push({
           action: `Waiting for ${req.current_approver || req.current_role || 'Manager'} Approval`,
           performer: req.current_approver || req.current_role || 'Approver',

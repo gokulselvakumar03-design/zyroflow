@@ -57,6 +57,7 @@ function mapAccountRequestRow(row) {
     payment_verified_by: row.payment_verified_by || null,
     payment_verified_at: row.payment_verified_at || null,
     payment_verification_status: isVerified ? 'Verified' : 'Unverified',
+    accounts_decision: row.accounts_decision || null,
     payload,
     createdAt,
     created_at: createdAt,
@@ -67,21 +68,54 @@ function mapAccountRequestRow(row) {
 
 /**
  * GET /accounts/requests
- * Fetches requests assigned to the Accounts team from workflow_requests
+ * Fetches financial requests, attaching their approvals array and Accounts decision (pending, approved, rejected)
  */
 exports.getAccountsRequests = async (req, res, next) => {
   try {
     const [rows] = await pool.query(`
-      SELECT * FROM workflow_requests
-      WHERE (LOWER(status) = 'pending' OR LOWER(status) LIKE 'pending%')
-        AND (
-          LOWER(approval_stage) = 'accounts'
-          OR LOWER(current_approver) = 'accounts'
-          OR LOWER(current_role) = 'accounts'
-        )
-      ORDER BY id DESC
+      SELECT wr.*,
+             (
+               SELECT LOWER(a.status) 
+               FROM approvals a 
+               WHERE a.request_id = wr.id AND LOWER(a.approver_role) = 'accounts' 
+               ORDER BY a.id DESC LIMIT 1
+             ) AS accounts_approval_status,
+             (
+               SELECT LOWER(ah.decision) 
+               FROM approval_history ah 
+               WHERE ah.request_id = wr.id AND LOWER(ah.approval_stage) = 'accounts' 
+               ORDER BY ah.id DESC LIMIT 1
+             ) AS accounts_history_decision,
+             COALESCE(
+               (SELECT LOWER(a.status) FROM approvals a WHERE a.request_id = wr.id AND LOWER(a.approver_role) = 'accounts' ORDER BY a.id DESC LIMIT 1),
+               (SELECT LOWER(ah.decision) FROM approval_history ah WHERE ah.request_id = wr.id AND LOWER(ah.approval_stage) = 'accounts' ORDER BY ah.id DESC LIMIT 1),
+               'pending'
+             ) AS accounts_decision
+      FROM workflow_requests wr
+      ORDER BY wr.id DESC
     `);
-    const formattedRequests = rows.map(mapAccountRequestRow);
+
+    const requestIds = rows.map(r => r.id).filter(Boolean);
+    let approvalsMap = {};
+    if (requestIds.length > 0) {
+      const [appRows] = await pool.query(
+        `SELECT * FROM approvals WHERE request_id IN (${requestIds.join(',')}) ORDER BY step ASC`
+      ).catch(() => [[]]);
+
+      appRows.forEach(a => {
+        if (!approvalsMap[a.request_id]) approvalsMap[a.request_id] = [];
+        approvalsMap[a.request_id].push(a);
+      });
+    }
+
+    const formattedRequests = rows.map(r => {
+      const mapped = mapAccountRequestRow(r);
+      mapped.approvals = approvalsMap[r.id] || [];
+      mapped.accounts_approval_status = r.accounts_approval_status || null;
+      mapped.accounts_history_decision = r.accounts_history_decision || null;
+      return mapped;
+    });
+
     res.json(formattedRequests);
   } catch (err) {
     console.error('[AccountsController] Error fetching accounts requests:', err.message);
@@ -98,8 +132,10 @@ exports.getPaymentVerification = async (req, res, next) => {
     // Only return requests assigned to Accounts where payment_verified = 0
     const [unverifiedRows] = await pool.query(`
       SELECT * FROM workflow_requests
-      WHERE LOWER(status) = 'pending'
-        AND LOWER(current_role) = 'accounts'
+      WHERE (LOWER(status) = 'pending' OR LOWER(status) LIKE 'pending%')
+        AND (LOWER(current_role) = 'accounts' OR LOWER(current_approver) = 'accounts')
+        AND LOWER(status) NOT LIKE '%reject%'
+        AND LOWER(status) NOT LIKE '%cancel%'
         AND (payment_verified IS NULL OR payment_verified = 0 OR LOWER(payment_verification_status) != 'verified')
       ORDER BY id DESC
     `);
@@ -107,8 +143,10 @@ exports.getPaymentVerification = async (req, res, next) => {
     // Fetch all Accounts pending requests for state inspection if needed
     const [allAccountsRows] = await pool.query(`
       SELECT * FROM workflow_requests
-      WHERE LOWER(status) = 'pending'
-        AND LOWER(current_role) = 'accounts'
+      WHERE (LOWER(status) = 'pending' OR LOWER(status) LIKE 'pending%')
+        AND (LOWER(current_role) = 'accounts' OR LOWER(current_approver) = 'accounts')
+        AND LOWER(status) NOT LIKE '%reject%'
+        AND LOWER(status) NOT LIKE '%cancel%'
       ORDER BY id DESC
     `);
 

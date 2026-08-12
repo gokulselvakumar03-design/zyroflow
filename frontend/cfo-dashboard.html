@@ -172,7 +172,7 @@
 
         .overview-grid {
             display: grid;
-            grid-template-columns: repeat(5, minmax(0, 1fr));
+            grid-template-columns: repeat(4, minmax(0, 1fr));
             gap: 18px;
             margin-top: 22px;
         }
@@ -263,6 +263,28 @@
         .pill-button {
             background: rgba(255, 255, 255, 0.08);
             color: #ffffff;
+        }
+
+        .cfo-search-input {
+            padding: 10px 16px;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: #f8fafc;
+            font-size: 0.88rem;
+            outline: none;
+            min-width: 240px;
+            transition: border-color 0.2s ease;
+        }
+
+        .cfo-search-input:focus {
+            border-color: #38bdf8;
+        }
+
+        body.light-theme .cfo-search-input {
+            background: #ffffff;
+            border-color: #cbd5e1;
+            color: #0f172a;
         }
 
         .primary-button:hover,
@@ -418,45 +440,57 @@
             border-color: #fde68a !important;
         }
 
-        /* Custom CFO Action Modal Styling */
+        /* Custom CFO Action Right-Side Drawer Styling */
         .cfo-modal-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100vw;
             height: 100vh;
-            background: rgba(4, 12, 29, 0.75);
-            backdrop-filter: blur(6px);
+            background: rgba(4, 12, 29, 0.6);
+            backdrop-filter: blur(4px);
             z-index: 9999;
             display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
+            align-items: stretch;
+            justify-content: flex-end;
+            padding: 0;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .cfo-modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
         }
 
         .cfo-modal-card {
             background: #0b1a2d;
-            border: 1px solid rgba(56, 189, 248, 0.2);
-            border-radius: 20px;
+            border-left: 1px solid rgba(56, 189, 248, 0.2);
+            border-radius: 20px 0 0 20px;
             width: 100%;
-            max-width: 520px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            max-width: 480px;
+            height: 100vh;
+            box-shadow: -10px 0 40px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            transform: translateX(100%);
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
             overflow: hidden;
-            animation: cfoModalFadeIn 0.2s ease-out;
         }
 
-        @keyframes cfoModalFadeIn {
-            from { opacity: 0; transform: scale(0.95); }
-            to { opacity: 1; transform: scale(1); }
+        .cfo-modal-overlay.active .cfo-modal-card {
+            transform: translateX(0);
         }
 
         .cfo-modal-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 18px 24px;
+            padding: 20px 24px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.08);
             background: rgba(255, 255, 255, 0.02);
+            flex-shrink: 0;
         }
 
         .cfo-modal-title {
@@ -483,7 +517,9 @@
         }
 
         .cfo-modal-body {
-            padding: 20px 24px;
+            padding: 24px;
+            overflow-y: auto;
+            flex: 1;
         }
 
         .cfo-modal-info-grid {
@@ -541,12 +577,12 @@
 
         .cfo-modal-footer {
             display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            gap: 12px;
-            padding: 16px 24px;
+            flex-direction: column;
+            gap: 10px;
+            padding: 20px 24px;
             border-top: 1px solid rgba(255, 255, 255, 0.08);
             background: rgba(255, 255, 255, 0.02);
+            flex-shrink: 0;
         }
 
         .cfo-modal-btn {
@@ -595,11 +631,15 @@
             background: #d97706;
         }
 
-        /* Light Theme Overrides for Modal */
+        /* Light Theme Overrides for Drawer */
+        body.light-theme .cfo-modal-overlay {
+            background: rgba(15, 23, 42, 0.4) !important;
+        }
+
         body.light-theme .cfo-modal-card {
             background: #ffffff !important;
-            border: 1px solid #cbd5e1 !important;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1) !important;
+            border-left: 1px solid #cbd5e1 !important;
+            box-shadow: -10px 0 30px rgba(0, 0, 0, 0.15) !important;
         }
 
         body.light-theme .cfo-modal-header,
@@ -632,6 +672,24 @@
         body.light-theme .cfo-modal-btn-cancel {
             background: #e2e8f0 !important;
             color: #1e293b !important;
+        }
+
+        body.light-theme #cfo-reject-container {
+            background: #fee2e2 !important;
+            border-color: #fca5a5 !important;
+        }
+
+        body.light-theme #cfo-reject-container label {
+            color: #991b1b !important;
+        }
+
+        body.light-theme #cfo-escalate-container {
+            background: #fef3c7 !important;
+            border-color: #fde68a !important;
+        }
+
+        body.light-theme #cfo-escalate-container p {
+            color: #92400e !important;
         }
 
         .risk-grid {
@@ -700,36 +758,66 @@
 
         .bottom-grid {
             display: grid;
-            grid-template-columns: 1.5fr 1fr;
+            grid-template-columns: 1.2fr 1fr;
             gap: 18px;
+            align-items: start;
         }
 
         .insights-panel,
         .timeline-panel,
         .notifications-panel {
-            padding: 22px;
+            padding: 20px 22px;
             border-radius: 24px;
             background: rgba(255, 255, 255, 0.04);
             border: 1px solid rgba(255, 255, 255, 0.08);
-            display: grid;
-            gap: 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            height: fit-content;
+        }
+
+        .notifications-panel {
+            grid-column: 1 / -1;
         }
 
         .insights-list,
-        .timeline-list,
         .notification-list {
             list-style: none;
             padding: 0;
             margin: 0;
-            display: grid;
-            gap: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .timeline-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-height: 480px;
+            overflow-y: auto;
+            padding-right: 4px;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(96, 165, 250, 0.3) transparent;
+        }
+
+        .timeline-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .timeline-list::-webkit-scrollbar-thumb {
+            background: rgba(96, 165, 250, 0.3);
+            border-radius: 999px;
         }
 
         .insight-item,
         .timeline-item,
         .notification-item {
-            padding: 16px 18px;
-            border-radius: 18px;
+            padding: 14px 16px;
+            border-radius: 16px;
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.08);
             color: #e2e8f0;
@@ -806,6 +894,10 @@
 
             .bottom-grid {
                 grid-template-columns: 1fr;
+            }
+
+            .notifications-panel {
+                grid-column: auto;
             }
         }
 
@@ -1013,13 +1105,22 @@
             color: #166534;
         }
 
-        body.light-theme .approve-pill {
-            background: #2563eb;
-            color: #ffffff;
-        }
-
         body.light-theme .approve-pill:hover {
             background: #1d4ed8;
+        }
+
+        body.light-theme .timeline-item {
+            background: #f8fafc !important;
+            border-color: #e2e8f0 !important;
+        }
+
+        body.light-theme .timeline-item div,
+        body.light-theme .timeline-item time {
+            color: #334155 !important;
+        }
+
+        body.light-theme .priority-score-chip {
+            border-color: rgba(0, 0, 0, 0.12) !important;
         }
 
         body.light-theme .reject-pill {
@@ -1211,35 +1312,50 @@
                     <h2 class="section-title">Enterprise finance health at a glance</h2>
                 </div>
                 <div class="button-row">
-                    <button class="primary-button" onclick="renderRequests()">Refresh Data</button>
+                    <button id="refresh-data-btn" class="primary-button" onclick="handleRefreshData()">Refresh Data</button>
                     <button class="secondary-button" onclick="exportCSV()">Export Audit Report</button>
                 </div>
             </div>
             <div class="overview-grid">
                 <article class="metric-card">
                     <span class="metric-label">Pending CFO Approvals</span>
-                    <span id="pending-approvals" class="metric-value">0</span>
-                    <p class="metric-note">Requests currently waiting for CFO sign-off.</p>
+                    <span id="cfo-kpi-pending" class="metric-value">0</span>
+                    <p class="metric-note">Requests currently waiting for CFO review.</p>
                 </article>
                 <article class="metric-card">
-                    <span class="metric-label">Total Budget Under Review</span>
-                    <span id="budget-review" class="metric-value">$0</span>
-                    <p class="metric-note">Capital amounts under active CFO evaluation.</p>
+                    <span class="metric-label">Total Pending Amount</span>
+                    <span id="cfo-kpi-pending-amount" class="metric-value" style="color: #38bdf8;">₹0</span>
+                    <p class="metric-note">Combined value of active pending CFO requests.</p>
                 </article>
                 <article class="metric-card">
-                    <span class="metric-label">Approved Amount</span>
-                    <span id="approved-amount" class="metric-value">$0</span>
-                    <p class="metric-note">Total approved spend from current pipelines.</p>
+                    <span class="metric-label">Highest Pending Request</span>
+                    <span id="cfo-kpi-highest-pending" class="metric-value" style="color: #f59e0b;">₹0</span>
+                    <p class="metric-note">Highest single request pending CFO review.</p>
                 </article>
                 <article class="metric-card">
-                    <span class="metric-label">Rejected Amount</span>
-                    <span id="rejected-amount" class="metric-value">$0</span>
-                    <p class="metric-note">Spend that was declined or held for review.</p>
+                    <span class="metric-label">CFO Approved</span>
+                    <span id="cfo-kpi-approved" class="metric-value">0</span>
+                    <p class="metric-note">Total requests approved by CFO.</p>
                 </article>
                 <article class="metric-card">
-                    <span class="metric-label">Monthly Spend</span>
-                    <span id="monthly-spend" class="metric-value">$0</span>
-                    <p class="metric-note">Projected month-to-date procurement and approval spend.</p>
+                    <span class="metric-label">CFO Approved Amount</span>
+                    <span id="cfo-kpi-approved-amount" class="metric-value" style="color: #4ade80;">₹0</span>
+                    <p class="metric-note">Total value approved by CFO.</p>
+                </article>
+                <article class="metric-card">
+                    <span class="metric-label">CFO Rejected</span>
+                    <span id="cfo-kpi-rejected" class="metric-value">0</span>
+                    <p class="metric-note">Total requests rejected by CFO.</p>
+                </article>
+                <article class="metric-card">
+                    <span class="metric-label">CFO Rejected Amount</span>
+                    <span id="cfo-kpi-rejected-amount" class="metric-value" style="color: #f87171;">₹0</span>
+                    <p class="metric-note">Total value rejected by CFO.</p>
+                </article>
+                <article class="metric-card">
+                    <span class="metric-label">High-Priority Pending</span>
+                    <span id="cfo-kpi-high-priority" class="metric-value">0</span>
+                    <p class="metric-note">High-priority requests currently waiting for CFO.</p>
                 </article>
             </div>
         </section>
@@ -1250,11 +1366,42 @@
                     <span class="eyebrow">High Value Requests</span>
                     <h2 class="section-title">CFO approval pipeline</h2>
                 </div>
-                <div class="button-row">
-                    <button class="pill-button" onclick="filterRequests('ALL')">All</button>
-                    <button class="pill-button" onclick="filterRequests('Pending')">Pending</button>
+                <div class="button-row" style="align-items: center; gap: 10px;">
+                    <input type="text" id="cfo-search-input" placeholder="Search ID, Employee, Dept, Type..." class="cfo-search-input" oninput="handleCfoSearch(this.value)">
+                    <button class="pill-button" onclick="filterRequests('All Pending')">All Pending</button>
                     <button class="pill-button" onclick="filterRequests('Approved')">Approved</button>
                     <button class="pill-button" onclick="filterRequests('Rejected')">Rejected</button>
+                    <button class="pill-button" onclick="filterRequests('Escalated')">Escalated</button>
+                </div>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Request ID</th>
+                            <th>Employee</th>
+                            <th>Department</th>
+                            <th>Type</th>
+                            <th>Amount</th>
+                            <th>Priority</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="highvalue-list">
+                        <tr>
+                            <td colspan="7" style="padding: 24px; color: #94a3b8; text-align:center;">Loading approvals...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="message" id="message"></div>
+        </section>
+
+        <section class="card" id="top-high-value-cfo-section">
+            <div class="section-header">
+                <div>
+                    <span class="eyebrow">Executive Oversight</span>
+                    <h2 class="section-title">Top High-Value Pending Requests</h2>
                 </div>
             </div>
             <div class="table-wrap">
@@ -1263,21 +1410,77 @@
                         <tr>
                             <th>Request ID</th>
                             <th>Department</th>
+                            <th>Request Type</th>
                             <th>Amount</th>
-                            <th>Priority</th>
-                            <th>Status</th>
+                            <th>Priority & Score</th>
+                            <th>Waiting Time</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
-                    <tbody id="highvalue-list">
+                    <tbody id="top-high-value-list">
                         <tr>
-                            <td colspan="6" style="padding: 24px; color: #94a3b8; text-align:center;">Demo approvals
-                                ready</td>
+                            <td colspan="7" style="padding: 24px; color: #94a3b8; text-align:center;">No high-value pending CFO requests.</td>
                         </tr>
                     </tbody>
                 </table>
             </div>
-            <div class="message" id="message"></div>
+        </section>
+
+        <section class="card" id="overdue-cfo-section">
+            <div class="section-header">
+                <div>
+                    <span class="eyebrow">SLA Escalation Alert</span>
+                    <h2 class="section-title">Overdue CFO Approvals</h2>
+                </div>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Request ID</th>
+                            <th>Employee</th>
+                            <th>Department</th>
+                            <th>Request Type</th>
+                            <th>Amount</th>
+                            <th>Priority</th>
+                            <th>Waiting Time</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="overdue-list">
+                        <tr>
+                            <td colspan="8" style="padding: 24px; color: #94a3b8; text-align:center;">No overdue CFO approvals.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+
+        <section class="card" id="department-risk-section">
+            <div class="section-header">
+                <div>
+                    <span class="eyebrow">Pending Financial Exposure</span>
+                    <h2 class="section-title">Department Risk Analysis</h2>
+                </div>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Department</th>
+                            <th>Pending CFO Requests</th>
+                            <th>Financial Exposure</th>
+                            <th>High Priority Requests</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dept-risk-analysis-list">
+                        <tr>
+                            <td colspan="4" style="padding: 24px; color: #94a3b8; text-align:center;">No pending department exposure.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </section>
 
         <section class="risk-grid">
@@ -1306,57 +1509,69 @@
 
         <section class="analytics-grid">
             <article class="chart-card">
-                <div class="section-header"><span class="eyebrow">Spend Mix</span>
-                    <h3 class="section-title">Department Spending</h3>
+                <div class="section-header">
+                    <span class="eyebrow">Workload Distribution</span>
+                    <h3 class="section-title">Requests by Department</h3>
                 </div>
-                <div class="chart-container"><canvas id="department-chart"></canvas></div>
+                <div class="chart-container"><canvas id="cfo-chart-department"></canvas></div>
             </article>
             <article class="chart-card">
-                <div class="section-header"><span class="eyebrow">Capital Allocation</span>
-                    <h3 class="section-title">Budget Utilization</h3>
+                <div class="section-header">
+                    <span class="eyebrow">Executive Decision Ratio</span>
+                    <h3 class="section-title">CFO Approval vs Rejection</h3>
                 </div>
-                <div class="chart-container"><canvas id="budget-chart"></canvas></div>
+                <div class="chart-container"><canvas id="cfo-chart-decisions"></canvas></div>
             </article>
             <article class="chart-card">
-                <div class="section-header"><span class="eyebrow">Trend Intelligence</span>
-                    <h3 class="section-title">Monthly Cost Trend</h3>
+                <div class="section-header">
+                    <span class="eyebrow">Risk & Urgency</span>
+                    <h3 class="section-title">Requests by Priority</h3>
                 </div>
-                <div class="chart-container"><canvas id="monthly-chart"></canvas></div>
+                <div class="chart-container"><canvas id="cfo-chart-priority"></canvas></div>
             </article>
             <article class="chart-card">
-                <div class="section-header"><span class="eyebrow">Decision Flow</span>
-                    <h3 class="section-title">Approval Distribution</h3>
+                <div class="section-header">
+                    <span class="eyebrow">Decision Analytics</span>
+                    <h3 class="section-title">CFO Approval Trend</h3>
                 </div>
-                <div class="chart-container"><canvas id="approval-chart"></canvas></div>
+                <div class="chart-container"><canvas id="cfo-chart-trend"></canvas></div>
             </article>
         </section>
 
         <section class="bottom-grid">
             <article class="insights-panel">
                 <span class="eyebrow">Strategic Insights</span>
-                <h2 class="section-title">CFO decision intelligence</h2>
+                <h2 class="section-title">CFO Decision Intelligence</h2>
                 <ul class="insights-list" id="insights-list">
-                    <li class="insight-item"><strong>Approval velocity</strong> Track how quickly capital is moving from
-                        request to sign-off.</li>
-                    <li class="insight-item"><strong>Capital runway</strong> Measure remaining budget coverage with
-                        pending approvals.</li>
-                    <li class="insight-item"><strong>Risk concentration</strong> See which departments are driving
-                        highest exposure.</li>
+                    <li class="insight-item">
+                        <strong>1. Approval Workload</strong>
+                        <div id="insight-workload-val" style="font-size: 1.1rem; font-weight: 800; color: #38bdf8; margin: 4px 0;">0 Requests Pending</div>
+                        <div style="font-size: 0.85rem; opacity: 0.9;">Shows how many requests are currently waiting for CFO review.</div>
+                    </li>
+                    <li class="insight-item">
+                        <strong>2. Decision Performance</strong>
+                        <div id="insight-performance-val" style="font-size: 1.1rem; font-weight: 800; color: #4ade80; margin: 4px 0;">0 Approved / 0 Rejected</div>
+                        <div style="font-size: 0.85rem; opacity: 0.9;">Shows the CFO's approval and rejection activity.</div>
+                    </li>
+                    <li class="insight-item">
+                        <strong>3. Priority Exposure</strong>
+                        <div id="insight-exposure-val" style="font-size: 1.1rem; font-weight: 800; color: #f87171; margin: 4px 0;">0 High-Priority Requests</div>
+                        <div style="font-size: 0.85rem; opacity: 0.9;">Shows how many high-priority requests require CFO attention.</div>
+                    </li>
                 </ul>
             </article>
             <article class="timeline-panel">
                 <span class="eyebrow">CFO Decision Timeline</span>
-                <h2 class="section-title">Recent executive actions</h2>
+                <h2 class="section-title">Recent Executive Actions</h2>
                 <ul class="timeline-list" id="timeline-list">
-                    <li class="timeline-item">Recent executive actions will appear here.</li>
+                    <li class="timeline-item">No recent CFO actions.</li>
                 </ul>
             </article>
             <article class="notifications-panel">
                 <span class="eyebrow">Notification Center</span>
-                <h2 class="section-title">Actionable alerts</h2>
+                <h2 class="section-title">Actionable Alerts</h2>
                 <ul class="notification-list" id="notification-list">
-                    <li class="notification-item"><span>Demo notifications will appear here.</span><strong>—</strong>
-                    </li>
+                    <li class="notification-item"><span>No actionable alerts.</span><strong>—</strong></li>
                 </ul>
             </article>
         </section>
@@ -1364,16 +1579,16 @@
 
     <script>
         let currentRole = 'Manager';
-        let currentFilter = 'ALL';
+        let currentFilter = 'All Pending';
         const UNDO_WINDOW_MS = 25000;
         const undoTimers = new Map();
         const REQUESTS_API_URL = 'http://localhost:4000/requests';
         let requestsCache = [];
 
-        let departmentChart = null;
-        let budgetChart = null;
-        let monthlyChart = null;
-        let approvalChart = null;
+        let cfoDeptChart = null;
+        let cfoDecisionChart = null;
+        let cfoPriorityChart = null;
+        let cfoTrendChart = null;
 
         document.addEventListener('DOMContentLoaded', () => {
             checkAuthentication();
@@ -1448,6 +1663,7 @@
                     title: 'Ops Monthly Contracts',
                     department: 'Operations',
                     amount: 420000,
+                    priority: 'HIGH',
                     status: 'pending',
                     workflow: ['Accounts', 'Manager', 'CFO'],
                     currentLevel: 2,
@@ -1459,10 +1675,83 @@
                     title: 'Platform Upgrade',
                     department: 'Finance',
                     amount: 300000,
+                    priority: 'HIGH',
                     status: 'pending',
                     workflow: ['Accounts', 'Manager', 'CFO'],
                     currentLevel: 2,
                     createdAt: now - (10 * 24 * 60 * 60 * 1000),
+                    history: []
+                },
+                {
+                    id: 1007,
+                    title: 'Office Supplies & Stationery',
+                    department: 'Admin',
+                    amount: 18500,
+                    priority: 'LOW',
+                    status: 'pending',
+                    workflow: ['Accounts', 'Manager', 'CFO'],
+                    currentLevel: 2,
+                    createdAt: now - (1 * 24 * 60 * 60 * 1000),
+                    history: []
+                },
+                {
+                    id: 1008,
+                    title: 'Team Offsite Logistics',
+                    department: 'HR',
+                    amount: 42000,
+                    priority: 'LOW',
+                    status: 'pending',
+                    workflow: ['Accounts', 'Manager', 'CFO'],
+                    currentLevel: 2,
+                    createdAt: now - (2 * 24 * 60 * 60 * 1000),
+                    history: []
+                },
+                {
+                    id: 1009,
+                    title: 'Departmental Hardware Maintenance',
+                    department: 'IT',
+                    amount: 65000,
+                    priority: 'MEDIUM',
+                    status: 'pending',
+                    workflow: ['Accounts', 'Manager', 'CFO'],
+                    currentLevel: 2,
+                    createdAt: now - (3 * 24 * 60 * 60 * 1000),
+                    history: []
+                },
+                {
+                    id: 1010,
+                    title: 'Client Hospitality Expenses',
+                    department: 'Sales',
+                    amount: 35000,
+                    priority: 'LOW',
+                    status: 'pending',
+                    workflow: ['Accounts', 'Manager', 'CFO'],
+                    currentLevel: 2,
+                    createdAt: now - (4 * 24 * 60 * 60 * 1000),
+                    history: []
+                },
+                {
+                    id: 1011,
+                    title: 'Software License Renewal',
+                    department: 'IT',
+                    amount: 85000,
+                    priority: 'MEDIUM',
+                    status: 'pending',
+                    workflow: ['Accounts', 'Manager', 'CFO'],
+                    currentLevel: 2,
+                    createdAt: now - (6 * 24 * 60 * 60 * 1000),
+                    history: []
+                },
+                {
+                    id: 1012,
+                    title: 'Utility & Facilities Payment',
+                    department: 'Operations',
+                    amount: 15000,
+                    priority: 'LOW',
+                    status: 'pending',
+                    workflow: ['Accounts', 'Manager', 'CFO'],
+                    currentLevel: 2,
+                    createdAt: now - (7 * 24 * 60 * 60 * 1000),
                     history: []
                 }
             ];
@@ -1496,30 +1785,126 @@
             }
         }
 
-        async function saveApprovalAction(requestId, role, action) {
+        async function saveApprovalAction(requestId, role, action, remarks) {
             try {
-                await fetch('http://localhost:4000/approve', {
+                const token = localStorage.getItem('authToken') || localStorage.getItem('auth_token') || localStorage.getItem('token') || '';
+                const act = normalizeStatus(action) === 'approved' ? 'approve' : 'reject';
+                const commentsText = remarks && String(remarks).trim() ? String(remarks).trim() : (act === 'approve' ? 'Approved by CFO' : 'Rejected by CFO');
+
+                const headers = { 'Content-Type': 'application/json' };
+                if (token) {
+                    headers['Authorization'] = `Bearer ${token}`;
+                }
+
+                const response = await fetch(`http://localhost:4000/${act}`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ requestId, role, action })
+                    headers,
+                    body: JSON.stringify({
+                        requestId: Number(requestId),
+                        request_id: Number(requestId),
+                        role: role || 'CFO',
+                        action: act === 'approve' ? 'approved' : 'rejected',
+                        comments: commentsText
+                    })
                 });
+
+                if (response.ok) {
+                    try {
+                        const histRes = await fetch('http://localhost:4000/approval-history');
+                        if (histRes && histRes.ok) {
+                            const histData = await histRes.json();
+                            if (Array.isArray(histData)) {
+                                globalApprovalHistory = histData;
+                            }
+                        }
+                    } catch (e) { }
+                }
             } catch (err) {
-                // Keep existing local flow as fallback.
+                console.error('saveApprovalAction error:', err);
             }
         }
 
-        function loadRequests() {
-            fetch(REQUESTS_API_URL)
-                .then((res) => {
-                    if (!res.ok) throw new Error('API request failed');
-                    return res.json();
-                })
-                .then((data) => {
+        let globalApprovalHistory = [];
+
+        function showToast(message, type = 'success') {
+            let container = document.getElementById('toast-container');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'toast-container';
+                container.style.cssText = 'position: fixed; bottom: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; pointer-events: none;';
+                document.body.appendChild(container);
+            }
+            const toast = document.createElement('div');
+            const isError = type === 'error';
+            const bg = isError ? '#ef4444' : '#10b981';
+            toast.style.cssText = `background: ${bg}; color: #fff; padding: 10px 18px; border-radius: 8px; font-weight: 600; font-size: 0.88rem; box-shadow: 0 4px 14px rgba(0,0,0,0.25); transition: opacity 0.3s ease; opacity: 1; pointer-events: auto;`;
+            toast.innerText = message;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+
+        async function handleRefreshData() {
+            const btn = document.getElementById('refresh-data-btn');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerText = 'Refreshing...';
+            }
+            try {
+                const [reqRes, histRes] = await Promise.all([
+                    fetch(REQUESTS_API_URL),
+                    fetch('http://localhost:4000/approval-history')
+                ]);
+
+                if (!reqRes.ok) throw new Error(`Server returned HTTP ${reqRes.status}`);
+
+                const data = await reqRes.json();
+                const requests = Array.isArray(data) ? data : [];
+                writeRequestsToLocalStorage(requests, true);
+
+                if (histRes && histRes.ok) {
+                    const histData = await histRes.json();
+                    globalApprovalHistory = Array.isArray(histData) ? histData : [];
+                }
+
+                renderRequests();
+                showToast('Data refreshed successfully', 'success');
+            } catch (err) {
+                console.error('Refresh Data failed:', err);
+                showToast(`Failed to refresh data: ${err.message || 'Network error'}`, 'error');
+                renderRequests();
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerText = 'Refresh Data';
+                }
+            }
+        }
+
+        async function loadRequests() {
+            try {
+                const [reqRes, histRes] = await Promise.all([
+                    fetch(REQUESTS_API_URL).catch(() => null),
+                    fetch('http://localhost:4000/approval-history').catch(() => null)
+                ]);
+
+                if (reqRes && reqRes.ok) {
+                    const data = await reqRes.json();
                     const requests = Array.isArray(data) ? data : [];
                     writeRequestsToLocalStorage(requests, true);
-                    renderRequests();
-                })
-                .catch(() => renderRequests());
+                }
+
+                if (histRes && histRes.ok) {
+                    const histData = await histRes.json();
+                    globalApprovalHistory = Array.isArray(histData) ? histData : [];
+                }
+            } catch (err) {
+                console.log('Error loading data:', err);
+            } finally {
+                renderRequests();
+            }
         }
 
         function normalizeStatus(status) {
@@ -1567,40 +1952,121 @@
         function getRequestCurrentRole(request) {
             const workflow = Array.isArray(request.workflow) ? request.workflow : [];
             const idx = Number(request.currentLevel || 0);
-            return canonicalRole(request.currentRole || workflow[idx] || '');
+            const stageRole = workflow[idx];
+            if (stageRole) {
+                return canonicalRole(stageRole);
+            }
+            return canonicalRole(request.currentRole || '');
         }
 
         function updateNotifications(requests, userRole) {
             const role = canonicalRole(userRole);
-            const pending = requests.filter((r) => normalizeStatus(r.status) === 'pending' && getRequestCurrentRole(r) === role).length;
+            const pending = requests.filter(isPendingCfoRequest).length;
             const counter = document.getElementById('notifCount');
             if (counter) counter.innerText = String(pending);
         }
 
-        function renderSummary(requests, role) {
-            const pending = requests.filter((r) => normalizeStatus(r.status) === 'pending' && getRequestCurrentRole(r) === canonicalRole(role)).length;
-            const budgetReview = requests
-                .filter((r) => normalizeStatus(r.status) === 'pending')
-                .reduce((sum, r) => sum + Number(r.amount || 0), 0);
-            const approvedAmount = requests
-                .filter((r) => normalizeStatus(r.status) === 'approved')
-                .reduce((sum, r) => sum + Number(r.amount || 0), 0);
-            const rejectedAmount = requests
-                .filter((r) => normalizeStatus(r.status) === 'rejected')
-                .reduce((sum, r) => sum + Number(r.amount || 0), 0);
-            const monthlySpend = requests
-                .filter((r) => {
-                    const date = new Date(Number(r.createdAt || 0));
-                    const now = new Date();
-                    return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
-                })
-                .reduce((sum, r) => sum + Number(r.amount || 0), 0);
+        function formatCurrency(amount) {
+            const val = Number(amount || 0);
+            return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(val);
+        }
 
-            document.getElementById('pending-approvals').textContent = String(pending);
-            document.getElementById('budget-review').textContent = formatCurrency(budgetReview);
-            document.getElementById('approved-amount').textContent = formatCurrency(approvedAmount);
-            document.getElementById('rejected-amount').textContent = formatCurrency(rejectedAmount);
-            document.getElementById('monthly-spend').textContent = formatCurrency(monthlySpend);
+        function getWaitingTimeText(timestamp) {
+            if (!timestamp) return 'Just now';
+            const timeMs = typeof timestamp === 'number' ? timestamp : Date.parse(String(timestamp));
+            if (!timeMs || isNaN(timeMs)) return 'Just now';
+            const diffMs = Math.max(0, Date.now() - timeMs);
+            const diffHours = Math.floor(diffMs / (3600 * 1000));
+            const diffDays = Math.floor(diffHours / 24);
+
+            if (diffDays > 0) {
+                const remHours = diffHours % 24;
+                return `${diffDays}d ${remHours}h ago`;
+            }
+            if (diffHours > 0) {
+                return `${diffHours}h ago`;
+            }
+            const diffMins = Math.floor(diffMs / (60 * 1000));
+            if (diffMins > 0) {
+                return `${diffMins}m ago`;
+            }
+            return 'Just now';
+        }
+
+        function computeCfoDashboardData(requests = requestsCache, approvalHistory = globalApprovalHistory) {
+            const allReqs = Array.isArray(requests) ? requests : [];
+
+            // 1. Pending CFO requests (active workflow stage is CFO and status is pending)
+            const pendingCfoReqs = allReqs.filter(isPendingCfoRequest);
+            const pendingCfoCount = pendingCfoReqs.length;
+
+            // 2. High-priority pending CFO requests
+            const highPriorityPendingReqs = pendingCfoReqs.filter((r) => getRequestPriority(r) === 'HIGH');
+            const highPriorityPendingCount = highPriorityPendingReqs.length;
+
+            // 3. CFO actions from approval_history & request_history
+            const cfoActions = extractCfoActions(allReqs, approvalHistory);
+            const cfoApprovedActions = cfoActions.filter((a) => a.action === 'approved');
+            const cfoRejectedActions = cfoActions.filter((a) => a.action === 'rejected');
+
+            const cfoApprovedCount = cfoApprovedActions.length;
+            const cfoRejectedCount = cfoRejectedActions.length;
+
+            const totalPendingAmount = pendingCfoReqs.reduce((sum, r) => sum + Number(r.amount || 0), 0);
+            const highestPendingAmount = pendingCfoReqs.length > 0 ? Math.max(...pendingCfoReqs.map((r) => Number(r.amount || 0))) : 0;
+
+            const totalCfoApprovedAmount = cfoApprovedActions.reduce((sum, a) => sum + Number(a.amount || 0), 0);
+            const totalCfoRejectedAmount = cfoRejectedActions.reduce((sum, a) => sum + Number(a.amount || 0), 0);
+
+            const totalDecisions = cfoApprovedCount + cfoRejectedCount;
+            const approvalRate = totalDecisions > 0 ? Math.round((cfoApprovedCount / totalDecisions) * 100) : 0;
+
+            return {
+                pendingCfoReqs,
+                pendingCfoCount,
+                highPriorityPendingReqs,
+                highPriorityPendingCount,
+                cfoActions,
+                cfoApprovedCount,
+                cfoRejectedCount,
+                totalDecisions,
+                approvalRate,
+                totalPendingAmount,
+                highestPendingAmount,
+                totalCfoApprovedAmount,
+                totalCfoRejectedAmount
+            };
+        }
+
+        function renderSummary(requests, role) {
+            const data = computeCfoDashboardData(requests, globalApprovalHistory);
+
+            const pEl = document.getElementById('cfo-kpi-pending');
+            if (pEl) pEl.textContent = String(data.pendingCfoCount);
+
+            const aEl = document.getElementById('cfo-kpi-approved');
+            if (aEl) aEl.textContent = String(data.cfoApprovedCount);
+
+            const rEl = document.getElementById('cfo-kpi-rejected');
+            if (rEl) rEl.textContent = String(data.cfoRejectedCount);
+
+            const hpEl = document.getElementById('cfo-kpi-high-priority');
+            if (hpEl) hpEl.textContent = String(data.highPriorityPendingCount);
+
+            const arEl = document.getElementById('cfo-kpi-approval-rate');
+            if (arEl) arEl.textContent = `${data.approvalRate}%`;
+
+            const paEl = document.getElementById('cfo-kpi-pending-amount');
+            if (paEl) paEl.textContent = formatCurrency(data.totalPendingAmount);
+
+            const hpReqEl = document.getElementById('cfo-kpi-highest-pending');
+            if (hpReqEl) hpReqEl.textContent = formatCurrency(data.highestPendingAmount);
+
+            const aaEl = document.getElementById('cfo-kpi-approved-amount');
+            if (aaEl) aaEl.textContent = formatCurrency(data.totalCfoApprovedAmount);
+
+            const raEl = document.getElementById('cfo-kpi-rejected-amount');
+            if (raEl) raEl.textContent = formatCurrency(data.totalCfoRejectedAmount);
         }
 
         function checkSLA(request) {
@@ -1659,7 +2125,10 @@
             if (hasEscalationChanges) writeRequestsToLocalStorage(requests);
             updateNotifications(requests, currentRole);
             renderSummary(requests, currentRole);
+            renderTopHighValueRequests(requests);
             renderHighValueRequests(requests);
+            renderOverdueApprovals(requests);
+            renderDepartmentRiskAnalysis(requests);
             renderRiskCenter(requests);
             renderDashboardAnalytics(requests);
             renderDecisionTimeline(requests);
@@ -1684,14 +2153,67 @@
 
         function updateActiveFilterButtons() {
             document.querySelectorAll('.pill-button').forEach((btn) => {
-                if (btn.textContent.trim() === currentFilter) {
+                const btnText = btn.textContent.trim().toUpperCase();
+                const activeFilter = String(currentFilter || 'All Pending').trim().toUpperCase();
+                if (btnText === activeFilter) {
                     btn.style.opacity = '1';
-                    btn.style.background = 'rgba(56, 189, 248, 0.24)';
+                    btn.style.background = 'rgba(56, 189, 248, 0.28)';
+                    btn.style.borderColor = '#38bdf8';
                 } else {
                     btn.style.opacity = '0.78';
                     btn.style.background = 'rgba(255, 255, 255, 0.08)';
+                    btn.style.borderColor = 'rgba(255, 255, 255, 0.15)';
                 }
             });
+        }
+
+        function getCfoPriorityScore(request) {
+            const amount = Number(request.amount || 0);
+            const priority = getRequestPriority(request);
+            const waitingMs = Math.max(0, Date.now() - Number(request.createdAt || request.updatedAt || Date.now()));
+            const waitingHours = waitingMs / (3600 * 1000);
+            const isOverdue = checkSLA(request) || waitingHours >= 48;
+
+            let amountScore = 5;
+            if (amount >= 500000) amountScore = 35;
+            else if (amount >= 200000) amountScore = 32;
+            else if (amount >= 100000) amountScore = 27;
+            else if (amount >= 50000) amountScore = 20;
+            else if (amount >= 25000) amountScore = 12;
+
+            let priorityScore = 5;
+            if (priority === 'HIGH') priorityScore = 25;
+            else if (priority === 'MEDIUM') priorityScore = 15;
+
+            let waitingScore = 5;
+            if (waitingHours >= 48) waitingScore = 25;
+            else if (waitingHours >= 24) waitingScore = 15;
+            else if (waitingHours >= 12) waitingScore = 10;
+
+            let overdueScore = isOverdue ? 15 : 0;
+
+            const totalScore = Math.min(100, Math.max(0, amountScore + priorityScore + waitingScore + overdueScore));
+
+            let level = 'Low';
+            let colorClass = 'score-low';
+            if (totalScore >= 90) { level = 'Critical'; colorClass = 'score-critical'; }
+            else if (totalScore >= 70) { level = 'High'; colorClass = 'score-high'; }
+            else if (totalScore >= 40) { level = 'Medium'; colorClass = 'score-medium'; }
+
+            return { score: totalScore, level, colorClass };
+        }
+
+        function renderPriorityScoreBadge(request) {
+            const { score, level } = getCfoPriorityScore(request);
+            let color = '#4ade80';
+            let bg = 'rgba(74, 222, 128, 0.15)';
+            if (level === 'Critical') { color = '#ef4444'; bg = 'rgba(239, 68, 68, 0.18)'; }
+            else if (level === 'High') { color = '#f97316'; bg = 'rgba(249, 115, 22, 0.18)'; }
+            else if (level === 'Medium') { color = '#f59e0b'; bg = 'rgba(245, 158, 11, 0.18)'; }
+
+            return `<span class="priority-score-chip" style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; border-radius: 6px; font-weight: 700; font-size: 0.78rem; color: ${color}; background: ${bg}; border: 1px solid ${color}33;">
+                Score: ${score}/100 · ${level}
+            </span>`;
         }
 
         function toStatusLabel(status) {
@@ -1700,16 +2222,36 @@
             return `${n.charAt(0).toUpperCase()}${n.slice(1)}`;
         }
 
-        function getPriority(amount) {
-            if (!amount) return 'LOW';
-            if (Number(amount) > 100000) return 'HIGH';
-            if (Number(amount) > 50000) return 'MEDIUM';
+        function normalizePriority(priority) {
+            if (!priority) return 'LOW';
+            const s = String(priority).trim().toUpperCase();
+            if (s === 'HIGH' || s === 'MEDIUM' || s === 'LOW') return s;
             return 'LOW';
         }
 
-        function renderPriority(amount) {
-            const priority = getPriority(amount).toLowerCase();
-            return `<span class="priority-chip priority-${priority}">${priority}</span>`;
+        function getRequestPriority(request) {
+            if (!request) return 'LOW';
+            if (typeof request === 'string') return normalizePriority(request);
+            if (request.priority) return normalizePriority(request.priority);
+            if (request.payload && typeof request.payload === 'object' && request.payload.priority) {
+                return normalizePriority(request.payload.priority);
+            }
+            return 'LOW';
+        }
+
+        function getPriority(amountOrRequest) {
+            return getRequestPriority(amountOrRequest);
+        }
+
+        function renderPriority(amountOrRequest) {
+            let prio = 'LOW';
+            if (typeof amountOrRequest === 'object' && amountOrRequest !== null) {
+                prio = getRequestPriority(amountOrRequest);
+            } else {
+                prio = normalizePriority(amountOrRequest);
+            }
+            const lower = prio.toLowerCase();
+            return `<span class="priority-chip priority-${lower}">${prio}</span>`;
         }
 
         function getRequestById(requestId) {
@@ -1719,10 +2261,15 @@
 
         function closeCfoModal() {
             const modalOverlay = document.getElementById('cfo-action-modal-overlay');
-            if (modalOverlay) modalOverlay.style.display = 'none';
+            if (modalOverlay) {
+                modalOverlay.classList.remove('active');
+                setTimeout(() => {
+                    modalOverlay.style.display = 'none';
+                }, 300);
+            }
         }
 
-        function openApproveModal(requestId) {
+        function openCfoReviewModal(requestId) {
             const r = getRequestById(requestId);
             if (!r) return;
 
@@ -1731,125 +2278,177 @@
             const infoGrid = document.getElementById('cfo-modal-request-info');
             const msgEl = document.getElementById('cfo-modal-message');
             const extraInput = document.getElementById('cfo-modal-extra-input');
-            const confirmBtn = document.getElementById('cfo-modal-confirm-btn');
 
-            modalTitle.textContent = 'Approve Request';
-            infoGrid.innerHTML = `
-                <div class="cfo-info-item"><span class="cfo-info-label">Request ID</span><strong>#${r.id}</strong></div>
-                <div class="cfo-info-item"><span class="cfo-info-label">Department</span><strong>${escapeHtml(r.department || 'Corporate')}</strong></div>
-                <div class="cfo-info-item"><span class="cfo-info-label">Amount</span><strong style="color: #38bdf8;">${formatCurrency(r.amount)}</strong></div>
-                <div class="cfo-info-item"><span class="cfo-info-label">Priority</span><strong>${getPriority(r.amount)}</strong></div>
-                <div class="cfo-info-item"><span class="cfo-info-label">Current Status</span><strong>${toStatusLabel(r.status)}</strong></div>
-            `;
-            msgEl.textContent = 'Are you sure you want to approve this request?';
-            extraInput.innerHTML = '';
+            modalTitle.textContent = `Review Request #${r.id}`;
 
-            confirmBtn.className = 'cfo-modal-btn cfo-modal-btn-approve';
-            confirmBtn.innerHTML = '✓ Approve Request';
-            confirmBtn.disabled = false;
-            confirmBtn.onclick = async function () {
-                confirmBtn.disabled = true;
-                confirmBtn.innerHTML = 'Processing...';
-                try {
-                    await updateRequestStatus(requestId, 'approved');
-                    closeCfoModal();
-                } catch (err) {
-                    confirmBtn.disabled = false;
-                    confirmBtn.innerHTML = '✓ Approve Request';
-                    showMessage('Failed to approve request.', 'error');
+            const empName = r.employee_name || r.requester_name || r.requester || r.employee || 'Employee';
+            const reqType = r.type || r.request_type || r.title || 'Financial';
+            const canAct = normalizeStatus(r.status) === 'pending' && getRequestCurrentRole(r) === currentRole;
+
+            const defaultWorkflow = ['Employee', 'Accounts', 'Manager', 'CFO', 'MD'];
+            const rawWorkflow = Array.isArray(r.workflow) && r.workflow.length > 0 ? r.workflow : defaultWorkflow;
+            let workflowRoles = rawWorkflow.map(canonicalRole);
+            if (!workflowRoles.includes('CFO')) workflowRoles.push('CFO');
+            if (!workflowRoles.includes('MD')) workflowRoles.push('MD');
+
+            const currentRoleName = getRequestCurrentRole(r);
+
+            const workflowHtml = workflowRoles.map((stepRole) => {
+                const isCurrent = stepRole === 'CFO' || (stepRole === currentRoleName && normalizeStatus(r.status) === 'pending');
+                const isPast = r.history && r.history.some(h => canonicalRole(h.role) === stepRole);
+                let badgeStyle = 'color: #94a3b8; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);';
+                if (isCurrent) {
+                    badgeStyle = 'color: #38bdf8; background: rgba(56, 189, 248, 0.2); border: 1px solid #38bdf8; font-weight: 800; transform: scale(1.05);';
+                } else if (isPast) {
+                    badgeStyle = 'color: #4ade80; background: rgba(74, 222, 128, 0.15); border: 1px solid rgba(74, 222, 128, 0.3);';
                 }
-            };
+                return `<span style="padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 4px; ${badgeStyle}">${stepRole}</span>`;
+            }).join(' <span style="color: #64748b; font-weight: bold;">→</span> ');
 
-            modalOverlay.style.display = 'flex';
-        }
-
-        function openRejectModal(requestId) {
-            const r = getRequestById(requestId);
-            if (!r) return;
-
-            const modalOverlay = document.getElementById('cfo-action-modal-overlay');
-            const modalTitle = document.getElementById('cfo-modal-title');
-            const infoGrid = document.getElementById('cfo-modal-request-info');
-            const msgEl = document.getElementById('cfo-modal-message');
-            const extraInput = document.getElementById('cfo-modal-extra-input');
-            const confirmBtn = document.getElementById('cfo-modal-confirm-btn');
-
-            modalTitle.textContent = 'Reject Request';
             infoGrid.innerHTML = `
                 <div class="cfo-info-item"><span class="cfo-info-label">Request ID</span><strong>#${r.id}</strong></div>
+                <div class="cfo-info-item"><span class="cfo-info-label">Employee</span><strong>${escapeHtml(empName)}</strong></div>
                 <div class="cfo-info-item"><span class="cfo-info-label">Department</span><strong>${escapeHtml(r.department || 'Corporate')}</strong></div>
+                <div class="cfo-info-item"><span class="cfo-info-label">Request Type</span><strong>${escapeHtml(reqType)}</strong></div>
                 <div class="cfo-info-item"><span class="cfo-info-label">Amount</span><strong style="color: #38bdf8;">${formatCurrency(r.amount)}</strong></div>
-                <div class="cfo-info-item"><span class="cfo-info-label">Priority</span><strong>${getPriority(r.amount)}</strong></div>
-                <div class="cfo-info-item"><span class="cfo-info-label">Current Status</span><strong>${toStatusLabel(r.status)}</strong></div>
-            `;
-            msgEl.textContent = 'Please provide a reason for rejecting this request.';
-            extraInput.innerHTML = `
-                <div style="margin-top: 14px;">
-                    <textarea id="cfo-reject-reason-input" class="cfo-modal-textarea" placeholder="Enter rejection reason..."></textarea>
+                <div class="cfo-info-item"><span class="cfo-info-label">Priority</span><strong>${renderPriority(r)}</strong></div>
+                <div class="cfo-info-item" style="grid-column: span 2;"><span class="cfo-info-label">Current Status</span><strong><span class="table-status status-${normalizeStatus(r.status)}">${toStatusLabel(r.status)}</span></strong></div>
+                <div class="cfo-info-item" style="grid-column: span 2; margin-top: 8px;">
+                    <span class="cfo-info-label" style="margin-bottom: 6px; display: block;">Workflow Progression</span>
+                    <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 4px;">
+                        ${workflowHtml}
+                    </div>
                 </div>
             `;
 
-            confirmBtn.className = 'cfo-modal-btn cfo-modal-btn-reject';
-            confirmBtn.innerHTML = '✕ Reject Request';
-            confirmBtn.disabled = false;
-            confirmBtn.onclick = async function () {
-                const reasonInput = document.getElementById('cfo-reject-reason-input');
-                const reason = reasonInput ? reasonInput.value.trim() : '';
-                confirmBtn.disabled = true;
-                confirmBtn.innerHTML = 'Processing...';
-                try {
-                    await updateRequestStatus(requestId, 'rejected', reason);
-                    closeCfoModal();
-                } catch (err) {
-                    confirmBtn.disabled = false;
-                    confirmBtn.innerHTML = '✕ Reject Request';
-                    showMessage('Failed to reject request.', 'error');
-                }
-            };
-
-            modalOverlay.style.display = 'flex';
-        }
-
-        function openEscalateModal(requestId) {
-            const r = getRequestById(requestId);
-            if (!r) return;
-
-            const modalOverlay = document.getElementById('cfo-action-modal-overlay');
-            const modalTitle = document.getElementById('cfo-modal-title');
-            const infoGrid = document.getElementById('cfo-modal-request-info');
-            const msgEl = document.getElementById('cfo-modal-message');
-            const extraInput = document.getElementById('cfo-modal-extra-input');
-            const confirmBtn = document.getElementById('cfo-modal-confirm-btn');
-
-            modalTitle.textContent = 'Escalate Request';
-            infoGrid.innerHTML = `
-                <div class="cfo-info-item"><span class="cfo-info-label">Request ID</span><strong>#${r.id}</strong></div>
-                <div class="cfo-info-item"><span class="cfo-info-label">Department</span><strong>${escapeHtml(r.department || 'Corporate')}</strong></div>
-                <div class="cfo-info-item"><span class="cfo-info-label">Amount</span><strong style="color: #38bdf8;">${formatCurrency(r.amount)}</strong></div>
-                <div class="cfo-info-item"><span class="cfo-info-label">Priority</span><strong>${getPriority(r.amount)}</strong></div>
-                <div class="cfo-info-item"><span class="cfo-info-label">Current Status</span><strong>${toStatusLabel(r.status)}</strong></div>
+            msgEl.innerHTML = canAct 
+                ? '<span style="font-size: 0.82rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #94a3b8;">CFO Executive Decision</span>'
+                : `<span style="color: #94a3b8; font-size: 0.9rem;">This request is currently <strong>${escapeHtml(toStatusLabel(r.status))}</strong> and no longer pending CFO action.</span>`;
+            
+            extraInput.innerHTML = `
+                <div id="cfo-reject-container" style="display: none; margin-top: 12px; padding: 12px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: 10px;">
+                    <label style="display: block; font-size: 0.82rem; font-weight: 700; color: #f87171; margin-bottom: 6px;">Rejection Reason</label>
+                    <textarea id="cfo-review-reject-reason" class="cfo-modal-textarea" placeholder="Enter reason for rejection..."></textarea>
+                </div>
+                <div id="cfo-escalate-container" style="display: none; margin-top: 12px; padding: 12px; background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: 10px;">
+                    <p style="margin: 0; font-size: 0.88rem; font-weight: 700; color: #fbbf24;">Escalate this request to MD for further approval?</p>
+                </div>
             `;
-            msgEl.textContent = 'Are you sure you want to escalate this request to the MD?';
-            extraInput.innerHTML = '';
 
-            confirmBtn.className = 'cfo-modal-btn cfo-modal-btn-escalate';
-            confirmBtn.innerHTML = '↑ Escalate to MD';
-            confirmBtn.disabled = false;
-            confirmBtn.onclick = async function () {
-                confirmBtn.disabled = true;
-                confirmBtn.innerHTML = 'Processing...';
-                try {
-                    await escalateRequest(requestId);
-                    closeCfoModal();
-                } catch (err) {
-                    confirmBtn.disabled = false;
-                    confirmBtn.innerHTML = '↑ Escalate to MD';
-                    showMessage('Failed to escalate request.', 'error');
+            const footer = document.querySelector('#cfo-action-modal-overlay .cfo-modal-footer');
+            if (footer) {
+                if (canAct) {
+                    footer.innerHTML = `
+                        <button id="cfo-review-approve-btn" class="cfo-modal-btn cfo-modal-btn-approve" style="width: 100%; padding: 12px;" onclick="triggerReviewApprove(${r.id})">✓ Approve Request</button>
+                        <button id="cfo-review-reject-btn" class="cfo-modal-btn cfo-modal-btn-reject" style="width: 100%; padding: 12px;" onclick="triggerReviewReject(${r.id})">✕ Reject Request</button>
+                        <button id="cfo-review-escalate-btn" class="cfo-modal-btn cfo-modal-btn-escalate" style="width: 100%; padding: 12px;" onclick="triggerReviewEscalate(${r.id})">↑ Escalate to MD</button>
+                        <button class="cfo-modal-btn cfo-modal-btn-cancel" style="width: 100%; padding: 10px;" onclick="closeCfoModal()">Cancel</button>
+                    `;
+                } else {
+                    footer.innerHTML = `
+                        <button class="cfo-modal-btn cfo-modal-btn-cancel" style="width: 100%; padding: 12px;" onclick="closeCfoModal()">Close Panel</button>
+                    `;
                 }
-            };
+            }
 
             modalOverlay.style.display = 'flex';
+            requestAnimationFrame(() => {
+                modalOverlay.classList.add('active');
+            });
         }
+
+        async function triggerReviewApprove(requestId) {
+            const approveBtn = document.getElementById('cfo-review-approve-btn');
+            const rejectBtn = document.getElementById('cfo-review-reject-btn');
+            const escalateBtn = document.getElementById('cfo-review-escalate-btn');
+
+            if (approveBtn) { approveBtn.disabled = true; approveBtn.innerHTML = 'Processing...'; }
+            if (rejectBtn) rejectBtn.disabled = true;
+            if (escalateBtn) escalateBtn.disabled = true;
+
+            try {
+                await updateRequestStatus(requestId, 'approved');
+                closeCfoModal();
+            } catch (err) {
+                if (approveBtn) { approveBtn.disabled = false; approveBtn.innerHTML = '✓ Approve Request'; }
+                if (rejectBtn) rejectBtn.disabled = false;
+                if (escalateBtn) escalateBtn.disabled = false;
+                showMessage('Failed to approve request.', 'error');
+            }
+        }
+
+        async function triggerReviewReject(requestId) {
+            const rejectBox = document.getElementById('cfo-reject-container');
+            const escalateBox = document.getElementById('cfo-escalate-container');
+            const textarea = document.getElementById('cfo-review-reject-reason');
+            
+            if (escalateBox) escalateBox.style.display = 'none';
+
+            if (rejectBox && rejectBox.style.display === 'none') {
+                rejectBox.style.display = 'block';
+                if (textarea) textarea.focus();
+                return;
+            }
+
+            const reason = textarea ? textarea.value.trim() : '';
+            if (!reason) {
+                showMessage('Please enter a rejection reason.', 'warning');
+                if (textarea) textarea.focus();
+                return;
+            }
+
+            const approveBtn = document.getElementById('cfo-review-approve-btn');
+            const rejectBtn = document.getElementById('cfo-review-reject-btn');
+            const escalateBtn = document.getElementById('cfo-review-escalate-btn');
+
+            if (rejectBtn) { rejectBtn.disabled = true; rejectBtn.innerHTML = 'Processing...'; }
+            if (approveBtn) approveBtn.disabled = true;
+            if (escalateBtn) escalateBtn.disabled = true;
+
+            try {
+                await updateRequestStatus(requestId, 'rejected', reason);
+                closeCfoModal();
+            } catch (err) {
+                if (rejectBtn) { rejectBtn.disabled = false; rejectBtn.innerHTML = '✕ Reject Request'; }
+                if (approveBtn) approveBtn.disabled = false;
+                if (escalateBtn) escalateBtn.disabled = false;
+                showMessage('Failed to reject request.', 'error');
+            }
+        }
+
+        async function triggerReviewEscalate(requestId) {
+            const escalateBox = document.getElementById('cfo-escalate-container');
+            const rejectBox = document.getElementById('cfo-reject-container');
+
+            if (rejectBox) rejectBox.style.display = 'none';
+
+            if (escalateBox && escalateBox.style.display === 'none') {
+                escalateBox.style.display = 'block';
+                return;
+            }
+
+            const approveBtn = document.getElementById('cfo-review-approve-btn');
+            const rejectBtn = document.getElementById('cfo-review-reject-btn');
+            const escalateBtn = document.getElementById('cfo-review-escalate-btn');
+
+            if (escalateBtn) { escalateBtn.disabled = true; escalateBtn.innerHTML = 'Processing...'; }
+            if (approveBtn) approveBtn.disabled = true;
+            if (rejectBtn) rejectBtn.disabled = true;
+
+            try {
+                await escalateRequest(requestId);
+                closeCfoModal();
+            } catch (err) {
+                if (escalateBtn) { escalateBtn.disabled = false; escalateBtn.innerHTML = '↑ Escalate to MD'; }
+                if (approveBtn) approveBtn.disabled = false;
+                if (rejectBtn) rejectBtn.disabled = false;
+                showMessage('Failed to escalate request.', 'error');
+            }
+        }
+
+        function openApproveModal(requestId) { openCfoReviewModal(requestId); }
+        function openRejectModal(requestId) { openCfoReviewModal(requestId); }
+        function openEscalateModal(requestId) { openCfoReviewModal(requestId); }
 
         function approveRequest(requestId) {
             openApproveModal(requestId);
@@ -1880,6 +2479,18 @@
             request.updatedAt = Date.now();
             addHistory(request, 'Escalated to MD', currentRole);
             await saveHistory(request.id, 'Escalated to MD', currentRole);
+            globalApprovalHistory.unshift({
+                request_id: request.id,
+                employee_name: request.employee_name || request.employee || 'Employee',
+                department: request.department || 'Corporate',
+                amount: Number(request.amount || 0),
+                manager_name: currentRole,
+                approval_stage: currentRole,
+                decision: 'Escalated',
+                action: 'escalated',
+                comments: 'Escalated to MD',
+                decision_timestamp: new Date().toISOString()
+            });
             requests[index] = request;
             writeRequestsToLocalStorage(requests);
             showMessage('Request escalated to MD successfully.', 'success');
@@ -1923,7 +2534,19 @@
             }
             addHistory(request, actionStatus, currentRole);
             await saveHistory(request.id, actionStatus, currentRole);
-            await saveApprovalAction(request.id, currentRole, normalizeStatus(status));
+            await saveApprovalAction(request.id, currentRole, normalizeStatus(status), finalComment);
+            globalApprovalHistory.unshift({
+                request_id: request.id,
+                employee_name: request.employee_name || request.employee || 'Employee',
+                department: request.department || 'Corporate',
+                amount: Number(request.amount || 0),
+                manager_name: currentRole,
+                approval_stage: currentRole,
+                decision: actionStatus,
+                action: normalizeStatus(status),
+                comments: finalComment,
+                decision_timestamp: new Date().toISOString()
+            });
             request.lastActionTime = now;
             request.lastAction = normalizeStatus(status);
             request.undoAvailable = request.undoUsed === false;
@@ -2037,38 +2660,368 @@
             writeRequestsToLocalStorage(requests);
         }
 
-        function renderHighValueRequests(requests) {
-            const pendingRequests = requests.filter((request) => normalizeStatus(request.status) === 'pending' && canonicalRole((request.workflow || [])[request.currentLevel]) === currentRole);
-            const filtered = pendingRequests.filter(matchesSearch).filter((request) => currentFilter === 'ALL' || toStatusLabel(request.status) === currentFilter);
-            const sorted = filtered.sort((a, b) => Number(b.amount || 0) - Number(a.amount || 0));
-            const listEl = document.getElementById('highvalue-list');
-            updateActiveFilterButtons();
+        let cfoSearchQuery = '';
+
+        function handleCfoSearch(val) {
+            cfoSearchQuery = String(val || '').trim().toLowerCase();
+            renderRequests();
+        }
+
+        function matchesCfoSearch(request) {
+            if (!cfoSearchQuery) return true;
+            const reqId = String(request.id || '');
+            const emp = String(request.employee_name || request.requester_name || request.requester || request.employee || '').toLowerCase();
+            const dept = String(request.department || '').toLowerCase();
+            const type = String(request.type || request.request_type || request.title || '').toLowerCase();
+            return reqId.includes(cfoSearchQuery) || emp.includes(cfoSearchQuery) || dept.includes(cfoSearchQuery) || type.includes(cfoSearchQuery);
+        }
+
+        function matchesCfoFilter(request) {
+            const filter = String(currentFilter || 'ALL').trim().toUpperCase();
+            if (filter === 'ALL') return true;
+            const isPendingCfo = isPendingCfoRequest(request);
+            if (filter === 'PENDING') return isPendingCfo;
+            if (filter === 'HIGH PRIORITY') return isPendingCfo && getRequestPriority(request) === 'HIGH';
+            if (filter === 'HIGH VALUE') return Number(request.amount || 0) >= 50000;
+            if (filter === 'OVERDUE') return isPendingCfo && (checkSLA(request) || (Date.now() - Number(request.createdAt || request.updatedAt || 0)) > 48 * 3600 * 1000);
+            return true;
+        }
+
+        function renderTopHighValueRequests(requests) {
+            const pendingCfoReqs = requests.filter(isPendingCfoRequest);
+            const sorted = pendingCfoReqs.sort((a, b) => Number(b.amount || 0) - Number(a.amount || 0)).slice(0, 5);
+
+            const listEl = document.getElementById('top-high-value-list');
             if (!listEl) return;
             if (sorted.length === 0) {
-                listEl.innerHTML = '<tr><td colspan="6" style="padding: 24px; color: #94a3b8; text-align:center;">No CFO approvals match the selected filter.</td></tr>';
+                listEl.innerHTML = '<tr><td colspan="7" style="padding: 24px; color: #94a3b8; text-align:center; font-weight: 600;">No high-value pending CFO requests.</td></tr>';
                 return;
             }
-            listEl.innerHTML = sorted.map((request) => {
-                const statusClass = normalizeStatus(request.status);
-                const priority = getPriority(request.amount).toLowerCase();
-                const canAct = normalizeStatus(request.status) === 'pending' && canonicalRole((request.workflow || [])[request.currentLevel]) === currentRole;
+
+            listEl.innerHTML = sorted.map((r) => {
+                const empName = r.employee_name || r.requester_name || r.requester || r.employee || 'Employee';
+                const reqType = r.type || r.request_type || r.title || 'Financial';
+                const waitingText = getWaitingTimeText(r.createdAt || r.updatedAt);
                 return `
                     <tr>
-                        <td>${escapeHtml(String(request.id || '—'))}</td>
-                        <td>${escapeHtml(request.department || 'Corporate')}</td>
-                        <td>${formatCurrency(request.amount)}</td>
-                        <td>${renderPriority(request.amount)}</td>
-                        <td><span class="table-status status-${statusClass}">${toStatusLabel(request.status)}</span></td>
+                        <td>#${escapeHtml(String(r.id))}</td>
+                        <td>${escapeHtml(r.department || 'Corporate')}</td>
+                        <td>${escapeHtml(reqType)}</td>
+                        <td style="color: #38bdf8; font-weight: 700;">${formatCurrency(r.amount)}</td>
+                        <td>${renderPriority(r)} ${renderPriorityScoreBadge(r)}</td>
+                        <td>${escapeHtml(waitingText)}</td>
                         <td>
-                            <div class="request-buttons">
-                                ${canAct ? `<button class="action-pill approve-pill" onclick="openApproveModal(${request.id})">✓ Approve</button>` : ''}
-                                ${canAct ? `<button class="action-pill reject-pill" onclick="openRejectModal(${request.id})">✕ Reject</button>` : ''}
-                                ${canAct ? `<button class="action-pill escalate-pill" onclick="openEscalateModal(${request.id})">↑ Escalate to MD</button>` : ''}
-                            </div>
+                            <button class="primary-button" style="padding: 8px 14px; font-size: 0.82rem;" onclick="openApproveModal(${r.id})">Review Request</button>
                         </td>
                     </tr>
                 `;
             }).join('');
+        }
+
+        function isPendingCfoRequest(r) {
+            if (!r) return false;
+            const rawStatus = String(r.status || r.request_status || '').trim().toLowerCase();
+
+            // 1. Exclude any request with a status indicating rejection, cancellation, completion, or final approval
+            if (
+                rawStatus.includes('reject') ||
+                rawStatus.includes('cancel') ||
+                rawStatus === 'approved' ||
+                rawStatus === 'completed'
+            ) {
+                return false;
+            }
+
+            // Check history / approval records for any explicit rejection decision
+            const reqId = Number(r.id || r.request_id || 0);
+            const historyList = Array.isArray(r.history) ? r.history : [];
+            const appHistoryList = Array.isArray(r.approval_history) ? r.approval_history : [];
+            const globalHist = Array.isArray(globalApprovalHistory) ? globalApprovalHistory : [];
+
+            const isRejectedInHistory =
+                historyList.some(h => String(h.action || h.decision || h.status || '').toLowerCase().includes('reject')) ||
+                appHistoryList.some(h => String(h.decision || h.action || '').toLowerCase().includes('reject')) ||
+                (reqId > 0 && globalHist.some(h => Number(h.request_id) === reqId && String(h.decision || h.action || '').toLowerCase().includes('reject')));
+
+            if (isRejectedInHistory) {
+                return false;
+            }
+
+            // 2. Exclude requests escalated or moved to MD
+            if (r.escalated && (canonicalRole(r.currentRole || r.current_role) === 'MD' || getRequestCurrentRole(r) === 'MD')) {
+                return false;
+            }
+
+            // 3. Verify Manager Approval Requirement:
+            // The request must have passed Manager approval (or Manager stage must not be pending).
+            const workflow = Array.isArray(r.workflow) ? r.workflow.map(canonicalRole) : ['Accounts', 'Manager', 'CFO'];
+            const mgrIndex = workflow.indexOf('Manager');
+            const cfoIndex = workflow.indexOf('CFO');
+            const currentLevel = Number(r.currentLevel ?? r.current_level ?? 0);
+
+            // Check if Manager approval is confirmed in history / approvals
+            const hasManagerApprovedInHistory =
+                historyList.some(h => canonicalRole(h.role || h.approval_stage || h.manager_name || h.performed_by) === 'Manager' && String(h.action || h.decision || '').toLowerCase().includes('approve')) ||
+                appHistoryList.some(h => canonicalRole(h.approval_stage || h.manager_name || h.performed_by) === 'Manager' && String(h.decision || h.action || '').toLowerCase().includes('approve')) ||
+                (reqId > 0 && globalHist.some(h => Number(h.request_id) === reqId && canonicalRole(h.approval_stage || h.manager_name || h.performed_by) === 'Manager' && String(h.decision || h.action || '').toLowerCase().includes('approve')));
+
+            const isExplicitCfoPendingStatus = rawStatus.includes('cfo') && (rawStatus.includes('pending') || rawStatus.includes('approval') || rawStatus.includes('review'));
+
+            // If Manager is part of the workflow:
+            if (mgrIndex !== -1) {
+                // If current stage is at or before Manager and status is pending manager, or no Manager approval exists and status is not explicit CFO pending:
+                if (currentLevel <= mgrIndex && !hasManagerApprovedInHistory && !isExplicitCfoPendingStatus) {
+                    return false;
+                }
+
+                // If Manager hasn't approved and request is not explicitly in CFO pending state/level:
+                if (!hasManagerApprovedInHistory && currentLevel < cfoIndex && !isExplicitCfoPendingStatus) {
+                    return false;
+                }
+            }
+
+            // 4. Verify request is currently assigned / pending for CFO stage:
+            const isCfoStage = (
+                (cfoIndex !== -1 && currentLevel === cfoIndex) ||
+                getRequestCurrentRole(r) === 'CFO' ||
+                canonicalRole(r.currentRole || r.current_role || r.current_approver || r.currentApprover || r.approvalStage || r.approval_stage) === 'CFO' ||
+                isExplicitCfoPendingStatus
+            );
+
+            if (!isCfoStage) {
+                return false;
+            }
+
+            // Verify status is active / pending (not closed)
+            const isPendingState =
+                isExplicitCfoPendingStatus ||
+                rawStatus.startsWith('pending') ||
+                rawStatus === 'submitted' ||
+                rawStatus === 'in_review' ||
+                rawStatus === 'waiting' ||
+                rawStatus === '';
+
+            return isPendingState;
+        }
+
+        function renderHighValueRequests(requests) {
+            const listEl = document.getElementById('highvalue-list');
+            updateActiveFilterButtons();
+            if (!listEl) return;
+
+            console.log("TOTAL REQUESTS:", requests.length);
+
+            const filter = String(currentFilter || 'All Pending').trim().toUpperCase();
+
+            let filtered = [];
+
+            if (filter === 'ALL PENDING' || filter === 'PENDING') {
+                const pendingCfoRequests = requests.filter(isPendingCfoRequest);
+
+                console.log("CFO PENDING REQUESTS:", pendingCfoRequests);
+                if (Array.isArray(pendingCfoRequests)) {
+                    console.table(
+                        pendingCfoRequests.map(r => ({
+                            id: r.id,
+                            status: r.status,
+                            currentRole: getRequestCurrentRole(r),
+                            priority: getRequestPriority(r)
+                        }))
+                    );
+                }
+
+                const cfoHigh = pendingCfoRequests.filter(r => getRequestPriority(r) === "HIGH");
+                const cfoMedium = pendingCfoRequests.filter(r => getRequestPriority(r) === "MEDIUM");
+                const cfoLow = pendingCfoRequests.filter(r => getRequestPriority(r) === "LOW");
+
+                console.log("CFO HIGH:", cfoHigh.map(r => r.id));
+                console.log("CFO MEDIUM:", cfoMedium.map(r => r.id));
+                console.log("CFO LOW:", cfoLow.map(r => r.id));
+                console.log("CFO TOTAL:", pendingCfoRequests.length);
+
+                filtered = pendingCfoRequests;
+            } else if (filter === 'APPROVED') {
+                filtered = requests.filter(r => {
+                    const cfoApprovedInHistory = Array.isArray(r.history) && r.history.some(h => canonicalRole(h.role) === 'CFO' && h.action === 'approved');
+                    return cfoApprovedInHistory || (normalizeStatus(r.status) === 'approved' && (Array.isArray(r.history) && r.history.some(h => canonicalRole(h.role) === 'CFO') || getRequestCurrentRole(r) === 'CFO'));
+                });
+            } else if (filter === 'REJECTED') {
+                filtered = requests.filter(r => {
+                    const cfoRejectedInHistory = Array.isArray(r.history) && r.history.some(h => canonicalRole(h.role) === 'CFO' && h.action === 'rejected');
+                    return cfoRejectedInHistory || (normalizeStatus(r.status) === 'rejected' && (Array.isArray(r.history) && r.history.some(h => canonicalRole(h.role) === 'CFO') || getRequestCurrentRole(r) === 'CFO'));
+                });
+            } else if (filter === 'ESCALATED') {
+                filtered = requests.filter(r => {
+                    const cfoEscalatedInHistory = Array.isArray(r.history) && r.history.some(h => canonicalRole(h.role) === 'CFO' && (h.action === 'escalated' || h.escalated));
+                    return cfoEscalatedInHistory || (r.escalated && (Array.isArray(r.history) && r.history.some(h => canonicalRole(h.role) === 'CFO') || getRequestCurrentRole(r) === 'MD'));
+                });
+            } else {
+                filtered = requests.filter(isPendingCfoRequest);
+            }
+
+            filtered = filtered.filter(matchesCfoSearch);
+
+            const priorityRank = {
+                HIGH: 1,
+                MEDIUM: 2,
+                LOW: 3
+            };
+
+            let sorted = [];
+            if (filter === 'ALL PENDING' || filter === 'PENDING') {
+                sorted = filtered.sort((a, b) => {
+                    const aPriority = normalizePriority(a.priority || getRequestPriority(a));
+                    const bPriority = normalizePriority(b.priority || getRequestPriority(b));
+
+                    const rankA = priorityRank[aPriority] ?? 99;
+                    const rankB = priorityRank[bPriority] ?? 99;
+                    if (rankA !== rankB) return rankA - rankB;
+                    return Number(a.createdAt || a.updatedAt || 0) - Number(b.createdAt || b.updatedAt || 0);
+                });
+            } else {
+                sorted = filtered.sort((a, b) => Number(b.updatedAt || b.createdAt || 0) - Number(a.updatedAt || a.createdAt || 0));
+            }
+
+            if (sorted.length === 0) {
+                listEl.innerHTML = `<tr><td colspan="7" style="padding: 24px; color: #94a3b8; text-align:center; font-weight: 600;">No requests found under "${escapeHtml(currentFilter)}".</td></tr>`;
+                return;
+            }
+
+            listEl.innerHTML = sorted.map((request) => {
+                const empName = request.employee_name || request.requester_name || request.requester || request.employee || 'Employee';
+                const reqType = request.type || request.request_type || request.title || 'Financial';
+                const waitingText = getWaitingTimeText(request.createdAt || request.updatedAt);
+                const idDisplay = `<a href="javascript:void(0)" onclick="openCfoReviewModal(${request.id})" style="color: #38bdf8; font-weight: 700; text-decoration: underline;" title="Click to review request">#${escapeHtml(String(request.id || '—'))}</a>`;
+
+                let actionCell = '';
+                if (filter === 'ALL PENDING' || filter === 'PENDING') {
+                    actionCell = `<button class="primary-button" style="padding: 8px 16px; font-size: 0.82rem; font-weight: 700;" onclick="openCfoReviewModal(${request.id})">Review</button>`;
+                } else if (filter === 'APPROVED') {
+                    actionCell = `<span class="table-status status-approved" style="display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 700; color: #4ade80; background: rgba(74, 222, 128, 0.15); border: 1px solid rgba(74, 222, 128, 0.3);">✓ Approved</span>`;
+                } else if (filter === 'REJECTED') {
+                    actionCell = `<span class="table-status status-rejected" style="display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 700; color: #f87171; background: rgba(248, 113, 113, 0.15); border: 1px solid rgba(248, 113, 113, 0.3);">✕ Rejected</span>`;
+                } else if (filter === 'ESCALATED') {
+                    actionCell = `<span class="table-status status-escalated" style="display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 700; color: #fbbf24; background: rgba(251, 191, 36, 0.15); border: 1px solid rgba(251, 191, 36, 0.3);">↑ Escalated to MD</span>`;
+                }
+
+                return `
+                    <tr>
+                        <td>${idDisplay}</td>
+                        <td>
+                            <div style="font-weight: 700; color: #f8fafc;">${escapeHtml(empName)}</div>
+                            ${(filter === 'ALL PENDING' || filter === 'PENDING') ? `<div style="font-size: 0.76rem; color: #94a3b8; margin-top: 2px;">🕒 Waiting ${escapeHtml(waitingText)}</div>` : ''}
+                        </td>
+                        <td>${escapeHtml(request.department || 'Corporate')}</td>
+                        <td>${escapeHtml(reqType)}</td>
+                        <td style="font-weight: 700; color: #38bdf8;">${formatCurrency(request.amount)}</td>
+                        <td>${renderPriority(request)}</td>
+                        <td>${actionCell}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function renderOverdueApprovals(requests) {
+            const overdueList = requests.filter((r) => {
+                const isPendingCfo = isPendingCfoRequest(r);
+                if (!isPendingCfo) return false;
+                const waitingTime = Date.now() - Number(r.createdAt || r.updatedAt || Date.now());
+                return checkSLA(r) || waitingTime > (48 * 3600 * 1000);
+            }).sort((a, b) => Number(a.createdAt || a.updatedAt || 0) - Number(b.createdAt || b.updatedAt || 0));
+
+            const listEl = document.getElementById('overdue-list');
+            if (!listEl) return;
+            if (overdueList.length === 0) {
+                listEl.innerHTML = '<tr><td colspan="8" style="padding: 24px; color: #94a3b8; text-align:center; font-weight: 600;">No overdue CFO approvals.</td></tr>';
+                return;
+            }
+            listEl.innerHTML = overdueList.map((r) => {
+                const empName = r.employee_name || r.requester_name || r.requester || r.employee || 'Employee';
+                const reqType = r.type || r.request_type || r.title || 'Financial';
+                const waitingText = getWaitingTimeText(r.createdAt || r.updatedAt);
+                return `
+                    <tr>
+                        <td>#${escapeHtml(String(r.id))}</td>
+                        <td>${escapeHtml(empName)}</td>
+                        <td>${escapeHtml(r.department || 'Corporate')}</td>
+                        <td>${escapeHtml(reqType)}</td>
+                        <td style="color: #38bdf8; font-weight: 700;">${formatCurrency(r.amount)}</td>
+                        <td>${renderPriority(r)}</td>
+                        <td style="color: #f87171; font-weight: 700;">${escapeHtml(waitingText)}</td>
+                        <td>
+                            <button class="primary-button" style="padding: 8px 14px; font-size: 0.82rem;" onclick="openApproveModal(${r.id})">Review Request</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function renderHighPriorityQueue(requests) {
+            const queue = requests.filter((r) => {
+                const isPendingCfo = isPendingCfoRequest(r);
+                if (!isPendingCfo) return false;
+                return getRequestPriority(r) === 'HIGH';
+            }).sort((a, b) => {
+                const timeDiff = Number(a.createdAt || a.updatedAt || 0) - Number(b.createdAt || b.updatedAt || 0);
+                if (timeDiff !== 0) return timeDiff;
+                return Number(b.amount || 0) - Number(a.amount || 0);
+            });
+
+            const listEl = document.getElementById('high-priority-queue-list');
+            if (!listEl) return;
+            if (queue.length === 0) {
+                listEl.innerHTML = '<tr><td colspan="6" style="padding: 24px; color: #94a3b8; text-align:center; font-weight: 600;">No high-priority requests in queue.</td></tr>';
+                return;
+            }
+            listEl.innerHTML = queue.map((r) => {
+                const waitingText = getWaitingTimeText(r.createdAt || r.updatedAt);
+                return `
+                    <tr>
+                        <td>#${escapeHtml(String(r.id))}</td>
+                        <td>${escapeHtml(r.department || 'Corporate')}</td>
+                        <td style="color: #38bdf8; font-weight: 700;">${formatCurrency(r.amount)}</td>
+                        <td>${escapeHtml(waitingText)}</td>
+                        <td>${renderPriority(r)}</td>
+                        <td>
+                            <button class="primary-button" style="padding: 8px 14px; font-size: 0.82rem;" onclick="openApproveModal(${r.id})">Review Request</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function renderDepartmentRiskAnalysis(requests) {
+            const pendingCfoReqs = requests.filter(isPendingCfoRequest);
+            const deptMap = {};
+
+            pendingCfoReqs.forEach((r) => {
+                const dept = String(r.department || 'Corporate').trim();
+                if (!deptMap[dept]) {
+                    deptMap[dept] = { department: dept, pendingCount: 0, exposureAmount: 0, highPriorityCount: 0 };
+                }
+                deptMap[dept].pendingCount += 1;
+                deptMap[dept].exposureAmount += Number(r.amount || 0);
+                if (getRequestPriority(r) === 'HIGH') {
+                    deptMap[dept].highPriorityCount += 1;
+                }
+            });
+
+            const deptList = Object.values(deptMap).sort((a, b) => b.exposureAmount - a.exposureAmount);
+            const listEl = document.getElementById('dept-risk-analysis-list');
+            if (!listEl) return;
+            if (deptList.length === 0) {
+                listEl.innerHTML = '<tr><td colspan="4" style="padding: 24px; color: #94a3b8; text-align:center; font-weight: 600;">No pending department exposure.</td></tr>';
+                return;
+            }
+
+            listEl.innerHTML = deptList.map((d) => `
+                <tr>
+                    <td style="font-weight: 700; color: #f8fafc;">${escapeHtml(d.department)}</td>
+                    <td>${d.pendingCount} ${d.pendingCount === 1 ? 'request' : 'requests'}</td>
+                    <td style="color: #38bdf8; font-weight: 700;">${formatCurrency(d.exposureAmount)}</td>
+                    <td><span class="priority-chip priority-${d.highPriorityCount > 0 ? 'high' : 'medium'}">${d.highPriorityCount} High Priority</span></td>
+                </tr>
+            `).join('');
         }
 
         function renderRiskCenter(requests) {
@@ -2093,200 +3046,488 @@
             document.getElementById('risk-department').textContent = riskDepartment;
         }
 
-        function renderDashboardAnalytics(requests) {
-            // If demo mode is active, supply curated sample datasets for presentation-ready visuals.
-            const demoMode = localStorage.getItem('demoMode') === '1';
-            if (demoMode) {
-                const deptLabels = ['Operations', 'Finance', 'IT'];
-                const deptData = [420000, 300000, 280000];
-                renderChart('department-chart', 'bar', deptLabels, [{ data: deptData, label: 'Department Spend' }], ['#38bdf8']);
-
-                const pendingAmount = 120000;
-                const approvedAmount = 1250000;
-                const rejectedAmount = 25000;
-                renderChart('budget-chart', 'doughnut', ['Pending', 'Approved', 'Rejected'], [{ data: [pendingAmount, approvedAmount, rejectedAmount], label: 'Budget Utilization' }], ['#f59e0b', '#22c55e', '#ef4444']);
-
-                const last6Months = (function () {
-                    const months = [];
-                    for (let i = 5; i >= 0; i--) {
-                        const d = new Date(); d.setMonth(d.getMonth() - i);
-                        months.push(d.toLocaleString('default', { month: 'short' }));
-                    }
-                    return months;
-                })();
-                const monthlyData = [120000, 250000, 180000, 210000, 300000, 420000];
-                renderChart('monthly-chart', 'line', last6Months, [{ data: monthlyData, label: 'Monthly Cost Trend' }], ['#60a5fa']);
-
-                const approvalLabels = ['Approved', 'Pending', 'Rejected', 'Cancelled'];
-                const approvalData = [48, 12, 4, 1];
-                renderChart('approval-chart', 'pie', approvalLabels, [{ data: approvalData, label: 'Approval Distribution' }], ['#22c55e', '#38bdf8', '#ef4444', '#94a3b8']);
-                return;
-            }
-
-            const departmentTotals = {};
-            const monthlyTotals = {};
-            const statusTotals = { Approved: 0, Pending: 0, Rejected: 0, Cancelled: 0 };
-            let totalReview = 0;
-            let totalApproved = 0;
-            let totalRejected = 0;
-
-            requests.forEach((request) => {
-                const department = request.department || 'Corporate';
-                const amount = Number(request.amount || 0);
-                const status = toStatusLabel(request.status);
-                const createdAt = Number(request.createdAt || Date.now());
-                const monthKey = new Date(createdAt).toLocaleString('default', { month: 'short', year: 'numeric' });
-                departmentTotals[department] = (departmentTotals[department] || 0) + amount;
-                monthlyTotals[monthKey] = (monthlyTotals[monthKey] || 0) + amount;
-                if (statusTotals[status] !== undefined) statusTotals[status] += 1;
-                if (normalizeStatus(request.status) === 'pending') totalReview += amount;
-                if (normalizeStatus(request.status) === 'approved') totalApproved += amount;
-                if (normalizeStatus(request.status) === 'rejected') totalRejected += amount;
-            });
-
-            const departmentLabels = Object.keys(departmentTotals);
-            const departmentData = Object.values(departmentTotals);
-            const monthKeys = Object.keys(monthlyTotals).sort((a, b) => new Date(a) - new Date(b));
-            const monthlyData = monthKeys.map((key) => monthlyTotals[key]);
-            const approvalLabels = Object.keys(statusTotals);
-            const approvalData = approvalLabels.map((label) => statusTotals[label]);
-
-            renderChart('department-chart', 'bar', departmentLabels, [{ data: departmentData, label: 'Department Spend' }], ['#38bdf8']);
-            renderChart('budget-chart', 'doughnut', ['Pending', 'Approved', 'Rejected'], [{ data: [totalReview, totalApproved, totalRejected], label: 'Budget Utilization' }], ['#f59e0b', '#22c55e', '#ef4444']);
-            renderChart('monthly-chart', 'line', monthKeys, [{ data: monthlyData, label: 'Monthly Cost Trend' }], ['#60a5fa']);
-            renderChart('approval-chart', 'pie', approvalLabels, [{ data: approvalData, label: 'Approval Distribution' }], ['#22c55e', '#38bdf8', '#ef4444', '#94a3b8']);
-        }
-
-        function renderChart(canvasId, type, labels, datasets, colors) {
-            const ctx = document.getElementById(canvasId);
-            if (!ctx) return;
-            const data = {
-                labels,
-                datasets: datasets.map((dataset, index) => ({
-                    ...dataset,
-                    borderColor: colors[index],
-                    backgroundColor: type === 'line' ? 'rgba(56, 189, 248, 0.18)' : colors[index],
-                    fill: type === 'line',
-                    tension: 0.35,
-                    borderWidth: 2,
-                    pointRadius: 4,
-                    pointBackgroundColor: '#fff'
-                }))
-            };
-            const options = {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { labels: { color: '#cbd5e1' } } },
-                scales: type === 'pie' || type === 'doughnut' ? {} : {
-                    x: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.08)' } },
-                    y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.08)' } }
+        function isCfoRole(val) {
+            if (!val) return false;
+            const str = String(val).toLowerCase().trim();
+            if (str.includes('cfo') || str.includes('chief financial officer')) return true;
+            try {
+                const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+                if (currentUser && currentUser.role && String(currentUser.role).toLowerCase().includes('cfo')) {
+                    if (currentUser.name && str.includes(String(currentUser.name).toLowerCase().trim())) return true;
+                    if (currentUser.email && str.includes(String(currentUser.email).toLowerCase().trim())) return true;
                 }
-            };
-            const existing = { 'department-chart': departmentChart, 'budget-chart': budgetChart, 'monthly-chart': monthlyChart, 'approval-chart': approvalChart }[canvasId];
-            if (existing) {
-                existing.config.type = type;
-                existing.data = data;
-                existing.options = options;
-                existing.update();
-                return;
-            }
-            const chart = new Chart(ctx, { type, data, options });
-            if (canvasId === 'department-chart') departmentChart = chart;
-            if (canvasId === 'budget-chart') budgetChart = chart;
-            if (canvasId === 'monthly-chart') monthlyChart = chart;
-            if (canvasId === 'approval-chart') approvalChart = chart;
+            } catch (e) { }
+            return false;
         }
 
-        function renderStrategicInsights(requests) {
-            const demoMode = localStorage.getItem('demoMode') === '1';
-            const container = document.getElementById('insights-list');
-            if (!container) return;
-            if (demoMode) {
-                const demo = [
-                    { title: 'Approval Velocity', detail: 'Average approval completion time: 2.4 days' },
-                    { title: 'Capital Runway', detail: 'Current approved budget covers 8 months of planned operations' },
-                    { title: 'Risk Concentration', detail: 'Operations department accounts for 42% of total spend' }
-                ];
-                container.innerHTML = demo.map((item) => `<li class="insight-item"><strong>${escapeHtml(item.title)}</strong>${escapeHtml(item.detail)}</li>`).join('');
-                return;
-            }
-            const approvalsToday = requests.filter((r) => {
-                const created = new Date(Number(r.createdAt || 0));
-                const today = new Date();
-                return created.toDateString() === today.toDateString();
-            }).length;
-            const velocity = Math.max(0, Math.round(approvalsToday * 1.3));
-            const runway = requests.filter((r) => normalizeStatus(r.status) === 'pending').length > 0 ? '2.4 months' : '4.1 months';
-            const confidence = requests.filter((r) => normalizeStatus(r.status) === 'approved').length > requests.filter((r) => normalizeStatus(r.status) === 'rejected').length ? 'High' : 'Moderate';
-            const cadence = `${Math.max(1, approvalsToday)} approvals/day`;
-            const insights = [
-                { title: 'Approval velocity', detail: `${velocity} items forecasted this week.` },
-                { title: 'Capital runway', detail: `${runway} of current budget coverage.` },
-                { title: 'Risk concentration', detail: `Review the top exposure sources across departments.` },
-                { title: 'Approval cadence', detail: cadence }
-            ];
-            container.innerHTML = insights.map((item) => `<li class="insight-item"><strong>${escapeHtml(item.title)}</strong>${escapeHtml(item.detail)}</li>`).join('');
+        function parseDecisionType(decVal) {
+            if (!decVal) return 'approved';
+            const str = String(decVal).toLowerCase().trim();
+            if (str.includes('reject')) return 'rejected';
+            if (str.includes('escalat')) return 'escalated';
+            if (str.includes('approve')) return 'approved';
+            return 'approved';
         }
 
-        function renderDecisionTimeline(requests) {
-            const demoMode = localStorage.getItem('demoMode') === '1';
-            const container = document.getElementById('timeline-list');
-            if (!container) return;
-            if (demoMode) {
-                container.innerHTML = `
-                    <li class="timeline-item"><strong>[09:45 AM]</strong> Approved Equipment Budget - ₹75,000</li>
-                    <li class="timeline-item"><strong>[08:20 AM]</strong> Rejected Travel Expansion Request - ₹25,000</li>
-                    <li class="timeline-item"><strong>[Yesterday]</strong> Escalated Capital Expenditure - ₹1,20,000</li>
-                    <li class="timeline-item"><strong>[Yesterday]</strong> Approved Software Procurement - ₹50,000</li>
-                `;
-                return;
+        function parseTimestamp(timeVal) {
+            if (!timeVal) return 0;
+            if (typeof timeVal === 'number' && Number.isFinite(timeVal)) return timeVal;
+            const parsed = Date.parse(String(timeVal));
+            if (Number.isFinite(parsed)) return parsed;
+            return 0;
+        }
+
+        function extractCfoActions(requests, approvalHistoryRows = globalApprovalHistory) {
+            const actions = [];
+            const seenKeys = new Set();
+
+            function addAction(item) {
+                if (!item.id && item.id !== 0) return;
+                const timeBucket = Math.floor(Number(item.time || 0) / 5000);
+                const key = `${item.id}_${item.action}_${timeBucket}`;
+                if (!seenKeys.has(key)) {
+                    seenKeys.add(key);
+                    actions.push(item);
+                }
             }
-            const events = [];
-            requests.forEach((request) => {
-                if (Array.isArray(request.history)) {
-                    request.history.forEach((item) => {
-                        events.push({ time: Number(item.time || 0), title: `${item.role || 'System'} ${item.action || item.status || 'updated'}`, requestId: request.id });
+
+            const allReqs = Array.isArray(requests) ? requests : [];
+
+            (Array.isArray(approvalHistoryRows) ? approvalHistoryRows : []).forEach((row) => {
+                if (isCfoRole(row.approval_stage) || isCfoRole(row.manager_name) || isCfoRole(row.performed_by)) {
+                    const decType = parseDecisionType(row.decision || row.action);
+                    const timeVal = parseTimestamp(row.decision_timestamp || row.timestamp || row.created_at);
+                    const matchedReq = allReqs.find((r) => Number(r.id) === Number(row.request_id || row.id));
+                    const resolvedAmount = Number(matchedReq ? matchedReq.amount : (row.amount || row.req_amount || 0));
+                    const reqType = row.type || row.request_type || row.title || (matchedReq ? matchedReq.type || matchedReq.request_type || matchedReq.title : '') || 'Financial';
+                    addAction({
+                        id: row.request_id || row.id,
+                        employee: row.employee_name || row.employee || (matchedReq ? matchedReq.employee_name || matchedReq.requester : 'Employee'),
+                        department: row.department || (matchedReq ? matchedReq.department : 'Corporate'),
+                        amount: resolvedAmount,
+                        requestType: reqType,
+                        action: decType,
+                        actionLabel: decType === 'approved' ? 'Approved' : decType === 'rejected' ? 'Rejected' : 'Escalated to MD',
+                        comment: row.comments || '',
+                        time: timeVal
                     });
                 }
             });
-            const sorted = events.sort((a, b) => b.time - a.time).slice(0, 8);
-            if (!sorted.length) {
-                container.innerHTML = '<li class="timeline-item">No recent CFO decisions available.</li>';
+
+            allReqs.forEach((r) => {
+                const rType = r.type || r.request_type || r.title || 'Financial';
+                (Array.isArray(r.approval_history) ? r.approval_history : []).forEach((row) => {
+                    if (isCfoRole(row.approval_stage) || isCfoRole(row.manager_name) || isCfoRole(row.performed_by)) {
+                        const decType = parseDecisionType(row.decision || row.action);
+                        const timeVal = parseTimestamp(row.decision_timestamp || row.timestamp || row.created_at);
+                        addAction({
+                            id: r.id,
+                            employee: row.employee_name || r.employee_name || r.employee || 'Employee',
+                            department: row.department || r.department || 'Corporate',
+                            amount: Number(r.amount || r.amount === 0 ? r.amount : row.amount || 0),
+                            requestType: rType,
+                            action: decType,
+                            actionLabel: decType === 'approved' ? 'Approved' : decType === 'rejected' ? 'Rejected' : 'Escalated to MD',
+                            comment: row.comments || '',
+                            time: timeVal
+                        });
+                    }
+                });
+
+                (Array.isArray(r.approvals) ? r.approvals : []).forEach((appr) => {
+                    if (isCfoRole(appr.approver_role) && (appr.status === 'approved' || appr.status === 'rejected')) {
+                        const decType = parseDecisionType(appr.status);
+                        const timeVal = parseTimestamp(appr.updated_at || r.updated_at || r.created_at);
+                        addAction({
+                            id: r.id,
+                            employee: r.employee_name || r.employee || r.requester || 'Employee',
+                            department: r.department || 'Corporate',
+                            amount: Number(r.amount || 0),
+                            requestType: rType,
+                            action: decType,
+                            actionLabel: decType === 'approved' ? 'Approved' : decType === 'rejected' ? 'Rejected' : 'Escalated to MD',
+                            comment: appr.comments || '',
+                            time: timeVal
+                        });
+                    }
+                });
+
+                (Array.isArray(r.history) ? r.history : []).forEach((h) => {
+                    if (isCfoRole(h.role) || isCfoRole(h.performed_by) || isCfoRole(h.user)) {
+                        const decType = parseDecisionType(h.action || h.status);
+                        const timeVal = parseTimestamp(h.time || h.timestamp);
+                        addAction({
+                            id: r.id,
+                            employee: r.employee_name || r.employee || r.user || 'Employee',
+                            department: r.department || 'Corporate',
+                            amount: Number(r.amount || 0),
+                            requestType: rType,
+                            action: decType,
+                            actionLabel: decType === 'approved' ? 'Approved' : decType === 'rejected' ? 'Rejected' : 'Escalated to MD',
+                            comment: h.comment || h.comments || (Array.isArray(r.comments) && r.comments.find((c) => isCfoRole(c.role))?.comment) || '',
+                            time: timeVal
+                        });
+                    }
+                });
+            });
+
+            return actions.sort((a, b) => b.time - a.time);
+        }
+
+        function renderDashboardAnalytics(requests) {
+            const allReqs = Array.isArray(requests) ? requests : [];
+            const data = computeCfoDashboardData(allReqs, globalApprovalHistory);
+
+            // --- CHART 1: REQUESTS BY DEPARTMENT ---
+            const deptCounts = {};
+            allReqs.forEach((r) => {
+                const dept = String(r.department || 'Corporate').trim();
+                deptCounts[dept] = (deptCounts[dept] || 0) + 1;
+            });
+            const deptLabels = Object.keys(deptCounts);
+            const deptData = Object.values(deptCounts);
+            renderChart('cfo-chart-department', 'bar', deptLabels, [{
+                label: 'Request Count',
+                data: deptData,
+                backgroundColor: 'rgba(56, 189, 248, 0.7)',
+                borderColor: '#38bdf8',
+                borderWidth: 1,
+                borderRadius: 8
+            }], {
+                tooltipTitle: 'Department',
+                tooltipLabel: 'Request Count'
+            });
+
+            // --- CHART 2: CFO APPROVAL VS REJECTION (CFO Decisions ONLY) ---
+            renderChart('cfo-chart-decisions', 'doughnut', ['CFO Approved', 'CFO Rejected'], [{
+                data: [data.cfoApprovedCount, data.cfoRejectedCount],
+                backgroundColor: ['#22c55e', '#ef4444'],
+                borderColor: ['#16a34a', '#dc2626'],
+                borderWidth: 2
+            }], {
+                isDoughnut: true,
+                centerTextRate: data.approvalRate,
+                approvalRate: data.approvalRate
+            });
+
+            // --- CHART 3: REQUESTS BY PRIORITY ---
+            const priorityCounts = { High: 0, Medium: 0, Low: 0 };
+            allReqs.forEach((r) => {
+                const p = getRequestPriority(r);
+                if (p === 'HIGH') priorityCounts.High++;
+                else if (p === 'MEDIUM') priorityCounts.Medium++;
+                else priorityCounts.Low++;
+            });
+
+            renderChart('cfo-chart-priority', 'bar', ['High Priority', 'Medium Priority', 'Low Priority'], [{
+                label: 'Request Count',
+                data: [priorityCounts.High, priorityCounts.Medium, priorityCounts.Low],
+                backgroundColor: ['rgba(239, 68, 68, 0.75)', 'rgba(245, 158, 11, 0.75)', 'rgba(34, 197, 94, 0.75)'],
+                borderColor: ['#ef4444', '#f59e0b', '#22c55e'],
+                borderWidth: 1,
+                borderRadius: 8
+            }], {
+                tooltipTitle: 'Priority',
+                tooltipLabel: 'Request Count'
+            });
+
+            // --- CHART 4: CFO APPROVAL TREND ---
+            const cfoDecisions = data.cfoActions.filter((a) => a.action === 'approved' || a.action === 'rejected');
+            const dateMap = {};
+
+            cfoDecisions.forEach((act) => {
+                const d = act.time > 0 ? new Date(act.time) : new Date();
+                const dateStr = d.toLocaleDateString('en-IN', { month: 'short', day: 'numeric' });
+                if (!dateMap[dateStr]) {
+                    dateMap[dateStr] = { approved: 0, rejected: 0, time: act.time };
+                }
+                if (act.action === 'approved') dateMap[dateStr].approved++;
+                else if (act.action === 'rejected') dateMap[dateStr].rejected++;
+            });
+
+            const sortedDates = Object.keys(dateMap).sort((a, b) => (dateMap[a].time || 0) - (dateMap[b].time || 0));
+
+            const trendLabels = sortedDates.length > 0 ? sortedDates : [new Date().toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })];
+            const trendApproved = sortedDates.length > 0 ? sortedDates.map(d => dateMap[d].approved) : [0];
+            const trendRejected = sortedDates.length > 0 ? sortedDates.map(d => dateMap[d].rejected) : [0];
+
+            renderChart('cfo-chart-trend', 'line', trendLabels, [
+                {
+                    label: 'CFO Approved',
+                    data: trendApproved,
+                    borderColor: '#22c55e',
+                    backgroundColor: 'rgba(34, 197, 94, 0.15)',
+                    borderWidth: 2,
+                    tension: 0.35,
+                    fill: true
+                },
+                {
+                    label: 'CFO Rejected',
+                    data: trendRejected,
+                    borderColor: '#ef4444',
+                    backgroundColor: 'rgba(239, 68, 68, 0.15)',
+                    borderWidth: 2,
+                    tension: 0.35,
+                    fill: true
+                }
+            ], {
+                tooltipTitle: 'Date',
+                tooltipLabel: 'Decisions'
+            });
+        }
+
+        function renderChart(canvasId, type, labels, datasets, extraOpts = {}) {
+            const ctx = document.getElementById(canvasId);
+            if (!ctx) return;
+
+            const isDark = !document.body.classList.contains('light-theme');
+            const textColor = isDark ? '#f8fafc' : '#1e293b';
+            const gridColor = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)';
+
+            const centerRate = extraOpts.centerTextRate !== undefined ? extraOpts.centerTextRate : (extraOpts.approvalRate !== undefined ? extraOpts.approvalRate : null);
+
+            const options = {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: type === 'doughnut' || type === 'pie' || type === 'line',
+                        position: 'bottom',
+                        labels: { color: textColor, font: { weight: 'bold', size: 12 } }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            title: (items) => {
+                                if (!items || !items.length) return '';
+                                return `${items[0].label}`;
+                            },
+                            label: (item) => {
+                                const val = item.raw || 0;
+                                const dsLabel = item.dataset ? item.dataset.label : 'Count';
+                                return ` ${dsLabel}: ${val}`;
+                            }
+                        }
+                    },
+                    centerTextRate: centerRate
+                },
+                scales: type === 'doughnut' || type === 'pie' ? {} : {
+                    x: { ticks: { color: textColor, font: { weight: '600' } }, grid: { color: gridColor } },
+                    y: {
+                        ticks: { color: textColor, precision: 0, stepSize: 1, font: { weight: '600' } },
+                        grid: { color: gridColor },
+                        beginAtZero: true
+                    }
+                }
+            };
+
+            const existingMap = {
+                'cfo-chart-department': cfoDeptChart,
+                'cfo-chart-decisions': cfoDecisionChart,
+                'cfo-chart-priority': cfoPriorityChart,
+                'cfo-chart-trend': cfoTrendChart
+            };
+
+            const existing = existingMap[canvasId];
+            if (existing) {
+                existing.config.type = type;
+                existing.data.labels = labels;
+                existing.data.datasets = datasets;
+                if (!existing.options) existing.options = {};
+                if (!existing.options.plugins) existing.options.plugins = {};
+                existing.options.plugins.centerTextRate = centerRate;
+                existing.options.legend = options.legend;
+                existing.update();
                 return;
             }
-            container.innerHTML = sorted.map((event) => `<li class="timeline-item"><strong>${escapeHtml(event.title)}</strong><time>${timeAgo(event.time)} • Request ${escapeHtml(String(event.requestId || '—'))}</time></li>`).join('');
+
+            const chart = new Chart(ctx, { type, data: { labels, datasets }, options });
+            if (canvasId === 'cfo-chart-department') cfoDeptChart = chart;
+            if (canvasId === 'cfo-chart-decisions') cfoDecisionChart = chart;
+            if (canvasId === 'cfo-chart-priority') cfoPriorityChart = chart;
+            if (canvasId === 'cfo-chart-trend') cfoTrendChart = chart;
+        }
+
+        function renderStrategicInsights(requests) {
+            const container = document.getElementById('insights-list');
+            if (!container) return;
+
+            const data = computeCfoDashboardData(requests, globalApprovalHistory);
+
+            const workloadVal = `${data.pendingCfoCount} ${data.pendingCfoCount === 1 ? 'Request' : 'Requests'} Pending`;
+            const performanceVal = `${data.cfoApprovedCount} Approved / ${data.cfoRejectedCount} Rejected`;
+            const exposureVal = `${data.highPriorityPendingCount} High-Priority ${data.highPriorityPendingCount === 1 ? 'Request' : 'Requests'}`;
+
+            container.innerHTML = `
+                <li class="insight-item">
+                    <strong>1. Approval Workload</strong>
+                    <div style="font-size: 1.1rem; font-weight: 800; color: #38bdf8; margin: 4px 0;">${escapeHtml(workloadVal)}</div>
+                    <div style="font-size: 0.85rem; opacity: 0.9;">Shows how many requests are currently waiting for CFO review.</div>
+                </li>
+                <li class="insight-item">
+                    <strong>2. Decision Performance</strong>
+                    <div style="font-size: 1.1rem; font-weight: 800; color: #4ade80; margin: 4px 0;">${escapeHtml(performanceVal)}</div>
+                    <div style="font-size: 0.85rem; opacity: 0.9;">Shows the CFO's approval and rejection activity.</div>
+                </li>
+                <li class="insight-item">
+                    <strong>3. Priority Exposure</strong>
+                    <div style="font-size: 1.1rem; font-weight: 800; color: #f87171; margin: 4px 0;">${escapeHtml(exposureVal)}</div>
+                    <div style="font-size: 0.85rem; opacity: 0.9;">Shows how many high-priority requests require CFO attention.</div>
+                </li>
+            `;
+        }
+
+        function renderDecisionTimeline(requests) {
+            const container = document.getElementById('timeline-list');
+            if (!container) return;
+
+            const data = computeCfoDashboardData(requests, globalApprovalHistory);
+            const cfoActions = data.cfoActions;
+
+            if (cfoActions.length === 0) {
+                container.innerHTML = '<li class="timeline-item" style="color: #94a3b8; font-weight: 600;">No recent CFO actions.</li>';
+                return;
+            }
+
+            container.innerHTML = cfoActions.slice(0, 15).map((act) => {
+                let badge = '✓ CFO Approved';
+                let badgeStyle = 'color: #4ade80; background: rgba(34, 197, 94, 0.16);';
+                if (act.action === 'rejected') {
+                    badge = '✕ CFO Rejected';
+                    badgeStyle = 'color: #f87171; background: rgba(239, 68, 68, 0.16);';
+                } else if (act.action === 'escalated') {
+                    badge = '↑ Escalated to MD';
+                    badgeStyle = 'color: #fbbf24; background: rgba(245, 158, 11, 0.16);';
+                }
+
+                const amountText = act.amount > 0 ? ` — ${formatCurrency(act.amount)}` : '';
+                const commentText = act.comment ? `<div style="font-size: 0.84rem; margin-top: 4px; padding: 6px 10px; background: rgba(255,255,255,0.04); border-radius: 6px; font-style: italic;">Comments: "${escapeHtml(act.comment)}"</div>` : '';
+                const relativeText = timeAgo(act.time);
+
+                let actualTimeStr = 'Time unavailable';
+                if (act.time > 0) {
+                    try {
+                        const d = new Date(act.time);
+                        if (!isNaN(d.getTime())) {
+                            actualTimeStr = d.toLocaleString('en-IN', {
+                                day: '2-digit',
+                                month: 'short',
+                                year: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                hour12: true
+                            });
+                        }
+                    } catch (e) { }
+                }
+
+                const empName = act.employee || 'Employee';
+                const dept = act.department || 'Corporate';
+                const reqType = act.requestType || 'Financial';
+
+                return `
+                    <li class="timeline-item" style="padding: 14px; margin-bottom: 10px; border-radius: 12px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.06);">
+                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px;">
+                            <span style="font-weight: 800; font-size: 0.86rem; ${badgeStyle} padding: 3px 8px; border-radius: 6px;">${badge}</span>
+                            <strong style="font-size: 0.88rem; color: #38bdf8;">Request #${escapeHtml(String(act.id))}</strong>
+                        </div>
+                        <div style="font-size: 0.88rem; font-weight: 700; color: #f8fafc;">
+                            ${escapeHtml(empName)} (${escapeHtml(dept)}) — <span style="color: #94a3b8;">${escapeHtml(reqType)}</span>${amountText}
+                        </div>
+                        ${commentText}
+                        <div style="display: flex; align-items: center; justify-content: space-between; font-size: 0.78rem; opacity: 0.85; margin-top: 8px; color: #cbd5e1;">
+                            <span>🕒 ${escapeHtml(actualTimeStr)}</span>
+                            <span style="font-weight: 700; color: #60a5fa;">${escapeHtml(relativeText)}</span>
+                        </div>
+                    </li>
+                `;
+            }).join('');
         }
 
         function renderNotificationCenter(requests) {
-            const demoMode = localStorage.getItem('demoMode') === '1';
+            const allReqs = Array.isArray(requests) ? requests : [];
             const container = document.getElementById('notification-list');
             if (!container) return;
-            if (demoMode) {
-                const demo = [
-                    { text: '⚠ High Value Request Pending CFO Approval', value: '' },
-                    { text: '⚠ Operations Budget Utilization reached 85%', value: '' },
-                    { text: '⚠ Finance Department submitted request above ₹1,00,000', value: '' },
-                    { text: '✓ Monthly budget review completed', value: '' }
-                ];
-                container.innerHTML = demo.map((item) => `<li class="notification-item"><span>${escapeHtml(item.text)}</span><strong>${escapeHtml(item.value)}</strong></li>`).join('');
+
+            const notifications = [];
+
+            // 1. Pending CFO requests
+            const pendingCfo = allReqs.filter(isPendingCfoRequest);
+            pendingCfo.forEach((r) => {
+                notifications.push({
+                    icon: '📥',
+                    text: `New request #${r.id} waiting for CFO approval (${escapeHtml(r.department || 'Corporate')} · ${formatCurrency(r.amount)})`,
+                    tag: 'Pending CFO'
+                });
+            });
+
+            // 2. High priority CFO requests
+            const highPriority = pendingCfo.filter((r) => getRequestPriority(r) === 'HIGH');
+            highPriority.forEach((r) => {
+                notifications.push({
+                    icon: '🚨',
+                    text: `High-priority request #${r.id} requires CFO review`,
+                    tag: 'High Risk'
+                });
+            });
+
+            // 3. Overdue CFO approvals
+            const overdue = pendingCfo.filter((r) => checkSLA(r));
+            overdue.forEach((r) => {
+                notifications.push({
+                    icon: '⚠️',
+                    text: `Request #${r.id} is overdue for CFO sign-off`,
+                    tag: 'Overdue'
+                });
+            });
+
+            // 4. Escalated to MD
+            const cfoActions = extractCfoActions(allReqs);
+            const escalated = cfoActions.filter((a) => a.action === 'escalated');
+            escalated.forEach((a) => {
+                notifications.push({
+                    icon: '↑',
+                    text: `Request #${a.id} escalated to MD`,
+                    tag: 'Escalated'
+                });
+            });
+
+            // 5. Recent decisions
+            cfoActions.slice(0, 3).forEach((a) => {
+                notifications.push({
+                    icon: a.action === 'approved' ? '✓' : '✕',
+                    text: `CFO ${a.actionLabel.toLowerCase()} Request #${a.id} (${formatCurrency(a.amount)})`,
+                    tag: a.actionLabel
+                });
+            });
+
+            if (notifications.length === 0) {
+                container.innerHTML = '<li class="notification-item"><span>No actionable alerts.</span><strong>—</strong></li>';
                 return;
             }
-            const pending = requests.filter((r) => normalizeStatus(r.status) === 'pending').length;
-            const approvals = requests.filter((r) => normalizeStatus(r.status) === 'approved').length;
-            const rejections = requests.filter((r) => normalizeStatus(r.status) === 'rejected').length;
-            const highRisk = requests.filter((r) => normalizeStatus(r.status) === 'pending' && Number(r.amount || 0) > 120000).length;
-            const items = [
-                { text: `${pending} total pending approvals`, value: 'Review' },
-                { text: `${approvals} approvals completed`, value: 'Secure' },
-                { text: `${rejections} rejected items`, value: 'Validate' },
-                { text: `${highRisk} high-risk approvals`, value: 'Monitor' }
-            ];
-            container.innerHTML = items.map((item) => `<li class="notification-item"><span>${escapeHtml(item.text)}</span><strong>${escapeHtml(item.value)}</strong></li>`).join('');
+
+            // Deduplicate notifications by text
+            const uniqueNotifs = [];
+            const seen = new Set();
+            notifications.forEach((n) => {
+                if (!seen.has(n.text)) {
+                    seen.add(n.text);
+                    uniqueNotifs.push(n);
+                }
+            });
+
+            container.innerHTML = uniqueNotifs.slice(0, 6).map((n) => `
+                <li class="notification-item">
+                    <span style="font-size: 0.88rem;"><strong style="margin-right: 6px;">${n.icon}</strong> ${n.text}</span>
+                    <strong style="font-size: 0.78rem; padding: 2px 6px; border-radius: 4px; background: rgba(56, 189, 248, 0.15);">${escapeHtml(n.tag)}</strong>
+                </li>
+            `).join('');
         }
 
         function timeAgo(timestamp) {
-            const diffSeconds = Math.max(0, Math.floor((Date.now() - Number(timestamp || Date.now())) / 1000));
-            if (diffSeconds < 60) return `${diffSeconds}s ago`;
+            const time = Number(timestamp);
+            if (!Number.isFinite(time) || time <= 0) return 'Time unavailable';
+            const diffSeconds = Math.max(0, Math.floor((Date.now() - time) / 1000));
+            if (diffSeconds < 60) return 'Just now';
             const mins = Math.floor(diffSeconds / 60);
             if (mins < 60) return `${mins} min${mins === 1 ? '' : 's'} ago`;
             const hours = Math.floor(mins / 60);
@@ -2296,7 +3537,7 @@
         }
 
         function formatCurrency(amount) {
-            return `$${Number(amount || 0).toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
+            return `₹${Number(amount || 0).toLocaleString('en-IN')}`;
         }
 
         function exportCSV() {
@@ -2336,8 +3577,8 @@
         }
     </script>
 
-    <!-- Custom CFO Action Confirmation Modal -->
-    <div id="cfo-action-modal-overlay" class="cfo-modal-overlay" style="display: none;">
+    <!-- Custom CFO Action Confirmation Right-Side Drawer -->
+    <div id="cfo-action-modal-overlay" class="cfo-modal-overlay" style="display: none;" onclick="if(event.target === this) closeCfoModal()">
         <div class="cfo-modal-card">
             <div class="cfo-modal-header">
                 <h3 id="cfo-modal-title" class="cfo-modal-title">Action Request</h3>

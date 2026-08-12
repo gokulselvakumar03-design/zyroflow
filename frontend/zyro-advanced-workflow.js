@@ -10,7 +10,7 @@ const ZyroWorkflow = (function () {
   let cachedRequests = [];
   let filterState = {
     searchQuery: '',
-    status: 'ALL',
+    status: 'Pending',
     priority: 'ALL',
     department: 'ALL',
     requestType: 'ALL',
@@ -28,7 +28,7 @@ const ZyroWorkflow = (function () {
   // Helper: Format currency
   function formatCurrency(amt) {
     const num = Number(amt || 0);
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(num);
+    return '₹' + num.toLocaleString('en-IN');
   }
 
   // Helper: Format Date
@@ -109,22 +109,25 @@ const ZyroWorkflow = (function () {
         if (!matches) return false;
       }
 
-      // 2. Status Filter
+      // 2. Status Filter (Based on Accounts approval decision)
       if (filterState.status && filterState.status !== 'ALL') {
-        const itemStatus = String(item.status || item.request_status || '').toLowerCase();
         const targetStatus = filterState.status.toLowerCase();
+        let dec = 'pending';
 
-        if (targetStatus === 'pending') {
-          if (!itemStatus.includes('pending') && itemStatus !== 'waiting') return false;
-        } else if (targetStatus === 'approved') {
-          if (itemStatus !== 'approved' && itemStatus !== 'completed') return false;
-        } else if (targetStatus === 'rejected') {
-          if (itemStatus !== 'rejected') return false;
-        } else if (targetStatus === 'escalated') {
-          if (!itemStatus.includes('escalat')) return false;
-        } else if (itemStatus !== targetStatus) {
-          return false;
+        if (typeof window.getAccountsDecision === 'function') {
+          dec = window.getAccountsDecision(item).toLowerCase();
+        } else {
+          const decProp = String(item.accounts_decision || item.accounts_approval_status || '').toLowerCase().trim();
+          if (['pending', 'approved', 'rejected'].includes(decProp)) {
+            dec = decProp;
+          } else {
+            dec = 'pending';
+          }
         }
+
+        if (targetStatus === 'pending' && dec !== 'pending') return false;
+        if (targetStatus === 'approved' && dec !== 'approved') return false;
+        if (targetStatus === 'rejected' && dec !== 'rejected') return false;
       }
 
       // 3. Priority Filter
@@ -145,20 +148,32 @@ const ZyroWorkflow = (function () {
         if (!itemType.includes(filterState.requestType.toLowerCase())) return false;
       }
 
-      // 6. Date Range Filter
+      // 6. Date Range Filter (Interacts with Accounts Status Filter)
       if (filterState.fromDate || filterState.toDate) {
-        const itemDateStr = item.created_at || item.submitted_date || item.timestamp || item.updated_at;
-        if (itemDateStr) {
-          const itemTime = new Date(itemDateStr).getTime();
+        const targetStatus = String(filterState.status || '').toLowerCase().trim();
 
-          if (filterState.fromDate) {
-            const fromTime = new Date(filterState.fromDate).setHours(0, 0, 0, 0);
-            if (itemTime < fromTime) return false;
+        // Pending status: IGNORE date filter because pending requests do not have an Accounts decision date
+        if (targetStatus !== 'pending') {
+          let itemDateStr = null;
+          if (typeof window.getAccountsDecisionDate === 'function') {
+            itemDateStr = window.getAccountsDecisionDate(item, targetStatus);
+          }
+          if (!itemDateStr) {
+            itemDateStr = item.updated_at || item.created_at || item.submitted_date || item.timestamp;
           }
 
-          if (filterState.toDate) {
-            const toTime = new Date(filterState.toDate).setHours(23, 59, 59, 999);
-            if (itemTime > toTime) return false;
+          if (itemDateStr) {
+            const itemTime = new Date(itemDateStr).getTime();
+
+            if (filterState.fromDate) {
+              const fromTime = new Date(filterState.fromDate).setHours(0, 0, 0, 0);
+              if (itemTime < fromTime) return false;
+            }
+
+            if (filterState.toDate) {
+              const toTime = new Date(filterState.toDate).setHours(23, 59, 59, 999);
+              if (itemTime > toTime) return false;
+            }
           }
         }
       }
@@ -193,11 +208,9 @@ const ZyroWorkflow = (function () {
         <!-- Smart Multi-Filters -->
         <div class="zyro-smart-filters">
           <select id="zyro-filter-status" class="zyro-filter-select">
-            <option value="ALL">All Statuses</option>
-            <option value="Pending">Pending</option>
-            <option value="Approved">Approved</option>
-            <option value="Rejected">Rejected</option>
-            <option value="Escalated">Escalated</option>
+            <option value="Pending" ${filterState.status === 'Pending' ? 'selected' : ''}>Pending</option>
+            <option value="Approved" ${filterState.status === 'Approved' ? 'selected' : ''}>Approved</option>
+            <option value="Rejected" ${filterState.status === 'Rejected' ? 'selected' : ''}>Rejected</option>
           </select>
 
           <select id="zyro-filter-priority" class="zyro-filter-select">
@@ -418,13 +431,14 @@ const ZyroWorkflow = (function () {
             <button class="zyro-modal-close-btn" onclick="ZyroWorkflow.closeReasonModal()">&times;</button>
           </div>
           <div class="zyro-modal-body">
+            <div id="zyro-pv-warning-box" style="display:none;"></div>
             <p id="zyro-reason-modal-subtitle" style="font-size:14px;color:var(--text-secondary);margin-bottom:12px;">Please enter decision comments:</p>
             <textarea id="zyro-reason-text" class="zyro-reason-textarea" placeholder="Enter reason / comment here..."></textarea>
             <div id="zyro-reason-error" class="zyro-field-error">Rejection reason is mandatory!</div>
           </div>
           <div class="zyro-modal-footer">
             <button class="zyro-btn-filter-clear" onclick="ZyroWorkflow.closeReasonModal()">Cancel</button>
-            <button id="zyro-reason-submit-btn" class="zyro-btn-approve">Submit Decision</button>
+            <button id="zyro-reason-submit-btn" class="zyro-btn-approve">Confirm Approval</button>
           </div>
         </div>
       </div>
@@ -528,20 +542,11 @@ const ZyroWorkflow = (function () {
       }
 
       // Configure Approve / Reject buttons inside Details Modal
+      // Configure Approve / Reject buttons inside Details Modal (View Only mode: hide decision buttons)
       const approveBtn = document.getElementById('zyro-modal-btn-approve');
       const rejectBtn = document.getElementById('zyro-modal-btn-reject');
-
-      const isPending = st.includes('pending') || st === 'waiting';
-      if (isPending) {
-        approveBtn.style.display = 'inline-flex';
-        rejectBtn.style.display = 'inline-flex';
-
-        approveBtn.onclick = () => openDecisionModal('approve', req.id, () => showRequestDetails(req.id));
-        rejectBtn.onclick = () => openDecisionModal('reject', req.id, () => showRequestDetails(req.id));
-      } else {
-        approveBtn.style.display = 'none';
-        rejectBtn.style.display = 'none';
-      }
+      if (approveBtn) approveBtn.style.display = 'none';
+      if (rejectBtn) rejectBtn.style.display = 'none';
 
     } catch (err) {
       showToast(err.message, 'error');
@@ -569,20 +574,53 @@ const ZyroWorkflow = (function () {
     const textarea = document.getElementById('zyro-reason-text');
     const errorDiv = document.getElementById('zyro-reason-error');
     const submitBtn = document.getElementById('zyro-reason-submit-btn');
+    const warningBox = document.getElementById('zyro-pv-warning-box');
 
     textarea.value = '';
     errorDiv.style.display = 'none';
 
+    let reqObj = (cachedRequests || []).find(r => Number(r.id || r.request_id) === Number(requestId));
+    if (!reqObj && window.accountsRequestsCache) {
+      reqObj = window.accountsRequestsCache.find(r => Number(r.id || r.request_id) === Number(requestId));
+    }
+    if (!reqObj) reqObj = {};
+
+    const isVerified = Number(reqObj.payment_verified ?? 0) === 1 || String(reqObj.payment_verification_status || '').toLowerCase() === 'verified';
+
     if (action === 'reject') {
+      if (warningBox) { warningBox.style.display = 'none'; warningBox.innerHTML = ''; }
       title.innerText = 'Reject Request';
-      subtitle.innerHTML = 'Enter a <strong>mandatory</strong> reason for rejecting this request:';
+      subtitle.innerHTML = 'Please enter a reason for rejecting this request:';
       submitBtn.className = 'zyro-btn-reject';
       submitBtn.innerText = 'Confirm Rejection';
+      submitBtn.disabled = false;
+      submitBtn.style.opacity = '1';
+      submitBtn.style.cursor = 'pointer';
     } else {
       title.innerText = 'Approve Request';
       subtitle.innerHTML = 'Enter optional comments for this approval:';
       submitBtn.className = 'zyro-btn-approve';
       submitBtn.innerText = 'Confirm Approval';
+
+      if (!isVerified) {
+        if (warningBox) {
+          warningBox.style.display = 'block';
+          warningBox.innerHTML = `
+            <div style="margin-bottom:14px; padding:12px 16px; background:rgba(245, 158, 11, 0.18); border:1px solid rgba(245, 158, 11, 0.4); border-radius:12px; color:#fbbf24; font-weight:700; font-size:14px; display:flex; align-items:center; gap:10px;">
+              <span style="font-size:16px;">⚠️</span>
+              <span>Payment Verification must be done first</span>
+            </div>
+          `;
+        }
+        submitBtn.disabled = true;
+        submitBtn.style.opacity = '0.5';
+        submitBtn.style.cursor = 'not-allowed';
+      } else {
+        if (warningBox) { warningBox.style.display = 'none'; warningBox.innerHTML = ''; }
+        submitBtn.disabled = false;
+        submitBtn.style.opacity = '1';
+        submitBtn.style.cursor = 'pointer';
+      }
     }
 
     submitBtn.onclick = submitDecision;
@@ -599,8 +637,23 @@ const ZyroWorkflow = (function () {
     const errorDiv = document.getElementById('zyro-reason-error');
     const comments = textarea.value.trim();
 
+    if (pendingDecision.action === 'approve') {
+      let reqObj = (cachedRequests || []).find(r => Number(r.id || r.request_id) === Number(pendingDecision.requestId));
+      if (!reqObj && window.accountsRequestsCache) {
+        reqObj = window.accountsRequestsCache.find(r => Number(r.id || r.request_id) === Number(pendingDecision.requestId));
+      }
+      if (!reqObj) reqObj = {};
+      const isVerified = Number(reqObj.payment_verified ?? 0) === 1 || String(reqObj.payment_verification_status || '').toLowerCase() === 'verified';
+
+      if (!isVerified) {
+        errorDiv.innerText = 'Payment Verification must be done first';
+        errorDiv.style.display = 'block';
+        return;
+      }
+    }
+
     if (pendingDecision.action === 'reject' && !comments) {
-      errorDiv.innerText = 'Rejection reason is mandatory!';
+      errorDiv.innerText = 'Please enter a rejection reason.';
       errorDiv.style.display = 'block';
       return;
     }

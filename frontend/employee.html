@@ -1759,7 +1759,7 @@
           {
             title: 'Cost Information',
             fields: [
-              { name: 'amount', label: 'Estimated Cost ($)', type: 'number', min: 1, placeholder: '1000', required: true, isAmount: true }
+              { name: 'amount', label: 'Estimated Cost (₹)', type: 'number', min: 1, placeholder: '1000', required: true, isAmount: true }
             ]
           }
         ]
@@ -1778,8 +1778,8 @@
           {
             title: 'Pricing',
             fields: [
-              { name: 'unit_price', label: 'Unit Price ($)', type: 'number', min: 1, placeholder: '1200', required: true, oninput: 'calcEquipmentTotal()' },
-              { name: 'amount', label: 'Total Amount ($)', type: 'number', min: 1, placeholder: '1200', required: true, isAmount: true }
+              { name: 'unit_price', label: 'Unit Price (₹)', type: 'number', min: 1, placeholder: '1200', required: true, oninput: 'calcEquipmentTotal()' },
+              { name: 'amount', label: 'Total Amount (₹)', type: 'number', min: 1, placeholder: '1200', required: true, isAmount: true }
             ]
           },
           {
@@ -1812,7 +1812,7 @@
           {
             title: 'Cost Information',
             fields: [
-              { name: 'amount', label: 'License Cost ($)', type: 'number', min: 1, placeholder: '1500', required: true, isAmount: true }
+              { name: 'amount', label: 'License Cost (₹)', type: 'number', min: 1, placeholder: '1500', required: true, isAmount: true }
             ]
           },
           {
@@ -1836,7 +1836,7 @@
           {
             title: 'Financial Information',
             fields: [
-              { name: 'amount', label: 'Estimated Cost ($)', type: 'number', min: 1, placeholder: '250000', required: true, isAmount: true },
+              { name: 'amount', label: 'Estimated Cost (₹)', type: 'number', min: 1, placeholder: '250000', required: true, isAmount: true },
               { name: 'expected_roi', label: 'Expected ROI', type: 'text', placeholder: 'e.g. 25% over 3 years' }
             ]
           },
@@ -1864,7 +1864,7 @@
           {
             title: 'Payment Details',
             fields: [
-              { name: 'amount', label: 'Amount ($)', type: 'number', min: 1, placeholder: '450', required: true, isAmount: true },
+              { name: 'amount', label: 'Amount (₹)', type: 'number', min: 1, placeholder: '450', required: true, isAmount: true },
               { name: 'payment_method', label: 'Payment Method', type: 'select', options: ['Bank Transfer', 'Corporate Card', 'Cash'], required: true }
             ]
           },
@@ -1896,8 +1896,8 @@
           {
             title: 'Pricing',
             fields: [
-              { name: 'unit_price', label: 'Unit Price ($)', type: 'number', min: 1, placeholder: '450', required: true, oninput: 'calcPurchaseTotal()' },
-              { name: 'amount', label: 'Total Amount ($)', type: 'number', min: 1, placeholder: '4500', required: true, isAmount: true }
+              { name: 'unit_price', label: 'Unit Price (₹)', type: 'number', min: 1, placeholder: '450', required: true, oninput: 'calcPurchaseTotal()' },
+              { name: 'amount', label: 'Total Amount (₹)', type: 'number', min: 1, placeholder: '4500', required: true, isAmount: true }
             ]
           },
           {
@@ -1940,7 +1940,7 @@
           {
             title: 'Cost',
             fields: [
-              { name: 'amount', label: 'Maintenance Cost ($)', type: 'number', min: 1, placeholder: '1200', required: true, isAmount: true }
+              { name: 'amount', label: 'Maintenance Cost (₹)', type: 'number', min: 1, placeholder: '1200', required: true, isAmount: true }
             ]
           },
           {
@@ -1971,7 +1971,7 @@
           {
             title: 'Cost',
             fields: [
-              { name: 'amount', label: 'Training Cost ($)', type: 'number', min: 1, placeholder: '1500', required: true, isAmount: true }
+              { name: 'amount', label: 'Training Cost (₹)', type: 'number', min: 1, placeholder: '1500', required: true, isAmount: true }
             ]
           },
           {
@@ -2001,7 +2001,7 @@
           {
             title: 'Cost',
             fields: [
-              { name: 'amount', label: 'Estimated Cost ($) (Optional)', type: 'number', min: 0, placeholder: '0', isAmount: true }
+              { name: 'amount', label: 'Estimated Cost (₹) (Optional)', type: 'number', min: 0, placeholder: '0', isAmount: true }
             ]
           }
         ]
@@ -2204,7 +2204,7 @@
           { label: 'Request Type', value: reqType || '—' },
           { label: 'Department', value: dept || '—' },
           { label: 'Priority', value: prio || '—' },
-          { label: 'Estimated Cost', value: amount > 0 ? `$${amount.toLocaleString()}` : '—' }
+          { label: 'Estimated Cost', value: amount > 0 ? `₹${amount.toLocaleString('en-IN')}` : '—' }
         ];
 
         const dest = document.getElementById('df_destination')?.value || '';
@@ -3321,7 +3321,7 @@
 
     function isPendingRequest(request) { return String(request?.status || '').trim().toLowerCase() === 'pending'; }
     function toStatusLabel(s) { const n = String(s || '').toLowerCase(); if (n === 'approved') return 'Approved'; if (n === 'rejected') return 'Rejected'; if (n === 'cancelled') return 'Cancelled'; return 'Pending'; }
-    function formatCurrency(v) { return '₹' + Number(v || 0).toLocaleString(); }
+    function formatCurrency(v) { return '₹' + Number(v || 0).toLocaleString('en-IN'); }
     function escapeHtml(t) { const d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
 
     window.updateChartColors = function (theme) {

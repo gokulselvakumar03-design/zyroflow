@@ -606,7 +606,7 @@ app.get(['/requests', '/api/requests'], optionalAuth, async (req, res) => {
 
   try {
     const user = req.user;
-    const queryRole = req.query.role || (user ? user.role : null);
+    const queryRole = req.query.role || null;
     let query = 'SELECT * FROM workflow_requests ORDER BY id DESC';
     let params = [];
 
@@ -630,11 +630,12 @@ app.get(['/requests', '/api/requests'], optionalAuth, async (req, res) => {
                AND (
                  LOWER(current_approver) = LOWER(?)
                  OR LOWER(current_role) = LOWER(?)
+                 OR LOWER(approval_stage) = LOWER(?)
                )
              )
           ORDER BY id DESC
         `;
-        params = [statusMatch, role, role];
+        params = [statusMatch, role, role, role];
       }
     }
 

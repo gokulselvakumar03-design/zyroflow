@@ -16,7 +16,7 @@ function getAuthToken() {
 // Utility helper to format currency
 function formatCurrency(val) {
     const num = Number(val || 0);
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(num);
+    return '₹' + num.toLocaleString('en-IN');
 }
 
 // Helper to escape HTML strings
@@ -325,21 +325,50 @@ function promptAction(actionType) {
     const bodyEl = document.getElementById('confirm-modal-body');
     const submitBtn = document.getElementById('confirm-submit-btn');
 
-    const amountStr = currentRequestData ? formatCurrency(currentRequestData.amount) : '$0';
+    const amountStr = currentRequestData ? formatCurrency(currentRequestData.amount) : '₹0';
     const reqTitle = currentRequestData ? (currentRequestData.title || currentRequestData.type || 'Request') : 'Request';
+
+    const isVerified = currentRequestData
+        ? (Number(currentRequestData.payment_verified ?? 0) === 1 || String(currentRequestData.payment_verification_status || '').toLowerCase() === 'verified')
+        : false;
 
     if (actionType === 'approve') {
         if (titleEl) titleEl.textContent = 'Confirm Financial Approval';
         if (bodyEl) {
+            const warningBanner = !isVerified
+                ? `<div class="pv-warning-banner" style="margin-top: 14px; margin-bottom: 14px; padding: 12px 16px; background: rgba(245, 158, 11, 0.18); border: 1px solid rgba(245, 158, 11, 0.4); border-radius: 12px; color: #fbbf24; font-weight: 700; font-size: 14px; display: flex; align-items: center; gap: 10px;">
+                    <span style="font-size: 16px;">⚠️</span>
+                    <span>Payment Verification must be done first</span>
+                   </div>`
+                : '';
+
+            const subNote = !isVerified
+                ? `<p class="modal-note" style="margin-top: 10px; color: #f87171;">Payment Verification has not been completed. Please complete verification before approving.</p>`
+                : `<p class="modal-note" style="margin-top: 10px; color: #94a3b8;">This will advance the request to the Manager approval queue.</p>`;
+
             bodyEl.innerHTML = `
                 <p>Are you sure you want to <strong>APPROVE</strong> Request #${currentRequestId} (<em>${escapeHtml(reqTitle)}</em>) for <strong>${amountStr}</strong>?</p>
-                <p class="modal-note" style="margin-top: 10px; color: #94a3b8;">This will advance the request to the Manager approval queue.</p>
+                ${warningBanner}
+                ${subNote}
                 ${comments ? `<p style="margin-top: 10px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 8px;"><strong>Notes:</strong> ${escapeHtml(comments)}</p>` : ''}
             `;
         }
         if (submitBtn) {
-            submitBtn.textContent = 'Yes, Approve Request';
-            submitBtn.className = 'action-button primary';
+            if (!isVerified) {
+                submitBtn.textContent = 'Confirm Approval';
+                submitBtn.className = 'action-button primary disabled';
+                submitBtn.disabled = true;
+                submitBtn.style.opacity = '0.5';
+                submitBtn.style.cursor = 'not-allowed';
+                submitBtn.style.background = '';
+            } else {
+                submitBtn.textContent = 'Yes, Approve Request';
+                submitBtn.className = 'action-button primary';
+                submitBtn.disabled = false;
+                submitBtn.style.opacity = '1';
+                submitBtn.style.cursor = 'pointer';
+                submitBtn.style.background = '';
+            }
         }
     } else {
         if (titleEl) titleEl.textContent = 'Confirm Financial Rejection';
@@ -353,7 +382,10 @@ function promptAction(actionType) {
         if (submitBtn) {
             submitBtn.textContent = 'Yes, Reject Request';
             submitBtn.className = 'action-button secondary';
+            submitBtn.disabled = false;
             submitBtn.style.background = '#dc2626';
+            submitBtn.style.opacity = '1';
+            submitBtn.style.cursor = 'pointer';
         }
     }
 
@@ -371,6 +403,17 @@ function closeConfirmModal() {
 async function submitConfirmedAction() {
     if (!pendingActionType || !currentRequestId) return;
     const action = pendingActionType;
+
+    if (action === 'approve') {
+        const isVerified = currentRequestData
+            ? (Number(currentRequestData.payment_verified ?? 0) === 1 || String(currentRequestData.payment_verification_status || '').toLowerCase() === 'verified')
+            : false;
+        if (!isVerified) {
+            showError('Payment Verification must be done first');
+            return;
+        }
+    }
+
     closeConfirmModal();
 
     const commentsInput = document.getElementById('comments-input');

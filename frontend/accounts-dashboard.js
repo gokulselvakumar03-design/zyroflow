@@ -4,7 +4,7 @@
  */
 
 let accountsRequestsCache = [];
-let currentFilter = 'ALL';
+let currentFilter = 'Pending';
 let chartInstances = {};
 
 // Reuses global API_BASE from app.js (e.g. http://localhost:4000/api)
@@ -14,10 +14,10 @@ function getAuthToken() {
   return localStorage.getItem('authToken') || localStorage.getItem('auth_token') || '';
 }
 
-// Utility helper to format numbers into USD currency format
+// Utility helper to format numbers into INR currency format
 function formatCurrency(val) {
   const num = Number(val || 0);
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(num);
+  return '₹' + num.toLocaleString('en-IN');
 }
 
 // Utility helper to HTML escape strings to prevent XSS
@@ -167,7 +167,95 @@ async function loadAccountsRequests() {
   }
 }
 
-// Filter requests by status buttons (All, Pending, Approved, Rejected, Cancelled)
+// Determine Accounts approval decision for a request (Source of Truth)
+function getAccountsDecision(req) {
+  if (!req) return 'pending';
+
+  // 1. Check approvals array step for Accounts (Highest precision)
+  const approvalsList = Array.isArray(req.approvals) ? req.approvals : [];
+  const accStep = approvalsList.find(a => String(a.approver_role || a.role || '').toLowerCase().trim() === 'accounts');
+  if (accStep && accStep.status) {
+    const st = String(accStep.status).toLowerCase().trim();
+    if (st === 'approved') return 'approved';
+    if (st === 'rejected') return 'rejected';
+    if (st === 'pending') return 'pending';
+  }
+
+  // 2. Check approval_history for Accounts decision
+  const historyList = Array.isArray(req.approval_history) ? req.approval_history : (Array.isArray(req.history) ? req.history : []);
+  const accHist = historyList.filter(h => String(h.approval_stage || h.stage || h.role || '').toLowerCase().trim() === 'accounts');
+  if (accHist.length > 0) {
+    const lastAcc = accHist[accHist.length - 1];
+    const decision = String(lastAcc.decision || lastAcc.action || '').toLowerCase().trim();
+    if (decision.includes('approve')) return 'approved';
+    if (decision.includes('reject')) return 'rejected';
+  }
+
+  // 3. Check direct accounts_approval_status or accounts_history_decision from API
+  if (req.accounts_approval_status) {
+    const st = String(req.accounts_approval_status).toLowerCase().trim();
+    if (['approved', 'rejected', 'pending'].includes(st)) return st;
+  }
+  if (req.accounts_history_decision) {
+    const dec = String(req.accounts_history_decision).toLowerCase().trim();
+    if (dec.includes('approve')) return 'approved';
+    if (dec.includes('reject')) return 'rejected';
+  }
+
+  // 4. Check explicit accounts_decision from DB query
+  if (req.accounts_decision) {
+    const dec = String(req.accounts_decision).toLowerCase().trim();
+    if (['approved', 'rejected', 'pending'].includes(dec)) return dec;
+  }
+
+  return 'pending';
+}
+
+// Get decision timestamp for Accounts decision (for Approved/Rejected date range filtering)
+function getAccountsDecisionDate(req, targetStatus) {
+  if (!req) return null;
+  const statusLower = String(targetStatus || '').toLowerCase().trim();
+
+  if (statusLower === 'approved') {
+    const historyList = Array.isArray(req.approval_history) ? req.approval_history : (Array.isArray(req.history) ? req.history : []);
+    const accApproveEntry = historyList.find(h => 
+      String(h.approval_stage || h.stage || h.role || '').toLowerCase().trim() === 'accounts' &&
+      String(h.decision || h.action || '').toLowerCase().includes('approve')
+    );
+    if (accApproveEntry) {
+      const dt = accApproveEntry.decision_timestamp || accApproveEntry.timestamp || accApproveEntry.created_at;
+      if (dt) return dt;
+    }
+
+    const approvalsList = Array.isArray(req.approvals) ? req.approvals : [];
+    const accStep = approvalsList.find(a => String(a.approver_role || a.role || '').toLowerCase().trim() === 'accounts');
+    if (accStep && accStep.updated_at) return accStep.updated_at;
+
+    return req.updated_at || req.updatedAt || req.created_at || req.createdAt;
+  }
+
+  if (statusLower === 'rejected') {
+    const historyList = Array.isArray(req.approval_history) ? req.approval_history : (Array.isArray(req.history) ? req.history : []);
+    const accRejectEntry = historyList.find(h => 
+      String(h.approval_stage || h.stage || h.role || '').toLowerCase().trim() === 'accounts' &&
+      String(h.decision || h.action || '').toLowerCase().includes('reject')
+    );
+    if (accRejectEntry) {
+      const dt = accRejectEntry.decision_timestamp || accRejectEntry.timestamp || accRejectEntry.created_at;
+      if (dt) return dt;
+    }
+
+    const approvalsList = Array.isArray(req.approvals) ? req.approvals : [];
+    const accStep = approvalsList.find(a => String(a.approver_role || a.role || '').toLowerCase().trim() === 'accounts');
+    if (accStep && accStep.updated_at) return accStep.updated_at;
+
+    return req.updated_at || req.updatedAt || req.created_at || req.createdAt;
+  }
+
+  return null;
+}
+
+// Filter requests by status buttons (Pending, Approved, Rejected)
 function filterRequests(status) {
   currentFilter = status;
   updateActiveFilterButtons();
@@ -179,7 +267,7 @@ function updateActiveFilterButtons() {
   const buttons = document.querySelectorAll('.filter-button');
   buttons.forEach((btn) => {
     const filterVal = btn.dataset.filter || btn.textContent.trim();
-    if (filterVal.toLowerCase() === String(currentFilter || '').toLowerCase() || (filterVal.toUpperCase() === 'ALL' && String(currentFilter || '').toUpperCase() === 'ALL')) {
+    if (filterVal.toLowerCase() === String(currentFilter || 'Pending').toLowerCase()) {
       btn.classList.add('active');
     } else {
       btn.classList.remove('active');
@@ -209,15 +297,13 @@ function renderAccountsQueue(customList) {
     const searchInput = document.getElementById('searchBox');
     const searchQuery = searchInput ? searchInput.value : '';
 
-    const filterUpper = String(currentFilter || 'ALL').trim().toUpperCase();
+    const filterUpper = String(currentFilter || 'PENDING').trim().toUpperCase();
     const statusFiltered = accountsRequestsCache.filter((r) => {
-      const s = normalizeStatus(r.status);
-      if (filterUpper === 'ALL') return true;
-      if (filterUpper === 'PENDING') return s === 'pending';
-      if (filterUpper === 'APPROVED') return s === 'approved';
-      if (filterUpper === 'REJECTED') return s === 'rejected';
-      if (filterUpper === 'CANCELLED') return s === 'cancelled';
-      return s === filterUpper.toLowerCase();
+      const dec = getAccountsDecision(r).toUpperCase();
+      if (filterUpper === 'PENDING') return dec === 'PENDING';
+      if (filterUpper === 'APPROVED') return dec === 'APPROVED';
+      if (filterUpper === 'REJECTED') return dec === 'REJECTED';
+      return dec === filterUpper;
     });
 
     finalRequests = statusFiltered.filter((r) => matchesSearchQuery(r, searchQuery));
@@ -235,13 +321,44 @@ function renderAccountsQueue(customList) {
     const department = escapeHtml(req.department || 'Finance');
     const requestType = escapeHtml(req.request_type || req.type || req.title || 'Financial Request');
     const amountFormatted = formatCurrency(req.amount);
-    const statusNormalized = normalizeStatus(req.status);
-    const statusLabel = toStatusLabel(req.status);
+    
+    const accDecision = getAccountsDecision(req);
+    const statusNormalized = accDecision;
+    const statusLabel = accDecision.charAt(0).toUpperCase() + accDecision.slice(1);
 
     const isVerified = Number(req.payment_verified ?? 0) === 1 || String(req.payment_verification_status).toLowerCase() === 'verified';
     const pvBadge = isVerified
       ? `<span class="pv-badge pv-badge-verified" style="display:inline-block; margin-left:6px; background:#10b981; color:#ffffff; padding:3px 8px; border-radius:12px; font-size:11px; font-weight:600;">Payment Verified</span>`
       : `<span class="pv-badge pv-badge-pending" style="display:inline-block; margin-left:6px; background:#f59e0b; color:#ffffff; padding:3px 8px; border-radius:12px; font-size:11px; font-weight:600;">Payment Verification Pending</span>`;
+
+    const btnCommonStyle = "display:inline-flex; align-items:center; justify-content:center; height:30px; padding:0 12px; border-radius:6px; font-weight:600; font-size:12px; vertical-align:middle;";
+
+    let actionButtonsHtml = '';
+    if (accDecision === 'pending') {
+      if (isVerified) {
+        actionButtonsHtml = `
+          <button class="action-btn approve-btn" style="${btnCommonStyle} background:#10b981; color:#ffffff; border:none; cursor:pointer; margin-right:4px;" onclick="ZyroWorkflow.openDecisionModal('approve', '${reqId}', () => loadAccountsRequests())">Approve</button>
+          <button class="action-btn reject-btn" style="${btnCommonStyle} background:#ef4444; color:#ffffff; border:none; cursor:pointer; margin-right:4px;" onclick="ZyroWorkflow.openDecisionModal('reject', '${reqId}', () => loadAccountsRequests())">Reject</button>
+          <button class="details-button" style="${btnCommonStyle}" onclick="ZyroWorkflow.showRequestDetails('${reqId}')">Details</button>
+        `;
+      } else {
+        actionButtonsHtml = `
+          <button class="action-btn approve-btn disabled" style="${btnCommonStyle} background:#94a3b8; color:#ffffff; border:none; cursor:not-allowed; opacity:0.6; margin-right:4px;" disabled title="Complete payment verification first.">Approve</button>
+          <button class="action-btn reject-btn disabled" style="${btnCommonStyle} background:#94a3b8; color:#ffffff; border:none; cursor:not-allowed; opacity:0.6; margin-right:4px;" disabled title="Complete payment verification first.">Reject</button>
+          <button class="details-button" style="${btnCommonStyle}" onclick="ZyroWorkflow.showRequestDetails('${reqId}')">Details</button>
+        `;
+      }
+    } else if (accDecision === 'approved') {
+      actionButtonsHtml = `
+        <span class="decision-badge" style="display:inline-flex; align-items:center; justify-content:center; height:30px; padding:0 10px; background:rgba(16,185,129,0.15); color:#10b981; border-radius:6px; font-size:12px; font-weight:600; margin-right:6px; vertical-align:middle;">Approved</span>
+        <button class="details-button" style="${btnCommonStyle}" onclick="ZyroWorkflow.showRequestDetails('${reqId}')">Details</button>
+      `;
+    } else {
+      actionButtonsHtml = `
+        <span class="decision-badge" style="display:inline-flex; align-items:center; justify-content:center; height:30px; padding:0 10px; background:rgba(239,68,68,0.15); color:#ef4444; border-radius:6px; font-size:12px; font-weight:600; margin-right:6px; vertical-align:middle;">Rejected</span>
+        <button class="details-button" style="${btnCommonStyle}" onclick="ZyroWorkflow.showRequestDetails('${reqId}')">Details</button>
+      `;
+    }
 
     return `
       <tr class="queue-row" style="cursor:pointer;" onclick="if (!event.target.closest('button')) ZyroWorkflow.showRequestDetails('${reqId}')">
@@ -254,9 +371,8 @@ function renderAccountsQueue(customList) {
           <span class="status-pill status-${statusNormalized}">${statusLabel}</span>
           ${pvBadge}
         </td>
-        <td>
-          <button class="btn-secondary" style="padding:6px 12px; font-size:12px; margin-right:4px;" onclick="ZyroWorkflow.showRequestDetails('${reqId}')">Details</button>
-          <button class="review-button" onclick="navigateToReview('${reqId}')">Review</button>
+        <td style="white-space:nowrap;">
+          ${actionButtonsHtml}
         </td>
       </tr>
     `;
@@ -273,9 +389,9 @@ function navigateToReview(requestId) {
 
 // Update KPI Metrics Cards
 function updateDashboardMetrics(requests) {
-  const pendingList = requests.filter(r => normalizeStatus(r.status) === 'pending');
-  const approvedList = requests.filter(r => normalizeStatus(r.status) === 'approved');
-  const rejectedList = requests.filter(r => normalizeStatus(r.status) === 'rejected');
+  const pendingList = requests.filter(r => getAccountsDecision(r) === 'pending');
+  const approvedList = requests.filter(r => getAccountsDecision(r) === 'approved');
+  const rejectedList = requests.filter(r => getAccountsDecision(r) === 'rejected');
 
   const pendingCount = pendingList.length;
   const processedCount = approvedList.length + rejectedList.length;
@@ -358,6 +474,22 @@ function closeModal() {
 let pvPendingRequests = [];
 let pvSelectedRequest = null;
 
+// Unified eligibility filter for Payment Verification selector
+function getEligiblePaymentVerificationRequests(candidatePool) {
+  const list = Array.isArray(candidatePool) ? candidatePool : [];
+  return list.filter(r => {
+    if (!r) return false;
+    const isVerified = Number(r.payment_verified ?? 0) === 1 || String(r.payment_verification_status || '').toLowerCase() === 'verified';
+    const normStatus = normalizeStatus(r.status);
+    const isPendingStatus = normStatus.startsWith('pending') || normStatus === 'submitted' || normStatus === 'waiting' || normStatus === 'in_review';
+    const isNotClosed = !normStatus.includes('reject') && !normStatus.includes('cancel') && normStatus !== 'approved' && normStatus !== 'completed';
+    const role = String(r.current_role || r.currentRole || r.current_approver || r.currentApprover || '').toLowerCase().trim();
+    const isAtAccounts = role === 'accounts' || role === '';
+
+    return !isVerified && isPendingStatus && isNotClosed && isAtAccounts;
+  });
+}
+
 async function openVerificationModal() {
   openModal(
     'Payment Verification',
@@ -369,11 +501,24 @@ async function openVerificationModal() {
     const token = getAuthToken();
     const res = await fetch(`${API_BASE}/accounts/payment-verification`, {
       headers: { 'Authorization': token ? `Bearer ${token}` : '' }
-    });
-    if (!res.ok) throw new Error('Failed to load payment verification data');
-    const data = await res.json();
+    }).catch(() => null);
 
-    pvPendingRequests = Array.isArray(data.pending) ? data.pending : [];
+    let apiPending = [];
+    if (res && res.ok) {
+      const data = await res.json();
+      apiPending = Array.isArray(data.pending) ? data.pending : [];
+    }
+
+    // Merge API response with accountsRequestsCache to guarantee complete parity with the Financial Request Queue
+    const combinedMap = new Map();
+    [...apiPending, ...(accountsRequestsCache || [])].forEach(r => {
+      if (r && r.id != null && !combinedMap.has(Number(r.id))) {
+        combinedMap.set(Number(r.id), r);
+      }
+    });
+
+    // Dynamically derive all eligible pending Accounts requests requiring payment verification
+    pvPendingRequests = getEligiblePaymentVerificationRequests(Array.from(combinedMap.values()));
 
     if (pvPendingRequests.length === 0) {
       openModal(
@@ -1021,3 +1166,5 @@ window.toggleNotificationDropdown = toggleNotificationDropdown;
 window.onPaymentVerificationSelectChange = onPaymentVerificationSelectChange;
 window.onPvChecklistChange = onPvChecklistChange;
 window.submitPaymentVerification = submitPaymentVerification;
+window.getAccountsDecision = getAccountsDecision;
+window.getAccountsDecisionDate = getAccountsDecisionDate;

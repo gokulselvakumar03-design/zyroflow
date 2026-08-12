@@ -2996,7 +2996,7 @@
         }
 
         function formatCurrency(amount) {
-            return `$${Number(amount || 0).toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
+            return `₹${Number(amount || 0).toLocaleString('en-IN')}`;
         }
 
         function timeAgo(timestamp) {

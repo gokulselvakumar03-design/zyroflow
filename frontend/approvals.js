@@ -100,7 +100,7 @@ function renderApprovals(data) {
     tr.innerHTML = `
       <td>${item.request_id}</td>
       <td>${item.request_type}</td>
-      <td>$${item.amount}</td>
+      <td>₹${Number(item.amount || 0).toLocaleString('en-IN')}</td>
       <td>${item.description || ''}</td>
       <td><button class="btn btn-sm btn-info" onclick="ZyroWorkflow.showRequestDetails(${item.request_id})">🔍 Details</button></td>
       <td><button class="btn btn-sm btn-success" data-action="approve" data-request="${item.request_id}">Approve</button></td>

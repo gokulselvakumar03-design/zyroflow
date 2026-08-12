@@ -894,6 +894,30 @@ html.dark-theme .export-chip:hover {
 .status-rejected { background: rgba(248, 113, 113, 0.16); color: #f87171; }
 .status-cancelled { background: rgba(148, 163, 184, 0.16); color: #94a3b8; }
 
+.details-button {
+    padding: 9px 15px;
+    border-radius: 14px;
+    background: rgba(56, 189, 248, 0.1);
+    border: 1px solid rgba(56, 189, 248, 0.25);
+    color: #38bdf8;
+    font-weight: 700;
+    font-size: 12px;
+    cursor: pointer;
+    margin-right: 6px;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.details-button:hover {
+    background: rgba(56, 189, 248, 0.22);
+    border-color: rgba(56, 189, 248, 0.45);
+    color: #ffffff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(56, 189, 248, 0.15);
+}
+
 .review-button {
     padding: 10px 16px;
     border-radius: 14px;
@@ -1953,6 +1977,7 @@ html.dark-theme .export-chip:hover {
     bottom: 0;
     background: var(--modal-overlay);
     backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     z-index: 9999;
     display: flex;
     align-items: center;
@@ -1967,7 +1992,7 @@ html.dark-theme .export-chip:hover {
     visibility: visible;
 }
 
-/* Modal Card Dialog Container */
+/* Modal Card Dialog Container - Active Modal Remains Sharp & Clear */
 .modal-card {
     position: relative;
     background: var(--modal-bg) !important;
@@ -1978,6 +2003,10 @@ html.dark-theme .export-chip:hover {
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    filter: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    isolation: isolate;
     box-shadow: 0 30px 70px rgba(0, 0, 0, 0.25);
     transform: scale(0.95);
     opacity: 0;

@@ -1254,7 +1254,7 @@
         ];
 
         const decisionTimeline = [
-            { time: '10:30 AM', title: 'Approved Capital Expansion', detail: 'MD approved the $325K strategic initiative for Q3 deployment.' },
+            { time: '10:30 AM', title: 'Approved Capital Expansion', detail: 'MD approved the ₹325K strategic initiative for Q3 deployment.' },
             { time: '11:15 AM', title: 'Escalated Budget Request', detail: 'Budget request from Operations escalated for MD risk validation.' },
             { time: '12:00 PM', title: 'Approved Strategic Purchase', detail: 'MD signed off on a corporate purchase ahead of deadline.' }
         ];
@@ -1515,7 +1515,7 @@
         }
 
         function formatCurrency(value) {
-            return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(value);
+            return '₹' + Number(value || 0).toLocaleString('en-IN');
         }
 
         function showToast(message) {

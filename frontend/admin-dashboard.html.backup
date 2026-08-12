@@ -1178,7 +1178,7 @@
                 <div class="insight-item">⚡ Fastest Approver: <strong>${insights.fastest}</strong></div>
                 <div class="insight-item">🐢 Slowest Stage: <strong>${insights.slowest}</strong></div>
                 <div class="insight-item">📊 Approval Rate: <strong>${insights.approvalRate}%</strong></div>
-                <div class="insight-item">💰 Avg Amount: <strong>$${insights.avgAmount.toLocaleString()}</strong></div>
+                <div class="insight-item">💰 Avg Amount: <strong>₹${insights.avgAmount.toLocaleString('en-IN')}</strong></div>
             `;
         }
 
@@ -1252,7 +1252,7 @@
         }
 
         function formatCurrency(amount) {
-            return `$${Number(amount || 0).toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
+            return `₹${Number(amount || 0).toLocaleString('en-IN')}`;
         }
 
         function timeAgo(timestamp) {

@@ -356,6 +356,14 @@
     color: #ffffff;
 }
 
+/* Ensure Active Modal Dialog Content Remains Sharp & Clear */
+.modal-card {
+    filter: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    isolation: isolate;
+}
+
 @media (max-width: 980px) {
     .details-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));

@@ -81,11 +81,11 @@
                     </div>
                     <div class="insight-tile">
                         <span class="tile-title">Under Review</span>
-                        <strong id="insight-under-review" class="tile-value">$0</strong>
+                        <strong id="insight-under-review" class="tile-value">₹0</strong>
                     </div>
                     <div class="insight-tile">
                         <span class="tile-title">Largest Request</span>
-                        <strong id="insight-largest" class="tile-value">$0</strong>
+                        <strong id="insight-largest" class="tile-value">₹0</strong>
                     </div>
                     <div class="insight-tile">
                         <span class="tile-title">Budget Health</span>
@@ -110,15 +110,15 @@
             </div>
             <div class="kpi-card">
                 <span class="kpi-label">Total Amount Under Review</span>
-                <strong id="review-amount" class="kpi-value">$0</strong>
+                <strong id="review-amount" class="kpi-value">₹0</strong>
             </div>
             <div class="kpi-card">
                 <span class="kpi-label">Approved Amount</span>
-                <strong id="approved-amount" class="kpi-value">$0</strong>
+                <strong id="approved-amount" class="kpi-value">₹0</strong>
             </div>
             <div class="kpi-card">
                 <span class="kpi-label">Rejected Amount</span>
-                <strong id="rejected-amount" class="kpi-value">$0</strong>
+                <strong id="rejected-amount" class="kpi-value">₹0</strong>
             </div>
         </section>
 
@@ -148,11 +148,9 @@
             <div id="zyro-filter-container"></div>
             <div class="list-controls" style="display:none;">
                 <div class="filters">
-                    <button class="filter-button active" data-filter="ALL" onclick="filterRequests('ALL')">All</button>
-                    <button class="filter-button" data-filter="Pending" onclick="filterRequests('Pending')">Pending</button>
+                    <button class="filter-button active" data-filter="Pending" onclick="filterRequests('Pending')">Pending</button>
                     <button class="filter-button" data-filter="Approved" onclick="filterRequests('Approved')">Approved</button>
                     <button class="filter-button" data-filter="Rejected" onclick="filterRequests('Rejected')">Rejected</button>
-                    <button class="filter-button" data-filter="Cancelled" onclick="filterRequests('Cancelled')">Cancelled</button>
                     <button class="export-button export-chip" onclick="exportCSV()">📄 Export Report</button>
                 </div>
                 <input type="text" id="searchBox" class="search-box" placeholder="Search by ID, employee, department..." oninput="renderRequests()" />
@@ -167,7 +165,7 @@
                             <th>Request Type</th>
                             <th>Amount</th>
                             <th>Status</th>
-                            <th>Review</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody id="requests-list">

@@ -623,6 +623,72 @@
       return { percent, label: `${completedSteps} / ${totalSteps} stages completed`, isCompleted: false, isRejected: false };
     }
 
+    function getDecisionDetails(r) {
+      if (!r) return { isApproved: false, isRejected: false, isPending: true, role: 'Accounts', reason: '' };
+
+      const hist = Array.isArray(r.approval_history) ? r.approval_history : (Array.isArray(r.history) ? r.history : []);
+      const apps = Array.isArray(r.approvals) ? r.approvals : [];
+      const s = String(r.status || '').toLowerCase().trim();
+
+      // 1. Check if Rejected
+      if (s === 'rejected' || String(r.current_role).toLowerCase() === 'rejected') {
+        const rejHist = [...hist].reverse().find(h => String(h.decision || h.action || '').toLowerCase().includes('reject'));
+        let role = 'Accounts';
+        if (rejHist) {
+          let raw = rejHist.approval_stage || rejHist.performed_by || rejHist.stage || rejHist.role || '';
+          if (!raw || raw.toLowerCase() === 'rejected' || raw.toLowerCase() === 'system') {
+            const match = String(rejHist.action || '').match(/REJECTED by ([^:]+)/i);
+            if (match && match[1]) raw = match[1].trim();
+          }
+          if (raw) role = raw;
+        } else {
+          const rejStep = apps.find(a => String(a.status).toLowerCase() === 'rejected');
+          if (rejStep && (rejStep.approver_role || rejStep.role)) role = rejStep.approver_role || rejStep.role;
+        }
+        const roleLower = role.toLowerCase();
+        let normalized = 'Accounts';
+        if (roleLower.includes('account')) normalized = 'Accounts';
+        else if (roleLower.includes('manager')) normalized = 'Manager';
+        else if (roleLower.includes('cfo')) normalized = 'CFO';
+        else if (roleLower.includes('md')) normalized = 'MD';
+
+        let reason = rejHist ? (rejHist.comments || rejHist.rejection_reason || '') : '';
+        return { isApproved: false, isRejected: true, isPending: false, role: normalized, reason: reason || r.rejection_reason || '' };
+      }
+
+      // 2. Check if Approved / Completed
+      if (s === 'approved' || s === 'completed') {
+        const appHist = [...hist].reverse().find(h => String(h.decision || h.action || '').toLowerCase().includes('approve'));
+        let role = 'Accounts';
+        if (appHist) {
+          let raw = appHist.approval_stage || appHist.performed_by || appHist.stage || appHist.role || '';
+          if (raw) role = raw;
+        } else {
+          const appStep = [...apps].reverse().find(a => String(a.status).toLowerCase() === 'approved');
+          if (appStep && (appStep.approver_role || appStep.role)) role = appStep.approver_role || appStep.role;
+        }
+        const roleLower = role.toLowerCase();
+        let normalized = 'Accounts';
+        if (roleLower.includes('md')) normalized = 'MD';
+        else if (roleLower.includes('cfo')) normalized = 'CFO';
+        else if (roleLower.includes('manager')) normalized = 'Manager';
+        else if (roleLower.includes('account')) normalized = 'Accounts';
+
+        return { isApproved: true, isRejected: false, isPending: false, role: normalized, reason: '' };
+      }
+
+      // 3. Pending / In Progress
+      const currRole = String(r.current_role || r.currentRole || 'Accounts');
+      let normalized = currRole;
+      const roleLower = currRole.toLowerCase();
+      if (roleLower.includes('account')) normalized = 'Accounts';
+      else if (roleLower.includes('manager')) normalized = 'Manager';
+      else if (roleLower.includes('cfo')) normalized = 'CFO';
+      else if (roleLower.includes('md')) normalized = 'MD';
+
+      return { isApproved: false, isRejected: false, isPending: true, role: normalized, reason: '' };
+    }
+
     function filterAndRenderCards() {
       const container = document.getElementById('cardsContainer');
       const q = (document.getElementById('searchInput')?.value || '').toLowerCase().trim();
@@ -667,9 +733,27 @@
         const reqId = r.id || '—';
         const title = r.request_type || r.title || r.type || 'General Request';
         const dept = r.department || 'Operations';
-        const amount = r.amount ? `₹${Number(r.amount).toLocaleString()}` : '$0';
+        const amount = r.amount ? `₹${Number(r.amount).toLocaleString('en-IN')}` : '₹0';
         const statusCat = toStatusCategory(r.status);
-        const currentStage = statusCat === 'Completed' ? 'Completed' : (r.current_role || r.currentRole || 'Accounts');
+        const decDetails = getDecisionDetails(r);
+
+        let currentStage = 'Accounts Review';
+        let decisionBadgeInfo = '';
+
+        if (decDetails.isApproved) {
+          currentStage = `Approved by ${decDetails.role}`;
+          decisionBadgeInfo = `<div class="approved-by" style="grid-column: 1 / -1; margin-top: 6px; color:#10b981; font-weight:600; font-size:13px;">
+               ✅ Approved By: ${escapeHtml(decDetails.role)}
+             </div>`;
+        } else if (decDetails.isRejected) {
+          currentStage = `Rejected by ${decDetails.role}`;
+          decisionBadgeInfo = `<div class="rejected-by" style="grid-column: 1 / -1; margin-top: 6px; color:#ef4444; font-weight:600; font-size:13px;">
+               ❌ Rejected By: ${escapeHtml(decDetails.role)}
+               ${decDetails.reason ? `<div style="font-weight:400; color:var(--text-secondary); margin-top:2px;">Reason: "${escapeHtml(decDetails.reason)}"</div>` : ''}
+             </div>`;
+        } else {
+          currentStage = `Pending ${decDetails.role} Review`;
+        }
 
         let badgeClass = 'badge-pending';
         let statusText = 'Pending';
@@ -682,7 +766,6 @@
         }
 
         const progress = calculateProgress(r);
-        const rejectedByInfo = statusCat === 'Rejected' ? `<div class="rejected-by">❌ Rejected By: ${r.current_role || r.currentRole || 'Approver'}</div>` : '';
 
         return `
             <div class="req-card">
@@ -712,7 +795,7 @@
                     <span class="info-label">Status</span>
                     <span class="info-value">${escapeHtml(statusText)}</span>
                   </div>
-                  ${rejectedByInfo}
+                  ${decisionBadgeInfo}
                 </div>
 
                 <div class="progress-container">
