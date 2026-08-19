@@ -328,23 +328,27 @@ function promptAction(actionType) {
     const amountStr = currentRequestData ? formatCurrency(currentRequestData.amount) : '₹0';
     const reqTitle = currentRequestData ? (currentRequestData.title || currentRequestData.type || 'Request') : 'Request';
 
+    const currRoleStr = currentRequestData ? String(currentRequestData.current_role || currentRequestData.currentRole || currentRequestData.current_approver || '').toLowerCase().trim() : '';
+    const isAccountsStage = currRoleStr === 'accounts' || (!currRoleStr && window.location.pathname.includes('accounts'));
+
     const isVerified = currentRequestData
         ? (Number(currentRequestData.payment_verified ?? 0) === 1 || String(currentRequestData.payment_verification_status || '').toLowerCase() === 'verified')
         : false;
+    const isUnverifiedAccounts = isAccountsStage && !isVerified;
 
     if (actionType === 'approve') {
         if (titleEl) titleEl.textContent = 'Confirm Financial Approval';
         if (bodyEl) {
-            const warningBanner = !isVerified
+            const warningBanner = isUnverifiedAccounts
                 ? `<div class="pv-warning-banner" style="margin-top: 14px; margin-bottom: 14px; padding: 12px 16px; background: rgba(245, 158, 11, 0.18); border: 1px solid rgba(245, 158, 11, 0.4); border-radius: 12px; color: #fbbf24; font-weight: 700; font-size: 14px; display: flex; align-items: center; gap: 10px;">
                     <span style="font-size: 16px;">⚠️</span>
                     <span>Payment Verification must be done first</span>
                    </div>`
                 : '';
 
-            const subNote = !isVerified
+            const subNote = isUnverifiedAccounts
                 ? `<p class="modal-note" style="margin-top: 10px; color: #f87171;">Payment Verification has not been completed. Please complete verification before approving.</p>`
-                : `<p class="modal-note" style="margin-top: 10px; color: #94a3b8;">This will advance the request to the Manager approval queue.</p>`;
+                : `<p class="modal-note" style="margin-top: 10px; color: #94a3b8;">This will advance the request to the next approval queue.</p>`;
 
             bodyEl.innerHTML = `
                 <p>Are you sure you want to <strong>APPROVE</strong> Request #${currentRequestId} (<em>${escapeHtml(reqTitle)}</em>) for <strong>${amountStr}</strong>?</p>
@@ -354,7 +358,7 @@ function promptAction(actionType) {
             `;
         }
         if (submitBtn) {
-            if (!isVerified) {
+            if (isUnverifiedAccounts) {
                 submitBtn.textContent = 'Confirm Approval';
                 submitBtn.className = 'action-button primary disabled';
                 submitBtn.disabled = true;
@@ -405,19 +409,27 @@ async function submitConfirmedAction() {
     const action = pendingActionType;
 
     if (action === 'approve') {
+        const currRoleStr = currentRequestData ? String(currentRequestData.current_role || currentRequestData.currentRole || currentRequestData.current_approver || '').toLowerCase().trim() : '';
+        const isAccountsStage = currRoleStr === 'accounts' || (!currRoleStr && window.location.pathname.includes('accounts'));
         const isVerified = currentRequestData
             ? (Number(currentRequestData.payment_verified ?? 0) === 1 || String(currentRequestData.payment_verification_status || '').toLowerCase() === 'verified')
             : false;
-        if (!isVerified) {
+
+        if (isAccountsStage && !isVerified) {
             showError('Payment Verification must be done first');
             return;
         }
     }
 
-    closeConfirmModal();
-
     const commentsInput = document.getElementById('comments-input');
-    const comments = commentsInput ? commentsInput.value.trim() : (action === 'approve' ? 'Approved by Accounts' : 'Rejected by Accounts');
+    const comments = commentsInput ? commentsInput.value.trim() : '';
+
+    if (action === 'reject' && !comments) {
+        showError('Rejection reason is required.');
+        return;
+    }
+
+    closeConfirmModal();
 
     const approveBtn = document.getElementById('approve-btn');
     const rejectBtn = document.getElementById('reject-btn');

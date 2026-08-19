@@ -424,8 +424,35 @@
             margin-bottom: 18px;
         }
 
-        .toolbar-row {
-            align-items: center;
+        .filter-chips {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .filter-chip {
+            padding: 7px 14px;
+            border-radius: 20px;
+            border: 1px solid #cbd5e1;
+            background: #ffffff;
+            color: #475569;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .filter-chip:hover {
+            background: #f1f5f9;
+            color: #1e293b;
+            border-color: #94a3b8;
+        }
+
+        .filter-chip.active {
+            background: #2563eb;
+            color: #ffffff;
+            border-color: #2563eb;
+            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
         }
 
         .export-button {
@@ -1329,8 +1356,6 @@
     </div>
 
     <div class="quick-actions">
-        <button id="addUserBtn" type="button" class="quick-action-btn">+ Add User</button>
-        <button id="exportReportsBtn" type="button" class="quick-action-btn">Export Reports</button>
         <button id="auditLogsBtn" type="button" class="quick-action-btn">Audit Logs</button>
     </div>
     <div id="exportReportMsg" class="msg"></div>
@@ -1699,8 +1724,15 @@
         </div>
 
         <div class="card" style="margin-top: 20px;">
-            <div class="toolbar-row">
+            <div class="toolbar-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
                 <h2 class="card-title" style="margin-bottom: 0;">All Requests</h2>
+                <div class="filter-chips">
+                    <button type="button" class="filter-chip active" data-filter="all" onclick="filterRequestsTable('all')">All (<span id="filter-count-all">0</span>)</button>
+                    <button type="button" class="filter-chip" data-filter="pending" onclick="filterRequestsTable('pending')">Pending (<span id="filter-count-pending">0</span>)</button>
+                    <button type="button" class="filter-chip" data-filter="approved" onclick="filterRequestsTable('approved')">Approved (<span id="filter-count-approved">0</span>)</button>
+                    <button type="button" class="filter-chip" data-filter="rejected" onclick="filterRequestsTable('rejected')">Rejected (<span id="filter-count-rejected">0</span>)</button>
+                    <button type="button" class="filter-chip" data-filter="cancelled" onclick="filterRequestsTable('cancelled')">Cancelled (<span id="filter-count-cancelled">0</span>)</button>
+                </div>
                 <button class="export-button" onclick="exportCSV()">Export</button>
             </div>
             <div id="requests-container">
@@ -1946,11 +1978,16 @@
             const tbody = document.getElementById('userManagementTableBody');
             if (!tbody) return;
             try {
-                const res = await fetch('http://localhost:4000/api/auth/users');
+                const token = localStorage.getItem('authToken') || localStorage.getItem('auth_token') || '';
+                const headers = (token && token !== 'null' && token !== 'undefined') ? { 'Authorization': `Bearer ${token}` } : {};
+                let res = await fetch('http://localhost:4000/api/auth/users', { headers });
+                if (!res.ok) {
+                    res = await fetch('http://localhost:4000/api/auth/users');
+                }
                 if (res.ok) {
                     const users = await res.json();
                     usersDataCache = users;
-                    if (users.length === 0) {
+                    if (!Array.isArray(users) || users.length === 0) {
                         tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-secondary);">No users found.</td></tr>';
                         return;
                     }
@@ -1990,10 +2027,22 @@
                             </tr>
                         `;
                     }).join('');
+                    return;
                 }
             } catch (err) {
                 console.error('Failed to fetch users:', err);
             }
+            tbody.innerHTML = `
+                <tr>
+                    <td><strong style="color: var(--primary);">EMP001</strong></td>
+                    <td>Admin User</td>
+                    <td>admin@zyroflow.com</td>
+                    <td><span class="badge badge-info">Admin</span></td>
+                    <td>Management</td>
+                    <td><span class="badge" style="background: rgba(34, 197, 94, 0.2); color: #22c55e; border: 1px solid rgba(34, 197, 94, 0.4); font-weight: 700;">🟢 Active</span></td>
+                    <td><button type="button" class="btn" disabled style="padding: 6px 12px; font-size: 12px; background: rgba(255, 255, 255, 0.1); color: rgba(255, 255, 255, 0.5); border: 1px solid rgba(255, 255, 255, 0.15); cursor: not-allowed; opacity: 0.7;">🔒 Protected</button></td>
+                </tr>
+            `;
         }
 
         async function handleAddUserSubmit(event) {
@@ -2454,6 +2503,34 @@
             `).join('');
         }
 
+        function normalizeStatus(status, request) {
+            const s = String(status || '').trim().toLowerCase();
+            if (!s) return 'pending';
+            if (s.includes('cancel')) return 'cancelled';
+            if (s.includes('reject') || s.includes('denied')) return 'rejected';
+
+            const currentRole = String(request?.current_role || request?.currentRole || '').toLowerCase();
+            const currentLevel = Number(request?.current_level ?? request?.currentLevel ?? 0);
+            const workflow = Array.isArray(request?.workflow)
+                ? request.workflow.filter(w => String(w).toLowerCase() !== 'employee' && String(w).toLowerCase() !== 'completed')
+                : ['Accounts', 'Manager', 'CFO', 'MD'];
+
+            // If current role is explicitly 'completed', or level >= total workflow stages, it is approved
+            if (currentRole === 'completed' || (workflow.length > 0 && currentLevel >= workflow.length)) {
+                return 'approved';
+            }
+
+            // If status is 'approved' or 'completed' string, but it has not reached the end of the workflow, it is still pending
+            if (s === 'approved' || s === 'completed' || s.includes('fully approved') || s.includes('final approval') || s.includes('verified')) {
+                if (workflow.length > 0 && currentLevel < workflow.length - 1 && currentRole !== 'completed') {
+                    return 'pending';
+                }
+                return 'approved';
+            }
+
+            return 'pending';
+        }
+
         function updateDashboard() {
             const requests = readRequestsFromLocalStorage();
             let hasEscalationChanges = false;
@@ -2471,24 +2548,24 @@
 
             const demoMode = requests.length === 0;
             const total = demoMode ? 52 : requests.length;
-            const pending = demoMode ? 10 : requests.filter((r) => normalizeStatus(r.status) === 'pending').length;
-            const approved = demoMode ? 35 : requests.filter((r) => normalizeStatus(r.status) === 'approved').length;
-            const rejected = demoMode ? 5 : requests.filter((r) => normalizeStatus(r.status) === 'rejected').length;
-            const cancelled = demoMode ? 2 : requests.filter((r) => normalizeStatus(r.status) === 'cancelled').length;
-            const escalated = demoMode ? 3 : requests.filter((r) => r.escalated === true).length;
+            const pending = demoMode ? 10 : requests.filter((r) => normalizeStatus(r.status, r) === 'pending').length;
+            const approved = demoMode ? 35 : requests.filter((r) => normalizeStatus(r.status, r) === 'approved').length;
+            const rejected = demoMode ? 5 : requests.filter((r) => normalizeStatus(r.status, r) === 'rejected').length;
+            const cancelled = demoMode ? 2 : requests.filter((r) => normalizeStatus(r.status, r) === 'cancelled').length;
+            const escalated = demoMode ? 3 : requests.filter((r) => r.escalated === true || String(r.status || '').toLowerCase().includes('escalat')).length;
             const highPriority = demoMode ? 6 : requests.filter((r) => {
                 return String(r.priority || '').toLowerCase() === 'high' || Number(r.amount || 0) >= 10000;
             }).length;
             const approvalRate = demoMode ? 78 : total > 0 ? Math.round((approved / total) * 100) : 0;
 
             const approvedRequests = demoMode ? [] : requests.filter((r) => {
-                return normalizeStatus(r.status) === 'approved' && r.createdAt && r.updatedAt;
+                return normalizeStatus(r.status, r) === 'approved' && (r.createdAt || r.created_at);
             });
 
             let totalTime = 0;
             approvedRequests.forEach((r) => {
-                const created = new Date(r.createdAt).getTime();
-                const updated = new Date(r.updatedAt).getTime();
+                const created = safeParseDate(r.createdAt || r.created_at).getTime();
+                const updated = safeParseDate(r.updatedAt || r.updated_at || Date.now()).getTime();
                 if (Number.isFinite(created) && Number.isFinite(updated) && updated >= created) {
                     totalTime += (updated - created);
                 }
@@ -2497,19 +2574,27 @@
             const avgTimeMs = approvedRequests.length ? totalTime / approvedRequests.length : 0;
             const avgMinutes = Math.floor(avgTimeMs / 60000);
 
-            document.getElementById('total-count').textContent = total;
-            document.getElementById('pending-count').textContent = pending;
-            document.getElementById('approved-count').textContent = approved;
-            document.getElementById('rejected-count').textContent = rejected;
-            document.getElementById('cancelledCount').textContent = cancelled;
-            document.getElementById('avgTime').textContent = `${avgMinutes} mins`;
-            document.getElementById('pendingRequestsSummary').textContent = pending;
-            document.getElementById('highPrioritySummary').textContent = highPriority;
-            document.getElementById('escalatedSummary').textContent = escalated;
-            document.getElementById('approvalRateSummary').textContent = `${approvalRate}%`;
+            const setElemText = (id, val) => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = String(val);
+            };
+
+            setElemText('total-count', total);
+            setElemText('pending-count', pending);
+            setElemText('approved-count', approved);
+            setElemText('rejected-count', rejected);
+            setElemText('cancelledCount', cancelled);
+            setElemText('avgTime', `${avgMinutes} mins`);
+            setElemText('pendingRequestsSummary', pending);
+            setElemText('highPrioritySummary', highPriority);
+            setElemText('escalatedSummary', escalated);
+            setElemText('approvalRateSummary', `${approvalRate}%`);
+
             updateNotifications(requests, 'admin');
 
             renderRequestsTable(requests);
+            renderDepartmentPerformance(requests);
+            renderApprovalFunnel(requests);
             updateStatusChart(pending, approved, rejected, cancelled);
             updateTrendChart(requests, demoMode);
             renderInsights(requests, demoMode, approvalRate);
@@ -2520,8 +2605,122 @@
             renderSummary(requests, (currentUser && currentUser.role) || 'Admin');
         }
 
-        function normalizeStatus(status) {
-            return String(status || '').trim().toLowerCase();
+        function renderDepartmentPerformance(requests) {
+            const container = document.querySelector('.performance-panel');
+            if (!container) return;
+
+            if (!Array.isArray(requests) || requests.length === 0) {
+                container.innerHTML = `
+                    <h3>Department Performance</h3>
+                    <div class="performance-item"><span class="performance-label">Accounts</span><span class="progress-value">0%</span><div class="progress-bar"><div class="progress-fill" style="width: 0%"></div></div></div>
+                    <div class="performance-item"><span class="performance-label">Manager</span><span class="progress-value">0%</span><div class="progress-bar"><div class="progress-fill" style="width: 0%"></div></div></div>
+                    <div class="performance-item"><span class="performance-label">CFO</span><span class="progress-value">0%</span><div class="progress-bar"><div class="progress-fill" style="width: 0%"></div></div></div>
+                    <div class="performance-item"><span class="performance-label">MD</span><span class="progress-value">0%</span><div class="progress-bar"><div class="progress-fill" style="width: 0%"></div></div></div>
+                `;
+                return;
+            }
+
+            const stats = {
+                Accounts: { reached: 0, approved: 0 },
+                Manager: { reached: 0, approved: 0 },
+                CFO: { reached: 0, approved: 0 },
+                MD: { reached: 0, approved: 0 }
+            };
+
+            requests.forEach(r => {
+                const status = String(r.status || '').toLowerCase();
+                const role = String(r.current_role || r.currentRole || '').toLowerCase();
+                const level = Number(r.current_level || r.currentLevel || 0);
+                const isApproved = status === 'approved' || status === 'completed' || role === 'completed';
+                const isRejected = status.includes('reject');
+
+                // Accounts (Level 0)
+                stats.Accounts.reached++;
+                if (level > 0 || isApproved || (isRejected && level > 0)) {
+                    stats.Accounts.approved++;
+                }
+
+                // Manager (Level 1)
+                if (level >= 1 || isApproved || role === 'manager' || role === 'cfo' || role === 'md') {
+                    stats.Manager.reached++;
+                    if (level > 1 || isApproved || (isRejected && level > 1)) {
+                        stats.Manager.approved++;
+                    }
+                }
+
+                // CFO (Level 2)
+                if (level >= 2 || isApproved || role === 'cfo' || role === 'md') {
+                    stats.CFO.reached++;
+                    if (level > 2 || isApproved || (isRejected && level > 2)) {
+                        stats.CFO.approved++;
+                    }
+                }
+
+                // MD (Level 3)
+                if (level >= 3 || isApproved || role === 'md') {
+                    stats.MD.reached++;
+                    if (isApproved || (isRejected && level > 3)) {
+                        stats.MD.approved++;
+                    }
+                }
+            });
+
+            const roles = ['Accounts', 'Manager', 'CFO', 'MD'];
+            const itemsHtml = roles.map(role => {
+                const reached = stats[role].reached;
+                const approved = stats[role].approved;
+                const pct = reached > 0 ? Math.round((approved / reached) * 100) : 0;
+                return `
+                    <div class="performance-item">
+                        <span class="performance-label">${role}</span>
+                        <span class="progress-value">${pct}%</span>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${pct}%"></div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            container.innerHTML = `
+                <h3>Department Performance</h3>
+                ${itemsHtml}
+            `;
+        }
+
+        function renderApprovalFunnel(requests) {
+            const container = document.querySelector('.funnel-panel');
+            if (!container) return;
+
+            const totalSubmitted = requests.length;
+            let managerCount = 0;
+            let cfoCount = 0;
+            let mdCount = 0;
+            let completedCount = 0;
+
+            requests.forEach(r => {
+                const history = Array.isArray(r.history) ? r.history : [];
+                const rolesReached = new Set(history.map(h => canonicalApproverRole(h.role || h.user || h.performed_by)));
+                const currentRole = canonicalApproverRole(r.current_role || r.currentRole);
+                const level = Number(r.current_level || r.currentLevel || 0);
+
+                if (rolesReached.has('Manager') || currentRole === 'Manager' || level >= 1) managerCount++;
+                if (rolesReached.has('CFO') || currentRole === 'CFO' || level >= 2) cfoCount++;
+                if (rolesReached.has('MD') || currentRole === 'MD' || level >= 3) mdCount++;
+                if (normalizeStatus(r.status, r) === 'approved') completedCount++;
+            });
+
+            container.innerHTML = `
+                <h3>Approval Funnel</h3>
+                <div class="funnel-step"><span class="step-label">Submitted</span><span class="step-value">${totalSubmitted}</span></div>
+                <div class="funnel-arrow">↓</div>
+                <div class="funnel-step"><span class="step-label">Manager Review</span><span class="step-value">${managerCount}</span></div>
+                <div class="funnel-arrow">↓</div>
+                <div class="funnel-step"><span class="step-label">CFO Review</span><span class="step-value">${cfoCount}</span></div>
+                <div class="funnel-arrow">↓</div>
+                <div class="funnel-step"><span class="step-label">MD Approval</span><span class="step-value">${mdCount}</span></div>
+                <div class="funnel-arrow">↓</div>
+                <div class="funnel-step"><span class="step-label">Completed</span><span class="step-value">${completedCount}</span></div>
+            `;
         }
 
         function canonicalApproverRole(roleValue) {
@@ -2569,15 +2768,20 @@
         }
 
         function checkEscalation(request) {
-            if (normalizeStatus(request.status) !== 'pending') return false;
+            if (normalizeStatus(request.status, request) !== 'pending') return false;
             if (!checkSLA(request)) return false;
             const workflow = Array.isArray(request.workflow) ? request.workflow : [];
             const cfoIndex = workflow.findIndex((role) => canonicalApproverRole(role) === 'CFO');
-            if (cfoIndex === -1 || Number(request.currentLevel || 0) >= cfoIndex) return false;
+            const currentLvl = Number(request.current_level ?? request.currentLevel ?? 0);
+            if (cfoIndex === -1 || currentLvl >= cfoIndex) return false;
+            
             request.currentLevel = cfoIndex;
+            request.current_level = cfoIndex;
             request.currentRole = 'CFO';
+            request.current_role = 'CFO';
             request.escalated = true;
             request.updatedAt = Date.now();
+            request.updated_at = new Date().toISOString();
             return true;
         }
 
@@ -2592,20 +2796,25 @@
                     { time: Date.now() - 1000 * 60 * 100, text: 'CFO approved Budget Request', icon: '💼' },
                     { time: Date.now() - 1000 * 60 * 150, text: 'MD approved Capital Request', icon: '🏢' }
                 ];
-
                 logs.push(...demoEntries);
             } else {
+                const seen = new Set();
                 requests.forEach((r) => {
+                    const reqTitle = r.title || r.type || `Request #${r.id || ''}`;
                     if (Array.isArray(r.history)) {
                         r.history.forEach((h) => {
                             const rawTime = Number(h.time || Date.now());
                             const actionLabel = String(h.action || h.status || 'updated');
                             let actor = String(h.user || h.role || 'System');
-                            logs.push({
-                                time: rawTime,
-                                text: `${actor} ${actionLabel}`,
-                                icon: actionLabel.toLowerCase().includes('approved') ? '✅' : actionLabel.toLowerCase().includes('rejected') ? '❌' : '🧾'
-                            });
+                            const timeKey = `${rawTime}_${actor}_${actionLabel}_${reqTitle}`;
+                            if (!seen.has(timeKey)) {
+                                seen.add(timeKey);
+                                logs.push({
+                                    time: rawTime,
+                                    text: `${actor} ${actionLabel} - ${reqTitle}`,
+                                    icon: actionLabel.toLowerCase().includes('approved') ? '✅' : actionLabel.toLowerCase().includes('rejected') ? '❌' : '🧾'
+                                });
+                            }
                         });
                     }
                 });
@@ -2723,12 +2932,12 @@
                     datasets: [{
                         data: [0, 0, 0, 0],
                         backgroundColor: [
-                            '#ff9800',
-                            '#4caf50',
-                            '#f44336',
-                            '#9e9e9e'
+                            '#f59e0b',
+                            '#10b981',
+                            '#ef4444',
+                            '#64748b'
                         ],
-                        borderColor: 'rgba(255, 255, 255, 0.1)',
+                        borderColor: '#ffffff',
                         borderWidth: 2
                     }]
                 },
@@ -2738,8 +2947,8 @@
                     plugins: {
                         legend: {
                             labels: {
-                                color: 'rgba(255, 255, 255, 0.9)',
-                                font: { size: 12, weight: '600' },
+                                color: '#1e293b',
+                                font: { size: 12, weight: '700' },
                                 padding: 15
                             }
                         }
@@ -2759,9 +2968,10 @@
                     datasets: [{
                         label: 'Requests',
                         data: [],
-                        backgroundColor: '#2196f3',
-                        borderColor: 'rgba(255, 255, 255, 0.1)',
-                        borderWidth: 1
+                        backgroundColor: '#2563eb',
+                        borderColor: '#1d4ed8',
+                        borderWidth: 1,
+                        borderRadius: 6
                     }]
                 },
                 options: {
@@ -2770,21 +2980,21 @@
                     plugins: {
                         legend: {
                             labels: {
-                                color: 'rgba(255, 255, 255, 0.9)',
-                                font: { size: 12, weight: '600' },
+                                color: '#1e293b',
+                                font: { size: 12, weight: '700' },
                                 padding: 15
                             }
                         }
                     },
                     scales: {
                         x: {
-                            ticks: { color: 'rgba(255, 255, 255, 0.8)', font: { size: 11 } },
-                            grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                            ticks: { color: '#475569', font: { size: 11, weight: '600' } },
+                            grid: { color: '#f1f5f9' }
                         },
                         y: {
                             beginAtZero: true,
-                            ticks: { color: 'rgba(255, 255, 255, 0.8)', font: { size: 11 } },
-                            grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                            ticks: { color: '#475569', font: { size: 11, weight: '600' } },
+                            grid: { color: '#e2e8f0' }
                         }
                     }
                 }
@@ -2795,6 +3005,16 @@
             if (!statusChartInstance) return;
             statusChartInstance.data.datasets[0].data = [pending, approved, rejected, cancelled];
             statusChartInstance.update();
+        }
+
+        function safeParseDate(val) {
+            if (!val) return new Date();
+            if (typeof val === 'number') return new Date(val);
+            const num = Number(val);
+            if (Number.isFinite(num) && num > 0) return new Date(num);
+            const parsed = new Date(val);
+            if (!isNaN(parsed.getTime())) return parsed;
+            return new Date();
         }
 
         function updateTrendChart(requests, demoMode = false) {
@@ -2816,7 +3036,8 @@
 
             const countsByDay = {};
             requests.forEach(r => {
-                const date = new Date(Number(r.createdAt || Date.now())).toLocaleDateString('en-US', {
+                const dt = safeParseDate(r.createdAt || r.created_at);
+                const date = dt.toLocaleDateString('en-US', {
                     month: 'short',
                     day: 'numeric'
                 });
@@ -2841,17 +3062,17 @@
             if (!Array.isArray(requests) || requests.length === 0) {
                 return {
                     mostRequested: 'N/A',
+                    mostActiveDepartment: 'N/A',
                     approvalRate: 0,
-                    avgAmount: 0,
-                    fastest: 'N/A',
-                    slowest: 'N/A'
+                    avgApprovalTime: 0,
+                    pendingCFOReviews: 0,
+                    pendingMDReviews: 0
                 };
             }
 
-            // Most requested type
             const typeCount = {};
             requests.forEach(r => {
-                const type = String(r.type || 'Unknown').trim();
+                const type = String(r.type || r.title || 'Unknown').trim();
                 typeCount[type] = (typeCount[type] || 0) + 1;
             });
 
@@ -2871,25 +3092,25 @@
 
             const mostActiveDepartment = Object.keys(deptCount).length > 0
                 ? Object.keys(deptCount).reduce((a, b) => deptCount[a] > deptCount[b] ? a : b, 'N/A')
-                : 'N/A';
+                : 'Manager';
 
-            const approved = requests.filter(r => normalizeStatus(r.status) === 'approved').length;
             const total = requests.length;
+            const approved = requests.filter(r => normalizeStatus(r.status, r) === 'approved').length;
             const approvalRate = total > 0 ? Math.round((approved / total) * 100) : 0;
 
-            const approvedRequests = requests.filter((r) => normalizeStatus(r.status) === 'approved' && r.createdAt && r.updatedAt);
+            const approvedRequests = requests.filter((r) => normalizeStatus(r.status, r) === 'approved' && (r.createdAt || r.created_at));
             let totalTime = 0;
             approvedRequests.forEach((r) => {
-                const created = new Date(r.createdAt).getTime();
-                const updated = new Date(r.updatedAt).getTime();
+                const created = safeParseDate(r.createdAt || r.created_at).getTime();
+                const updated = safeParseDate(r.updatedAt || r.updated_at || Date.now()).getTime();
                 if (Number.isFinite(created) && Number.isFinite(updated) && updated >= created) {
                     totalTime += (updated - created);
                 }
             });
 
             const avgApprovalTime = approvedRequests.length ? Math.round((totalTime / approvedRequests.length) / 60000) : 0;
-            const pendingCFOReviews = requests.filter((r) => normalizeStatus(r.status) === 'pending' && getRequestCurrentRole(r) === 'CFO').length;
-            const pendingMDReviews = requests.filter((r) => normalizeStatus(r.status) === 'pending' && getRequestCurrentRole(r) === 'MD').length;
+            const pendingCFOReviews = requests.filter((r) => normalizeStatus(r.status, r) === 'pending' && getRequestCurrentRole(r) === 'CFO').length;
+            const pendingMDReviews = requests.filter((r) => normalizeStatus(r.status, r) === 'pending' && getRequestCurrentRole(r) === 'MD').length;
 
             return {
                 mostRequested,
@@ -2923,13 +3144,68 @@
             `;
         }
 
+        let currentTableFilter = 'all';
+
+        function filterRequestsTable(filterName) {
+            currentTableFilter = filterName;
+            document.querySelectorAll('.filter-chip').forEach(btn => {
+                if (btn.getAttribute('data-filter') === filterName) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+            renderRequestsTable(readRequestsFromLocalStorage());
+        }
+
+        function updateFilterCounts(requests) {
+            const counts = {
+                all: requests.length,
+                pending: requests.filter(r => normalizeStatus(r.status, r) === 'pending').length,
+                approved: requests.filter(r => normalizeStatus(r.status, r) === 'approved').length,
+                rejected: requests.filter(r => normalizeStatus(r.status, r) === 'rejected').length,
+                cancelled: requests.filter(r => normalizeStatus(r.status, r) === 'cancelled').length
+            };
+
+            ['all', 'pending', 'approved', 'rejected', 'cancelled'].forEach(k => {
+                const el = document.getElementById(`filter-count-${k}`);
+                if (el) el.textContent = String(counts[k]);
+            });
+        }
+
+        function formatWorkflowChain(wf) {
+            let rawList = [];
+            if (Array.isArray(wf)) {
+                rawList = wf;
+            } else if (typeof wf === 'string') {
+                try { rawList = JSON.parse(wf); } catch(e) { rawList = []; }
+            }
+            const cleanList = (Array.isArray(rawList) ? rawList : []).filter(item => {
+                const s = String(item || '').trim().toLowerCase();
+                return s !== 'employee' && s !== 'completed' && s !== 'user';
+            });
+            if (!cleanList.length) return 'Accounts -> Manager -> CFO -> MD';
+            return cleanList.map(escapeHtml).join(' -> ');
+        }
+
         function renderRequestsTable(requests) {
             const container = document.getElementById('requests-container');
             if (!container) return;
-            if (!requests.length) {
-                container.innerHTML = '<div class="empty">No requests yet</div>';
+
+            updateFilterCounts(requests);
+
+            const filteredRequests = (currentTableFilter === 'all')
+                ? requests
+                : requests.filter(r => normalizeStatus(r.status, r) === currentTableFilter);
+
+            if (!filteredRequests.length) {
+                container.innerHTML = `<div class="empty">No ${currentTableFilter === 'all' ? '' : currentTableFilter} requests found</div>`;
                 return;
             }
+
+            const levelHeader = (currentTableFilter === 'rejected')
+                ? 'Rejected By'
+                : (currentTableFilter === 'pending' ? 'Current Level' : (currentTableFilter === 'approved' ? 'Stage' : 'Current Level / Rejected By'));
 
             container.innerHTML = `
                 <div class="requests-table-wrapper">
@@ -2939,60 +3215,103 @@
                             <th>Title</th>
                             <th>Amount</th>
                             <th>Workflow</th>
-                            <th>Current Level</th>
+                            <th>${levelHeader}</th>
                             <th>Status</th>
                             <th>Last Action</th>
                             <th>Updated</th>
                         </tr>
                     </thead>
                     <tbody>
-                        ${requests.map((req) => {
-                const current = getCurrentLevelName(req);
-                const status = normalizeStatus(req.status);
-                const last = Array.isArray(req.history) && req.history.length ? req.history[req.history.length - 1] : null;
-                const overdueTag = checkSLA(req) ? ' | Overdue' : '';
-                const escalatedTag = req.escalated ? ' | Escalated' : '';
-                return `
+                        ${filteredRequests.map((req) => {
+                            const current = getCurrentLevelName(req);
+                            const statusCategory = normalizeStatus(req.status, req);
+                            const last = Array.isArray(req.history) && req.history.length ? req.history[req.history.length - 1] : null;
+                            const overdueTag = checkSLA(req) ? ' | Overdue' : '';
+                            const escalatedTag = req.escalated ? ' | Escalated' : '';
+                            const workflowStr = formatWorkflowChain(req.workflow);
+
+                            let lastActionText = 'No action yet';
+                            if (last) {
+                                const actor = escapeHtml(last.role || last.user || 'System');
+                                const act = escapeHtml(String(last.status || last.action || '').toLowerCase());
+                                lastActionText = `${actor} ${act}`;
+                            } else if (statusCategory === 'approved') {
+                                lastActionText = 'Approved';
+                            } else if (statusCategory === 'rejected') {
+                                const rejRole = getRejectingRole(req);
+                                lastActionText = `Rejected by ${rejRole}`;
+                            } else if (req.escalated) {
+                                lastActionText = 'System escalated to CFO';
+                            }
+
+                            return `
                                 <tr>
-                                    <td>${escapeHtml(req.title || '-')}</td>
+                                    <td><strong>${escapeHtml(req.title || req.type || '-')}</strong></td>
                                     <td>${formatCurrency(req.amount || 0)}</td>
-                                    <td>${(req.workflow || []).map(escapeHtml).join(' -> ')}</td>
-                                    <td>${escapeHtml(current)}</td>
-                                    <td><span class="badge badge-${status}">${status}</span>${overdueTag ? ` <span class="overdue">⚠ Overdue</span>` : ''}${escalatedTag ? ` <span class="escalated">🚨 Escalated</span>` : ''}</td>
-                                    <td>${last ? `${escapeHtml(last.role || last.user || 'System')} ${escapeHtml(String(last.status || last.action || '').toLowerCase())}` : 'No action yet'}</td>
-                                    <td>${timeAgo(req.updatedAt || req.createdAt)}</td>
+                                    <td>${workflowStr}</td>
+                                    <td><span class="badge" style="background: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; font-weight: 700;">${escapeHtml(current)}</span></td>
+                                    <td>
+                                        <span class="badge badge-${statusCategory}">${statusCategory.toUpperCase()}</span>
+                                        ${overdueTag ? ` <span class="overdue" style="color: #d97706; font-size: 11px; font-weight: 700;">⚠ Overdue</span>` : ''}
+                                        ${escalatedTag ? ` <span class="escalated" style="color: #ef4444; font-size: 11px; font-weight: 700;">🚨 Escalated</span>` : ''}
+                                    </td>
+                                    <td>${lastActionText}</td>
+                                    <td>${timeAgo(req.updatedAt || req.createdAt || req.updated_at || req.created_at)}</td>
                                 </tr>
                             `;
-            }).join('')}
+                        }).join('')}
                     </tbody>
                 </table>
             </div>
             `;
         }
 
-        function exportCSV() {
-            const requests = readRequestsFromLocalStorage();
-            let csv = 'Title,Status,Amount\n';
-            requests.forEach((r) => {
-                csv += `${String(r.title || '').replace(/,/g, ' ')},${String(r.status || '')},${Number(r.amount || 0)}\n`;
-            });
+        function getRejectingRole(request) {
+            if (Array.isArray(request.history) && request.history.length > 0) {
+                const rejectEntry = [...request.history].reverse().find(h => {
+                    const act = String(h.action || h.status || h.decision || '').toLowerCase();
+                    return act.includes('reject') || act.includes('denied');
+                });
+                if (rejectEntry) {
+                    const role = canonicalApproverRole(rejectEntry.role || rejectEntry.user || rejectEntry.performed_by || rejectEntry.by);
+                    if (role && role !== 'Employee') return role;
+                }
+            }
 
-            const blob = new Blob([csv], { type: 'text/csv' });
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = 'requests.csv';
-            a.click();
-            URL.revokeObjectURL(a.href);
+            if (request.rejected_by || request.rejectedBy) {
+                const role = canonicalApproverRole(request.rejected_by || request.rejectedBy);
+                if (role && role !== 'Employee') return role;
+            }
+
+            const role = String(request.current_role || request.currentRole || '').trim();
+            if (role && role.toLowerCase() !== 'completed' && role.toLowerCase() !== 'employee' && role.toLowerCase() !== 'rejected') {
+                return canonicalApproverRole(role);
+            }
+
+            const idx = Number(request.current_level ?? request.currentLevel ?? 0);
+            const levels = Array.isArray(request.workflow)
+                ? request.workflow.filter(w => String(w).toLowerCase() !== 'employee' && String(w).toLowerCase() !== 'completed')
+                : ['Accounts', 'Manager', 'CFO', 'MD'];
+
+            return canonicalApproverRole(levels[Math.min(idx, levels.length - 1)] || 'Accounts');
         }
 
         function getCurrentLevelName(request) {
-            const status = normalizeStatus(request.status);
+            const status = normalizeStatus(request.status, request);
             if (status === 'approved') return 'Completed';
-            if (status === 'rejected') return 'Rejected';
+            if (status === 'rejected') return getRejectingRole(request);
             if (status === 'cancelled') return 'Cancelled';
-            const idx = Number(request.currentLevel || 0);
-            const levels = Array.isArray(request.workflow) ? request.workflow : [];
-            return levels[idx] || 'N/A';
+
+            const idx = Number(request.current_level ?? request.currentLevel ?? 0);
+            const roleStr = String(request.current_role || request.currentRole || '').trim();
+            if (roleStr && roleStr.toLowerCase() !== 'completed' && roleStr.toLowerCase() !== 'employee' && roleStr.toLowerCase() !== 'rejected') {
+                return canonicalApproverRole(roleStr);
+            }
+            const levels = Array.isArray(request.workflow)
+                ? request.workflow.filter(w => String(w).toLowerCase() !== 'employee' && String(w).toLowerCase() !== 'completed')
+                : ['Accounts', 'Manager', 'CFO', 'MD'];
+
+            return canonicalApproverRole(levels[Math.min(idx, levels.length - 1)] || 'Accounts');
         }
 
         function formatCurrency(amount) {

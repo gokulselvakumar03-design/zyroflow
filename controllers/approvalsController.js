@@ -86,7 +86,7 @@ async function updateRequestStatus(conn, requestId) {
 exports.approve = async (req, res, next) => {
   let conn;
   try {
-    const role = req.user ? req.user.role : (req.body?.role || 'Accounts');
+    const role = req.body?.role || (req.user ? req.user.role : 'Accounts');
     const { request_id, requestId, comments } = req.body || {};
     const id = Number(request_id || requestId || req.params.id);
     if (!id || !Number.isInteger(id)) return res.status(400).json({ success: false, message: 'Valid request_id required' });
@@ -96,7 +96,8 @@ exports.approve = async (req, res, next) => {
 
     const [requestRows] = await conn.execute('SELECT status, payment_verified, current_role, requester_email FROM workflow_requests WHERE id = ? FOR UPDATE', [id]);
     const request = requestRows[0];
-    if (!request || request.status === 'rejected' || request.status === 'approved') {
+    const currentStatus = String(request ? request.status : '').toLowerCase().trim();
+    if (!request || currentStatus === 'rejected' || currentStatus === 'approved') {
       await conn.rollback();
       return res.status(400).json({ success: false, message: 'Request cannot be approved' });
     }
@@ -114,13 +115,45 @@ exports.approve = async (req, res, next) => {
       current = anyRows[0];
     }
 
+    const lowerRole = String(role).toLowerCase().trim();
+
     if (!current) {
-      await conn.rollback();
-      return res.status(403).json({ success: false, message: 'No matching pending approval for you' });
+      let nextRole = lowerRole === 'cfo' ? 'MD' : lowerRole === 'manager' ? 'CFO' : lowerRole === 'accounts' ? 'Manager' : 'Completed';
+      let nextLevel = lowerRole === 'cfo' ? 3 : lowerRole === 'manager' ? 2 : lowerRole === 'accounts' ? 1 : 4;
+      let statusText = nextRole === 'Completed' ? 'Approved' : `Pending ${nextRole} Approval`;
+
+      await conn.execute(
+        'UPDATE workflow_requests SET status = ?, approval_stage = ?, current_role = ?, current_approver = ?, current_level = ? WHERE id = ?',
+        [statusText, nextRole, nextRole, nextRole, nextLevel, id]
+      );
+      await conn.execute(
+        `INSERT INTO request_history (request_id, action, performed_by) VALUES (?, ?, ?)`,
+        [id, comments ? `APPROVED by ${role}: ${comments}` : `APPROVED by ${role}`, req.user ? (req.user.name || req.user.email) : role]
+      );
+
+      const performer = req.user ? (req.user.name || req.user.email) : role;
+      await recordApprovalHistory(conn, {
+        request_id: id,
+        action: 'Approved',
+        decision: 'Approved',
+        manager_name: performer,
+        role: role,
+        comments: comments || null
+      });
+
+      if (request.requester_email && (lowerRole === 'md' || nextRole === 'Completed')) {
+        await conn.execute(
+          `INSERT INTO notifications (user_email, user_role, request_id, title, message, type) VALUES (?, 'employee', ?, 'Request Approved', 'Congratulations. Your request has been approved by MD.', 'success')`,
+          [request.requester_email, id]
+        ).catch(() => {});
+      }
+
+      await conn.commit();
+      return res.json({ success: true, message: `Request approved successfully.` });
     }
 
     // Modify ONLY Accounts approval: Check payment_verified before moving to Manager
-    const isAccountsRole = String(role).toLowerCase() === 'accounts' || String(current.approver_role || request.current_role).toLowerCase() === 'accounts';
+    const isAccountsRole = lowerRole === 'accounts' || String(current.approver_role || request.current_role).toLowerCase() === 'accounts';
     if (isAccountsRole) {
       const isVerified = Number(request.payment_verified ?? 0) === 1;
       if (!isVerified) {
@@ -161,12 +194,12 @@ exports.approve = async (req, res, next) => {
     await recordApprovalHistory(conn, {
       request_id: id,
       action: 'Approved',
+      decision: 'Approved',
       manager_name: performer,
       role: role,
-      comments: comments
+      comments: comments || null
     });
 
-    const lowerRole = String(role).toLowerCase().trim();
     const empEmail = request.requester_email;
 
     // Send notifications based on approver role
@@ -213,7 +246,7 @@ exports.approve = async (req, res, next) => {
     }
 
     await conn.commit();
-    res.json({ success: true, message: 'Approved successfully' });
+    res.json({ success: true, message: 'Request approved successfully.' });
   } catch (err) {
     if (conn) await conn.rollback();
     console.error('Approve error in approvalsController:', err);
@@ -226,17 +259,23 @@ exports.approve = async (req, res, next) => {
 exports.reject = async (req, res, next) => {
   let conn;
   try {
-    const role = req.user ? req.user.role : (req.body?.role || 'Accounts');
+    const role = req.body?.role || (req.user ? req.user.role : 'Accounts');
     const { request_id, requestId, comments } = req.body || {};
     const id = Number(request_id || requestId || req.params.id);
     if (!id || !Number.isInteger(id)) return res.status(400).json({ success: false, message: 'Valid request_id required' });
+
+    const reasonStr = comments ? String(comments).trim() : '';
+    if (!reasonStr) {
+      return res.status(400).json({ success: false, message: 'Rejection reason is required.' });
+    }
 
     conn = await pool.getConnection();
     await conn.beginTransaction();
 
     const [requestRows] = await conn.execute('SELECT status, requester_email FROM workflow_requests WHERE id = ? FOR UPDATE', [id]);
     const request = requestRows[0];
-    if (!request || request.status === 'rejected' || request.status === 'approved') {
+    const currentStatus = String(request ? request.status : '').toLowerCase().trim();
+    if (!request || currentStatus === 'rejected' || currentStatus === 'approved') {
       await conn.rollback();
       return res.status(400).json({ success: false, message: 'Request cannot be rejected' });
     }
@@ -256,7 +295,7 @@ exports.reject = async (req, res, next) => {
 
     if (current) {
       try {
-        await conn.execute('UPDATE approvals SET status = ?, comments = ? WHERE id = ?', ['rejected', comments || null, current.id]);
+        await conn.execute('UPDATE approvals SET status = ?, comments = ? WHERE id = ?', ['rejected', reasonStr, current.id]);
       } catch (e) {
         await conn.execute('UPDATE approvals SET status = ? WHERE id = ?', ['rejected', current.id]);
       }
@@ -268,7 +307,7 @@ exports.reject = async (req, res, next) => {
 
     // Record action in request_history and approval_history
     const performer = req.user ? (req.user.name || req.user.email) : role;
-    const actionText = comments ? `REJECTED by ${role}: ${comments}` : `REJECTED by ${role}`;
+    const actionText = `REJECTED by ${role}: ${reasonStr}`;
     await conn.execute(
       `INSERT INTO request_history (request_id, action, performed_by) VALUES (?, ?, ?)`,
       [id, actionText, performer]
@@ -277,21 +316,22 @@ exports.reject = async (req, res, next) => {
     await recordApprovalHistory(conn, {
       request_id: id,
       action: 'Rejected',
+      decision: 'Rejected',
       manager_name: performer,
       role: role,
-      comments: comments
+      comments: reasonStr
     });
 
     // Notification for Employee: Request rejected by [Role]
     if (request && request.requester_email) {
       await conn.execute(
         `INSERT INTO notifications (user_email, user_role, request_id, title, message, type) VALUES (?, 'employee', ?, 'Request Rejected', ?, 'error')`,
-        [request.requester_email, id, `Request rejected by ${role}`]
+        [request.requester_email, id, `Request rejected by ${role}: ${reasonStr}`]
       ).catch(() => {});
     }
 
     await conn.commit();
-    res.json({ success: true, message: 'Rejected successfully' });
+    res.json({ success: true, message: 'Request rejected successfully.' });
   } catch (err) {
     if (conn) await conn.rollback();
     console.error('Reject error in approvalsController:', err);
@@ -300,3 +340,59 @@ exports.reject = async (req, res, next) => {
     if (conn) conn.release();
   }
 };
+
+exports.escalate = async (req, res, next) => {
+  let conn;
+  try {
+    const role = req.user ? req.user.role : (req.body?.role || 'CFO');
+    const { request_id, requestId, comments } = req.body || {};
+    const id = Number(request_id || requestId || req.params.id);
+    if (!id || !Number.isInteger(id)) return res.status(400).json({ success: false, message: 'Valid request_id required' });
+
+    conn = await pool.getConnection();
+    await conn.beginTransaction();
+
+    const [requestRows] = await conn.execute('SELECT status, requester_email FROM workflow_requests WHERE id = ? FOR UPDATE', [id]);
+    const request = requestRows[0];
+    if (!request) {
+      await conn.rollback();
+      return res.status(404).json({ success: false, message: 'Request not found' });
+    }
+
+    const performer = req.user ? (req.user.name || req.user.email) : role;
+    const actionText = comments ? `ESCALATED to MD by ${role}: ${comments}` : `ESCALATED to MD by ${role}`;
+
+    await conn.execute(
+      "UPDATE workflow_requests SET status = 'Escalated to MD', approval_stage = 'MD', current_role = 'MD', current_approver = 'MD', current_level = 3 WHERE id = ?",
+      [id]
+    );
+
+    await conn.execute(
+      `INSERT INTO request_history (request_id, action, performed_by) VALUES (?, ?, ?)`,
+      [id, actionText, performer]
+    );
+
+    await recordApprovalHistory(conn, {
+      request_id: id,
+      action: 'Escalated',
+      manager_name: performer,
+      role: role,
+      comments: comments || 'Escalated to MD for executive review'
+    });
+
+    await conn.execute(
+      `INSERT INTO notifications (user_role, request_id, title, message, type) VALUES ('md', ?, 'Escalated Request', 'Request escalated to MD for executive review.', 'warning')`,
+      [id]
+    ).catch(() => {});
+
+    await conn.commit();
+    res.json({ success: true, message: 'Request escalated to MD successfully' });
+  } catch (err) {
+    if (conn) await conn.rollback();
+    console.error('Escalate error in approvalsController:', err);
+    next(err);
+  } finally {
+    if (conn) conn.release();
+  }
+};
+

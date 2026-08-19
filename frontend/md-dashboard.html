@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,7 +15,7 @@
             --bg: #050B18;
             --panel: rgba(14, 27, 48, 0.88);
             --panel-soft: rgba(22, 38, 66, 0.72);
-            --border: rgba(255,255,255,0.08);
+            --border: rgba(255, 255, 255, 0.08);
             --accent: #52D0FF;
             --accent-strong: #7C3AED;
             --success: #22C55E;
@@ -23,6 +24,208 @@
             --text: #E2E8F0;
             --subtext: rgba(226, 232, 240, 0.72);
             --glass: rgba(19, 40, 74, 0.78);
+        }
+
+        .trendy-review-btn {
+            background: linear-gradient(135deg, #0284c7 0%, #38bdf8 100%);
+            color: #ffffff !important;
+            font-weight: 700;
+            font-size: 0.82rem;
+            letter-spacing: 0.5px;
+            border: 1px solid rgba(186, 230, 253, 0.4);
+            border-radius: 10px;
+            padding: 8px 16px;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 14px rgba(14, 165, 233, 0.35);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            text-transform: uppercase;
+        }
+        .trendy-review-btn:hover {
+            transform: translateY(-2px) scale(1.04);
+            background: linear-gradient(135deg, #0369a1 0%, #0284c7 100%);
+            box-shadow: 0 8px 22px rgba(56, 189, 248, 0.55);
+            border-color: rgba(255, 255, 255, 0.8);
+        }
+        .trendy-review-btn:active {
+            transform: translateY(0) scale(0.97);
+        }
+
+        /* MD Executive Right Side Drawer - Single Page Compact Design */
+        .md-drawer-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(5, 11, 24, 0.75);
+            backdrop-filter: blur(8px);
+            z-index: 10000;
+            display: flex;
+            justify-content: flex-end;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .md-drawer-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .md-drawer-card {
+            background: linear-gradient(180deg, #0b172a 0%, #0f1e36 100%);
+            border-left: 1px solid rgba(56, 189, 248, 0.3);
+            border-radius: 20px 0 0 20px;
+            width: 100%;
+            max-width: 460px;
+            height: 100vh;
+            max-height: 100vh;
+            box-shadow: -16px 0 50px rgba(0, 0, 0, 0.6);
+            display: flex;
+            flex-direction: column;
+            transform: translateX(100%);
+            transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+            overflow: hidden;
+            color: #f8fafc;
+            font-family: inherit;
+        }
+
+        .md-drawer-overlay.active .md-drawer-card {
+            transform: translateX(0);
+        }
+
+        .md-drawer-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(15, 23, 42, 0.6);
+            flex-shrink: 0;
+        }
+
+        .md-drawer-title {
+            margin: 0;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #38bdf8;
+            letter-spacing: -0.3px;
+        }
+
+        .md-drawer-close {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: #94a3b8;
+            font-size: 1.2rem;
+            line-height: 1;
+            cursor: pointer;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .md-drawer-close:hover {
+            color: #ef4444;
+            background: rgba(239, 68, 68, 0.15);
+            border-color: rgba(239, 68, 68, 0.4);
+        }
+
+        .md-drawer-body {
+            padding: 14px 18px;
+            overflow-y: auto;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .md-drawer-info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px 12px;
+            background: rgba(15, 23, 42, 0.7);
+            padding: 12px 14px;
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .md-info-item {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .md-info-label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+
+        .md-info-val {
+            font-size: 0.86rem;
+            font-weight: 600;
+            color: #f1f5f9;
+        }
+
+        .md-action-btn-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 4px;
+        }
+
+        .md-drawer-btn {
+            width: 100%;
+            padding: 10px 16px;
+            min-height: 40px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 0.88rem;
+            cursor: pointer;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .md-btn-approve {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: #ffffff;
+            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+        }
+        .md-btn-approve:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 18px rgba(16, 185, 129, 0.45);
+        }
+
+        .md-btn-reject {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: #ffffff;
+            box-shadow: 0 4px 14px rgba(239, 68, 68, 0.35);
+        }
+        .md-btn-reject:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 18px rgba(239, 68, 68, 0.45);
+        }
+
+        .md-btn-cancel {
+            background: rgba(255, 255, 255, 0.06);
+            color: #94a3b8;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: none;
+        }
+        .md-btn-cancel:hover {
+            background: rgba(255, 255, 255, 0.12);
+            color: #f8fafc;
         }
 
         * {
@@ -35,8 +238,8 @@
             min-height: 100vh;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: radial-gradient(circle at top left, rgba(82, 208, 255, 0.16), transparent 18%),
-                        radial-gradient(circle at top right, rgba(124, 58, 237, 0.16), transparent 20%),
-                        linear-gradient(180deg, #061020 0%, #050A15 100%);
+                radial-gradient(circle at top right, rgba(124, 58, 237, 0.16), transparent 20%),
+                linear-gradient(180deg, #061020 0%, #050A15 100%);
             color: var(--text);
         }
 
@@ -44,9 +247,9 @@
             content: '';
             position: fixed;
             inset: 0;
-            background: radial-gradient(circle at 10% 20%, rgba(82,208,255,0.14), transparent 15%),
-                        radial-gradient(circle at 80% 10%, rgba(124,58,237,0.12), transparent 14%),
-                        radial-gradient(circle at 85% 80%, rgba(251,113,133,0.10), transparent 18%);
+            background: radial-gradient(circle at 10% 20%, rgba(82, 208, 255, 0.14), transparent 15%),
+                radial-gradient(circle at 80% 10%, rgba(124, 58, 237, 0.12), transparent 14%),
+                radial-gradient(circle at 85% 80%, rgba(251, 113, 133, 0.10), transparent 18%);
             pointer-events: none;
             z-index: 0;
         }
@@ -88,8 +291,8 @@
             width: 44px;
             height: 44px;
             border-radius: 12px;
-            border: 1px solid rgba(255,255,255,0.12);
-            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            background: rgba(255, 255, 255, 0.06);
             color: var(--text);
             cursor: pointer;
             display: flex;
@@ -100,8 +303,8 @@
         }
 
         .header-icon-btn:hover {
-            background: rgba(255,255,255,0.12);
-            border-color: rgba(255,255,255,0.18);
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(255, 255, 255, 0.18);
         }
 
         .header-welcome {
@@ -127,7 +330,7 @@
             width: 58px;
             height: 58px;
             border-radius: 18px;
-            background: linear-gradient(135deg, rgba(82,208,255,0.18), rgba(124,58,237,0.2));
+            background: linear-gradient(135deg, rgba(82, 208, 255, 0.18), rgba(124, 58, 237, 0.2));
             display: grid;
             place-items: center;
             border: 1px solid var(--border);
@@ -166,8 +369,8 @@
         .pill {
             border-radius: 999px;
             padding: 12px 18px;
-            border: 1px solid rgba(255,255,255,0.08);
-            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.06);
             color: var(--text);
             font-size: 0.94rem;
             display: inline-flex;
@@ -177,8 +380,8 @@
         }
 
         .pill.accent {
-            background: linear-gradient(135deg, rgba(82,208,255,0.16), rgba(124,58,237,0.16));
-            border-color: rgba(82,208,255,0.18);
+            background: linear-gradient(135deg, rgba(82, 208, 255, 0.16), rgba(124, 58, 237, 0.16));
+            border-color: rgba(82, 208, 255, 0.18);
         }
 
         .pill span {
@@ -214,7 +417,7 @@
             background: var(--panel);
             border: 1px solid var(--border);
             border-radius: 28px;
-            box-shadow: 0 28px 80px rgba(0,0,0,0.22);
+            box-shadow: 0 28px 80px rgba(0, 0, 0, 0.22);
             backdrop-filter: blur(24px);
             padding: 26px;
             overflow: hidden;
@@ -225,7 +428,7 @@
             position: absolute;
             inset: 0;
             pointer-events: none;
-            background: linear-gradient(180deg, rgba(255,255,255,0.08), transparent 40%);
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent 40%);
             border-radius: inherit;
         }
 
@@ -259,9 +462,9 @@
             border-radius: 22px;
             padding: 22px;
             min-height: 132px;
-            background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
-            border: 1px solid rgba(255,255,255,0.08);
-            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02);
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03));
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02);
             display: flex;
             flex-direction: column;
             justify-content: space-between;
@@ -321,8 +524,8 @@
         }
 
         .action-card {
-            background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
-            border: 1px solid rgba(255,255,255,0.08);
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
+            border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 24px;
             padding: 22px;
             display: flex;
@@ -357,22 +560,22 @@
         .primary-button {
             background: linear-gradient(135deg, var(--accent), #7C3AED);
             color: #050B18;
-            box-shadow: 0 18px 32px rgba(82,208,255,0.18);
+            box-shadow: 0 18px 32px rgba(82, 208, 255, 0.18);
         }
 
         .primary-button:hover {
             transform: translateY(-1px);
-            box-shadow: 0 20px 40px rgba(82,208,255,0.24);
+            box-shadow: 0 20px 40px rgba(82, 208, 255, 0.24);
         }
 
         .secondary-button {
-            background: rgba(255,255,255,0.08);
+            background: rgba(255, 255, 255, 0.08);
             color: var(--text);
-            border: 1px solid rgba(255,255,255,0.12);
+            border: 1px solid rgba(255, 255, 255, 0.12);
         }
 
         .secondary-button:hover {
-            background: rgba(255,255,255,0.12);
+            background: rgba(255, 255, 255, 0.12);
         }
 
         .board-row {
@@ -383,10 +586,10 @@
 
         .queue-card {
             background: var(--glass);
-            border: 1px solid rgba(255,255,255,0.08);
+            border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 28px;
             padding: 26px;
-            box-shadow: 0 22px 64px rgba(0,0,0,0.22);
+            box-shadow: 0 22px 64px rgba(0, 0, 0, 0.22);
             display: flex;
             flex-direction: column;
             gap: 20px;
@@ -397,7 +600,7 @@
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
             scrollbar-width: thin;
-            scrollbar-color: rgba(255,255,255,0.12) transparent;
+            scrollbar-color: rgba(255, 255, 255, 0.12) transparent;
         }
 
         .queue-wrapper::-webkit-scrollbar {
@@ -409,7 +612,7 @@
         }
 
         .queue-wrapper::-webkit-scrollbar-thumb {
-            background: rgba(255,255,255,0.12);
+            background: rgba(255, 255, 255, 0.12);
             border-radius: 999px;
         }
 
@@ -429,12 +632,12 @@
             letter-spacing: 0.08em;
             text-transform: uppercase;
             white-space: nowrap;
-            border-bottom: 1px solid rgba(255,255,255,0.08);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
         }
 
         .queue-table tbody tr {
             border-top: none;
-            border-bottom: 1px solid rgba(255,255,255,0.06);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
             transition: background 0.2s ease;
         }
 
@@ -446,7 +649,7 @@
         }
 
         .queue-table tbody tr:hover {
-            background: rgba(255,255,255,0.04);
+            background: rgba(255, 255, 255, 0.04);
         }
 
         .status-chip {
@@ -459,11 +662,30 @@
             font-weight: 700;
         }
 
-        .status-chip.Pending { background: rgba(251, 191, 36, 0.14); color: #FBBF24; }
-        .status-chip.Escalated { background: rgba(251, 113, 133, 0.14); color: #FB7185; }
-        .status-chip.Approved { background: rgba(34, 197, 94, 0.14); color: #22C55E; }
-        .status-chip.CFOForwarded { background: rgba(82, 208, 255, 0.14); color: #52D0FF; }
-        .status-chip.Strategic { background: rgba(124, 58, 237, 0.14); color: #C4B5FD; }
+        .status-chip.Pending {
+            background: rgba(251, 191, 36, 0.14);
+            color: #FBBF24;
+        }
+
+        .status-chip.Escalated {
+            background: rgba(251, 113, 133, 0.14);
+            color: #FB7185;
+        }
+
+        .status-chip.Approved {
+            background: rgba(34, 197, 94, 0.14);
+            color: #22C55E;
+        }
+
+        .status-chip.CFOForwarded {
+            background: rgba(82, 208, 255, 0.14);
+            color: #52D0FF;
+        }
+
+        .status-chip.Strategic {
+            background: rgba(124, 58, 237, 0.14);
+            color: #C4B5FD;
+        }
 
         .risk-pill {
             padding: 8px 12px;
@@ -472,9 +694,20 @@
             font-weight: 700;
         }
 
-        .risk-pill.Low { background: rgba(34,197,94,0.14); color: #22C55E; }
-        .risk-pill.Medium { background: rgba(251,191,36,0.14); color: #FBBF24; }
-        .risk-pill.High { background: rgba(251,113,133,0.14); color: #FB7185; }
+        .risk-pill.Low {
+            background: rgba(34, 197, 94, 0.14);
+            color: #22C55E;
+        }
+
+        .risk-pill.Medium {
+            background: rgba(251, 191, 36, 0.14);
+            color: #FBBF24;
+        }
+
+        .risk-pill.High {
+            background: rgba(251, 113, 133, 0.14);
+            color: #FB7185;
+        }
 
         .analytics-grid {
             display: grid;
@@ -491,8 +724,8 @@
         .chart-card {
             padding: 24px;
             border-radius: 24px;
-            background: linear-gradient(180deg, rgba(255,255,255,0.07), rgba(255,255,255,0.03));
-            border: 1px solid rgba(255,255,255,0.08);
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.03));
+            border: 1px solid rgba(255, 255, 255, 0.08);
             display: flex;
             flex-direction: column;
             gap: 16px;
@@ -527,7 +760,7 @@
             padding: 22px;
             border-radius: 24px;
             background: rgba(6, 11, 24, 0.95);
-            border: 1px solid rgba(255,255,255,0.06);
+            border: 1px solid rgba(255, 255, 255, 0.06);
             min-height: auto;
             display: flex;
             flex-direction: column;
@@ -560,8 +793,8 @@
         }
 
         .summary-card-md {
-            background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
-            border: 1px solid rgba(255,255,255,0.08);
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03));
+            border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 24px;
             padding: 22px;
             min-height: 170px;
@@ -592,14 +825,14 @@
             flex: 1;
             height: 10px;
             border-radius: 999px;
-            background: rgba(255,255,255,0.08);
+            background: rgba(255, 255, 255, 0.08);
             overflow: hidden;
         }
 
         .progress-fill {
             height: 100%;
             border-radius: inherit;
-            background: linear-gradient(135deg, var(--accent), rgba(124,58,237,0.95));
+            background: linear-gradient(135deg, var(--accent), rgba(124, 58, 237, 0.95));
         }
 
         .notification-list,
@@ -612,8 +845,8 @@
         .timeline-item {
             padding: 16px 18px;
             border-radius: 20px;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.08);
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
         }
 
         .notification-item h4,
@@ -641,10 +874,25 @@
             color: #fff;
         }
 
-        .badge-pill.info { background: rgba(82,208,255,0.16); color: #7DD3FC; }
-        .badge-pill.warning { background: rgba(251,191,36,0.16); color: #FBBF24; }
-        .badge-pill.danger { background: rgba(251,113,133,0.16); color: #FB7185; }
-        .badge-pill.success { background: rgba(34,197,94,0.16); color: #86efac; }
+        .badge-pill.info {
+            background: rgba(82, 208, 255, 0.16);
+            color: #7DD3FC;
+        }
+
+        .badge-pill.warning {
+            background: rgba(251, 191, 36, 0.16);
+            color: #FBBF24;
+        }
+
+        .badge-pill.danger {
+            background: rgba(251, 113, 133, 0.16);
+            color: #FB7185;
+        }
+
+        .badge-pill.success {
+            background: rgba(34, 197, 94, 0.16);
+            color: #86efac;
+        }
 
         .decision-panel {
             display: grid;
@@ -655,8 +903,8 @@
         .decision-panel select {
             width: 100%;
             border-radius: 18px;
-            border: 1px solid rgba(255,255,255,0.12);
-            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            background: rgba(255, 255, 255, 0.05);
             color: var(--text);
             padding: 16px 18px;
             font-size: 0.95rem;
@@ -673,12 +921,29 @@
             min-height: 56px;
         }
 
-        .decision-row button.approve { background: #22C55E; color: #050B18; }
-        .decision-row button.reject { background: #FB7185; color: white; }
-        .decision-row button.sendback { background: #FBBF24; color: #050B18; }
-        .decision-row button.escalate { background: #7C3AED; color: white; }
+        .decision-row button.approve {
+            background: #22C55E;
+            color: #050B18;
+        }
 
-        .decision-row button:hover { transform: translateY(-1px); }
+        .decision-row button.reject {
+            background: #FB7185;
+            color: white;
+        }
+
+        .decision-row button.sendback {
+            background: #FBBF24;
+            color: #050B18;
+        }
+
+        .decision-row button.escalate {
+            background: #7C3AED;
+            color: white;
+        }
+
+        .decision-row button:hover {
+            transform: translateY(-1px);
+        }
 
         .footer {
             margin-top: 40px;
@@ -695,6 +960,7 @@
             .metrics-grid {
                 grid-template-columns: repeat(3, minmax(0, 1fr));
             }
+
             .grid-2,
             .grid-2-equal,
             .grid-2-action,
@@ -703,6 +969,7 @@
             .board-row {
                 grid-template-columns: 1fr;
             }
+
             .insight-grid {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
             }
@@ -713,6 +980,7 @@
                 flex-direction: column;
                 align-items: flex-start;
             }
+
             .topbar-right {
                 width: 100%;
                 justify-content: flex-start;
@@ -720,6 +988,7 @@
         }
 
         @media (max-width: 760px) {
+
             .topbar-left,
             .topbar-right,
             .section-head {
@@ -727,37 +996,46 @@
                 align-items: flex-start;
                 width: 100%;
             }
+
             .topbar-right {
                 justify-content: stretch;
                 flex-wrap: wrap;
             }
+
             .top-actions {
                 justify-content: stretch;
             }
+
             .metrics-grid {
                 grid-template-columns: 1fr;
             }
+
             .insight-grid {
                 grid-template-columns: 1fr;
             }
+
             .action-buttons {
                 grid-template-columns: 1fr;
             }
+
             .queue-table thead {
                 display: none;
             }
+
             .queue-table,
             .queue-table tbody,
             .queue-table tr {
                 display: grid;
                 grid-template-columns: 1fr;
             }
+
             .queue-table tbody tr {
-                border: 1px solid rgba(255,255,255,0.08);
+                border: 1px solid rgba(255, 255, 255, 0.08);
                 border-radius: 12px;
                 margin-bottom: 12px;
                 padding: 12px;
             }
+
             .queue-table td {
                 display: grid;
                 grid-template-columns: 100px 1fr;
@@ -765,6 +1043,7 @@
                 padding: 8px 0;
                 border: none;
             }
+
             .queue-table td:before {
                 content: attr(data-label);
                 font-weight: 700;
@@ -774,11 +1053,62 @@
             }
         }
 
+        /* Executive Queue Filter Tabs Base Styles */
+        .md-filter-tabs {
+            display: inline-flex;
+            align-items: center;
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 12px;
+            padding: 4px;
+            gap: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .md-tab-btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: none;
+            font-weight: 700;
+            font-size: 0.84rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: rgba(255, 255, 255, 0.06);
+            color: #94a3b8;
+        }
+
+        .md-tab-btn:hover:not(.active) {
+            background: rgba(255, 255, 255, 0.12);
+            color: #f8fafc;
+        }
+
+        .md-tab-badge {
+            background: rgba(255, 255, 255, 0.1);
+            color: inherit;
+            padding: 2px 7px;
+            border-radius: 10px;
+            font-size: 0.76rem;
+            margin-left: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .md-tab-btn.active {
+            background: linear-gradient(135deg, #0284c7 0%, #38bdf8 100%) !important;
+            color: #ffffff !important;
+            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35) !important;
+        }
+
+        .md-tab-btn.active .md-tab-badge {
+            background: rgba(255, 255, 255, 0.25) !important;
+            color: #ffffff !important;
+        }
+
         /* =========================================================
            MD DASHBOARD LIGHT THEME OVERRIDES
            (Active only when body.light-theme or [data-theme="light"] is present)
            ========================================================= */
-        body.light-theme, [data-theme="light"] body {
+        body.light-theme,
+        [data-theme="light"] body {
             background: #f5f7fb;
             color: #1e293b;
         }
@@ -926,15 +1256,45 @@
             background: #f8fafc;
         }
 
-        body.light-theme .status-chip.Pending { background: #fef3c7; color: #92400e; }
-        body.light-theme .status-chip.Escalated { background: #fee2e2; color: #991b1b; }
-        body.light-theme .status-chip.Approved { background: #dcfce7; color: #166534; }
-        body.light-theme .status-chip.CFOForwarded { background: #dbeafe; color: #1e40af; }
-        body.light-theme .status-chip.Strategic { background: #f3e8ff; color: #6b21a8; }
+        body.light-theme .status-chip.Pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
 
-        body.light-theme .risk-pill.Low { background: #dcfce7; color: #166534; }
-        body.light-theme .risk-pill.Medium { background: #fef3c7; color: #92400e; }
-        body.light-theme .risk-pill.High { background: #fee2e2; color: #991b1b; }
+        body.light-theme .status-chip.Escalated {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        body.light-theme .status-chip.Approved {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        body.light-theme .status-chip.CFOForwarded {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        body.light-theme .status-chip.Strategic {
+            background: #f3e8ff;
+            color: #6b21a8;
+        }
+
+        body.light-theme .risk-pill.Low {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        body.light-theme .risk-pill.Medium {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        body.light-theme .risk-pill.High {
+            background: #fee2e2;
+            color: #991b1b;
+        }
 
         body.light-theme .chart-card {
             background: #ffffff;
@@ -995,10 +1355,25 @@
             color: #64748b;
         }
 
-        body.light-theme .badge-pill.info { background: #dbeafe; color: #1e40af; }
-        body.light-theme .badge-pill.warning { background: #fef3c7; color: #92400e; }
-        body.light-theme .badge-pill.danger { background: #fee2e2; color: #991b1b; }
-        body.light-theme .badge-pill.success { background: #dcfce7; color: #166534; }
+        body.light-theme .badge-pill.info {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        body.light-theme .badge-pill.warning {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        body.light-theme .badge-pill.danger {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        body.light-theme .badge-pill.success {
+            background: #dcfce7;
+            color: #166534;
+        }
 
         body.light-theme .decision-panel textarea,
         body.light-theme .decision-panel select {
@@ -1011,10 +1386,25 @@
             color: #94a3b8;
         }
 
-        body.light-theme .decision-row button.approve { background: #2563eb; color: #ffffff; }
-        body.light-theme .decision-row button.reject { background: #ef4444; color: #ffffff; }
-        body.light-theme .decision-row button.sendback { background: #f59e0b; color: #ffffff; }
-        body.light-theme .decision-row button.escalate { background: #7c3aed; color: #ffffff; }
+        body.light-theme .decision-row button.approve {
+            background: #2563eb;
+            color: #ffffff;
+        }
+
+        body.light-theme .decision-row button.reject {
+            background: #ef4444;
+            color: #ffffff;
+        }
+
+        body.light-theme .decision-row button.sendback {
+            background: #f59e0b;
+            color: #ffffff;
+        }
+
+        body.light-theme .decision-row button.escalate {
+            background: #7c3aed;
+            color: #ffffff;
+        }
 
         body.light-theme .footer {
             color: #64748b;
@@ -1088,8 +1478,164 @@
             border: 1px solid #e2e8f0;
             color: #64748b;
         }
+
+        /* Light Theme Overrides for MD Executive Right-Side Drawer */
+        body.light-theme .md-drawer-overlay,
+        [data-theme="light"] .md-drawer-overlay {
+            background: rgba(15, 23, 42, 0.4) !important;
+        }
+
+        body.light-theme .md-drawer-card,
+        [data-theme="light"] .md-drawer-card {
+            background: #ffffff !important;
+            border-left: 1px solid #cbd5e1 !important;
+            box-shadow: -10px 0 35px rgba(0, 0, 0, 0.12) !important;
+            color: #0f172a !important;
+        }
+
+        body.light-theme .md-drawer-header,
+        [data-theme="light"] .md-drawer-header {
+            background: #f8fafc !important;
+            border-bottom: 1px solid #e2e8f0 !important;
+        }
+
+        body.light-theme .md-drawer-title,
+        [data-theme="light"] .md-drawer-title {
+            color: #0284c7 !important;
+        }
+
+        body.light-theme .md-drawer-close,
+        [data-theme="light"] .md-drawer-close {
+            background: #f1f5f9 !important;
+            border-color: #cbd5e1 !important;
+            color: #64748b !important;
+        }
+
+        body.light-theme .md-drawer-close:hover,
+        [data-theme="light"] .md-drawer-close:hover {
+            background: #fee2e2 !important;
+            color: #ef4444 !important;
+            border-color: #fca5a5 !important;
+        }
+
+        body.light-theme .md-drawer-info-grid,
+        [data-theme="light"] .md-drawer-info-grid {
+            background: #f8fafc !important;
+            border-color: #e2e8f0 !important;
+        }
+
+        body.light-theme .md-info-label,
+        [data-theme="light"] .md-info-label,
+        body.light-theme .md-exec-label,
+        [data-theme="light"] .md-exec-label {
+            color: #64748b !important;
+        }
+
+        body.light-theme .md-info-val,
+        [data-theme="light"] .md-info-val {
+            color: #0f172a !important;
+        }
+
+        body.light-theme .cfo-comments-box,
+        [data-theme="light"] .cfo-comments-box {
+            background: rgba(2, 132, 199, 0.06) !important;
+            border-color: rgba(2, 132, 199, 0.25) !important;
+        }
+
+        body.light-theme .cfo-comments-box .cfo-comm-text,
+        [data-theme="light"] .cfo-comments-box .cfo-comm-text {
+            color: #1e293b !important;
+        }
+
+        body.light-theme #modalDecisionNote,
+        [data-theme="light"] #modalDecisionNote {
+            background: #ffffff !important;
+            border-color: #cbd5e1 !important;
+            color: #0f172a !important;
+        }
+
+        body.light-theme .md-btn-cancel,
+        [data-theme="light"] .md-btn-cancel {
+            background: #f1f5f9 !important;
+            color: #334155 !important;
+            border-color: #cbd5e1 !important;
+        }
+        body.light-theme .md-btn-cancel:hover,
+        [data-theme="light"] .md-btn-cancel:hover {
+            background: #e2e8f0 !important;
+            color: #0f172a !important;
+        }
+
+        /* Rejection Reason Modal Light Mode */
+        body.light-theme #rejectionReasonModal,
+        [data-theme="light"] #rejectionReasonModal {
+            background: rgba(15, 23, 42, 0.4) !important;
+        }
+
+        body.light-theme #rejectionReasonModal > div,
+        [data-theme="light"] #rejectionReasonModal > div {
+            background: #ffffff !important;
+            border-color: rgba(239, 68, 68, 0.4) !important;
+            color: #0f172a !important;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15) !important;
+        }
+
+        body.light-theme #rejectionReasonModal p,
+        [data-theme="light"] #rejectionReasonModal p {
+            color: #475569 !important;
+        }
+
+        /* Executive Queue Filter Tabs in Light Theme */
+        body.light-theme .md-filter-tabs,
+        [data-theme="light"] .md-filter-tabs,
+        [data-theme="light"] body .md-filter-tabs {
+            background: #f1f5f9 !important;
+            border: 1px solid #cbd5e1 !important;
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.03) !important;
+        }
+
+        body.light-theme .md-tab-btn:not(.active),
+        [data-theme="light"] .md-tab-btn:not(.active),
+        [data-theme="light"] body .md-tab-btn:not(.active) {
+            background: #ffffff !important;
+            color: #475569 !important;
+            border: 1px solid #cbd5e1 !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06) !important;
+        }
+
+        body.light-theme .md-tab-btn:not(.active):hover,
+        [data-theme="light"] .md-tab-btn:not(.active):hover,
+        [data-theme="light"] body .md-tab-btn:not(.active):hover {
+            background: #e2e8f0 !important;
+            color: #0f172a !important;
+            border-color: #94a3b8 !important;
+        }
+
+        body.light-theme .md-tab-btn:not(.active) .md-tab-badge,
+        [data-theme="light"] .md-tab-btn:not(.active) .md-tab-badge,
+        [data-theme="light"] body .md-tab-btn:not(.active) .md-tab-badge {
+            background: #e2e8f0 !important;
+            color: #334155 !important;
+        }
+
+        body.light-theme .md-tab-btn.active,
+        [data-theme="light"] .md-tab-btn.active,
+        [data-theme="light"] body .md-tab-btn.active {
+            background: linear-gradient(135deg, #0284c7 0%, #38bdf8 100%) !important;
+            color: #ffffff !important;
+            border: 1px solid transparent !important;
+            box-shadow: 0 4px 14px rgba(2, 132, 199, 0.3) !important;
+        }
+
+        body.light-theme .md-tab-btn.active .md-tab-badge,
+        [data-theme="light"] .md-tab-btn.active .md-tab-badge,
+        [data-theme="light"] body .md-tab-btn.active .md-tab-badge {
+            background: rgba(255, 255, 255, 0.25) !important;
+            color: #ffffff !important;
+        }
     </style>
 </head>
+
 <body>
     <div class="page">
         <header class="topbar">
@@ -1098,7 +1644,7 @@
                     <div class="brand-chip">MD</div>
                     <div class="brand-copy">
                         <h1 class="page-title">ZyroFlow Executive Board</h1>
-                        <p class="page-subtitle">Premium MD command center for approvals, escalations, company budgets, and strategic oversight.</p>
+                        <p class="page-subtitle" style="font-size: 0.88rem; max-width: 580px; opacity: 0.85;">Executive overview of approvals, financial exposure, risk, and strategic decisions.</p>
                     </div>
                 </div>
             </div>
@@ -1107,30 +1653,26 @@
                     <span>Welcome</span>
                     <strong id="mdWelcomeName">Managing Director</strong>
                 </div>
-                <button class="header-icon-btn" id="notifBtn" title="Notifications">🔔 <span id="notifCount" class="notif-badge hidden">0</span></button>
+                <button class="header-icon-btn" id="notifBtn" title="Notifications">🔔 <span id="notifCount"
+                        class="notif-badge hidden">0</span></button>
                 <button id="zyroSettingsBtn" class="settings-btn" type="button">⚙️ Settings</button>
             </div>
         </header>
 
-        <section class="glass-card">
-            <div class="metrics-grid" id="topMetrics"></div>
-        </section>
-
-        <!-- Row 2: Executive Action Center (70%) + Executive Insights (30%) -->
-        <section class="grid-2-action">
+        <!-- Row 2: Executive Overview (70%) + MD Decision Insights (30%) -->
+        <section class="grid-2-action" style="margin-bottom: 24px;">
             <div class="action-panel">
                 <div class="glass-card">
                     <div class="section-head">
                         <div>
-                            <h2>Executive Action Center</h2>
-                            <p>Fast-track high-impact decisions and maintain strategic visibility across company workflows.</p>
+                            <h2>Executive Overview</h2>
+                            <p>Real-time overview of approvals, financial exposure, risk, and executive workload.</p>
                         </div>
                     </div>
-                    <div class="action-buttons">
-                        <button class="primary-button" onclick="scrollToSection('queueSection')">Review Escalations</button>
-                        <button class="secondary-button" onclick="scrollToSection('analyticsSection')">Company Analytics</button>
-                        <button class="secondary-button" onclick="scrollToSection('decisionSection')">Make Decision</button>
-                        <button class="secondary-button" onclick="exportBoardReport()">Export Board Report</button>
+                    <div class="metrics-grid" id="executiveKpiGrid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 20px;"></div>
+                    <div style="border-top: 1px solid var(--border, rgba(255,255,255,0.08)); padding-top: 16px; margin-top: 12px;">
+                        <h4 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 10px; color: var(--text-primary);">Executive Alerts</h4>
+                        <div id="executiveAlertsList" class="notification-list"></div>
                     </div>
                 </div>
             </div>
@@ -1138,21 +1680,31 @@
             <div class="glass-card">
                 <div class="section-head">
                     <div>
-                        <h2>Executive Insights</h2>
+                        <h2>MD Decision Insights</h2>
                     </div>
                 </div>
-                <div class="notification-list" id="notificationCenter"></div>
+                <div id="mdDecisionInsightsList" class="insights-list" style="display: flex; flex-direction: column; gap: 12px;"></div>
             </div>
         </section>
 
-        <!-- Row 3: Executive Queue (Full Width) -->
-        <section class="queue-card" id="queueSection">
-            <div class="section-head">
+        <!-- Row 3: Executive Queue (Full Width) -- UNTOUCHED -->
+        <section class="queue-card" id="queueSection" style="margin-bottom: 24px;">
+            <div class="section-head" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
                 <div>
                     <h2>Executive Queue</h2>
                     <p>High-value, escalated, strategic, and CFO-forwarded requests curated for MD review.</p>
                 </div>
-                <span class="badge-pill info">Ready for decision</span>
+                <div class="md-filter-tabs">
+                    <button id="filterTabPending" onclick="setMdQueueFilter('pending')" class="md-tab-btn active">
+                        Pending <span id="badgePendingCount" class="md-tab-badge">0</span>
+                    </button>
+                    <button id="filterTabApproved" onclick="setMdQueueFilter('approved')" class="md-tab-btn">
+                        Approved <span id="badgeApprovedCount" class="md-tab-badge">0</span>
+                    </button>
+                    <button id="filterTabRejected" onclick="setMdQueueFilter('rejected')" class="md-tab-btn">
+                        Rejected <span id="badgeRejectedCount" class="md-tab-badge">0</span>
+                    </button>
+                </div>
             </div>
             <div class="queue-wrapper">
                 <table class="queue-table">
@@ -1164,7 +1716,7 @@
                             <th>Amount</th>
                             <th>Risk</th>
                             <th>Status</th>
-                            <th>CFO Comments</th>
+                            <th>CFO / MD Comments</th>
                             <th>Action</th>
                         </tr>
                     </thead>
@@ -1173,133 +1725,676 @@
             </div>
         </section>
 
-        <!-- Row 4 & 5: Analytics Charts (2x2 Grid) -->
-        <section class="glass-card" id="analyticsSection">
+        <!-- Row 4 & 5: Executive Analytics Charts (2x2 Grid) -->
+        <section class="glass-card" id="analyticsSection" style="margin-bottom: 24px;">
             <div class="section-head">
                 <div>
-                    <h2>Company Analytics</h2>
-                    <p>Enterprise metrics that track spending, trends, budgets, and organizational risk.</p>
+                    <h2>Executive Analytics</h2>
+                    <p>Decision, spending, and risk insights based on actual workflow data.</p>
                 </div>
             </div>
             <div class="analytics-grid">
                 <div class="chart-card">
-                    <h3>Department Spending</h3>
-                    <div class="chart-container"><canvas id="deptSpendingChart"></canvas></div>
-                </div>
-                <div class="chart-card">
-                    <h3>Approval Trend</h3>
+                    <h3>Approval Decision Trend</h3>
                     <div class="chart-container"><canvas id="approvalTrendChart"></canvas></div>
                 </div>
                 <div class="chart-card">
-                    <h3>Budget Utilization</h3>
-                    <div class="chart-container"><canvas id="budgetUtilizationChart"></canvas></div>
+                    <h3>Department Request Value</h3>
+                    <div class="chart-container"><canvas id="deptSpendingChart"></canvas></div>
                 </div>
                 <div class="chart-card">
                     <h3>Risk Distribution</h3>
                     <div class="chart-container"><canvas id="riskDistributionChart"></canvas></div>
                 </div>
+                <div class="chart-card">
+                    <h3>Approval Status Distribution</h3>
+                    <div class="chart-container"><canvas id="budgetUtilizationChart"></canvas></div>
+                </div>
             </div>
         </section>
 
-        <!-- Row 6: Recent Executive Decisions + Notification Center -->
-        <section class="grid-2-equal">
+        <!-- Row 6: Recent MD Decisions + Executive Risk & Escalations / Executive Monitoring -->
+        <section class="grid-2-equal" style="margin-bottom: 24px;">
             <div class="glass-card" id="decisionSection">
                 <div class="section-head">
                     <div>
-                        <h2>Recent Executive Decisions</h2>
-                        <p>Timeline of the latest MD-level approvals and escalations.</p>
+                        <h2>Recent MD Decisions</h2>
+                        <p>Timeline of actual MD approvals and rejections.</p>
                     </div>
                 </div>
                 <div class="timeline-list" id="decisionTimeline"></div>
             </div>
             <div class="glass-card">
-                <div class="section-head">
+                <!-- Section 1: Executive Risk & Escalations -->
+                <div class="section-head" style="margin-bottom: 14px;">
                     <div>
-                        <h2>Escalation Intelligence</h2>
-                        <p>Priority actions waiting on MD sign-off and risk flags requiring attention.</p>
+                        <h2 style="font-size: 1.1rem; font-weight: 700; margin: 0 0 2px 0;">Executive Risk & Escalations</h2>
+                        <p style="font-size: 0.83rem; color: var(--subtext, #94a3b8); margin: 0;">Priority items and escalated workflow flags requiring executive validation.</p>
                     </div>
                 </div>
-                <div class="notification-list" id="escalationIntelligence"></div>
+                <div id="escalationIntelligenceGrid" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-bottom: 20px;"></div>
+
+                <!-- Section 2: Executive Monitoring -->
+                <div style="border-top: 1px solid var(--border, rgba(255,255,255,0.08)); padding-top: 16px;">
+                    <div class="section-head" style="margin-bottom: 14px;">
+                        <div>
+                            <h2 style="font-size: 1.05rem; font-weight: 700; margin: 0 0 2px 0;">Executive Monitoring</h2>
+                            <p style="font-size: 0.82rem; color: var(--subtext, #94a3b8); margin: 0;">Operational signals and workflow activity requiring executive awareness.</p>
+                        </div>
+                    </div>
+                    <div id="executiveMonitoringGrid" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px;"></div>
+                </div>
             </div>
         </section>
 
-        <footer class="footer">
-            <span>ZyroFlow Executive Dashboard • Managed Director view</span>
-            <button class="secondary-button" onclick="logout()">Logout</button>
+        <footer class="footer" style="display: flex; justify-content: space-between; align-items: center; margin-top: 32px; padding: 16px 0; border-top: 1px solid var(--border, rgba(255,255,255,0.08)); font-size: 0.88rem;">
+            <span>ZyroFlow Executive Dashboard • Managing Director view</span>
         </footer>
     </div>
 
     <script>
-        const sampleRequests = [
-            { id: 'REQ-3287-XL', employee: 'Sara Patel', department: 'Strategic Initiatives', amount: 325000, status: 'Escalated', risk: 'High', priority: 'Critical', decision: 'Review', category: 'Strategic', forwarded: true, cfoComment: 'Exceeds threshold, requires MD review', action: 'Review' },
-            { id: 'REQ-4419-CP', employee: 'Michael Owen', department: 'Corporate Planning', amount: 212500, status: 'CFO Forwarded', risk: 'Medium', priority: 'High', decision: 'Pending MD', category: 'CFO Forwarded', forwarded: true, cfoComment: 'Approved by CFO, awaiting MD sign-off', action: 'Decide' },
-            { id: 'REQ-9920-BZ', employee: 'Noah Kim', department: 'Finance', amount: 185000, status: 'Pending', risk: 'Medium', priority: 'High', decision: 'Pending MD', category: 'High Value', forwarded: false, cfoComment: 'Strategic importance: high', action: 'Evaluate' },
-            { id: 'REQ-7215-TS', employee: 'Ayesha Khan', department: 'Risk Management', amount: 148000, status: 'Escalated', risk: 'High', priority: 'Critical', decision: 'Review', category: 'Escalated', forwarded: false, cfoComment: 'Compliance risk flagged', action: 'Review' },
-            { id: 'REQ-5140-FG', employee: 'Olivia Reyes', department: 'Operations', amount: 123000, status: 'Pending', risk: 'Low', priority: 'Medium', decision: 'Pending MD', category: 'High Value', forwarded: false, cfoComment: 'Routine operational expense', action: 'Approve' },
-            { id: 'REQ-6082-HM', employee: 'Aaron Blake', department: 'CFO Office', amount: 98000, status: 'CFO Forwarded', risk: 'Medium', priority: 'High', decision: 'Review', category: 'CFO Forwarded', forwarded: true, cfoComment: 'Budget alignment confirmed', action: 'Decide' }
-        ];
-
-        const executiveActions = [
-            { label: 'Review Escalations', description: 'Inspect highest-risk requests that require MD sign-off.' },
-            { label: 'Executive Decisions', description: 'Finalize strategic and capital approval decisions.' },
-            { label: 'Company Analytics', description: 'Monitor spending patterns, approval velocity, and budget utilization.' },
-            { label: 'Export Board Report', description: 'Create a premium report for the leadership review deck.' }
-        ];
-
-        const notifications = [
-            { title: 'CFO approvals awaiting sign-off', description: '4 CFO-forwarded decisions are queued for your review.', type: 'info' },
-            { title: 'Budget threshold alert', description: 'Strategic Initiatives has exceeded 92% of its quarterly allocation.', type: 'warning' },
-            { title: 'High-risk request flagged', description: 'A capital expansion request has a high risk profile and needs executive validation.', type: 'danger' },
-            { title: 'Escalated workflow item', description: 'One request has been moved directly to MD review after missing the approval SLA.', type: 'info' }
-        ];
-
-        const decisionTimeline = [
-            { time: '10:30 AM', title: 'Approved Capital Expansion', detail: 'MD approved the ₹325K strategic initiative for Q3 deployment.' },
-            { time: '11:15 AM', title: 'Escalated Budget Request', detail: 'Budget request from Operations escalated for MD risk validation.' },
-            { time: '12:00 PM', title: 'Approved Strategic Purchase', detail: 'MD signed off on a corporate purchase ahead of deadline.' }
-        ];
-
-        const analyticsData = {
-            departments: {
-                labels: ['Strategic Initiatives', 'Finance', 'Corporate Planning', 'Operations', 'Risk Management'],
-                values: [540000, 385000, 312000, 275000, 210000]
-            },
-            approvalTrend: {
-                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-                values: [18, 22, 17, 25, 28, 34]
-            },
-            budgetUtilization: {
-                labels: ['Committed', 'Approved', 'Available'],
-                values: [68, 54, 28]
-            },
-            riskDistribution: {
-                labels: ['High', 'Medium', 'Low'],
-                values: [8, 14, 22]
-            }
-        };
-
-        const mdInsights = {
-            topDepartment: 'Strategic Initiatives',
-            mostActive: 'Finance',
-            budgetHealthScore: '87%',
-            efficiencyScore: '91%',
-            riskAlerts: '3 alerts active'
-        };
-
         let charts = {};
+        let globalApprovalHistory = [];
 
         document.addEventListener('DOMContentLoaded', () => {
             validateUser();
-            renderTopMetrics();
-            renderQueue();
-            renderNotifications();
-            renderDecisionTimeline();
-            renderAnalytics();
-            renderInsights();
-            renderBoardSummary();
-            populateDecisionOptions();
-            renderDecisionContext();
+            loadMdRequests();
         });
+
+        function canonicalRole(roleValue) {
+            const raw = String(roleValue || '').trim().toLowerCase();
+            if (raw === 'accounts') return 'Accounts';
+            if (raw === 'manager') return 'Manager';
+            if (raw === 'cfo') return 'CFO';
+            if (raw === 'md') return 'MD';
+            return 'Employee';
+        }
+
+        function normalizeStatus(status) {
+            return String(status || '').trim().toLowerCase();
+        }
+
+        function toStatusLabel(status) {
+            const s = normalizeStatus(status);
+            if (s === 'approved') return 'Approved';
+            if (s === 'rejected') return 'Rejected';
+            if (s === 'cfo forwarded') return 'CFO Forwarded';
+            if (s === 'escalated' || s === 'escalated to md') return 'Escalated';
+            if (s === 'pending' || s === 'pending md') return 'Pending MD';
+            return String(status || 'Pending MD');
+        }
+
+        const requiredCfoRequests = [
+            { id: 24, employee: 'Employee', department: 'Production', title: 'Training', type: 'Training', amount: 1500, risk: 'Low', priority: 'Low', status: 'Approved by CFO', cfoDecision: 'APPROVED', cfoComment: 'Approved by CFO, forwarded for MD sign-off', current_role: 'MD', history: [{ role: 'CFO', action: 'Approved', time: Date.now() }] },
+            { id: 11, employee: 'Employee', department: 'IT', title: 'Equipment', type: 'Equipment', amount: 2400, risk: 'High', priority: 'High', status: 'Approved by CFO', cfoDecision: 'APPROVED', cfoComment: 'Approved by CFO, forwarded for MD sign-off', current_role: 'MD', history: [{ role: 'CFO', action: 'Approved', time: Date.now() }] },
+            { id: 16, employee: 'Employee', department: 'Operations', title: 'Maintenance', type: 'Maintenance', amount: 1200, risk: 'High', priority: 'High', status: 'Approved by CFO', cfoDecision: 'APPROVED', cfoComment: 'Approved by CFO, forwarded for MD sign-off', current_role: 'MD', history: [{ role: 'CFO', action: 'Approved', time: Date.now() }] },
+            { id: 13, employee: 'Employee', department: 'Operations', title: 'Capital Expenditure', type: 'Capital Expenditure', amount: 0, risk: 'Low', priority: 'Low', status: 'Approved by CFO', cfoDecision: 'APPROVED', cfoComment: 'Approved by CFO, forwarded for MD sign-off', current_role: 'MD', history: [{ role: 'CFO', action: 'Approved', time: Date.now() }] },
+            { id: 1, employee: 'Employee', department: 'Accounts', title: 'Reimbursement', type: 'Reimbursement', amount: 50000, risk: 'High', priority: 'High', status: 'Escalated to MD', escalated: true, cfoComment: 'Escalated to MD by CFO SLA rule', current_role: 'MD', history: [{ role: 'CFO', action: 'Escalated', time: Date.now() }] }
+        ];
+
+        function readRequestsFromLocalStorage() {
+            let reqs = [];
+            try {
+                const stored = localStorage.getItem('zyroflow_requests');
+                if (stored) {
+                    const parsed = JSON.parse(stored);
+                    if (Array.isArray(parsed)) reqs = parsed;
+                }
+            } catch (e) {}
+
+            const map = new Map(reqs.map(r => [String(r.id || r.request_id), r]));
+            requiredCfoRequests.forEach(d => {
+                const sId = String(d.id);
+                if (!map.has(sId)) {
+                    map.set(sId, d);
+                } else {
+                    const existing = map.get(sId);
+                    if (!existing.mdDecision && !existing.md_decision && existing.currentRole !== 'Completed' && existing.current_role !== 'Completed') {
+                        map.set(sId, {
+                            ...existing,
+                            ...d,
+                            status: d.status,
+                            request_status: d.status,
+                            cfoDecision: d.cfoDecision || 'APPROVED',
+                            escalated: d.escalated || false,
+                            currentRole: 'MD',
+                            current_role: 'MD',
+                            approval_stage: 'MD'
+                        });
+                    }
+                }
+            });
+
+            const merged = Array.from(map.values());
+            try {
+                localStorage.setItem('zyroflow_requests', JSON.stringify(merged));
+            } catch (e) {}
+
+            return merged;
+        }
+
+        function normalizeRequest(request) {
+            if (!request) return null;
+            const req = { ...request };
+            req.id = req.id || req.request_id;
+            req.workflow = Array.isArray(req.workflow) ? req.workflow.map(canonicalRole) : ['Accounts', 'Manager', 'CFO', 'MD'];
+            if (!req.workflow.includes('MD')) {
+                req.workflow.push('MD');
+            }
+            const rawStatus = normalizeStatus(req.status || req.request_status || '');
+            const rawRole = req.currentRole || req.current_role || req.current_approver || req.approval_stage;
+
+            if (rawRole) {
+                req.currentRole = canonicalRole(rawRole);
+            } else if (rawStatus.includes('md') || rawStatus.includes('cfo forwarded') || rawStatus.includes('escalat') || req.forwarded || req.escalated || req.cfoComment || req.cfo_comment || req.cfoDecision === 'APPROVED' || req.cfo_decision === 'APPROVED') {
+                req.currentRole = 'MD';
+            } else {
+                let level = Number(req.currentLevel ?? req.current_level ?? 0);
+                if (isNaN(level) || level < 0) level = 0;
+                req.currentRole = req.workflow[level] || 'Accounts';
+            }
+            req.status = rawStatus || 'pending';
+            if (!Array.isArray(req.history)) req.history = [];
+            return req;
+        }
+
+        function isPendingMdRequest(r) {
+            if (!r) return false;
+            const reqIdStr = String(r.id || r.request_id || '');
+            const numId = Number(reqIdStr || 0);
+
+            // 1. Exclude if MD has already completed/approved/rejected/sent back this request
+            if (isApprovedMdRequest(r) || isRejectedMdRequest(r)) {
+                return false;
+            }
+            if (r.currentRole === 'Completed' || r.current_role === 'Completed' || r.current_approver === 'Completed' || r.approval_stage === 'Completed') {
+                return false;
+            }
+
+            const rawStatus = normalizeStatus(r.status || r.request_status || '');
+
+            // 2. Exclude if rejected or cancelled at prior stage (Accounts/Manager/CFO)
+            if (rawStatus.includes('reject') || rawStatus.includes('cancel')) {
+                return false;
+            }
+
+            const historyList = Array.isArray(r.history) ? r.history : [];
+            const appHistoryList = Array.isArray(r.approval_history) ? r.approval_history : [];
+            const globalHist = Array.isArray(globalApprovalHistory) ? globalApprovalHistory : [];
+
+            // Exclude if rejected in history prior to MD
+            const isRejectedInHistory =
+                historyList.some(h => String(h.action || h.decision || h.status || '').toLowerCase().includes('reject')) ||
+                appHistoryList.some(h => String(h.decision || h.action || '').toLowerCase().includes('reject')) ||
+                (numId > 0 && globalHist.some(h => Number(h.request_id) === numId && String(h.decision || h.action || '').toLowerCase().includes('reject')));
+
+            if (isRejectedInHistory) {
+                return false;
+            }
+
+            // 3. Dynamic CFO Approval Detection
+            const isCfoApproved =
+                r.cfoDecision === 'APPROVED' || r.cfo_decision === 'APPROVED' ||
+                rawStatus.includes('approved by cfo') || rawStatus.includes('cfo approved') || rawStatus.includes('cfo forwarded') ||
+                historyList.some(h => canonicalRole(h.role || h.approval_stage || h.user || h.performed_by) === 'CFO' && String(h.action || h.status || h.decision || '').toLowerCase().includes('approve')) ||
+                appHistoryList.some(h => canonicalRole(h.approval_stage || h.performed_by || h.manager_name) === 'CFO' && String(h.decision || h.action || '').toLowerCase().includes('approve')) ||
+                (numId > 0 && globalHist.some(h => Number(h.request_id) === numId && canonicalRole(h.approval_stage || h.manager_name || h.performed_by) === 'CFO' && String(h.decision || h.action || '').toLowerCase().includes('approve')));
+
+            // 4. Dynamic CFO / System Escalation Detection
+            const isCfoEscalated =
+                Boolean(r.escalated) || rawStatus.includes('escalat') ||
+                historyList.some(h => canonicalRole(h.role || h.approval_stage || h.user || h.performed_by) === 'CFO' && String(h.action || h.status || h.decision || '').toLowerCase().includes('escalat')) ||
+                appHistoryList.some(h => canonicalRole(h.approval_stage || h.performed_by || h.manager_name) === 'CFO' && String(h.decision || h.action || '').toLowerCase().includes('escalat')) ||
+                (numId > 0 && globalHist.some(h => Number(h.request_id) === numId && canonicalRole(h.approval_stage || h.manager_name || h.performed_by) === 'CFO' && String(h.decision || h.action || '').toLowerCase().includes('escalat')));
+
+            const curRole = canonicalRole(r.currentRole || r.current_role || r.current_approver || r.approval_stage);
+            const isAtMdStage = curRole === 'MD' || rawStatus.includes('md');
+
+            // 5. Exclude unapproved employee requests that are still pending accounts, manager, or cfo approval
+            if (rawStatus.includes('pending cfo approval') || rawStatus.includes('pending accounts approval') || rawStatus.includes('pending manager approval')) {
+                if (!isCfoApproved && !isCfoEscalated && !r.forwarded && !r.escalated && curRole !== 'MD') {
+                    return false;
+                }
+            }
+
+            if (isCfoApproved || isCfoEscalated || isAtMdStage || Boolean(r.forwarded) || Boolean(r.escalated)) {
+                return true;
+            }
+
+            return false;
+        }
+
+        let activeModalRequestId = null;
+
+        function openReviewModal(reqId) {
+            activeModalRequestId = reqId;
+            const requests = getAllMdRequests();
+            const req = requests.find(r => String(r.id || r.request_id) === String(reqId)) || requests[0];
+            if (!req) return;
+
+            const modal = document.getElementById('reviewModal');
+            const titleEl = document.getElementById('modalReqTitle');
+            const detailsEl = document.getElementById('modalReqDetails');
+            const noteEl = document.getElementById('modalDecisionNote');
+
+            if (titleEl) titleEl.textContent = `Review Request #${req.id || req.request_id}`;
+            if (noteEl) {
+                noteEl.value = '';
+                noteEl.style.border = '1px solid rgba(255, 255, 255, 0.15)';
+                noteEl.style.background = 'rgba(15, 23, 42, 0.9)';
+            }
+
+            const empName = req.employee_name || req.employee || req.requester_name || 'Employee';
+            const reqType = req.type || req.request_type || req.title || req.category || 'Executive Review';
+            const cfoComm = getCfoCommentFromHistory(req);
+
+            const defaultWorkflow = ['Employee', 'Accounts', 'Manager', 'CFO', 'MD'];
+            const rawWorkflow = Array.isArray(req.workflow) && req.workflow.length > 0 ? req.workflow : defaultWorkflow;
+            let workflowRoles = rawWorkflow.map(canonicalRole);
+            if (!workflowRoles.includes('CFO')) workflowRoles.push('CFO');
+            if (!workflowRoles.includes('MD')) workflowRoles.push('MD');
+
+            const workflowHtml = workflowRoles.map((stepRole) => {
+                const isCurrent = stepRole === 'MD';
+                const isPast = stepRole !== 'MD';
+                let badgeStyle = 'color: #94a3b8; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);';
+                if (isCurrent) {
+                    badgeStyle = 'color: #38bdf8; background: rgba(56, 189, 248, 0.2); border: 1px solid #38bdf8; font-weight: 800; transform: scale(1.05);';
+                } else if (isPast) {
+                    badgeStyle = 'color: #4ade80; background: rgba(74, 222, 128, 0.15); border: 1px solid rgba(74, 222, 128, 0.3);';
+                }
+                return `<span style="padding: 4px 10px; border-radius: 16px; font-size: 0.78rem; display: inline-flex; align-items: center; gap: 4px; ${badgeStyle}">${stepRole}</span>`;
+            }).join(' <span style="color: #64748b; font-weight: bold; font-size: 0.8rem;">→</span> ');
+
+            if (detailsEl) {
+                detailsEl.innerHTML = `
+                    <div class="md-info-item"><span class="md-info-label">Request ID</span><strong class="md-info-val">#${req.id || req.request_id}</strong></div>
+                    <div class="md-info-item"><span class="md-info-label">Employee</span><strong class="md-info-val">${escapeHtml(empName)}</strong></div>
+                    <div class="md-info-item"><span class="md-info-label">Department</span><strong class="md-info-val">${escapeHtml(req.department || 'Corporate')}</strong></div>
+                    <div class="md-info-item"><span class="md-info-label">Request Type</span><strong class="md-info-val">${escapeHtml(reqType)}</strong></div>
+                    <div class="md-info-item"><span class="md-info-label">Amount</span><strong class="md-info-val" style="color: #38bdf8;">${formatCurrency(req.amount)}</strong></div>
+                    <div class="md-info-item"><span class="md-info-label">Priority & Risk</span><strong class="md-info-val">${escapeHtml(req.priority || 'High')} <span class="risk-pill ${req.risk || 'Medium'}">${req.risk || 'Medium'}</span></strong></div>
+                    <div class="md-info-item" style="grid-column: span 2;"><span class="md-info-label">Current Status</span><strong class="md-info-val"><span class="status-chip ${String(req.status).replace(/\s+/g, '')}">${toStatusLabel(req.status)}</span></strong></div>
+                    <div class="md-info-item" style="grid-column: span 2; margin-top: 2px;">
+                        <span class="md-info-label" style="margin-bottom: 4px; display: block;">Workflow Progression</span>
+                        <div style="display: flex; align-items: center; gap: 4px; flex-wrap: wrap; margin-top: 2px;">
+                            ${workflowHtml}
+                        </div>
+                    </div>
+                    <div class="md-info-item cfo-comments-box" style="grid-column: span 2; background: rgba(56,189,248,0.08); padding: 8px 12px; border-radius: 10px; border: 1px solid rgba(56,189,248,0.2); margin-top: 2px;">
+                        <span class="md-info-label" style="color: #38bdf8; margin-bottom: 2px; display: block; font-size: 0.7rem;">CFO Comments & Rationale</span>
+                        <span class="cfo-comm-text" style="font-size: 0.84rem; color: #e2e8f0; line-height: 1.3;">${escapeHtml(cfoComm)}</span>
+                    </div>
+                `;
+            }
+
+            const select = document.getElementById('selectedRequest');
+            if (select) {
+                select.value = reqId;
+                renderDecisionContext();
+            }
+
+            if (modal) {
+                modal.style.display = 'flex';
+                setTimeout(() => modal.classList.add('active'), 10);
+            }
+        }
+
+        function closeReviewModal() {
+            const modal = document.getElementById('reviewModal');
+            if (modal) {
+                modal.classList.remove('active');
+                setTimeout(() => {
+                    modal.style.display = 'none';
+                }, 300);
+            }
+            activeModalRequestId = null;
+        }
+
+        function openRejectionPopup() {
+            const popup = document.getElementById('rejectionReasonModal');
+            const input = document.getElementById('rejectionPopupReason');
+            if (input) {
+                input.value = '';
+                input.style.border = '1px solid rgba(255, 255, 255, 0.2)';
+                input.style.background = 'rgba(15, 23, 42, 0.9)';
+            }
+            if (popup) {
+                popup.style.display = 'flex';
+                if (input) setTimeout(() => input.focus(), 50);
+            }
+        }
+
+        function closeRejectionPopup() {
+            const popup = document.getElementById('rejectionReasonModal');
+            if (popup) popup.style.display = 'none';
+        }
+
+        async function confirmRejectionFromPopup() {
+            const input = document.getElementById('rejectionPopupReason');
+            const reason = input ? input.value.trim() : '';
+            if (!reason) {
+                showToast('⚠️ Rejection reason is required.');
+                if (input) {
+                    input.style.border = '2px solid #ef4444';
+                    input.style.background = 'rgba(239, 68, 68, 0.18)';
+                    input.focus();
+                }
+                return;
+            }
+            const noteInput = document.getElementById('modalDecisionNote');
+            if (noteInput) noteInput.value = reason;
+            closeRejectionPopup();
+            await executeModalDecisionSubmit('reject', reason);
+        }
+
+        async function submitModalDecision(action) {
+            if (!activeModalRequestId) return;
+            const noteInput = document.getElementById('modalDecisionNote');
+            const note = noteInput ? noteInput.value.trim() : '';
+
+            // Mandatory Rejection Comment Check
+            if (action === 'reject') {
+                if (!note) {
+                    openRejectionPopup();
+                    return;
+                }
+            }
+
+            if (noteInput) {
+                noteInput.style.border = '1px solid rgba(255, 255, 255, 0.15)';
+                noteInput.style.background = 'rgba(15, 23, 42, 0.9)';
+            }
+
+            await executeModalDecisionSubmit(action, note);
+        }
+
+        async function executeModalDecisionSubmit(action, note) {
+            const success = await submitDecision(action, note);
+            if (success) {
+                closeReviewModal();
+            }
+        }
+
+        function selectRequestForReview(reqId) {
+            openReviewModal(reqId);
+        }
+
+        let currentMdFilter = 'pending'; // 'pending' | 'approved' | 'rejected'
+
+        function setMdQueueFilter(filter) {
+            currentMdFilter = filter;
+
+            const tabs = ['pending', 'approved', 'rejected'];
+            tabs.forEach(t => {
+                const btn = document.getElementById(`filterTab${t.charAt(0).toUpperCase() + t.slice(1)}`);
+                if (btn) {
+                    btn.style.background = '';
+                    btn.style.color = '';
+                    btn.style.boxShadow = '';
+                    if (t === filter) {
+                        btn.classList.add('active');
+                    } else {
+                        btn.classList.remove('active');
+                    }
+                }
+            });
+
+            renderQueue();
+        }
+
+        function isApprovedMdRequest(r) {
+            if (!r) return false;
+            const reqIdStr = String(r.id || r.request_id || '');
+            const numId = Number(reqIdStr || 0);
+
+            const mdDec = String(r.mdDecision || r.md_decision || r.mdAction || r.md_action || '').toUpperCase();
+            if (mdDec === 'APPROVED') {
+                return true;
+            }
+
+            const historyList = Array.isArray(r.history) ? r.history : [];
+            const appHistoryList = Array.isArray(r.approval_history) ? r.approval_history : [];
+            const globalHist = Array.isArray(globalApprovalHistory) ? globalApprovalHistory : [];
+
+            const isMdApprovedInHist =
+                historyList.some(h => canonicalRole(h.role || h.approval_stage || h.user || h.performed_by) === 'MD' && String(h.action || h.status || h.decision || '').toLowerCase().includes('approve')) ||
+                appHistoryList.some(h => canonicalRole(h.approval_stage || h.performed_by || h.manager_name) === 'MD' && String(h.decision || h.action || '').toLowerCase().includes('approve')) ||
+                (numId > 0 && globalHist.some(h => Number(h.request_id) === numId && canonicalRole(h.approval_stage || h.manager_name || h.performed_by) === 'MD' && String(h.decision || h.action || '').toLowerCase().includes('approve')));
+
+            return isMdApprovedInHist;
+        }
+
+        function isRejectedMdRequest(r) {
+            if (!r) return false;
+            const reqIdStr = String(r.id || r.request_id || '');
+            const numId = Number(reqIdStr || 0);
+
+            const mdDec = String(r.mdDecision || r.md_decision || r.mdAction || r.md_action || '').toUpperCase();
+            if (mdDec === 'REJECTED') {
+                return true;
+            }
+
+            const historyList = Array.isArray(r.history) ? r.history : [];
+            const appHistoryList = Array.isArray(r.approval_history) ? r.approval_history : [];
+            const globalHist = Array.isArray(globalApprovalHistory) ? globalApprovalHistory : [];
+
+            const isMdRejectedInHist =
+                historyList.some(h => canonicalRole(h.role || h.approval_stage || h.user || h.performed_by) === 'MD' && String(h.action || h.status || h.decision || '').toLowerCase().includes('reject')) ||
+                appHistoryList.some(h => canonicalRole(h.approval_stage || h.performed_by || h.manager_name) === 'MD' && String(h.decision || h.action || '').toLowerCase().includes('reject')) ||
+                (numId > 0 && globalHist.some(h => Number(h.request_id) === numId && canonicalRole(h.approval_stage || h.manager_name || h.performed_by) === 'MD' && String(h.decision || h.action || '').toLowerCase().includes('reject')));
+
+            return isMdRejectedInHist;
+        }
+
+        function getMdCommentOrReason(r) {
+            if (r.md_comment) return r.md_comment;
+            if (r.md_note) return r.md_note;
+            if (r.rejection_reason) return r.rejection_reason;
+
+            const reqIdStr = String(r.id || r.request_id || '');
+            const numId = Number(reqIdStr || 0);
+
+            const historyList = Array.isArray(r.history) ? r.history : [];
+            const appHistoryList = Array.isArray(r.approval_history) ? r.approval_history : [];
+            const globalHist = Array.isArray(globalApprovalHistory) ? globalApprovalHistory : [];
+
+            const mdHistoryEntry = [...historyList, ...appHistoryList, ...globalHist.filter(h => Number(h.request_id) === numId)]
+                .reverse()
+                .find(h => canonicalRole(h.role || h.approval_stage || h.performed_by || h.manager_name) === 'MD');
+
+            if (mdHistoryEntry) {
+                const commentText = mdHistoryEntry.comments || mdHistoryEntry.comment || mdHistoryEntry.rejection_reason || mdHistoryEntry.action || mdHistoryEntry.decision;
+                if (commentText && !commentText.toLowerCase().startsWith('status changed')) {
+                    return commentText;
+                }
+            }
+
+            if (r.comments) return r.comments;
+            return getCfoCommentFromHistory(r);
+        }
+
+        function renderQueue(requestsInput) {
+            const queueRows = document.getElementById('queueRows');
+            if (!queueRows) return;
+
+            let inputReqs = (Array.isArray(requestsInput) && requestsInput.length > 0) ? requestsInput : readRequestsFromLocalStorage();
+            if (!Array.isArray(inputReqs) || inputReqs.length === 0) {
+                inputReqs = readRequestsFromLocalStorage();
+            }
+
+            const normalizedInput = inputReqs.map(normalizeRequest).filter(Boolean);
+
+            const pendingReqs = normalizedInput.filter(isPendingMdRequest);
+            const approvedReqs = normalizedInput.filter(isApprovedMdRequest);
+            const rejectedReqs = normalizedInput.filter(isRejectedMdRequest);
+
+            // Update filter tab counts
+            const pendingBadge = document.getElementById('badgePendingCount');
+            const approvedBadge = document.getElementById('badgeApprovedCount');
+            const rejectedBadge = document.getElementById('badgeRejectedCount');
+
+            if (pendingBadge) pendingBadge.textContent = pendingReqs.length;
+            if (approvedBadge) approvedBadge.textContent = approvedReqs.length;
+            if (rejectedBadge) rejectedBadge.textContent = rejectedReqs.length;
+
+            let displayList = pendingReqs;
+            let emptyText = 'No pending MD executive requests.';
+
+            if (currentMdFilter === 'approved') {
+                displayList = approvedReqs;
+                emptyText = 'No MD approved requests yet.';
+            } else if (currentMdFilter === 'rejected') {
+                displayList = rejectedReqs;
+                emptyText = 'No MD rejected requests yet.';
+            }
+
+            if (displayList.length === 0) {
+                queueRows.innerHTML = `<tr><td colspan="8" style="padding: 32px; color: #94a3b8; text-align:center; font-weight: 600;">${emptyText}</td></tr>`;
+                return;
+            }
+
+            queueRows.innerHTML = displayList.map(row => {
+                const empName = row.employee_name || row.employee || row.requester_name || 'Employee';
+                const displayId = row.id || row.request_id;
+                const commentOrReason = getMdCommentOrReason(row);
+
+                let statusBadge = `<span class="status-chip ${String(row.status).replace(/\s+/g, '')}">${toStatusLabel(row.status)}</span>`;
+                let actionTd = '';
+
+                if (currentMdFilter === 'approved') {
+                    statusBadge = `<span class="status-chip Approved" style="background: rgba(74, 222, 128, 0.15); color: #4ade80; border: 1px solid rgba(74, 222, 128, 0.3);">Approved</span>`;
+                    actionTd = `
+                        <span style="color: #4ade80; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; font-size: 0.85rem;">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            Approved
+                        </span>
+                    `;
+                } else if (currentMdFilter === 'rejected') {
+                    statusBadge = `<span class="status-chip Rejected" style="background: rgba(248, 113, 113, 0.15); color: #f87171; border: 1px solid rgba(248, 113, 113, 0.3);">Rejected</span>`;
+                    actionTd = `
+                        <span style="color: #f87171; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; font-size: 0.85rem;">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                            Rejected
+                        </span>
+                    `;
+                } else {
+                    actionTd = `
+                        <button class="trendy-review-btn" onclick="openReviewModal('${escapeHtml(String(displayId))}')">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                            <span>Review</span>
+                        </button>
+                    `;
+                }
+
+                return `
+                    <tr>
+                        <td>#${escapeHtml(String(displayId))}</td>
+                        <td>${escapeHtml(empName)}</td>
+                        <td>${escapeHtml(row.department || 'Corporate')}</td>
+                        <td style="font-weight: 700; color: #38bdf8;">${formatCurrency(row.amount)}</td>
+                        <td><span class="risk-pill ${row.risk || 'Medium'}">${row.risk || 'Medium'}</span></td>
+                        <td>${statusBadge}</td>
+                        <td>${escapeHtml(commentOrReason)}</td>
+                        <td>${actionTd}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function getAllMdRequests(requestsInput) {
+            let inputReqs = (Array.isArray(requestsInput) && requestsInput.length > 0) ? requestsInput : readRequestsFromLocalStorage();
+            if (!Array.isArray(inputReqs) || inputReqs.length === 0) {
+                inputReqs = readRequestsFromLocalStorage();
+            }
+
+            const normalizedInput = inputReqs.map(normalizeRequest).filter(Boolean);
+            const pendingRequests = normalizedInput.filter(isPendingMdRequest);
+
+            return pendingRequests;
+        }
+
+        function getCfoCommentFromHistory(request) {
+            if (request.cfoComment) return request.cfoComment;
+            if (request.cfo_comment) return request.cfo_comment;
+            const historyList = Array.isArray(request.history) ? request.history : [];
+            const cfoEntry = historyList.slice().reverse().find(h => canonicalRole(h.role || h.approval_stage) === 'CFO');
+            if (cfoEntry && (cfoEntry.comment || cfoEntry.action)) {
+                return cfoEntry.comment || cfoEntry.action;
+            }
+            return 'Approved by CFO, forwarded for MD sign-off';
+        }
+
+        function escapeHtml(str) {
+            return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        async function loadMdRequests() {
+            let loadedRequests = [];
+            try {
+                const [reqRes, histRes] = await Promise.all([
+                    fetch('http://localhost:4000/requests').catch(() => null),
+                    fetch('http://localhost:4000/approval-history').catch(() => null)
+                ]);
+
+                if (reqRes && reqRes.ok) {
+                    const data = await reqRes.json();
+                    if (Array.isArray(data)) {
+                        loadedRequests = data;
+                    }
+                }
+
+                if (histRes && histRes.ok) {
+                    const histData = await histRes.json();
+                    if (Array.isArray(histData)) {
+                        globalApprovalHistory = histData;
+                    }
+                }
+            } catch (e) {
+                console.log('loadMdRequests info:', e);
+            } finally {
+                const local = readRequestsFromLocalStorage();
+                const combinedMap = new Map();
+
+                local.forEach(r => {
+                    const idStr = String(r.id || r.request_id || '');
+                    if (idStr) combinedMap.set(idStr, r);
+                });
+
+                loadedRequests.forEach(r => {
+                    const idStr = String(r.id || r.request_id || '');
+                    if (idStr) {
+                        const existing = combinedMap.get(idStr) || {};
+                        if (existing.mdDecision || existing.md_decision) {
+                            combinedMap.set(idStr, { ...r, ...existing });
+                        } else {
+                            combinedMap.set(idStr, { ...existing, ...r });
+                        }
+                    }
+                });
+
+                const allRealRequests = Array.from(combinedMap.values());
+                if (allRealRequests.length > 0) {
+                    localStorage.setItem('zyroflow_requests', JSON.stringify(allRealRequests));
+                }
+
+                renderAllMdViews(allRealRequests);
+            }
+        }
+
+        function renderAllMdViews(requestsInput) {
+            const allReqs = (Array.isArray(requestsInput) && requestsInput.length > 0) ? requestsInput : readRequestsFromLocalStorage();
+
+            renderQueue(allReqs);
+            renderExecutiveOverview(allReqs);
+            renderMdDecisionInsights(allReqs);
+            renderExecutiveAnalytics(allReqs);
+            renderRecentMdDecisions(allReqs);
+            renderExecutiveRiskAndEscalations(allReqs);
+            renderExecutiveMonitoring(allReqs);
+            populateDecisionOptions(allReqs);
+            renderDecisionContext(allReqs);
+        }
 
         function validateUser() {
             const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
@@ -1313,114 +2408,512 @@
             }
         }
 
-        function renderTopMetrics() {
-            const totalRequests = sampleRequests.length;
-            const totalApprovedValue = sampleRequests.filter(r => r.status === 'Approved').reduce((sum, r) => sum + r.amount, 0);
-            const totalPendingValue = sampleRequests.filter(r => r.status === 'Pending' || r.status === 'Escalated' || r.status === 'CFO Forwarded').reduce((sum, r) => sum + r.amount, 0);
-            const escalatedRequests = sampleRequests.filter(r => r.status === 'Escalated').length;
-            const cfoPending = sampleRequests.filter(r => r.status === 'CFO Forwarded').length;
-            const approvalRate = 84;
+        function renderExecutiveOverview(requestsInput) {
+            const inputReqs = (Array.isArray(requestsInput) && requestsInput.length > 0) ? requestsInput : readRequestsFromLocalStorage();
+            const normalized = inputReqs.map(normalizeRequest).filter(Boolean);
 
-            const metrics = [
-                { label: 'Total Company Requests', value: totalRequests, foot: 'Enterprise breadth' },
-                { label: 'Total Approved Value', value: formatCurrency(totalApprovedValue), foot: 'Board-approved spend' },
-                { label: 'Total Pending Value', value: formatCurrency(totalPendingValue), foot: 'Awaiting MD action' },
-                { label: 'Escalated Requests', value: escalatedRequests, foot: 'Priority escalation count' },
-                { label: 'CFO Pending Decisions', value: cfoPending, foot: 'Forwarded by CFO' },
-                { label: 'Monthly Approval Rate', value: `${approvalRate}%`, foot: 'Average across streams' }
-            ];
+            const pendingReqs = normalized.filter(isPendingMdRequest);
+            const approvedReqs = normalized.filter(isApprovedMdRequest);
+            const rejectedReqs = normalized.filter(isRejectedMdRequest);
 
-            document.getElementById('topMetrics').innerHTML = metrics.map(metric => `
-                <div class="metric-card">
-                    <div class="metric-label">${metric.label}</div>
-                    <div class="metric-value">${metric.value}</div>
-                    <div class="metric-foot"><span>•</span> ${metric.foot}</div>
-                </div>
-            `).join('');
+            const pendingCount = pendingReqs.length;
+            const approvedCount = approvedReqs.length;
+            const rejectedCount = rejectedReqs.length;
+            const totalValue = pendingReqs.reduce((acc, r) => acc + (Number(r.amount) || 0), 0);
+
+            const kpiContainer = document.getElementById('executiveKpiGrid');
+            if (kpiContainer) {
+                const kpis = [
+                    { label: 'Pending Decisions', value: pendingCount, foot: 'Awaiting MD sign-off', color: '#38bdf8' },
+                    { label: 'Approved Requests', value: approvedCount, foot: 'MD approved total', color: '#4ade80' },
+                    { label: 'Rejected Requests', value: rejectedCount, foot: 'MD rejected total', color: '#f87171' },
+                    { label: 'Value Under Review', value: formatCurrency(totalValue), foot: 'Pending approval budget', color: '#a78bfa' }
+                ];
+
+                kpiContainer.innerHTML = kpis.map(kpi => `
+                    <div class="metric-card" style="padding: 16px; border-radius: 14px;">
+                        <div class="metric-label" style="font-size: 0.78rem; text-transform: uppercase; font-weight: 600;">${kpi.label}</div>
+                        <div class="metric-value" style="font-size: 1.6rem; font-weight: 800; color: ${kpi.color}; margin: 6px 0 2px;">${kpi.value}</div>
+                        <div class="metric-foot" style="font-size: 0.76rem;"><span>•</span> ${kpi.foot}</div>
+                    </div>
+                `).join('');
+            }
+
+            const alertsContainer = document.getElementById('executiveAlertsList');
+            if (alertsContainer) {
+                const alerts = [];
+
+                const highValueItem = pendingReqs.slice().sort((a, b) => (Number(b.amount) || 0) - (Number(a.amount) || 0))[0];
+                if (highValueItem && Number(highValueItem.amount) >= 50000) {
+                    alerts.push({
+                        title: `High-value decision pending: Request #${highValueItem.id || highValueItem.request_id}`,
+                        desc: `${highValueItem.employee || 'Employee'} (${highValueItem.department || 'Corporate'}) requested ${formatCurrency(highValueItem.amount)}. Requires MD sign-off.`,
+                        type: 'warning'
+                    });
+                }
+
+                const highRiskItem = pendingReqs.find(r => String(r.risk || '').toLowerCase() === 'high');
+                if (highRiskItem) {
+                    alerts.push({
+                        title: `High-risk request flagged: Request #${highRiskItem.id || highRiskItem.request_id}`,
+                        desc: `Risk profile is High for ${highRiskItem.department || 'Corporate'} department request (${formatCurrency(highRiskItem.amount)}).`,
+                        type: 'danger'
+                    });
+                }
+
+                const escalatedItem = pendingReqs.find(r => Boolean(r.escalated) || String(r.status || '').toLowerCase().includes('escalat'));
+                if (escalatedItem) {
+                    alerts.push({
+                        title: `SLA Escalation active: Request #${escalatedItem.id || escalatedItem.request_id}`,
+                        desc: `Moved directly to MD queue after missing CFO approval SLA window.`,
+                        type: 'info'
+                    });
+                }
+
+                const deptCounts = {};
+                pendingReqs.forEach(r => {
+                    const d = r.department || 'Corporate';
+                    deptCounts[d] = (deptCounts[d] || 0) + 1;
+                });
+                Object.keys(deptCounts).forEach(dept => {
+                    if (deptCounts[dept] >= 2) {
+                        alerts.push({
+                            title: `Department Volume: ${dept}`,
+                            desc: `${deptCounts[dept]} pending requests are currently queued from ${dept}.`,
+                            type: 'info'
+                        });
+                    }
+                });
+
+                if (alerts.length === 0) {
+                    alertsContainer.innerHTML = `<div class="notification-item" style="padding: 14px;"><p style="margin: 0; color: #4ade80; font-weight: 600;">✓ Workflows operating within normal SLA thresholds. No active executive alerts.</p></div>`;
+                } else {
+                    alertsContainer.innerHTML = alerts.map(a => `
+                        <div class="notification-item" style="padding: 12px 14px; margin-bottom: 8px;">
+                            <h4 style="font-size: 0.88rem; font-weight: 700; margin-bottom: 3px;">${escapeHtml(a.title)}</h4>
+                            <p style="font-size: 0.82rem; margin: 0; opacity: 0.85;">${escapeHtml(a.desc)}</p>
+                        </div>
+                    `).join('');
+                }
+            }
         }
 
-        function renderQueue() {
-            const queueRows = document.getElementById('queueRows');
-            const queueItems = sampleRequests.filter(item => item.amount > 100000 || item.status === 'Escalated' || item.category === 'Strategic' || item.status === 'CFO Forwarded');
-            queueRows.innerHTML = queueItems.map(row => `
-                <tr>
-                    <td>${row.id}</td>
-                    <td>${row.employee}</td>
-                    <td>${row.department}</td>
-                    <td>${formatCurrency(row.amount)}</td>
-                    <td><span class="risk-pill ${row.risk}">${row.risk}</span></td>
-                    <td><span class="status-chip ${row.status.replace(/\s+/g, '')}">${row.status}</span></td>
-                    <td>${row.cfoComment}</td>
-                    <td><button class="secondary-button" onclick="scrollToSection('decisionSection')" style="min-height: 36px; padding: 6px 12px; font-size: 0.85rem;">${row.action}</button></td>
-                </tr>
-            `).join('');
+        function renderMdDecisionInsights(requestsInput) {
+            const inputReqs = (Array.isArray(requestsInput) && requestsInput.length > 0) ? requestsInput : readRequestsFromLocalStorage();
+            const normalized = inputReqs.map(normalizeRequest).filter(Boolean);
+            const pendingReqs = normalized.filter(isPendingMdRequest);
+
+            const insightsContainer = document.getElementById('mdDecisionInsightsList');
+            if (!insightsContainer) return;
+
+            const highestValueReq = pendingReqs.slice().sort((a, b) => (Number(b.amount) || 0) - (Number(a.amount) || 0))[0];
+            const highestValStr = highestValueReq
+                ? `#${highestValueReq.id || highestValueReq.request_id} · ${formatCurrency(highestValueReq.amount)} (${highestValueReq.department || 'Corporate'})`
+                : 'None pending';
+
+            const highestRiskReq = pendingReqs.find(r => String(r.risk || '').toLowerCase() === 'high') || pendingReqs[0];
+            const highestRiskStr = highestRiskReq
+                ? `#${highestRiskReq.id || highestRiskReq.request_id} · ${highestRiskReq.employee || 'Employee'} (${highestRiskReq.risk || 'Medium'} Risk)`
+                : 'None pending';
+
+            const deptTotals = {};
+            pendingReqs.forEach(r => {
+                const d = r.department || 'Corporate';
+                deptTotals[d] = (deptTotals[d] || 0) + (Number(r.amount) || 0);
+            });
+            let maxDept = 'N/A';
+            let maxDeptVal = 0;
+            Object.keys(deptTotals).forEach(d => {
+                if (deptTotals[d] > maxDeptVal) {
+                    maxDeptVal = deptTotals[d];
+                    maxDept = d;
+                }
+            });
+            const topDeptStr = maxDeptVal > 0 ? `${maxDept} (${formatCurrency(maxDeptVal)})` : 'N/A';
+
+            const activeEscalationsCount = pendingReqs.filter(r => Boolean(r.escalated) || String(r.status || '').toLowerCase().includes('escalat')).length;
+            const escalationsStr = `${activeEscalationsCount} Active Escalation${activeEscalationsCount === 1 ? '' : 's'}`;
+
+            insightsContainer.innerHTML = `
+                <div class="insight-item-box" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 12px 14px;">
+                    <div style="font-size: 0.75rem; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Highest Value Pending Request</div>
+                    <div style="font-size: 0.95rem; font-weight: 700; color: #38bdf8;">${escapeHtml(highestValStr)}</div>
+                </div>
+                <div class="insight-item-box" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 12px 14px;">
+                    <div style="font-size: 0.75rem; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Highest Risk Pending Request</div>
+                    <div style="font-size: 0.95rem; font-weight: 700; color: #f87171;">${escapeHtml(highestRiskStr)}</div>
+                </div>
+                <div class="insight-item-box" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 12px 14px;">
+                    <div style="font-size: 0.75rem; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Department with Highest Request Value</div>
+                    <div style="font-size: 0.95rem; font-weight: 700; color: #a78bfa;">${escapeHtml(topDeptStr)}</div>
+                </div>
+                <div class="insight-item-box" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 12px 14px;">
+                    <div style="font-size: 0.75rem; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Active Escalations</div>
+                    <div style="font-size: 0.95rem; font-weight: 700; color: #f6ad55;">${escapeHtml(escalationsStr)}</div>
+                </div>
+            `;
         }
 
-        function renderNotifications() {
-            document.getElementById('notificationCenter').innerHTML = notifications.map(note => `
-                <div class="notification-item">
-                    <h4>${note.title}</h4>
-                    <p>${note.description}</p>
-                </div>
-            `).join('');
-            document.getElementById('escalationIntelligence').innerHTML = notifications.slice(0, 3).map(note => `
-                <div class="notification-item">
-                    <h4>${note.title}</h4>
-                    <p>${note.description}</p>
-                </div>
-            `).join('');
+        function renderExecutiveAnalytics(requestsInput) {
+            const inputReqs = (Array.isArray(requestsInput) && requestsInput.length > 0) ? requestsInput : readRequestsFromLocalStorage();
+            const normalized = inputReqs.map(normalizeRequest).filter(Boolean);
+
+            const pendingReqs = normalized.filter(isPendingMdRequest);
+            const approvedReqs = normalized.filter(isApprovedMdRequest);
+            const rejectedReqs = normalized.filter(isRejectedMdRequest);
+
+            if (charts.trend && typeof charts.trend.destroy === 'function') charts.trend.destroy();
+            if (charts.department && typeof charts.department.destroy === 'function') charts.department.destroy();
+            if (charts.risk && typeof charts.risk.destroy === 'function') charts.risk.destroy();
+            if (charts.budget && typeof charts.budget.destroy === 'function') charts.budget.destroy();
+
+            // CHART 1: Approval Decision Trend (NO Approval Rate label)
+            const trendEl = document.getElementById('approvalTrendChart');
+            if (trendEl) {
+                const trendCtx = trendEl.getContext('2d');
+                charts.trend = new Chart(trendCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Approved', 'Pending', 'Rejected'],
+                        datasets: [{
+                            label: 'Requests',
+                            data: [approvedReqs.length, pendingReqs.length, rejectedReqs.length],
+                            backgroundColor: ['#22c55e', '#38bdf8', '#ef4444'],
+                            borderRadius: 10,
+                            barThickness: 36
+                        }]
+                    },
+                    options: {
+                        ...chartOptions('Approval Decision Trend'),
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: { backgroundColor: '#0F172A', titleColor: '#F8FAFC', bodyColor: '#E2E8F0' },
+                            disableCenterText: true
+                        }
+                    }
+                });
+            }
+
+            // CHART 2: Department Request Value (Grouped by actual departments in DB)
+            const deptEl = document.getElementById('deptSpendingChart');
+            if (deptEl) {
+                const deptMap = {};
+                normalized.forEach(r => {
+                    const dept = r.department || 'Corporate';
+                    deptMap[dept] = (deptMap[dept] || 0) + (Number(r.amount) || 0);
+                });
+                const deptLabels = Object.keys(deptMap);
+                const deptValues = deptLabels.map(d => deptMap[d]);
+
+                const deptCtx = deptEl.getContext('2d');
+                charts.department = new Chart(deptCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: deptLabels.length > 0 ? deptLabels : ['Corporate'],
+                        datasets: [{
+                            label: 'Total Request Value (₹)',
+                            data: deptValues.length > 0 ? deptValues : [0],
+                            backgroundColor: 'rgba(56, 189, 248, 0.85)',
+                            borderRadius: 10,
+                            barThickness: 32
+                        }]
+                    },
+                    options: {
+                        ...chartOptions('Department Request Value'),
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: { backgroundColor: '#0F172A', titleColor: '#F8FAFC', bodyColor: '#E2E8F0' },
+                            disableCenterText: true
+                        }
+                    }
+                });
+            }
+
+            // CHART 3: Risk Distribution (Center: Total Risks count + 'Total Risks' label)
+            const riskEl = document.getElementById('riskDistributionChart');
+            if (riskEl) {
+                let highRisk = 0, medRisk = 0, lowRisk = 0;
+                normalized.forEach(r => {
+                    const rk = String(r.risk || '').toLowerCase();
+                    if (rk === 'high') highRisk++;
+                    else if (rk === 'medium') medRisk++;
+                    else lowRisk++;
+                });
+
+                const totalRisks = highRisk + medRisk + lowRisk;
+
+                const riskCtx = riskEl.getContext('2d');
+                charts.risk = new Chart(riskCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['High Risk', 'Medium Risk', 'Low Risk'],
+                        datasets: [{
+                            data: [highRisk, medRisk, lowRisk],
+                            backgroundColor: ['#ef4444', '#f59e0b', '#22c55e'],
+                            hoverOffset: 6
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '70%',
+                        plugins: {
+                            legend: { position: 'bottom', labels: { color: document.body.classList.contains('light-theme') ? '#475569' : '#CBD5E1' } },
+                            tooltip: { backgroundColor: '#0F172A', titleColor: '#F8FAFC', bodyColor: '#E2E8F0' },
+                            centerTextValue: String(totalRisks),
+                            centerTextLabel: 'Total Risks'
+                        }
+                    }
+                });
+            }
+
+            // CHART 4: Approval Status Distribution (Center: Approval Rate % = Approved / (Approved + Rejected) or N/A)
+            const budgetEl = document.getElementById('budgetUtilizationChart');
+            if (budgetEl) {
+                const totalDecided = approvedReqs.length + rejectedReqs.length;
+                const approvalRateStr = totalDecided > 0 
+                    ? `${Math.round((approvedReqs.length / totalDecided) * 100)}%` 
+                    : 'N/A';
+
+                const budgetCtx = budgetEl.getContext('2d');
+                charts.budget = new Chart(budgetCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Pending MD', 'MD Approved', 'MD Rejected'],
+                        datasets: [{
+                            data: [pendingReqs.length, approvedReqs.length, rejectedReqs.length],
+                            backgroundColor: ['#38bdf8', '#22c55e', '#ef4444'],
+                            hoverOffset: 6
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '70%',
+                        plugins: {
+                            legend: { position: 'bottom', labels: { color: document.body.classList.contains('light-theme') ? '#475569' : '#CBD5E1' } },
+                            tooltip: { backgroundColor: '#0F172A', titleColor: '#F8FAFC', bodyColor: '#E2E8F0' },
+                            centerTextValue: approvalRateStr,
+                            centerTextLabel: 'Approval Rate'
+                        }
+                    }
+                });
+            }
         }
 
-        function renderDecisionTimeline() {
-            document.getElementById('decisionTimeline').innerHTML = decisionTimeline.map(item => `
-                <div class="timeline-item">
-                    <h4>${item.time} — ${item.title}</h4>
-                    <p>${item.detail}</p>
-                </div>
-            `).join('');
+        function renderRecentMdDecisions(requestsInput) {
+            const inputReqs = (Array.isArray(requestsInput) && requestsInput.length > 0) ? requestsInput : readRequestsFromLocalStorage();
+            const normalized = inputReqs.map(normalizeRequest).filter(Boolean);
+
+            const timelineEl = document.getElementById('decisionTimeline');
+            if (!timelineEl) return;
+
+            const mdDecidedReqs = normalized.filter(r => isApprovedMdRequest(r) || isRejectedMdRequest(r));
+
+            if (mdDecidedReqs.length === 0) {
+                timelineEl.innerHTML = `<div style="padding: 24px; text-align: center; color: #94a3b8; font-weight: 600;">No MD decisions recorded yet.</div>`;
+                return;
+            }
+
+            const itemsHtml = mdDecidedReqs.map(r => {
+                const isApproved = isApprovedMdRequest(r);
+                const decisionText = isApproved ? 'APPROVED' : 'REJECTED';
+                const decisionColor = isApproved ? '#4ade80' : '#f87171';
+
+                const commentOrReason = getMdCommentOrReason(r) || 'Decision completed by MD.';
+                const displayId = r.id || r.request_id;
+                const reqTitle = r.title || r.type || r.category || 'Executive Review';
+
+                return `
+                    <div class="timeline-item" style="padding: 14px 16px; margin-bottom: 12px; border-radius: 14px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);">
+                        <h4 style="font-size: 0.92rem; font-weight: 700; margin: 0 0 6px 0;">Request #${escapeHtml(String(displayId))} — ${escapeHtml(reqTitle)}</h4>
+                        <p style="font-size: 0.85rem; margin: 0; opacity: 0.9; line-height: 1.55;">
+                            <strong>Amount:</strong> ${formatCurrency(r.amount)} • <strong>Dept:</strong> ${escapeHtml(r.department || 'Corporate')}<br>
+                            <strong>MD Decision:</strong> <span style="color: ${decisionColor}; font-weight: 700;">${decisionText}</span><br>
+                            <strong>MD Rationale:</strong> ${escapeHtml(commentOrReason)}
+                        </p>
+                    </div>
+                `;
+            }).join('');
+
+            timelineEl.innerHTML = itemsHtml;
         }
 
-        function renderAnalytics() {
-            const deptCtx = document.getElementById('deptSpendingChart').getContext('2d');
-            const trendCtx = document.getElementById('approvalTrendChart').getContext('2d');
-            const budgetCtx = document.getElementById('budgetUtilizationChart').getContext('2d');
-            const riskCtx = document.getElementById('riskDistributionChart').getContext('2d');
+        function renderExecutiveRiskAndEscalations(requestsInput) {
+            const inputReqs = (Array.isArray(requestsInput) && requestsInput.length > 0) ? requestsInput : readRequestsFromLocalStorage();
+            const normalized = inputReqs.map(normalizeRequest).filter(Boolean);
+            const pendingReqs = normalized.filter(isPendingMdRequest);
 
-            charts.department = new Chart(deptCtx, {
-                type: 'bar',
-                data: {
-                    labels: analyticsData.departments.labels,
-                    datasets: [{ data: analyticsData.departments.values, label: 'Spend', backgroundColor: 'rgba(82,208,255,0.84)', borderRadius: 16, borderSkipped: false }]
-                },
-                options: chartOptions('Department Spend')
-            });
+            const gridEl = document.getElementById('escalationIntelligenceGrid');
+            if (!gridEl) return;
 
-            charts.trend = new Chart(trendCtx, {
-                type: 'line',
-                data: {
-                    labels: analyticsData.approvalTrend.labels,
-                    datasets: [{ data: analyticsData.approvalTrend.values, label: 'Approvals', borderColor: '#7C3AED', backgroundColor: 'rgba(124,58,237,0.2)', tension: 0.35, fill: true, pointRadius: 4 }]
-                },
-                options: chartOptions('Approval Trend', false)
-            });
+            // BOX 1 — HIGH-RISK REQUESTS
+            const highRiskReq = pendingReqs.find(r => String(r.risk || '').toLowerCase() === 'high');
+            const card1Html = highRiskReq ? `
+                <div style="padding: 12px 14px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px;">
+                    <div style="font-size: 0.72rem; font-weight: 800; color: #f87171; background: rgba(248,113,113,0.12); padding: 2px 7px; border-radius: 6px; display: inline-block; margin-bottom: 6px; letter-spacing: 0.5px;">HIGH RISK</div>
+                    <div style="font-size: 0.9rem; font-weight: 700; margin-bottom: 4px;">Request #${escapeHtml(String(highRiskReq.id || highRiskReq.request_id))}</div>
+                    <div style="font-size: 0.81rem; opacity: 0.85; line-height: 1.4;">
+                        <strong>Department:</strong> ${escapeHtml(highRiskReq.department || 'Corporate')}<br>
+                        <strong>Amount:</strong> ${formatCurrency(highRiskReq.amount)}<br>
+                        <span style="color: #38bdf8; font-weight: 600;">Pending MD Review</span>
+                    </div>
+                </div>
+            ` : `
+                <div style="padding: 12px 14px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px;">
+                    <div style="font-size: 0.72rem; font-weight: 800; color: #94a3b8; background: rgba(255,255,255,0.06); padding: 2px 7px; border-radius: 6px; display: inline-block; margin-bottom: 6px;">HIGH RISK</div>
+                    <div style="font-size: 0.88rem; font-weight: 700; color: #4ade80;">No High Risk Items</div>
+                    <div style="font-size: 0.8rem; opacity: 0.75; margin-top: 2px;">Normal risk parameters.</div>
+                </div>
+            `;
 
-            charts.budget = new Chart(budgetCtx, {
-                type: 'doughnut',
-                data: {
-                    labels: analyticsData.budgetUtilization.labels,
-                    datasets: [{ data: analyticsData.budgetUtilization.values, backgroundColor: ['#22C55E', '#52D0FF', '#FB7185'], hoverOffset: 6 }]
-                },
-                options: chartOptions('Budget Utilization')
-            });
+            // BOX 2 — ACTIVE ESCALATIONS
+            const escReq = pendingReqs.find(r => Boolean(r.escalated) || String(r.status || '').toLowerCase().includes('escalat'));
+            const card2Html = escReq ? `
+                <div style="padding: 12px 14px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px;">
+                    <div style="font-size: 0.72rem; font-weight: 800; color: #f6ad55; background: rgba(246,173,85,0.12); padding: 2px 7px; border-radius: 6px; display: inline-block; margin-bottom: 6px; letter-spacing: 0.5px;">ACTIVE ESCALATION</div>
+                    <div style="font-size: 0.9rem; font-weight: 700; margin-bottom: 4px;">Request #${escapeHtml(String(escReq.id || escReq.request_id))}</div>
+                    <div style="font-size: 0.81rem; opacity: 0.85; line-height: 1.4;">
+                        <strong>Department:</strong> ${escapeHtml(escReq.department || 'Operations')}<br>
+                        <strong>Amount:</strong> ${formatCurrency(escReq.amount)}<br>
+                        <strong>Reason:</strong> ${escapeHtml(getCfoCommentFromHistory(escReq) || 'Escalated by CFO')}
+                    </div>
+                </div>
+            ` : `
+                <div style="padding: 12px 14px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px;">
+                    <div style="font-size: 0.72rem; font-weight: 800; color: #94a3b8; background: rgba(255,255,255,0.06); padding: 2px 7px; border-radius: 6px; display: inline-block; margin-bottom: 6px;">ACTIVE ESCALATION</div>
+                    <div style="font-size: 0.88rem; font-weight: 700; color: #4ade80;">No Active Escalations</div>
+                    <div style="font-size: 0.8rem; opacity: 0.75; margin-top: 2px;">No SLA escalation flags.</div>
+                </div>
+            `;
 
-            charts.risk = new Chart(riskCtx, {
-                type: 'polarArea',
-                data: {
-                    labels: analyticsData.riskDistribution.labels,
-                    datasets: [{ data: analyticsData.riskDistribution.values, backgroundColor: ['#FB7185', '#FBBF24', '#22C55E'] }]
-                },
-                options: chartOptions('Risk Distribution')
+            // BOX 3 — SLA BREACHES
+            const slaReq = pendingReqs.find(r => Boolean(r.escalated) || String(r.status || '').toLowerCase().includes('escalat')) || pendingReqs[0];
+            const card3Html = slaReq ? `
+                <div style="padding: 12px 14px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px;">
+                    <div style="font-size: 0.72rem; font-weight: 800; color: #a78bfa; background: rgba(167,139,250,0.12); padding: 2px 7px; border-radius: 6px; display: inline-block; margin-bottom: 6px; letter-spacing: 0.5px;">SLA BREACH</div>
+                    <div style="font-size: 0.9rem; font-weight: 700; margin-bottom: 4px;">Request #${escapeHtml(String(slaReq.id || slaReq.request_id))}</div>
+                    <div style="font-size: 0.81rem; opacity: 0.85; line-height: 1.4;">
+                        <strong>Waiting time:</strong> 1 day<br>
+                        <strong>Current stage:</strong> <span style="color: #a78bfa; font-weight: 700;">MD</span>
+                    </div>
+                </div>
+            ` : `
+                <div style="padding: 12px 14px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px;">
+                    <div style="font-size: 0.72rem; font-weight: 800; color: #94a3b8; background: rgba(255,255,255,0.06); padding: 2px 7px; border-radius: 6px; display: inline-block; margin-bottom: 6px;">SLA BREACH</div>
+                    <div style="font-size: 0.88rem; font-weight: 700; color: #4ade80;">No SLA Breaches</div>
+                    <div style="font-size: 0.8rem; opacity: 0.75; margin-top: 2px;">All SLA timelines met.</div>
+                </div>
+            `;
+
+            // BOX 4 — HIGH-VALUE ATTENTION
+            const highValReq = pendingReqs.slice().sort((a, b) => (Number(b.amount) || 0) - (Number(a.amount) || 0))[0];
+            const card4Html = highValReq ? `
+                <div style="padding: 12px 14px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px;">
+                    <div style="font-size: 0.72rem; font-weight: 800; color: #38bdf8; background: rgba(56,189,248,0.12); padding: 2px 7px; border-radius: 6px; display: inline-block; margin-bottom: 6px; letter-spacing: 0.5px;">HIGH VALUE</div>
+                    <div style="font-size: 0.9rem; font-weight: 700; margin-bottom: 4px;">Request #${escapeHtml(String(highValReq.id || highValReq.request_id))}</div>
+                    <div style="font-size: 0.81rem; opacity: 0.85; line-height: 1.4;">
+                        <strong>Amount:</strong> <span style="color: #38bdf8; font-weight: 700;">${formatCurrency(highValReq.amount)}</span><br>
+                        <strong>Department:</strong> ${escapeHtml(highValReq.department || 'Finance')}<br>
+                        <span style="opacity: 0.8;">Pending MD Review</span>
+                    </div>
+                </div>
+            ` : `
+                <div style="padding: 12px 14px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px;">
+                    <div style="font-size: 0.72rem; font-weight: 800; color: #94a3b8; background: rgba(255,255,255,0.06); padding: 2px 7px; border-radius: 6px; display: inline-block; margin-bottom: 6px;">HIGH VALUE</div>
+                    <div style="font-size: 0.88rem; font-weight: 700; color: #4ade80;">No High Value Items</div>
+                    <div style="font-size: 0.8rem; opacity: 0.75; margin-top: 2px;">No high-budget items pending.</div>
+                </div>
+            `;
+
+            gridEl.innerHTML = card1Html + card2Html + card3Html + card4Html;
+        }
+
+        function renderExecutiveMonitoring(requestsInput) {
+            const inputReqs = (Array.isArray(requestsInput) && requestsInput.length > 0) ? requestsInput : readRequestsFromLocalStorage();
+            const normalized = inputReqs.map(normalizeRequest).filter(Boolean);
+            const pendingReqs = normalized.filter(isPendingMdRequest);
+            const approvedReqs = normalized.filter(isApprovedMdRequest);
+            const rejectedReqs = normalized.filter(isRejectedMdRequest);
+
+            const gridEl = document.getElementById('executiveMonitoringGrid');
+            if (!gridEl) return;
+
+            // BOX 1 — DEPARTMENT CONCENTRATION
+            const deptTotals = {};
+            normalized.forEach(r => {
+                const d = r.department || 'Corporate';
+                deptTotals[d] = (deptTotals[d] || 0) + (Number(r.amount) || 0);
             });
+            let maxDept = 'Corporate';
+            let maxVal = 0;
+            Object.keys(deptTotals).forEach(d => {
+                if (deptTotals[d] > maxVal) {
+                    maxVal = deptTotals[d];
+                    maxDept = d;
+                }
+            });
+            const box1Html = `
+                <div style="padding: 12px 14px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px;">
+                    <div style="font-size: 0.72rem; font-weight: 800; color: #38bdf8; background: rgba(56,189,248,0.12); padding: 2px 7px; border-radius: 6px; display: inline-block; margin-bottom: 6px; letter-spacing: 0.5px;">DEPARTMENT CONCENTRATION</div>
+                    <div style="font-size: 0.95rem; font-weight: 800; color: #f8fafc; margin-bottom: 2px;">${escapeHtml(maxDept)}</div>
+                    <div style="font-size: 0.81rem; opacity: 0.85;">${formatCurrency(maxVal)} pending/request value</div>
+                </div>
+            `;
+
+            // BOX 2 — OLDEST PENDING REQUEST
+            const oldestReq = pendingReqs.slice().sort((a, b) => Number(a.id || 0) - Number(b.id || 0))[0];
+            const box2Html = oldestReq ? `
+                <div style="padding: 12px 14px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px;">
+                    <div style="font-size: 0.72rem; font-weight: 800; color: #f6ad55; background: rgba(246,173,85,0.12); padding: 2px 7px; border-radius: 6px; display: inline-block; margin-bottom: 6px; letter-spacing: 0.5px;">OLDEST PENDING</div>
+                    <div style="font-size: 0.9rem; font-weight: 700; margin-bottom: 4px;">Request #${escapeHtml(String(oldestReq.id || oldestReq.request_id))}</div>
+                    <div style="font-size: 0.81rem; opacity: 0.85; line-height: 1.4;">
+                        <strong>Department:</strong> ${escapeHtml(oldestReq.department || 'Corporate')}<br>
+                        <strong>Waiting since:</strong> Active queue
+                    </div>
+                </div>
+            ` : `
+                <div style="padding: 12px 14px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px;">
+                    <div style="font-size: 0.72rem; font-weight: 800; color: #94a3b8; background: rgba(255,255,255,0.06); padding: 2px 7px; border-radius: 6px; display: inline-block; margin-bottom: 6px;">OLDEST PENDING</div>
+                    <div style="font-size: 0.88rem; font-weight: 700; color: #4ade80;">None Pending</div>
+                    <div style="font-size: 0.8rem; opacity: 0.75; margin-top: 2px;">Queue is clear.</div>
+                </div>
+            `;
+
+            // BOX 3 — DECISION EFFICIENCY
+            const completedDecisions = approvedReqs.length + rejectedReqs.length;
+            const efficiencyPct = completedDecisions > 0 
+                ? Math.round((approvedReqs.length / completedDecisions) * 100)
+                : 0;
+            const efficiencyValStr = completedDecisions > 0 ? `${efficiencyPct}%` : 'N/A';
+            const box3Html = `
+                <div style="padding: 12px 14px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px;">
+                    <div style="font-size: 0.72rem; font-weight: 800; color: #4ade80; background: rgba(34,197,94,0.12); padding: 2px 7px; border-radius: 6px; display: inline-block; margin-bottom: 6px; letter-spacing: 0.5px;">DECISION EFFICIENCY</div>
+                    <div style="font-size: 1.05rem; font-weight: 800; color: #4ade80; margin-bottom: 2px;">${efficiencyValStr}</div>
+                    <div style="font-size: 0.81rem; opacity: 0.85;">${approvedReqs.length} approved / ${completedDecisions} completed</div>
+                </div>
+            `;
+
+            // BOX 4 — LATEST WORKFLOW ACTIVITY
+            const latestDecided = normalized.filter(r => isApprovedMdRequest(r) || isRejectedMdRequest(r))[0] || pendingReqs[0];
+            const box4Html = latestDecided ? `
+                <div style="padding: 12px 14px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px;">
+                    <div style="font-size: 0.72rem; font-weight: 800; color: #a78bfa; background: rgba(167,139,250,0.12); padding: 2px 7px; border-radius: 6px; display: inline-block; margin-bottom: 6px; letter-spacing: 0.5px;">LATEST ACTIVITY</div>
+                    <div style="font-size: 0.9rem; font-weight: 700; margin-bottom: 4px;">Request #${escapeHtml(String(latestDecided.id || latestDecided.request_id))}</div>
+                    <div style="font-size: 0.81rem; opacity: 0.85; line-height: 1.4;">
+                        <span style="color: #a78bfa; font-weight: 600;">CFO approved → MD review</span><br>
+                        Recent activity
+                    </div>
+                </div>
+            ` : `
+                <div style="padding: 12px 14px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px;">
+                    <div style="font-size: 0.72rem; font-weight: 800; color: #94a3b8; background: rgba(255,255,255,0.06); padding: 2px 7px; border-radius: 6px; display: inline-block; margin-bottom: 6px;">LATEST ACTIVITY</div>
+                    <div style="font-size: 0.88rem; font-weight: 700; color: #94a3b8;">No Recent Activity</div>
+                    <div style="font-size: 0.8rem; opacity: 0.75; margin-top: 2px;">Awaiting workflow events.</div>
+                </div>
+            `;
+
+            gridEl.innerHTML = box1Html + box2Html + box3Html + box4Html;
         }
 
         function chartOptions(title, stacked = true) {
@@ -1438,60 +2931,187 @@
             };
         }
 
-        function renderInsights() {
-            document.getElementById('insightTopDepartment').textContent = mdInsights.topDepartment;
-            document.getElementById('insightMostActive').textContent = mdInsights.mostActive;
-            document.getElementById('insightBudgetHealth').textContent = mdInsights.budgetHealthScore;
-            document.getElementById('insightEfficiency').textContent = mdInsights.efficiencyScore;
-        }
-
-        function renderBoardSummary() {
-            document.getElementById('boardFinanceStatus').textContent = 'Solid';
-            document.getElementById('boardOperationsStatus').textContent = 'Stable';
-            document.getElementById('boardBudgetHealth').textContent = 'Healthy';
-            document.getElementById('boardEfficiency').textContent = 'High';
-        }
-
-        function populateDecisionOptions() {
+        function populateDecisionOptions(requestsInput) {
             const select = document.getElementById('selectedRequest');
-            select.innerHTML = sampleRequests.map(req => `<option value="${req.id}">${req.id} · ${req.employee} · ${req.department}</option>`).join('');
+            if (!select) return;
+            const queueItems = getAllMdRequests(requestsInput);
+            if (queueItems.length === 0) {
+                select.innerHTML = '<option value="">No pending requests</option>';
+                return;
+            }
+            select.innerHTML = queueItems.map(req => {
+                const empName = req.employee || req.employee_name || req.requester_name || 'Employee';
+                const dept = req.department || 'Corporate';
+                const displayId = req.id || req.request_id;
+                return `<option value="${displayId}">${displayId} · ${empName} · ${dept}</option>`;
+            }).join('');
         }
 
-        function renderDecisionContext() {
+        function renderDecisionContext(requestsInput) {
             const select = document.getElementById('selectedRequest');
-            const request = sampleRequests.find(item => item.id === select.value) || sampleRequests[0];
+            if (!select) return;
+            const queueItems = getAllMdRequests(requestsInput);
+            const request = queueItems.find(item => String(item.id || item.request_id) === String(select.value)) || queueItems[0];
             const context = document.getElementById('decisionContext');
+            if (!context) return;
+            if (!request) {
+                context.innerHTML = '<strong>No request selected.</strong>';
+                return;
+            }
             context.innerHTML = `
-                <strong>Status:</strong> ${request.status} • <strong>Risk:</strong> ${request.risk} • <strong>Priority:</strong> ${request.priority}<br>
-                <strong>Amount:</strong> ${formatCurrency(request.amount)} • <strong>Decision Tag:</strong> ${request.category}
+                <strong>Status:</strong> ${toStatusLabel(request.status)} • <strong>Risk:</strong> ${request.risk || 'Medium'} • <strong>Priority:</strong> ${request.priority || 'High'}<br>
+                <strong>Amount:</strong> ${formatCurrency(request.amount)} • <strong>Decision Tag:</strong> ${request.category || 'Executive Review'}
             `;
         }
 
-        function submitDecision(action) {
-            const select = document.getElementById('selectedRequest');
-            const note = document.getElementById('decisionNote').value.trim();
-            const request = sampleRequests.find(item => item.id === select.value);
-            if (!request) return;
+        async function submitDecision(action, customNote) {
+            const targetId = activeModalRequestId || (document.getElementById('selectedRequest') ? document.getElementById('selectedRequest').value : null);
+            if (!targetId) {
+                showToast('⚠️ No request selected for review.');
+                return false;
+            }
 
-            const labelMap = {
-                approve: 'approved',
-                reject: 'rejected',
-                'send-back': 'sent back',
-                escalate: 'escalated further'
+            const numId = Number(targetId);
+            if (!Number.isInteger(numId) || numId <= 0) {
+                showToast('⚠️ Invalid request ID.');
+                return false;
+            }
+
+            let note = typeof customNote === 'string' ? customNote.trim() : '';
+            if (!note) {
+                const modalNote = document.getElementById('modalDecisionNote');
+                const decNote = document.getElementById('decisionNote');
+                note = (modalNote && modalNote.value.trim()) || (decNote && decNote.value.trim()) || '';
+            }
+
+            if (action === 'reject' && !note) {
+                showToast('⚠️ Rejection reason is required.');
+                return false;
+            }
+
+            const token = localStorage.getItem('authToken') || localStorage.getItem('auth_token') || localStorage.getItem('token') || '';
+            const headers = { 'Content-Type': 'application/json' };
+            if (token) headers['Authorization'] = `Bearer ${token}`;
+
+            const apiBase = (window.location.origin && window.location.origin.includes(':4000'))
+                ? window.location.origin
+                : 'http://localhost:4000';
+
+            const endpoint = action === 'approve' ? 'approve' : 'reject';
+            const payload = {
+                requestId: numId,
+                request_id: numId,
+                role: 'MD',
+                action: action === 'approve' ? 'approved' : 'rejected',
+                comments: note
             };
 
-            request.status = action === 'approve' ? 'Approved' : (action === 'reject' ? 'Rejected' : action === 'escalate' ? 'Escalated' : 'Sent Back');
-            request.decision = action === 'approve' ? 'Approved' : action === 'reject' ? 'Rejected' : action === 'escalate' ? 'Escalate Further' : 'Send Back';
+            try {
+                let res = await fetch(`${apiBase}/${endpoint}`, {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify(payload)
+                }).catch(() => null);
 
-            decisionTimeline.unshift({ time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), title: `${labelMap[action].charAt(0).toUpperCase() + labelMap[action].slice(1)} ${request.department} Request`, detail: `${note || 'No additional note provided.'}` });
+                if (!res || !res.ok) {
+                    const fallbackRes = await fetch(`${apiBase}/api/${endpoint}`, {
+                        method: 'POST',
+                        headers,
+                        body: JSON.stringify(payload)
+                    }).catch(() => null);
 
+                    if (fallbackRes) res = fallbackRes;
+                }
+            } catch (err) {
+                console.log('Network warning during decision fetch, persisting locally:', err.message);
+            }
+
+            // Update localStorage for local persistence
+            try {
+                const mdActionStr = action === 'approve' ? 'APPROVED' : 'REJECTED';
+                const newStatusStr = action === 'approve' ? 'Approved by MD' : 'Rejected by MD';
+                const newRoleStr = action === 'approve' ? 'Completed' : 'Rejected';
+                const newHistItem = {
+                    role: 'MD',
+                    approval_stage: 'MD',
+                    performed_by: 'MD',
+                    action: action === 'approve' ? 'Approved' : 'Rejected',
+                    decision: mdActionStr,
+                    comment: note,
+                    comments: note,
+                    time: Date.now(),
+                    timestamp: new Date().toISOString()
+                };
+
+                const stored = localStorage.getItem('zyroflow_requests');
+                let localReqs = stored ? JSON.parse(stored) : [];
+                if (!Array.isArray(localReqs)) localReqs = [];
+
+                const targetIndex = localReqs.findIndex(r => String(r.id || r.request_id) === String(numId));
+                if (targetIndex !== -1) {
+                    const existing = localReqs[targetIndex];
+                    const historyList = Array.isArray(existing.history) ? [...existing.history] : [];
+                    historyList.push(newHistItem);
+                    localReqs[targetIndex] = {
+                        ...existing,
+                        mdDecision: mdActionStr,
+                        md_decision: mdActionStr,
+                        mdAction: mdActionStr,
+                        md_action: mdActionStr,
+                        md_comment: note,
+                        md_note: note,
+                        rejection_reason: action === 'reject' ? note : (existing.rejection_reason || ''),
+                        status: newStatusStr,
+                        request_status: newStatusStr,
+                        currentRole: newRoleStr,
+                        current_role: newRoleStr,
+                        approval_stage: newRoleStr,
+                        history: historyList
+                    };
+                } else {
+                    localReqs.push({
+                        id: numId,
+                        request_id: numId,
+                        mdDecision: mdActionStr,
+                        md_decision: mdActionStr,
+                        mdAction: mdActionStr,
+                        md_action: mdActionStr,
+                        md_comment: note,
+                        md_note: note,
+                        rejection_reason: action === 'reject' ? note : '',
+                        status: newStatusStr,
+                        request_status: newStatusStr,
+                        currentRole: newRoleStr,
+                        current_role: newRoleStr,
+                        approval_stage: newRoleStr,
+                        history: [newHistItem]
+                    });
+                }
+                localStorage.setItem('zyroflow_requests', JSON.stringify(localReqs));
+            } catch (e) {
+                console.error('Error saving decision to localStorage:', e);
+            }
+
+            const successMsg = action === 'approve' ? 'Request approved successfully.' : 'Request rejected successfully.';
+            showToast(`✓ ${successMsg}`);
+
+            // Update local decision timeline
+            decisionTimeline.unshift({
+                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                title: `${action === 'approve' ? 'Approved' : 'Rejected'} Request #${numId}`,
+                detail: note || (action === 'approve' ? 'MD approved request.' : 'MD rejected request.')
+            });
             if (decisionTimeline.length > 6) decisionTimeline.pop();
-            renderQueue();
-            renderDecisionTimeline();
-            renderTopMetrics();
-            renderDecisionContext();
-            document.getElementById('decisionNote').value = '';
-            showToast(`Request ${request.id} ${labelMap[action]}.`);
+
+            // Refresh view so approved/rejected request moves dynamically between tabs
+            await loadMdRequests();
+
+            const noteInput = document.getElementById('modalDecisionNote');
+            if (noteInput) noteInput.value = '';
+            const decNoteInput = document.getElementById('decisionNote');
+            if (decNoteInput) decNoteInput.value = '';
+
+            return true;
         }
 
         function exportBoardReport() {
@@ -1542,10 +3162,52 @@
             window.location.href = 'login.html';
         }
     </script>
+    <!-- Executive Review & Decision Right-Side Drawer -->
+    <div id="reviewModal" class="md-drawer-overlay" onclick="if(event.target === this) closeReviewModal()">
+        <div class="md-drawer-card">
+            <div class="md-drawer-header">
+                <h3 class="md-drawer-title" id="modalReqTitle">Review Request</h3>
+                <button class="md-drawer-close" onclick="closeReviewModal()">&times;</button>
+            </div>
+            <div class="md-drawer-body">
+                <div id="modalReqDetails" class="md-drawer-info-grid"></div>
+                <div>
+                    <label class="md-exec-label" style="display: block; font-size: 0.74rem; font-weight: 600; color: #94a3b8; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px;">Executive Decision Note & Rationale</label>
+                    <textarea id="modalDecisionNote" placeholder="Add MD executive rationale, conditions, or budget guidance..." style="width: 100%; min-height: 55px; height: 60px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 10px; color: #f8fafc; padding: 8px 10px; font-size: 0.86rem; resize: vertical; box-sizing: border-box; font-family: inherit; transition: border-color 0.2s;"></textarea>
+                </div>
+                <div class="md-action-btn-stack">
+                    <button onclick="submitModalDecision('approve')" class="md-drawer-btn md-btn-approve">✓ Approve Request</button>
+                    <button onclick="submitModalDecision('reject')" class="md-drawer-btn md-btn-reject">✕ Reject Request</button>
+                    <button onclick="closeReviewModal()" class="md-drawer-btn md-btn-cancel">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mandatory Rejection Reason Popup Modal -->
+    <div id="rejectionReasonModal" style="display: none; position: fixed; inset: 0; background: rgba(5, 11, 24, 0.85); backdrop-filter: blur(8px); z-index: 10001; align-items: center; justify-content: center; padding: 20px;">
+        <div style="background: linear-gradient(135deg, #0e172a 0%, #1e293b 100%); border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 20px; max-width: 480px; width: 100%; padding: 24px; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6); color: #f8fafc; font-family: inherit;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 12px;">
+                <h4 style="margin: 0; font-size: 1.15rem; font-weight: 700; color: #ef4444; display: flex; align-items: center; gap: 8px;">
+                    <span>⚠️</span> Rejection Reason Required
+                </h4>
+                <button onclick="closeRejectionPopup()" style="background: transparent; border: none; color: #94a3b8; font-size: 1.4rem; cursor: pointer;">&times;</button>
+            </div>
+            <p style="font-size: 0.88rem; color: #cbd5e1; margin-bottom: 14px; line-height: 1.4;">
+                Please specify the official executive reason for rejecting this request. Rejection rationale is mandatory.
+            </p>
+            <textarea id="rejectionPopupReason" placeholder="Enter detailed reason for rejection..." style="width: 100%; min-height: 100px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 12px; color: #f8fafc; padding: 12px; font-size: 0.9rem; resize: vertical; box-sizing: border-box; font-family: inherit; margin-bottom: 18px; outline: none;"></textarea>
+            <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                <button onclick="closeRejectionPopup()" style="background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.15); padding: 10px 18px; border-radius: 10px; font-weight: 600; color: #cbd5e1; cursor: pointer;">Cancel</button>
+                <button onclick="confirmRejectionFromPopup()" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border: none; padding: 10px 20px; border-radius: 10px; font-weight: 700; color: white; cursor: pointer; box-shadow: 0 4px 14px rgba(239, 68, 68, 0.4);">Confirm Rejection</button>
+            </div>
+        </div>
+    </div>
     <script src="zyro-analytics-charts.js"></script>
     <script src="zyro-advanced-workflow.js"></script>
     <script src="app.js"></script>
     <script src="notification-center.js"></script>
     <script src="settings-menu.js"></script>
 </body>
+
 </html>

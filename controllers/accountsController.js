@@ -113,6 +113,14 @@ exports.getAccountsRequests = async (req, res, next) => {
       mapped.approvals = approvalsMap[r.id] || [];
       mapped.accounts_approval_status = r.accounts_approval_status || null;
       mapped.accounts_history_decision = r.accounts_history_decision || null;
+
+      const isPv = Number(r.payment_verified ?? 0) === 1 || String(r.payment_verification_status || '').toLowerCase() === 'verified';
+      let accDec = r.accounts_decision || 'pending';
+      if (accDec === 'approved' && !isPv) {
+        accDec = 'pending';
+      }
+      mapped.accounts_decision = accDec;
+
       return mapped;
     });
 

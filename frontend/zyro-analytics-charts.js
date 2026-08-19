@@ -20,9 +20,9 @@ const ZyroAnalytics = (function () {
   function getThemeColors() {
     const dark = isDarkMode();
     return {
-      textColor: dark ? '#B8C4D6' : '#4B5563',
-      titleColor: dark ? '#FFFFFF' : '#111827',
-      gridColor: dark ? 'rgba(255, 255, 255, 0.08)' : '#E5E7EB',
+      textColor: dark ? '#B8C4D6' : '#1e293b',
+      titleColor: dark ? '#FFFFFF' : '#0f172a',
+      gridColor: dark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.1)',
       tooltipBg: dark ? '#0F172A' : '#FFFFFF',
       tooltipText: dark ? '#FFFFFF' : '#111827',
       tooltipBorder: dark ? '#2D415F' : '#E5E7EB'
@@ -38,7 +38,7 @@ const ZyroAnalytics = (function () {
     return null;
   }
 
-  // Center Percentage Doughnut Plugin
+  // Center Percentage / Custom Text Doughnut Plugin
   const centerTextPlugin = {
     id: 'centerTextPlugin',
     afterDraw(chart) {
@@ -46,8 +46,18 @@ const ZyroAnalytics = (function () {
       const { ctx, chartArea } = chart;
       if (!chartArea) return;
 
-      const rate = chart.config.options.plugins?.centerTextRate ?? 0;
+      const pluginOpts = chart.config.options?.plugins || {};
+      if (pluginOpts.disableCenterText || pluginOpts.centerTextPlugin === false) return;
+
       const theme = getThemeColors();
+
+      const valText = pluginOpts.centerTextValue !== undefined
+        ? pluginOpts.centerTextValue
+        : `${pluginOpts.centerTextRate ?? 0}%`;
+
+      const labelText = pluginOpts.centerTextLabel !== undefined
+        ? pluginOpts.centerTextLabel
+        : 'Approval Rate';
 
       ctx.save();
       const centerX = (chartArea.left + chartArea.right) / 2;
@@ -57,14 +67,16 @@ const ZyroAnalytics = (function () {
       ctx.textBaseline = 'middle';
 
       // Value Number
-      ctx.font = 'bold 26px system-ui, -apple-system, sans-serif';
+      ctx.font = 'bold 24px system-ui, -apple-system, sans-serif';
       ctx.fillStyle = theme.titleColor;
-      ctx.fillText(`${rate}%`, centerX, centerY - 8);
+      ctx.fillText(String(valText), centerX, centerY - 8);
 
       // Label Subtitle
-      ctx.font = '500 12px system-ui, -apple-system, sans-serif';
-      ctx.fillStyle = theme.textColor;
-      ctx.fillText('Approval Rate', centerX, centerY + 16);
+      if (labelText) {
+        ctx.font = '500 12px system-ui, -apple-system, sans-serif';
+        ctx.fillStyle = theme.textColor;
+        ctx.fillText(String(labelText), centerX, centerY + 14);
+      }
 
       ctx.restore();
     }

@@ -453,6 +453,115 @@
         padding-bottom: 6px;
       }
     }
+
+    /* Rejection Reason Modal & Button Styles */
+    .view-reason-btn {
+      background: none;
+      border: none;
+      color: #2563EB;
+      font-weight: 700;
+      font-size: 0.82rem;
+      cursor: pointer;
+      text-decoration: underline;
+      padding: 0;
+      margin-left: 8px;
+    }
+
+    .view-reason-btn:hover {
+      color: #1D4ED8;
+    }
+
+    .rejection-modal-backdrop {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(17, 24, 39, 0.6);
+      backdrop-filter: blur(4px);
+      z-index: 9999;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .rejection-modal-backdrop.open {
+      display: flex;
+    }
+
+    .rejection-modal-card {
+      background: #FFFFFF !important;
+      border-radius: 16px;
+      width: 100%;
+      max-width: 480px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      border: 1px solid #E5E7EB !important;
+      overflow: hidden;
+      animation: modalFadeIn 0.2s ease-out;
+    }
+
+    @keyframes modalFadeIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .rejection-modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 18px 24px;
+      border-bottom: 1px solid #E5E7EB !important;
+      background: #FFFFFF !important;
+    }
+
+    .rejection-modal-title {
+      margin: 0;
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: #111827 !important;
+    }
+
+    .rejection-modal-close-x {
+      background: transparent;
+      border: none;
+      font-size: 1.5rem;
+      color: #6B7280 !important;
+      cursor: pointer;
+      line-height: 1;
+      padding: 0;
+      margin: 0;
+      transition: color 0.15s;
+    }
+
+    .rejection-modal-close-x:hover {
+      color: #111827 !important;
+    }
+
+    .rejection-modal-body {
+      padding: 24px;
+      background: #FFFFFF !important;
+    }
+
+    .rejection-reason-text {
+      margin: 0;
+      font-size: 0.95rem;
+      line-height: 1.5;
+      color: #374151 !important;
+      background: #FEF2F2 !important;
+      border: 1px solid #FCA5A5 !important;
+      padding: 16px;
+      border-radius: 12px;
+      word-break: break-word;
+    }
+
+    .rejection-modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      padding: 16px 24px;
+      background: #F9FAFB !important;
+      border-top: 1px solid #E5E7EB !important;
+    }
   </style>
 </head>
 
@@ -527,6 +636,24 @@
 
     document.addEventListener('DOMContentLoaded', () => {
       checkAuth();
+
+      // Restore search & filter state if returning from tracking details
+      const urlParams = new URLSearchParams(window.location.search);
+      const savedSearch = urlParams.get('search') ?? sessionStorage.getItem('zyro_track_search');
+      const savedFilter = urlParams.get('filter') ?? urlParams.get('status') ?? sessionStorage.getItem('zyro_track_filter');
+
+      if (savedSearch !== null && savedSearch !== undefined) {
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput) searchInput.value = savedSearch;
+      }
+
+      if (savedFilter) {
+        currentFilter = savedFilter;
+        document.querySelectorAll('#filterChips .chip').forEach(btn => {
+          btn.classList.toggle('active', btn.dataset.filter === savedFilter);
+        });
+      }
+
       loadUserRequests();
       // Auto refresh tracking list every 30 seconds
       autoRefreshTimer = setInterval(() => loadUserRequests(true), 30000);
@@ -585,6 +712,7 @@
 
     function setFilter(filter) {
       currentFilter = filter;
+      sessionStorage.setItem('zyro_track_filter', filter);
       document.querySelectorAll('#filterChips .chip').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.filter === filter);
       });
@@ -691,7 +819,10 @@
 
     function filterAndRenderCards() {
       const container = document.getElementById('cardsContainer');
-      const q = (document.getElementById('searchInput')?.value || '').toLowerCase().trim();
+      const rawSearch = document.getElementById('searchInput')?.value || '';
+      const q = rawSearch.toLowerCase().trim();
+      sessionStorage.setItem('zyro_track_search', rawSearch);
+      sessionStorage.setItem('zyro_track_filter', currentFilter);
 
       const filtered = allRequests.filter(r => {
         const cat = toStatusCategory(r.status);
@@ -747,9 +878,9 @@
              </div>`;
         } else if (decDetails.isRejected) {
           currentStage = `Rejected by ${decDetails.role}`;
-          decisionBadgeInfo = `<div class="rejected-by" style="grid-column: 1 / -1; margin-top: 6px; color:#ef4444; font-weight:600; font-size:13px;">
-               ❌ Rejected By: ${escapeHtml(decDetails.role)}
-               ${decDetails.reason ? `<div style="font-weight:400; color:var(--text-secondary); margin-top:2px;">Reason: "${escapeHtml(decDetails.reason)}"</div>` : ''}
+          decisionBadgeInfo = `<div class="rejected-by" style="grid-column: 1 / -1; margin-top: 6px; color:#ef4444; font-weight:600; font-size:13px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
+               <span>✕ Rejected By: ${escapeHtml(decDetails.role)}</span>
+               <button type="button" class="view-reason-btn" onclick="openRejectionModal('${reqId}')">View Reason</button>
              </div>`;
         } else {
           currentStage = `Pending ${decDetails.role} Review`;
@@ -810,7 +941,7 @@
               </div>
 
               <div class="card-actions">
-                <button class="btn primary" onclick="window.location.href='employee-request-tracking.html?id=${reqId}'">
+                <button class="btn primary" onclick="goToTrackingDetails('${reqId}')">
                   <span>📊 View Tracking</span>
                 </button>
               </div>
@@ -819,12 +950,70 @@
       }).join('');
     }
 
+    function goToTrackingDetails(reqId) {
+      const rawSearch = document.getElementById('searchInput')?.value || '';
+      sessionStorage.setItem('zyro_track_search', rawSearch);
+      sessionStorage.setItem('zyro_track_filter', currentFilter);
+
+      let targetUrl = `employee-request-tracking.html?id=${encodeURIComponent(reqId)}`;
+      if (rawSearch.trim()) targetUrl += `&search=${encodeURIComponent(rawSearch.trim())}`;
+      if (currentFilter && currentFilter !== 'All') targetUrl += `&filter=${encodeURIComponent(currentFilter)}`;
+      window.location.href = targetUrl;
+    }
+
+    function openRejectionModal(reqId) {
+      const r = allRequests.find(req => String(req.id) === String(reqId));
+      const reasonEl = document.getElementById('rejectionModalReasonText');
+      const modalEl = document.getElementById('rejectionModal');
+
+      let reasonText = '';
+      if (r) {
+        const dec = getDecisionDetails(r);
+        reasonText = dec.reason || r.rejection_reason || r.comments || '';
+      }
+
+      if (!reasonText || !reasonText.trim()) {
+        reasonText = 'No specific reason provided.';
+      }
+
+      if (reasonEl) reasonEl.textContent = `"${reasonText.trim().replace(/^"|"$/g, '')}"`;
+      if (modalEl) modalEl.classList.add('open');
+    }
+
+    function closeRejectionModal() {
+      const modalEl = document.getElementById('rejectionModal');
+      if (modalEl) modalEl.classList.remove('open');
+    }
+
+    function closeRejectionModalOnBackdrop(e) {
+      if (e && e.target && e.target.id === 'rejectionModal') {
+        closeRejectionModal();
+      }
+    }
+
     function escapeHtml(str) {
       const div = document.createElement('div');
       div.textContent = str;
       return div.innerHTML;
     }
   </script>
+
+  <!-- Rejection Reason Modal -->
+  <div id="rejectionModal" class="rejection-modal-backdrop" onclick="closeRejectionModalOnBackdrop(event)">
+    <div class="rejection-modal-card" onclick="event.stopPropagation()">
+      <div class="rejection-modal-header">
+        <h3 class="rejection-modal-title">Rejection Reason</h3>
+        <button type="button" class="rejection-modal-close-x" onclick="closeRejectionModal()">&times;</button>
+      </div>
+      <div class="rejection-modal-body">
+        <p id="rejectionModalReasonText" class="rejection-reason-text"></p>
+      </div>
+      <div class="rejection-modal-footer">
+        <button type="button" class="btn primary" onclick="closeRejectionModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
   <script src="settings-menu.js"></script>
 </body>
 

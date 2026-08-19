@@ -167,17 +167,35 @@ async function loadAccountsRequests() {
   }
 }
 
+// Helper to check if payment verification is verified
+function isPaymentVerified(req) {
+  if (!req) return false;
+  return Number(req.payment_verified ?? 0) === 1 ||
+         String(req.payment_verification_status || '').toLowerCase().trim() === 'verified';
+}
+
+function isPaymentRejected(req) {
+  if (!req) return false;
+  const pvStatus = String(req.payment_verification_status || '').toLowerCase().trim();
+  return pvStatus === 'rejected' || Number(req.payment_verified) === -1;
+}
+
 // Determine Accounts approval decision for a request (Source of Truth)
 function getAccountsDecision(req) {
   if (!req) return 'pending';
+
+  // Payment Verification Rejected => Accounts Decision is Rejected
+  if (isPaymentRejected(req)) {
+    return 'rejected';
+  }
 
   // 1. Check approvals array step for Accounts (Highest precision)
   const approvalsList = Array.isArray(req.approvals) ? req.approvals : [];
   const accStep = approvalsList.find(a => String(a.approver_role || a.role || '').toLowerCase().trim() === 'accounts');
   if (accStep && accStep.status) {
     const st = String(accStep.status).toLowerCase().trim();
-    if (st === 'approved') return 'approved';
     if (st === 'rejected') return 'rejected';
+    if (st === 'approved') return isPaymentVerified(req) ? 'approved' : 'pending';
     if (st === 'pending') return 'pending';
   }
 
@@ -187,25 +205,29 @@ function getAccountsDecision(req) {
   if (accHist.length > 0) {
     const lastAcc = accHist[accHist.length - 1];
     const decision = String(lastAcc.decision || lastAcc.action || '').toLowerCase().trim();
-    if (decision.includes('approve')) return 'approved';
     if (decision.includes('reject')) return 'rejected';
+    if (decision.includes('approve')) return isPaymentVerified(req) ? 'approved' : 'pending';
   }
 
   // 3. Check direct accounts_approval_status or accounts_history_decision from API
   if (req.accounts_approval_status) {
     const st = String(req.accounts_approval_status).toLowerCase().trim();
-    if (['approved', 'rejected', 'pending'].includes(st)) return st;
+    if (st === 'rejected') return 'rejected';
+    if (st === 'approved') return isPaymentVerified(req) ? 'approved' : 'pending';
+    if (st === 'pending') return 'pending';
   }
   if (req.accounts_history_decision) {
     const dec = String(req.accounts_history_decision).toLowerCase().trim();
-    if (dec.includes('approve')) return 'approved';
     if (dec.includes('reject')) return 'rejected';
+    if (dec.includes('approve')) return isPaymentVerified(req) ? 'approved' : 'pending';
   }
 
   // 4. Check explicit accounts_decision from DB query
   if (req.accounts_decision) {
     const dec = String(req.accounts_decision).toLowerCase().trim();
-    if (['approved', 'rejected', 'pending'].includes(dec)) return dec;
+    if (dec === 'rejected') return 'rejected';
+    if (dec === 'approved') return isPaymentVerified(req) ? 'approved' : 'pending';
+    if (dec === 'pending') return 'pending';
   }
 
   return 'pending';

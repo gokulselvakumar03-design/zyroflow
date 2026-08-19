@@ -115,6 +115,7 @@ async function initializeMysqlStorage() {
           requester_email VARCHAR(100),
           current_role VARCHAR(50),
           current_approver VARCHAR(100),
+          approval_stage VARCHAR(100) DEFAULT 'Accounts',
           workflow TEXT,
           payload JSON NULL,
           current_level INT DEFAULT 0,
@@ -622,17 +623,19 @@ app.get(['/requests', '/api/requests'], optionalAuth, async (req, res) => {
         params = [user?.email || '', user?.name || ''];
       } else if (['manager', 'accounts', 'cfo', 'md'].includes(role)) {
         const statusMatch = `pending ${role} approval`;
+        const extraMdCondition = role === 'md' ? "OR LOWER(status) LIKE '%cfo%' OR LOWER(status) LIKE '%escalat%'" : "";
         query = `
           SELECT * FROM workflow_requests
           WHERE LOWER(status) = LOWER(?)
              OR (
-               (LOWER(status) = 'pending' OR LOWER(status) LIKE 'pending%')
+               (LOWER(status) = 'pending' OR LOWER(status) LIKE 'pending%' ${extraMdCondition})
                AND (
                  LOWER(current_approver) = LOWER(?)
                  OR LOWER(current_role) = LOWER(?)
                  OR LOWER(approval_stage) = LOWER(?)
                )
              )
+             ${role === 'md' ? "OR LOWER(status) LIKE '%escalat%' OR LOWER(status) LIKE '%cfo forwarded%' OR LOWER(status) LIKE '%cfo approved%'" : ""}
           ORDER BY id DESC
         `;
         params = [statusMatch, role, role, role];

@@ -1764,11 +1764,21 @@
         }
 
         function readRequestsFromLocalStorage() {
+            try {
+                const stored = localStorage.getItem('zyroflow_requests');
+                if (stored) {
+                    const parsed = JSON.parse(stored);
+                    if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+                }
+            } catch (e) {}
             return requestsCache;
         }
 
         function writeRequestsToLocalStorage(requests) {
             requestsCache = Array.isArray(requests) ? requests : [];
+            try {
+                localStorage.setItem('zyroflow_requests', JSON.stringify(requestsCache));
+            } catch (e) {}
         }
 
         async function saveHistory(requestId, action, user) {
@@ -2168,47 +2178,63 @@
         }
 
         function getCfoPriorityScore(request) {
+            if (!request) return { score: 0, level: 'Low', colorClass: 'score-low' };
+
+            // 1. Priority Component (Weight: 35%)
+            const priorityStr = getRequestPriority(request);
+            let priorityScore = 30; // LOW default
+            if (priorityStr === 'HIGH') priorityScore = 100;
+            else if (priorityStr === 'MEDIUM') priorityScore = 60;
+
+            // 2. Amount Component (Weight: 30%)
             const amount = Number(request.amount || 0);
-            const priority = getRequestPriority(request);
-            const waitingMs = Math.max(0, Date.now() - Number(request.createdAt || request.updatedAt || Date.now()));
+            const allAmounts = (window.accountsRequestsCache || []).map(r => Number(r.amount || 0)).filter(a => a > 0);
+            const maxAmount = allAmounts.length > 0 ? Math.max(...allAmounts, 100000) : 100000;
+            const amountScore = Math.min(100, Math.max(0, (amount / maxAmount) * 100));
+
+            // 3. Waiting / SLA Component (Weight: 20%)
+            const createdTime = Number(request.createdAt || request.created_at || Date.now());
+            const waitingMs = Math.max(0, Date.now() - createdTime);
             const waitingHours = waitingMs / (3600 * 1000);
-            const isOverdue = checkSLA(request) || waitingHours >= 48;
+            const waitingScore = Math.min(100, Math.max(0, (waitingHours / 72) * 100));
 
-            let amountScore = 5;
-            if (amount >= 500000) amountScore = 35;
-            else if (amount >= 200000) amountScore = 32;
-            else if (amount >= 100000) amountScore = 27;
-            else if (amount >= 50000) amountScore = 20;
-            else if (amount >= 25000) amountScore = 12;
+            // 4. Escalation Component (Weight: 15%)
+            const isEscalated = (typeof checkSLA === 'function' && checkSLA(request)) ||
+                                Boolean(request.isEscalated) ||
+                                String(request.status || '').toLowerCase().includes('escalat');
+            const escalationScore = isEscalated ? 100 : 0;
 
-            let priorityScore = 5;
-            if (priority === 'HIGH') priorityScore = 25;
-            else if (priority === 'MEDIUM') priorityScore = 15;
+            // 5. Weighted Combination
+            const totalScore = Math.round(
+                priorityScore * 0.35 +
+                amountScore   * 0.30 +
+                waitingScore  * 0.20 +
+                escalationScore * 0.15
+            );
 
-            let waitingScore = 5;
-            if (waitingHours >= 48) waitingScore = 25;
-            else if (waitingHours >= 24) waitingScore = 15;
-            else if (waitingHours >= 12) waitingScore = 10;
-
-            let overdueScore = isOverdue ? 15 : 0;
-
-            const totalScore = Math.min(100, Math.max(0, amountScore + priorityScore + waitingScore + overdueScore));
+            const finalScore = Math.min(100, Math.max(0, totalScore));
 
             let level = 'Low';
             let colorClass = 'score-low';
-            if (totalScore >= 90) { level = 'Critical'; colorClass = 'score-critical'; }
-            else if (totalScore >= 70) { level = 'High'; colorClass = 'score-high'; }
-            else if (totalScore >= 40) { level = 'Medium'; colorClass = 'score-medium'; }
+            if (finalScore >= 80) {
+                level = 'High';
+                colorClass = 'score-high';
+            } else if (finalScore >= 50) {
+                level = 'Medium';
+                colorClass = 'score-medium';
+            } else {
+                level = 'Low';
+                colorClass = 'score-low';
+            }
 
-            return { score: totalScore, level, colorClass };
+            return { score: finalScore, level, colorClass };
         }
 
         function renderPriorityScoreBadge(request) {
             const { score, level } = getCfoPriorityScore(request);
             let color = '#4ade80';
             let bg = 'rgba(74, 222, 128, 0.15)';
-            if (level === 'Critical') { color = '#ef4444'; bg = 'rgba(239, 68, 68, 0.18)'; }
-            else if (level === 'High') { color = '#f97316'; bg = 'rgba(249, 115, 22, 0.18)'; }
+            if (level === 'High') { color = '#f97316'; bg = 'rgba(249, 115, 22, 0.18)'; }
             else if (level === 'Medium') { color = '#f59e0b'; bg = 'rgba(245, 158, 11, 0.18)'; }
 
             return `<span class="priority-score-chip" style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; border-radius: 6px; font-weight: 700; font-size: 0.78rem; color: ${color}; background: ${bg}; border: 1px solid ${color}33;">
@@ -2283,7 +2309,7 @@
 
             const empName = r.employee_name || r.requester_name || r.requester || r.employee || 'Employee';
             const reqType = r.type || r.request_type || r.title || 'Financial';
-            const canAct = normalizeStatus(r.status) === 'pending' && getRequestCurrentRole(r) === currentRole;
+            const canAct = isPendingCfoRequest(r);
 
             const defaultWorkflow = ['Employee', 'Accounts', 'Manager', 'CFO', 'MD'];
             const rawWorkflow = Array.isArray(r.workflow) && r.workflow.length > 0 ? r.workflow : defaultWorkflow;
@@ -2311,7 +2337,7 @@
                 <div class="cfo-info-item"><span class="cfo-info-label">Department</span><strong>${escapeHtml(r.department || 'Corporate')}</strong></div>
                 <div class="cfo-info-item"><span class="cfo-info-label">Request Type</span><strong>${escapeHtml(reqType)}</strong></div>
                 <div class="cfo-info-item"><span class="cfo-info-label">Amount</span><strong style="color: #38bdf8;">${formatCurrency(r.amount)}</strong></div>
-                <div class="cfo-info-item"><span class="cfo-info-label">Priority</span><strong>${renderPriority(r)}</strong></div>
+                <div class="cfo-info-item"><span class="cfo-info-label">Priority & Score</span><strong>${renderPriority(r)} ${renderPriorityScoreBadge(r)}</strong></div>
                 <div class="cfo-info-item" style="grid-column: span 2;"><span class="cfo-info-label">Current Status</span><strong><span class="table-status status-${normalizeStatus(r.status)}">${toStatusLabel(r.status)}</span></strong></div>
                 <div class="cfo-info-item" style="grid-column: span 2; margin-top: 8px;">
                     <span class="cfo-info-label" style="margin-bottom: 6px; display: block;">Workflow Progression</span>
@@ -2326,9 +2352,13 @@
                 : `<span style="color: #94a3b8; font-size: 0.9rem;">This request is currently <strong>${escapeHtml(toStatusLabel(r.status))}</strong> and no longer pending CFO action.</span>`;
             
             extraInput.innerHTML = `
+                <div id="cfo-approve-container" style="display: none; margin-top: 12px; padding: 12px; background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 10px;">
+                    <label style="display: block; font-size: 0.82rem; font-weight: 700; color: #38bdf8; margin-bottom: 6px;">Approval Remarks (Optional)</label>
+                    <textarea id="cfo-review-approve-remarks" class="cfo-modal-textarea" placeholder="Enter optional approval remarks..."></textarea>
+                </div>
                 <div id="cfo-reject-container" style="display: none; margin-top: 12px; padding: 12px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: 10px;">
-                    <label style="display: block; font-size: 0.82rem; font-weight: 700; color: #f87171; margin-bottom: 6px;">Rejection Reason</label>
-                    <textarea id="cfo-review-reject-reason" class="cfo-modal-textarea" placeholder="Enter reason for rejection..."></textarea>
+                    <label style="display: block; font-size: 0.82rem; font-weight: 700; color: #f87171; margin-bottom: 6px;">Rejection Reason <span style="color:#ef4444;">*</span></label>
+                    <textarea id="cfo-review-reject-reason" class="cfo-modal-textarea" placeholder="Enter mandatory reason for rejection..."></textarea>
                 </div>
                 <div id="cfo-escalate-container" style="display: none; margin-top: 12px; padding: 12px; background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: 10px;">
                     <p style="margin: 0; font-size: 0.88rem; font-weight: 700; color: #fbbf24;">Escalate this request to MD for further approval?</p>
@@ -2358,6 +2388,16 @@
         }
 
         async function triggerReviewApprove(requestId) {
+            const approveBox = document.getElementById('cfo-approve-container');
+            const rejectBox = document.getElementById('cfo-reject-container');
+            const escalateBox = document.getElementById('cfo-escalate-container');
+            const remarksTextarea = document.getElementById('cfo-review-approve-remarks');
+
+            if (rejectBox) rejectBox.style.display = 'none';
+            if (escalateBox) escalateBox.style.display = 'none';
+
+            const remarks = remarksTextarea ? remarksTextarea.value.trim() : '';
+
             const approveBtn = document.getElementById('cfo-review-approve-btn');
             const rejectBtn = document.getElementById('cfo-review-reject-btn');
             const escalateBtn = document.getElementById('cfo-review-escalate-btn');
@@ -2367,7 +2407,7 @@
             if (escalateBtn) escalateBtn.disabled = true;
 
             try {
-                await updateRequestStatus(requestId, 'approved');
+                await updateRequestStatus(requestId, 'approved', remarks);
                 closeCfoModal();
             } catch (err) {
                 if (approveBtn) { approveBtn.disabled = false; approveBtn.innerHTML = '✓ Approve Request'; }
@@ -2379,9 +2419,11 @@
 
         async function triggerReviewReject(requestId) {
             const rejectBox = document.getElementById('cfo-reject-container');
+            const approveBox = document.getElementById('cfo-approve-container');
             const escalateBox = document.getElementById('cfo-escalate-container');
             const textarea = document.getElementById('cfo-review-reject-reason');
             
+            if (approveBox) approveBox.style.display = 'none';
             if (escalateBox) escalateBox.style.display = 'none';
 
             if (rejectBox && rejectBox.style.display === 'none') {
@@ -2418,8 +2460,10 @@
 
         async function triggerReviewEscalate(requestId) {
             const escalateBox = document.getElementById('cfo-escalate-container');
+            const approveBox = document.getElementById('cfo-approve-container');
             const rejectBox = document.getElementById('cfo-reject-container');
 
+            if (approveBox) approveBox.style.display = 'none';
             if (rejectBox) rejectBox.style.display = 'none';
 
             if (escalateBox && escalateBox.style.display === 'none') {
@@ -2463,7 +2507,7 @@
             const index = requests.findIndex((r) => Number(r.id) === Number(requestId));
             if (index === -1) return;
             const request = requests[index];
-            if (normalizeStatus(request.status) !== 'pending' || getRequestCurrentRole(request) !== currentRole) {
+            if (!isPendingCfoRequest(request)) {
                 showMessage('This request is currently not eligible for escalation.', 'warning');
                 return;
             }
@@ -2502,15 +2546,29 @@
             const requestIndex = requests.findIndex((r) => Number(r.id) === Number(requestId));
             if (requestIndex === -1) return;
             const request = requests[requestIndex];
-            const assignedRole = canonicalRole((request.workflow || [])[request.currentLevel]);
-            if (assignedRole !== currentRole || normalizeStatus(request.status) !== 'pending') {
-                showMessage('This request is no longer assigned to your role.', 'warning');
+
+            if (!isPendingCfoRequest(request)) {
+                showMessage('This request is no longer pending CFO approval.', 'warning');
                 renderRequests();
                 return;
             }
             const now = Date.now();
-            const actionStatus = normalizeStatus(status) === 'approved' ? 'Approved' : 'Rejected';
-            const finalComment = optionalComment && optionalComment.trim() ? optionalComment.trim() : actionStatus;
+            const isApproved = normalizeStatus(status) === 'approved';
+            const actionStatus = isApproved ? 'Approved' : 'Rejected';
+            
+            if (!isApproved) {
+                const reason = optionalComment ? String(optionalComment).trim() : '';
+                if (!reason) {
+                    showMessage('Please enter a rejection reason.', 'warning');
+                    return;
+                }
+            }
+
+            const commentsText = optionalComment && String(optionalComment).trim() ? String(optionalComment).trim() : (isApproved ? 'Approved by CFO' : 'Rejected by CFO');
+            const historyText = isApproved 
+                ? (optionalComment && String(optionalComment).trim() ? `Approved by CFO: ${String(optionalComment).trim()}` : 'Approved by CFO')
+                : `Rejected by CFO: ${String(optionalComment).trim()}`;
+
             const snapshot = {
                 status: request.status,
                 currentLevel: request.currentLevel,
@@ -2518,23 +2576,71 @@
                 historyLength: request.history.length,
                 commentsLength: request.comments.length
             };
-            request.comments.push({ role: currentRole, comment: finalComment, time: now });
+
+            request.comments.push({ role: currentRole, comment: commentsText, time: now });
             request.updatedAt = now;
-            if (normalizeStatus(status) === 'approved') {
-                request.currentLevel += 1;
-                if (request.currentLevel >= request.workflow.length) {
-                    request.status = 'approved';
-                    request.currentLevel = Math.max(0, request.workflow.length - 1);
+
+            if (isApproved) {
+                request.cfoDecision = 'APPROVED';
+                request.cfo_decision = 'APPROVED';
+
+                const defaultWf = ['Accounts', 'Manager', 'CFO', 'MD'];
+                const wf = Array.isArray(request.workflow) && request.workflow.length > 0 ? request.workflow : defaultWf;
+                const mdIdx = wf.findIndex((role) => canonicalRole(role) === 'MD');
+                const cfoIdx = wf.findIndex((role) => canonicalRole(role) === 'CFO');
+
+                if (mdIdx !== -1) {
+                    request.currentLevel = mdIdx;
+                    request.currentRole = 'MD';
+                } else if (cfoIdx !== -1 && cfoIdx + 1 < wf.length) {
+                    request.currentLevel = cfoIdx + 1;
+                    request.currentRole = wf[request.currentLevel] || 'MD';
                 } else {
+                    request.currentLevel = Math.max(request.currentLevel + 1, wf.length);
+                    request.currentRole = 'MD';
+                }
+
+                if (canonicalRole(request.currentRole) === 'MD') {
                     request.status = 'pending';
-                    request.currentRole = (request.workflow || [])[request.currentLevel] || request.currentRole;
+                } else {
+                    request.status = 'approved';
                 }
             } else {
                 request.status = 'rejected';
+                request.rejectionReason = commentsText;
+                request.rejection_reason = commentsText;
+                request.cfoDecision = 'REJECTED';
+                request.cfo_decision = 'REJECTED';
+                request.currentRole = 'CFO';
             }
-            addHistory(request, actionStatus, currentRole);
-            await saveHistory(request.id, actionStatus, currentRole);
-            await saveApprovalAction(request.id, currentRole, normalizeStatus(status), finalComment);
+
+            console.log('[CFO APPROVE] BEFORE:', request);
+            console.log('[CFO APPROVE] ID:', request.id);
+
+            const payload = {
+                requestId: Number(requestId),
+                request_id: Number(requestId),
+                role: currentRole || 'CFO',
+                action: isApproved ? 'approved' : 'rejected',
+                comments: commentsText
+            };
+            console.log('[CFO APPROVE] PAYLOAD:', payload);
+
+            addHistory(request, historyText, currentRole);
+            await saveHistory(request.id, historyText, currentRole);
+            const response = await saveApprovalAction(request.id, currentRole, normalizeStatus(status), commentsText);
+            console.log('[CFO APPROVE] RESPONSE:', response);
+
+            try {
+                const verifyRes = await fetch('http://localhost:4000/requests');
+                if (verifyRes.ok) {
+                    const allServerReqs = await verifyRes.json();
+                    const serverRequest = allServerReqs.find(r => Number(r.id) === Number(request.id));
+                    console.log('[VERIFY AFTER CFO] REQUEST ID:', request.id);
+                    console.log('[VERIFY AFTER CFO] SERVER REQUEST:', serverRequest);
+                }
+            } catch (e) {}
+
             globalApprovalHistory.unshift({
                 request_id: request.id,
                 employee_name: request.employee_name || request.employee || 'Employee',
@@ -2544,19 +2650,21 @@
                 approval_stage: currentRole,
                 decision: actionStatus,
                 action: normalizeStatus(status),
-                comments: finalComment,
+                comments: historyText,
                 decision_timestamp: new Date().toISOString()
             });
+
             request.lastActionTime = now;
             request.lastAction = normalizeStatus(status);
             request.undoAvailable = request.undoUsed === false;
             request.lastActionType = normalizeStatus(status);
             request.lastActionBy = currentRole;
             request.lastActionSnapshot = snapshot;
+
             requests[requestIndex] = request;
             writeRequestsToLocalStorage(requests);
             scheduleUndoExpiryForRequest(request.id, now);
-            showMessage('Action applied. Undo available for 25 seconds.', 'success');
+            showMessage(isApproved ? 'Request approved successfully and forwarded to MD.' : 'Request rejected successfully.', 'success');
             renderRequests();
         }
 
@@ -2676,32 +2784,89 @@
             return reqId.includes(cfoSearchQuery) || emp.includes(cfoSearchQuery) || dept.includes(cfoSearchQuery) || type.includes(cfoSearchQuery);
         }
 
+        const CFO_SLA_HOURS = 48;
+        const CFO_SLA_MS = CFO_SLA_HOURS * 3600 * 1000;
+        const TOP_HIGH_VALUE_LIMIT = 5;
+
+        function getCfoStageStartTime(request) {
+            if (!request) return Date.now();
+            if (request.cfoStageStartedAt) return Number(request.cfoStageStartedAt);
+            if (request.cfo_stage_started_at) return Number(request.cfo_stage_started_at);
+
+            const historyList = Array.isArray(request.history) ? request.history : [];
+            for (let i = historyList.length - 1; i >= 0; i--) {
+                const h = historyList[i];
+                const actionStr = String(h.action || h.status || h.decision || '').toLowerCase();
+                const roleStr = canonicalRole(h.role || h.approval_stage || h.performed_by || h.user);
+
+                if (actionStr.includes('cfo') || roleStr === 'CFO') {
+                    const t = Number(h.time || h.timestamp || Date.parse(h.time || h.timestamp));
+                    if (!isNaN(t) && t > 0) return t;
+                }
+                if (roleStr === 'Manager' && actionStr.includes('approve')) {
+                    const t = Number(h.time || h.timestamp || Date.parse(h.time || h.timestamp));
+                    if (!isNaN(t) && t > 0) return t;
+                }
+            }
+
+            const reqId = Number(request.id || 0);
+            const globalHist = Array.isArray(globalApprovalHistory) ? globalApprovalHistory : [];
+            const mgrApproval = globalHist.find(h => Number(h.request_id) === reqId && canonicalRole(h.approval_stage || h.manager_name || h.performed_by) === 'Manager' && String(h.decision || h.action || '').toLowerCase().includes('approve'));
+            if (mgrApproval && (mgrApproval.decision_timestamp || mgrApproval.timestamp)) {
+                const t = Date.parse(mgrApproval.decision_timestamp || mgrApproval.timestamp);
+                if (!isNaN(t) && t > 0) return t;
+            }
+
+            return Number(request.updatedAt || request.createdAt || Date.now());
+        }
+
+        function isCfoOverdue(request) {
+            if (!isPendingCfoRequest(request)) return false;
+            if (typeof checkSLA === 'function' && checkSLA(request)) return true;
+            const cfoStartTime = getCfoStageStartTime(request);
+            const waitingMs = Date.now() - cfoStartTime;
+            return waitingMs >= CFO_SLA_MS;
+        }
+
         function matchesCfoFilter(request) {
             const filter = String(currentFilter || 'ALL').trim().toUpperCase();
             if (filter === 'ALL') return true;
             const isPendingCfo = isPendingCfoRequest(request);
-            if (filter === 'PENDING') return isPendingCfo;
+            if (filter === 'PENDING' || filter === 'ALL PENDING') return isPendingCfo;
             if (filter === 'HIGH PRIORITY') return isPendingCfo && getRequestPriority(request) === 'HIGH';
-            if (filter === 'HIGH VALUE') return Number(request.amount || 0) >= 50000;
-            if (filter === 'OVERDUE') return isPendingCfo && (checkSLA(request) || (Date.now() - Number(request.createdAt || request.updatedAt || 0)) > 48 * 3600 * 1000);
+            if (filter === 'HIGH VALUE') return isPendingCfo && Number(request.amount || 0) >= 50000;
+            if (filter === 'OVERDUE') return isCfoOverdue(request);
             return true;
         }
 
         function renderTopHighValueRequests(requests) {
             const pendingCfoReqs = requests.filter(isPendingCfoRequest);
-            const sorted = pendingCfoReqs.sort((a, b) => Number(b.amount || 0) - Number(a.amount || 0)).slice(0, 5);
+            const sorted = [...pendingCfoReqs].sort((a, b) => {
+                const scoreA = getCfoPriorityScore(a).score;
+                const scoreB = getCfoPriorityScore(b).score;
+                const scoreDiff = scoreB - scoreA;
+                if (scoreDiff !== 0) {
+                    return scoreDiff;
+                }
+                const amountDiff = Number(b.amount || 0) - Number(a.amount || 0);
+                if (amountDiff !== 0) {
+                    return amountDiff;
+                }
+                return Number(b.id || 0) - Number(a.id || 0);
+            }).slice(0, TOP_HIGH_VALUE_LIMIT);
 
             const listEl = document.getElementById('top-high-value-list');
             if (!listEl) return;
             if (sorted.length === 0) {
-                listEl.innerHTML = '<tr><td colspan="7" style="padding: 24px; color: #94a3b8; text-align:center; font-weight: 600;">No high-value pending CFO requests.</td></tr>';
+                listEl.innerHTML = '<tr><td colspan="7" style="padding: 24px; color: #94a3b8; text-align:center; font-weight: 600;">No high-value CFO requests currently pending.</td></tr>';
                 return;
             }
 
             listEl.innerHTML = sorted.map((r) => {
                 const empName = r.employee_name || r.requester_name || r.requester || r.employee || 'Employee';
                 const reqType = r.type || r.request_type || r.title || 'Financial';
-                const waitingText = getWaitingTimeText(r.createdAt || r.updatedAt);
+                const cfoStartTime = getCfoStageStartTime(r);
+                const waitingText = getWaitingTimeText(cfoStartTime);
                 return `
                     <tr>
                         <td>#${escapeHtml(String(r.id))}</td>
@@ -2738,12 +2903,16 @@
             const appHistoryList = Array.isArray(r.approval_history) ? r.approval_history : [];
             const globalHist = Array.isArray(globalApprovalHistory) ? globalApprovalHistory : [];
 
-            const isRejectedInHistory =
-                historyList.some(h => String(h.action || h.decision || h.status || '').toLowerCase().includes('reject')) ||
-                appHistoryList.some(h => String(h.decision || h.action || '').toLowerCase().includes('reject')) ||
-                (reqId > 0 && globalHist.some(h => Number(h.request_id) === reqId && String(h.decision || h.action || '').toLowerCase().includes('reject')));
+            // Exclude requests where CFO decision has already been made (Approved, Rejected, or moved to MD)
+            const curRole = canonicalRole(r.currentRole || r.current_role || r.current_approver || r.currentApprover || r.approvalStage || r.approval_stage);
+            const isCfoDecisionMade =
+                r.cfoDecision || r.cfo_decision ||
+                curRole === 'MD' || curRole === 'Completed' ||
+                historyList.some(h => canonicalRole(h.role || h.approval_stage || h.performed_by) === 'CFO' && (String(h.action || h.decision || h.status || '').toLowerCase().includes('approve') || String(h.action || h.decision || h.status || '').toLowerCase().includes('reject'))) ||
+                appHistoryList.some(h => canonicalRole(h.approval_stage || h.performed_by) === 'CFO' && (String(h.decision || h.action || '').toLowerCase().includes('approve') || String(h.decision || h.action || '').toLowerCase().includes('reject'))) ||
+                (reqId > 0 && globalHist.some(h => Number(h.request_id) === reqId && canonicalRole(h.approval_stage || h.manager_name || h.performed_by) === 'CFO' && (String(h.decision || h.action || '').toLowerCase().includes('approve') || String(h.decision || h.action || '').toLowerCase().includes('reject'))));
 
-            if (isRejectedInHistory) {
+            if (isCfoDecisionMade) {
                 return false;
             }
 
@@ -2809,52 +2978,53 @@
             updateActiveFilterButtons();
             if (!listEl) return;
 
-            console.log("TOTAL REQUESTS:", requests.length);
-
             const filter = String(currentFilter || 'All Pending').trim().toUpperCase();
-
             let filtered = [];
 
             if (filter === 'ALL PENDING' || filter === 'PENDING') {
-                const pendingCfoRequests = requests.filter(isPendingCfoRequest);
-
-                console.log("CFO PENDING REQUESTS:", pendingCfoRequests);
-                if (Array.isArray(pendingCfoRequests)) {
-                    console.table(
-                        pendingCfoRequests.map(r => ({
-                            id: r.id,
-                            status: r.status,
-                            currentRole: getRequestCurrentRole(r),
-                            priority: getRequestPriority(r)
-                        }))
-                    );
-                }
-
-                const cfoHigh = pendingCfoRequests.filter(r => getRequestPriority(r) === "HIGH");
-                const cfoMedium = pendingCfoRequests.filter(r => getRequestPriority(r) === "MEDIUM");
-                const cfoLow = pendingCfoRequests.filter(r => getRequestPriority(r) === "LOW");
-
-                console.log("CFO HIGH:", cfoHigh.map(r => r.id));
-                console.log("CFO MEDIUM:", cfoMedium.map(r => r.id));
-                console.log("CFO LOW:", cfoLow.map(r => r.id));
-                console.log("CFO TOTAL:", pendingCfoRequests.length);
-
-                filtered = pendingCfoRequests;
+                filtered = requests.filter(isPendingCfoRequest);
             } else if (filter === 'APPROVED') {
-                filtered = requests.filter(r => {
-                    const cfoApprovedInHistory = Array.isArray(r.history) && r.history.some(h => canonicalRole(h.role) === 'CFO' && h.action === 'approved');
-                    return cfoApprovedInHistory || (normalizeStatus(r.status) === 'approved' && (Array.isArray(r.history) && r.history.some(h => canonicalRole(h.role) === 'CFO') || getRequestCurrentRole(r) === 'CFO'));
+                const cfoActions = extractCfoActions(requests, globalApprovalHistory);
+                const cfoApprovedActions = cfoActions.filter(a => a.action === 'approved');
+                filtered = cfoApprovedActions.map(a => {
+                    const matched = requests.find(r => Number(r.id || r.request_id || 0) === Number(a.id));
+                    if (matched) return matched;
+                    return {
+                        id: a.id,
+                        employee_name: a.employee,
+                        employee: a.employee,
+                        department: a.department,
+                        amount: a.amount,
+                        type: a.requestType,
+                        status: 'approved',
+                        cfoDecision: 'APPROVED',
+                        cfoComment: a.comment,
+                        history: []
+                    };
                 });
             } else if (filter === 'REJECTED') {
-                filtered = requests.filter(r => {
-                    const cfoRejectedInHistory = Array.isArray(r.history) && r.history.some(h => canonicalRole(h.role) === 'CFO' && h.action === 'rejected');
-                    return cfoRejectedInHistory || (normalizeStatus(r.status) === 'rejected' && (Array.isArray(r.history) && r.history.some(h => canonicalRole(h.role) === 'CFO') || getRequestCurrentRole(r) === 'CFO'));
+                const cfoActions = extractCfoActions(requests, globalApprovalHistory);
+                const cfoRejectedActions = cfoActions.filter(a => a.action === 'rejected');
+                filtered = cfoRejectedActions.map(a => {
+                    const matched = requests.find(r => Number(r.id || r.request_id || 0) === Number(a.id));
+                    if (matched) return matched;
+                    return {
+                        id: a.id,
+                        employee_name: a.employee,
+                        employee: a.employee,
+                        department: a.department,
+                        amount: a.amount,
+                        type: a.requestType,
+                        status: 'rejected',
+                        cfoDecision: 'REJECTED',
+                        cfoComment: a.comment,
+                        history: []
+                    };
                 });
             } else if (filter === 'ESCALATED') {
-                filtered = requests.filter(r => {
-                    const cfoEscalatedInHistory = Array.isArray(r.history) && r.history.some(h => canonicalRole(h.role) === 'CFO' && (h.action === 'escalated' || h.escalated));
-                    return cfoEscalatedInHistory || (r.escalated && (Array.isArray(r.history) && r.history.some(h => canonicalRole(h.role) === 'CFO') || getRequestCurrentRole(r) === 'MD'));
-                });
+                const cfoActions = extractCfoActions(requests, globalApprovalHistory);
+                const escalatedIds = new Set(cfoActions.filter(a => a.action === 'escalated').map(a => Number(a.id)));
+                filtered = requests.filter(r => escalatedIds.has(Number(r.id || r.request_id)) || r.escalated);
             } else {
                 filtered = requests.filter(isPendingCfoRequest);
             }
@@ -2869,28 +3039,32 @@
 
             let sorted = [];
             if (filter === 'ALL PENDING' || filter === 'PENDING') {
-                sorted = filtered.sort((a, b) => {
+                sorted = [...filtered].sort((a, b) => {
                     const aPriority = normalizePriority(a.priority || getRequestPriority(a));
                     const bPriority = normalizePriority(b.priority || getRequestPriority(b));
 
                     const rankA = priorityRank[aPriority] ?? 99;
                     const rankB = priorityRank[bPriority] ?? 99;
                     if (rankA !== rankB) return rankA - rankB;
-                    return Number(a.createdAt || a.updatedAt || 0) - Number(b.createdAt || b.updatedAt || 0);
+                    return getCfoStageStartTime(a) - getCfoStageStartTime(b);
                 });
             } else {
-                sorted = filtered.sort((a, b) => Number(b.updatedAt || b.createdAt || 0) - Number(a.updatedAt || a.createdAt || 0));
+                sorted = [...filtered].sort((a, b) => Number(b.updatedAt || b.createdAt || 0) - Number(a.updatedAt || a.createdAt || 0));
             }
 
             if (sorted.length === 0) {
-                listEl.innerHTML = `<tr><td colspan="7" style="padding: 24px; color: #94a3b8; text-align:center; font-weight: 600;">No requests found under "${escapeHtml(currentFilter)}".</td></tr>`;
+                const emptyMsg = (filter === 'ALL PENDING' || filter === 'PENDING')
+                    ? 'No requests currently pending CFO approval.'
+                    : `No requests found under "${escapeHtml(currentFilter)}".`;
+                listEl.innerHTML = `<tr><td colspan="7" style="padding: 24px; color: #94a3b8; text-align:center; font-weight: 600;">${emptyMsg}</td></tr>`;
                 return;
             }
 
             listEl.innerHTML = sorted.map((request) => {
                 const empName = request.employee_name || request.requester_name || request.requester || request.employee || 'Employee';
                 const reqType = request.type || request.request_type || request.title || 'Financial';
-                const waitingText = getWaitingTimeText(request.createdAt || request.updatedAt);
+                const cfoStartTime = getCfoStageStartTime(request);
+                const waitingText = getWaitingTimeText(cfoStartTime);
                 const idDisplay = `<a href="javascript:void(0)" onclick="openCfoReviewModal(${request.id})" style="color: #38bdf8; font-weight: 700; text-decoration: underline;" title="Click to review request">#${escapeHtml(String(request.id || '—'))}</a>`;
 
                 let actionCell = '';
@@ -2922,12 +3096,11 @@
         }
 
         function renderOverdueApprovals(requests) {
-            const overdueList = requests.filter((r) => {
-                const isPendingCfo = isPendingCfoRequest(r);
-                if (!isPendingCfo) return false;
-                const waitingTime = Date.now() - Number(r.createdAt || r.updatedAt || Date.now());
-                return checkSLA(r) || waitingTime > (48 * 3600 * 1000);
-            }).sort((a, b) => Number(a.createdAt || a.updatedAt || 0) - Number(b.createdAt || b.updatedAt || 0));
+            const overdueList = requests.filter(isCfoOverdue).sort((a, b) => {
+                const startA = getCfoStageStartTime(a);
+                const startB = getCfoStageStartTime(b);
+                return startA - startB;
+            });
 
             const listEl = document.getElementById('overdue-list');
             if (!listEl) return;
@@ -2938,7 +3111,8 @@
             listEl.innerHTML = overdueList.map((r) => {
                 const empName = r.employee_name || r.requester_name || r.requester || r.employee || 'Employee';
                 const reqType = r.type || r.request_type || r.title || 'Financial';
-                const waitingText = getWaitingTimeText(r.createdAt || r.updatedAt);
+                const cfoStartTime = getCfoStageStartTime(r);
+                const waitingText = getWaitingTimeText(cfoStartTime);
                 return `
                     <tr>
                         <td>#${escapeHtml(String(r.id))}</td>

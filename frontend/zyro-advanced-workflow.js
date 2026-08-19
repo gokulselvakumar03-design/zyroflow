@@ -585,7 +585,10 @@ const ZyroWorkflow = (function () {
     }
     if (!reqObj) reqObj = {};
 
+    const currRoleStr = String(reqObj.current_role || reqObj.currentRole || reqObj.current_approver || '').toLowerCase().trim();
+    const isAccountsStage = currRoleStr === 'accounts' || (!currRoleStr && window.location.pathname.includes('accounts'));
     const isVerified = Number(reqObj.payment_verified ?? 0) === 1 || String(reqObj.payment_verification_status || '').toLowerCase() === 'verified';
+    const isUnverifiedAccounts = isAccountsStage && !isVerified;
 
     if (action === 'reject') {
       if (warningBox) { warningBox.style.display = 'none'; warningBox.innerHTML = ''; }
@@ -602,7 +605,7 @@ const ZyroWorkflow = (function () {
       submitBtn.className = 'zyro-btn-approve';
       submitBtn.innerText = 'Confirm Approval';
 
-      if (!isVerified) {
+      if (isUnverifiedAccounts) {
         if (warningBox) {
           warningBox.style.display = 'block';
           warningBox.innerHTML = `
@@ -643,9 +646,11 @@ const ZyroWorkflow = (function () {
         reqObj = window.accountsRequestsCache.find(r => Number(r.id || r.request_id) === Number(pendingDecision.requestId));
       }
       if (!reqObj) reqObj = {};
+      const currRoleStr = String(reqObj.current_role || reqObj.currentRole || reqObj.current_approver || '').toLowerCase().trim();
+      const isAccountsStage = currRoleStr === 'accounts' || (!currRoleStr && window.location.pathname.includes('accounts'));
       const isVerified = Number(reqObj.payment_verified ?? 0) === 1 || String(reqObj.payment_verification_status || '').toLowerCase() === 'verified';
 
-      if (!isVerified) {
+      if (isAccountsStage && !isVerified) {
         errorDiv.innerText = 'Payment Verification must be done first';
         errorDiv.style.display = 'block';
         return;
@@ -653,7 +658,7 @@ const ZyroWorkflow = (function () {
     }
 
     if (pendingDecision.action === 'reject' && !comments) {
-      errorDiv.innerText = 'Please enter a rejection reason.';
+      errorDiv.innerText = 'Rejection reason is required.';
       errorDiv.style.display = 'block';
       return;
     }

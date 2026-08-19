@@ -58,39 +58,108 @@
     }
   }
 
+  function getDashboardKey() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const paramDashboard = urlParams.get('dashboard');
+    if (paramDashboard) {
+      const d = paramDashboard.toLowerCase().trim();
+      if (['emp', 'acc', 'admin', 'manager', 'cfo', 'md'].includes(d)) {
+        return d;
+      }
+    }
+
+    const path = window.location.pathname.toLowerCase();
+    if (path.includes('accounts') || path.includes('acc-')) {
+      return 'acc';
+    }
+    if (path.includes('admin')) {
+      return 'admin';
+    }
+    if (path.includes('manager')) {
+      return 'manager';
+    }
+    if (path.includes('cfo')) {
+      return 'cfo';
+    }
+    if (path.includes('md-dashboard') || path.includes('md-') || path.includes('md.')) {
+      return 'md';
+    }
+    if (path.includes('employee') || path.includes('user-dashboard') || path.includes('request') || path.includes('track')) {
+      return 'emp';
+    }
+
+    try {
+      const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+      const role = (currentUser.role || localStorage.getItem('userRole') || localStorage.getItem('role') || '').toLowerCase().trim();
+      if (role.includes('account') || role === 'acc') return 'acc';
+      if (role.includes('admin')) return 'admin';
+      if (role.includes('manager')) return 'manager';
+      if (role.includes('cfo')) return 'cfo';
+      if (role.includes('md') || role.includes('director')) return 'md';
+      if (role.includes('emp') || role.includes('employee') || role.includes('user')) return 'emp';
+    } catch (e) {}
+
+    return 'emp';
+  }
+
+  function getDashboardThemeKey() {
+    return `zyro_theme_${getDashboardKey()}`;
+  }
+
+  function getDashboardTheme() {
+    const key = getDashboardThemeKey();
+    const stored = localStorage.getItem(key);
+    if (stored === 'dark' || stored === 'light') {
+      return stored;
+    }
+    // Fallback if per-dashboard theme is not set yet
+    const legacyTheme = localStorage.getItem('theme');
+    if (legacyTheme === 'dark' || legacyTheme === 'light') {
+      return legacyTheme;
+    }
+    return 'light';
+  }
+
   function applyThemeFromStorage() {
-    const theme = localStorage.getItem("theme") || "light";
-    if (theme === "dark") {
-      if (document.body) {
+    const theme = getDashboardTheme();
+    if (document.body) {
+      if (theme === "dark") {
         document.body.classList.remove("light-theme");
         document.body.classList.add("dark-theme");
-      }
-    } else {
-      if (document.body) {
+      } else {
         document.body.classList.remove("dark-theme");
         document.body.classList.add("light-theme");
       }
     }
+    document.documentElement.setAttribute('data-theme', theme);
   }
 
   function handleThemeChange(selectedTheme) {
-    if (selectedTheme === "dark") {
-      localStorage.setItem("theme", "dark");
-      if (document.body) {
+    const themeToSet = (selectedTheme === "dark") ? "dark" : "light";
+    const key = getDashboardThemeKey();
+    localStorage.setItem(key, themeToSet);
+
+    if (document.body) {
+      if (themeToSet === "dark") {
         document.body.classList.remove("light-theme");
         document.body.classList.add("dark-theme");
-      }
-    } else {
-      localStorage.setItem("theme", "light");
-      if (document.body) {
+      } else {
         document.body.classList.remove("dark-theme");
         document.body.classList.add("light-theme");
       }
     }
+    document.documentElement.setAttribute('data-theme', themeToSet);
+
     if (typeof window.updateChartColors === 'function') {
-      window.updateChartColors(selectedTheme);
+      window.updateChartColors(themeToSet);
     }
   }
+
+  // Expose helper functions globally
+  window.getZyroDashboardKey = getDashboardKey;
+  window.getZyroThemeKey = getDashboardThemeKey;
+  window.getZyroTheme = getDashboardTheme;
+  window.setZyroTheme = handleThemeChange;
 
   function initZyroSettings() {
     applyThemeFromStorage();
@@ -432,7 +501,7 @@
       drawer.classList.add('open');
       overlay.classList.add('visible');
 
-      const currentTheme = localStorage.getItem("theme") || "light";
+      const currentTheme = getDashboardTheme();
       const radioLight = document.getElementById('themeRadioLight');
       const radioDark = document.getElementById('themeRadioDark');
       if (radioLight) radioLight.checked = (currentTheme === "light");

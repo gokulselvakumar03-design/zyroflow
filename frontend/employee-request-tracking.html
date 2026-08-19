@@ -656,7 +656,7 @@
         <button class="btn ghost" onclick="shareTracking()">
           <span>🔗</span> Share Tracking
         </button>
-        <a href="employee-track-requests.html" class="btn ghost">← All Requests</a>
+        <a id="backToTrackBtn" href="employee-track-requests.html" class="btn ghost">← Back to Request Tracking</a>
         <a href="employee.html" class="btn primary">Dashboard</a>
       </div>
     </header>
@@ -776,9 +776,24 @@
       const params = new URLSearchParams(window.location.search);
       requestId = params.get('id');
 
+      // Preserve search and filter state for Back button
+      const searchVal = params.get('search') ?? sessionStorage.getItem('zyro_track_search') ?? '';
+      const filterVal = params.get('filter') ?? params.get('status') ?? sessionStorage.getItem('zyro_track_filter') ?? '';
+
+      const backBtn = document.getElementById('backToTrackBtn') || document.querySelector('a[href*="employee-track-requests.html"]');
+      if (backBtn) {
+        let backUrl = 'employee-track-requests.html';
+        const qParams = new URLSearchParams();
+        if (searchVal) qParams.set('search', searchVal);
+        if (filterVal && filterVal !== 'All') qParams.set('filter', filterVal);
+        const qStr = qParams.toString();
+        if (qStr) backUrl += '?' + qStr;
+        backBtn.href = backUrl;
+      }
+
       if (!requestId) {
         showToast('No Request ID specified in URL.');
-        setTimeout(() => window.location.href = 'employee-track-requests.html', 1500);
+        setTimeout(() => window.location.href = backBtn ? backBtn.href : 'employee-track-requests.html', 1500);
         return;
       }
 
@@ -1077,89 +1092,142 @@
       }
     }
 
-    function renderHistoryList(history, req, approvals = []) {
+    function renderHistoryList(history = [], req = {}, approvals = []) {
       const container = document.getElementById('historyListContainer');
+      if (!container) return;
+
       const items = [];
 
+      function formatDate(d) {
+        if (!d) return '';
+        try {
+          const parsed = new Date(Number(d) || d);
+          return isNaN(parsed.getTime()) ? String(d) : parsed.toLocaleString();
+        } catch (e) {
+          return String(d);
+        }
+      }
+
+      function normalizeRole(rawRole) {
+        const s = String(rawRole || '').toLowerCase();
+        if (s.includes('account')) return 'Accounts';
+        if (s.includes('manager')) return 'Manager';
+        if (s.includes('cfo')) return 'CFO';
+        if (s.includes('md')) return 'MD';
+        return rawRole || 'Approver';
+      }
+
+      // 1. SUBMITTED BY EMPLOYEE
       items.push({
         action: 'Submitted by Employee',
-        performer: req.requester_name || req.requester || 'Employee',
-        timestamp: req.created_at ? new Date(Number(req.created_at) || req.created_at).toLocaleString() : new Date().toLocaleString(),
+        performer: req.requester_name || req.requester || req.employee_name || 'Employee',
+        timestamp: formatDate(req.created_at) || new Date().toLocaleString(),
       });
 
+      // 2. PAYMENT VERIFIED
       const isVerified = Number(req.payment_verified ?? 0) === 1 || String(req.payment_verification_status).toLowerCase() === 'verified';
-      if (isVerified) {
+      const pvHist = (history || []).find(h => {
+        const a = String(h.action || h.decision || '').toLowerCase();
+        return a.includes('payment verifi') || a.includes('verified payment');
+      });
+
+      if (isVerified || pvHist) {
         items.push({
-          action: 'Accounts verified payment.',
-          performer: req.payment_verified_by || 'Accounts Team',
-          timestamp: req.payment_verified_at ? new Date(req.payment_verified_at).toLocaleString() : 'Verified',
+          action: 'Payment Verified',
+          performer: pvHist?.performed_by || req.payment_verified_by || 'Accounts Team',
+          timestamp: formatDate(pvHist?.timestamp || pvHist?.created_at || req.payment_verified_at || 'Verified'),
         });
       }
 
-      // Consolidate repeated Escalated events & exclude "Created request"
-      let escalationCount = 0;
-      let latestEscalationTime = null;
-      let firstEscalationPerformer = 'System';
+      // Collect Escalations (to display ALWAYS LAST)
+      const escalationEvents = (history || []).filter(h => String(h.action || h.decision || '').toLowerCase().includes('escalat'));
+      let escalationSummary = null;
+      if (escalationEvents.length > 0) {
+        const count = escalationEvents.length;
+        const latestEvent = escalationEvents[escalationEvents.length - 1];
+        const latestTime = formatDate(latestEvent.timestamp || latestEvent.created_at);
+        const performer = escalationEvents[0].performed_by || 'System';
 
-      history.forEach(h => {
-        const actionStr = String(h.action || h.decision || '').trim();
-        if (actionStr.toLowerCase().includes('created request')) {
-          return; // Exclude separate "Created request" from visible audit trail
+        escalationSummary = {
+          action: count > 1 ? `Escalated (${count} escalation events)` : 'Escalated',
+          performer: performer,
+          timestamp: count > 1 ? `Latest: ${latestTime || 'Recently'}` : (latestTime || 'Completed')
+        };
+      }
+
+      // Process Role Decisions in strict order: Accounts -> Manager -> CFO -> MD
+      const roleOrder = ['Accounts', 'Manager', 'CFO', 'MD'];
+      let workflowStopped = false;
+
+      for (const targetRole of roleOrder) {
+        if (workflowStopped) break;
+
+        // Find decision in history
+        const roleHist = (history || []).find(h => {
+          const stage = normalizeRole(h.approval_stage || h.performed_by || h.role || h.manager_name);
+          const act = String(h.action || h.decision || '').toLowerCase();
+          if (act.includes('created request') || act.includes('escalat') || act.includes('payment verifi') || act.includes('verified payment')) {
+            return false;
+          }
+          return stage === targetRole && (act.includes('approve') || act.includes('reject'));
+        });
+
+        // Also check approvals table if history missing decision
+        const roleAppr = (approvals || []).find(a => normalizeRole(a.approver_role || a.role) === targetRole);
+        const apprStatus = String(roleAppr?.status || '').toLowerCase();
+
+        let decisionType = null;
+        let decisionHist = roleHist;
+        let decisionTime = null;
+        let commentText = '';
+
+        if (roleHist) {
+          const act = String(roleHist.action || roleHist.decision || '').toLowerCase();
+          if (act.includes('reject')) decisionType = 'Rejected';
+          else if (act.includes('approve')) decisionType = 'Approved';
+          decisionTime = formatDate(roleHist.timestamp || roleHist.decision_timestamp || roleHist.created_at);
+          commentText = roleHist.comments || roleHist.rejection_reason || '';
+        } else if (apprStatus === 'approved' || apprStatus === 'rejected') {
+          decisionType = apprStatus === 'approved' ? 'Approved' : 'Rejected';
+          decisionTime = formatDate(roleAppr.updated_at);
+          commentText = roleAppr.comments || '';
         }
 
-        const isEscalation = actionStr.toLowerCase().includes('escalat');
+        if (decisionType) {
+          let perfName = targetRole === 'Accounts' ? 'Accounts Team' : (decisionHist?.performed_by || decisionHist?.manager_name || targetRole);
+          if (targetRole === 'Accounts' && !perfName.toLowerCase().includes('account')) perfName = 'Accounts Team';
 
-        if (isEscalation) {
-          escalationCount++;
-          const ts = h.timestamp ? new Date(h.timestamp).toLocaleString() : '';
-          if (ts) latestEscalationTime = ts;
-          if (h.performed_by) firstEscalationPerformer = h.performed_by;
-        } else {
-          if (escalationCount > 0) {
-            items.push({
-              action: escalationCount > 1
-                ? `Escalated (${escalationCount} escalation events, latest: ${latestEscalationTime || 'Recently'})`
-                : `Escalated`,
-              performer: firstEscalationPerformer || 'System',
-              timestamp: latestEscalationTime || 'Completed'
-            });
-            escalationCount = 0;
-            latestEscalationTime = null;
-          }
-
-          let actLabel = h.action || h.decision || 'Updated workflow';
-          let perf = h.performed_by || h.manager_name || h.approval_stage || 'Approver';
-          let commentText = h.comments || h.rejection_reason || '';
-
-          if (commentText && !actLabel.includes(commentText)) {
-            actLabel = `${actLabel} - "${commentText}"`;
+          let actionLabel = `${decisionType} by ${targetRole}`;
+          if (decisionType === 'Rejected' && commentText) {
+            actionLabel += ` - "${commentText}"`;
           }
 
           items.push({
-            action: actLabel,
-            performer: perf,
-            timestamp: h.timestamp ? new Date(h.timestamp).toLocaleString() : '',
+            action: actionLabel,
+            performer: perfName,
+            timestamp: decisionTime || 'Completed'
           });
-        }
-      });
 
-      if (escalationCount > 0) {
+          if (decisionType === 'Rejected') {
+            workflowStopped = true;
+          }
+        }
+      }
+
+      // Check if pending at current stage
+      const rawStatus = String(req.status || 'pending').toLowerCase();
+      if (!workflowStopped && (rawStatus === 'pending' || rawStatus.includes('pending') || rawStatus === 'in progress')) {
+        const currRole = req.current_role || req.current_approver || 'Manager';
         items.push({
-          action: escalationCount > 1
-            ? `Escalated (${escalationCount} escalation events, latest: ${latestEscalationTime || 'Recently'})`
-            : `Escalated`,
-          performer: firstEscalationPerformer || 'System',
-          timestamp: latestEscalationTime || 'Completed'
+          action: `Waiting for ${currRole} Approval`,
+          performer: req.current_approver || currRole || 'Approver',
+          timestamp: 'Pending Action',
         });
       }
 
-      const rawStatus = String(req.status || 'pending').toLowerCase();
-      if (rawStatus === 'pending') {
-        items.push({
-          action: `Waiting for ${req.current_approver || req.current_role || 'Manager'} Approval`,
-          performer: req.current_approver || req.current_role || 'Approver',
-          timestamp: 'Pending Action',
-        });
+      // 7. ESCALATION SUMMARY — ALWAYS LAST
+      if (escalationSummary) {
+        items.push(escalationSummary);
       }
 
       container.innerHTML = items.map(item => `

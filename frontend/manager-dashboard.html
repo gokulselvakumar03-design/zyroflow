@@ -2715,6 +2715,19 @@
             if (escalationsEl) escalationsEl.textContent = escalations;
         }
 
+        function getManagerChartColors() {
+            const currentTheme = (typeof window.getZyroTheme === 'function') ? window.getZyroTheme() : (localStorage.getItem('zyro_theme_manager') || localStorage.getItem('theme') || 'light');
+            const isLight = document.body.classList.contains('light-theme') || 
+                            document.documentElement.getAttribute('data-theme') === 'light' || 
+                            currentTheme === 'light';
+            return {
+                textColor: isLight ? '#1e293b' : 'rgba(231, 241, 255, 0.72)',
+                titleColor: isLight ? '#0f172a' : 'rgba(231, 241, 255, 0.95)',
+                legendColor: isLight ? '#1e293b' : 'rgba(231, 241, 255, 0.9)',
+                gridColor: isLight ? 'rgba(0, 0, 0, 0.1)' : 'rgba(255, 255, 255, 0.06)'
+            };
+        }
+
         function renderTrendChart(requests) {
             const ctx = document.getElementById('trendChart');
             if (!ctx) return;
@@ -2737,6 +2750,7 @@
             });
 
             const data = labels.map((label) => countsByDay[label] || 0);
+            const colors = getManagerChartColors();
 
             if (!trendChartInstance) {
                 trendChartInstance = new Chart(ctx, {
@@ -2762,12 +2776,16 @@
                             tooltip: { enabled: true }
                         },
                         scales: {
-                            x: { ticks: { color: 'rgba(231, 241, 255, 0.72)' }, grid: { color: 'rgba(255,255,255,0.06)' } },
-                            y: { ticks: { color: 'rgba(231, 241, 255, 0.72)', stepSize: 1 }, grid: { color: 'rgba(255,255,255,0.06)' }, beginAtZero: true }
+                            x: { ticks: { color: colors.textColor }, grid: { color: colors.gridColor } },
+                            y: { ticks: { color: colors.textColor, stepSize: 1 }, grid: { color: colors.gridColor }, beginAtZero: true }
                         }
                     }
                 });
             } else {
+                trendChartInstance.options.scales.x.ticks.color = colors.textColor;
+                trendChartInstance.options.scales.x.grid.color = colors.gridColor;
+                trendChartInstance.options.scales.y.ticks.color = colors.textColor;
+                trendChartInstance.options.scales.y.grid.color = colors.gridColor;
                 trendChartInstance.data.labels = labels;
                 trendChartInstance.data.datasets[0].data = data;
                 trendChartInstance.update();
@@ -2791,6 +2809,7 @@
 
             const labels = ['Pending', 'Approved', 'Rejected'];
             const data = [pendingCount, approvedCount, rejectedCount];
+            const colors = getManagerChartColors();
 
             if (!statusDoughnutChartInstance) {
                 statusDoughnutChartInstance = new Chart(ctx, {
@@ -2810,13 +2829,14 @@
                         plugins: {
                             legend: {
                                 position: 'bottom',
-                                labels: { color: 'rgba(231, 241, 255, 0.9)', font: { size: 12 } }
+                                labels: { color: colors.legendColor, font: { size: 12 } }
                             },
                             tooltip: { enabled: true }
                         }
                     }
                 });
             } else {
+                statusDoughnutChartInstance.options.plugins.legend.labels.color = colors.legendColor;
                 statusDoughnutChartInstance.data.datasets[0].data = data;
                 statusDoughnutChartInstance.update();
             }
@@ -2829,6 +2849,7 @@
         function renderThreeManagerCharts(requests) {
             const reqList = Array.isArray(requests) ? requests : [];
             const mgrStats = getManagerSpecificStats(approvalHistoryCache, reqList);
+            const colors = getManagerChartColors();
 
             // 1. Manager Decisions by Department (Horizontal Grouped Bar Chart)
             const deptCtx = document.getElementById('zyro-chart-mgr-dept-decisions');
@@ -2894,13 +2915,13 @@
                         scales: {
                             x: {
                                 beginAtZero: true,
-                                ticks: { color: 'rgba(231, 241, 255, 0.72)', stepSize: 1 },
-                                grid: { color: 'rgba(255,255,255,0.06)' }
+                                ticks: { color: colors.textColor, stepSize: 1 },
+                                grid: { color: colors.gridColor }
                             },
-                            y: { ticks: { color: 'rgba(231, 241, 255, 0.72)' }, grid: { color: 'rgba(255,255,255,0.06)' } }
+                            y: { ticks: { color: colors.textColor }, grid: { color: colors.gridColor } }
                         },
                         plugins: {
-                            legend: { position: 'top', labels: { color: 'rgba(231, 241, 255, 0.9)', font: { size: 11 } } },
+                            legend: { position: 'top', labels: { color: colors.legendColor, font: { size: 11 } } },
                             tooltip: { enabled: true }
                         }
                     }
@@ -2910,8 +2931,10 @@
             // 2. Manager Approval vs Rejection (Doughnut Chart)
             const mgrCtx = document.getElementById('zyro-chart-mgr-decisions');
             if (mgrCtx) {
-                const mgrApproved = mgrStats.mgrApproved;
-                const mgrRejected = mgrStats.mgrRejected;
+                const mgrApproved = Number(mgrStats.mgrApproved || 0);
+                const mgrRejected = Number(mgrStats.mgrRejected || 0);
+                const mgrTotalDecisions = mgrApproved + mgrRejected;
+                const mgrApprovalRate = mgrTotalDecisions > 0 ? Math.round((mgrApproved / mgrTotalDecisions) * 100) : 0;
 
                 if (mgrDecisionsChartInstance) {
                     mgrDecisionsChartInstance.destroy();
@@ -2934,7 +2957,8 @@
                         responsive: true,
                         maintainAspectRatio: false,
                         plugins: {
-                            legend: { position: 'bottom', labels: { color: 'rgba(231, 241, 255, 0.9)', font: { size: 12 } } },
+                            centerTextRate: mgrApprovalRate,
+                            legend: { position: 'bottom', labels: { color: colors.legendColor, font: { size: 12 } } },
                             tooltip: { enabled: true }
                         }
                     }
@@ -2979,14 +3003,30 @@
                         responsive: true,
                         maintainAspectRatio: false,
                         scales: {
-                            x: { ticks: { color: 'rgba(231, 241, 255, 0.72)' }, grid: { color: 'rgba(255,255,255,0.06)' } },
-                            y: { beginAtZero: true, ticks: { color: 'rgba(231, 241, 255, 0.72)', stepSize: 1 }, grid: { color: 'rgba(255,255,255,0.06)' } }
+                            x: { ticks: { color: colors.textColor }, grid: { color: colors.gridColor } },
+                            y: { beginAtZero: true, ticks: { color: colors.textColor, stepSize: 1 }, grid: { color: colors.gridColor } }
                         },
                         plugins: { legend: { display: false }, tooltip: { enabled: true } }
                     }
                 });
             }
         }
+
+        window.updateChartColors = function() {
+            if (Array.isArray(requestsCache) && requestsCache.length > 0) {
+                renderTrendChart(requestsCache);
+                renderStatusDoughnutChart(requestsCache);
+                renderThreeManagerCharts(requestsCache);
+            }
+        };
+
+        const mgrThemeObserver = new MutationObserver(() => {
+            if (typeof window.updateChartColors === 'function') {
+                window.updateChartColors();
+            }
+        });
+        if (document.body) mgrThemeObserver.observe(document.body, { attributes: true, attributeFilter: ['class', 'data-theme'] });
+        if (document.documentElement) mgrThemeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class', 'data-theme'] });
 
         function renderTodaysActivity(requests) {
             const todayStart = new Date().setHours(0, 0, 0, 0);

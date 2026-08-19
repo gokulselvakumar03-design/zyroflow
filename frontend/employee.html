@@ -2938,7 +2938,7 @@
         const statusMatch = status === 'All' || toStatusLabel(r.status) === status;
         const searchMatch = !search || [r.id, r.request_type, r.title, r.department, r.priority].some(v => String(v || '').toLowerCase().includes(search));
         return statusMatch && searchMatch;
-      });
+      }).sort((a, b) => Number(a.id || 0) - Number(b.id || 0));
       const body = document.getElementById('historyTableBody');
       body.innerHTML = '';
       if (filtered.length === 0) {
@@ -3171,16 +3171,51 @@
 
     function renderRequestsTable() {
       const all = getEmployeeRequests();
-      const q = (document.getElementById('searchBox').value || '').toLowerCase();
-      const statusFilter = document.getElementById('filterStatus').value;
+      const q = (document.getElementById('searchBox')?.value || '').toLowerCase().trim();
+      const statusFilter = document.getElementById('filterStatus')?.value || 'All';
+      
       const filtered = all.filter(r => {
-        if (statusFilter !== 'All' && toStatusLabel(r.status) !== statusFilter) return false;
+        const label = toStatusLabel(r.status);
+        if (statusFilter !== 'All' && label !== statusFilter) return false;
         if (!q) return true;
-        return String(r.id || '').includes(q) || String(r.title || r.request_type || '').toLowerCase().includes(q) || String(r.department || '').toLowerCase().includes(q);
-      }).sort((a, b) => Number(b.amount || 0) - Number(a.amount || 0));
-      const body = document.getElementById('requestsBody'); body.innerHTML = '';
-      if (filtered.length === 0) { body.innerHTML = '<tr><td colspan="8" style="color:var(--muted)">No requests found</td></tr>'; return; }
-      filtered.forEach(r => { const tr = document.createElement('tr'); tr.innerHTML = `<td>${escapeHtml(r.id || '—')}</td><td>${escapeHtml(r.request_type || r.title || '—')}</td><td>${formatCurrency(r.amount)}</td><td>${escapeHtml(r.priority || '—')}</td><td>${toStatusLabel(r.status)}</td><td>${escapeHtml(r.currentRole || r.currentApprover || '—')}</td><td>${new Date(Number(r.createdAt || Date.now())).toLocaleString()}</td><td><button class="primary" style="padding:4px 8px;font-size:0.78rem;margin-right:4px;" onclick="window.location.href='employee-request-tracking.html?id=${r.id}'">View Tracking</button><button class="ghost" onclick="viewRequest('${r.id}')">View</button> <button class="ghost" onclick="editRequest('${r.id}')">Edit</button> <button class="ghost" onclick="cancelRequest('${r.id}')">Cancel</button></td>`; body.appendChild(tr); });
+        return String(r.id || '').toLowerCase().includes(q) ||
+               String(r.title || r.request_type || '').toLowerCase().includes(q) ||
+               String(r.department || '').toLowerCase().includes(q);
+      }).sort((a, b) => Number(a.id || 0) - Number(b.id || 0));
+
+      const body = document.getElementById('requestsBody');
+      if (!body) return;
+      body.innerHTML = '';
+
+      if (filtered.length === 0) {
+        body.innerHTML = '<tr><td colspan="8" style="color:var(--muted)">No requests found</td></tr>';
+        return;
+      }
+
+      filtered.forEach(r => {
+        const tr = document.createElement('tr');
+        const statusLabel = toStatusLabel(r.status);
+
+        let badgeStyle = 'padding:4px 10px; border-radius:99px; font-weight:700; font-size:0.8rem; display:inline-block;';
+        if (statusLabel === 'Approved') {
+          badgeStyle += ' background:rgba(34,197,94,0.15); color:#15803d; border:1px solid rgba(34,197,94,0.3);';
+        } else if (statusLabel === 'Rejected') {
+          badgeStyle += ' background:rgba(239,68,68,0.15); color:#b91c1c; border:1px solid rgba(239,68,68,0.3);';
+        } else {
+          badgeStyle += ' background:rgba(245,158,11,0.15); color:#b45309; border:1px solid rgba(245,158,11,0.3);';
+        }
+
+        const statusHtml = `<span style="${badgeStyle}">${escapeHtml(statusLabel)}</span>`;
+
+        let actionBtns = `<button class="primary" style="padding:4px 8px;font-size:0.78rem;margin-right:4px;" onclick="window.location.href='employee-request-tracking.html?id=${r.id}'">View Tracking</button><button class="ghost" onclick="viewRequest('${r.id}')">View</button>`;
+
+        if (statusLabel === 'Pending') {
+          actionBtns += ` <button class="ghost" onclick="editRequest('${r.id}')">Edit</button> <button class="ghost" onclick="cancelRequest('${r.id}')">Cancel</button>`;
+        }
+
+        tr.innerHTML = `<td>${escapeHtml(r.id || '—')}</td><td>${escapeHtml(r.request_type || r.title || '—')}</td><td>${formatCurrency(r.amount)}</td><td>${escapeHtml(r.priority || '—')}</td><td>${statusHtml}</td><td>${escapeHtml(r.currentRole || r.currentApprover || '—')}</td><td>${new Date(Number(r.createdAt || Date.now())).toLocaleString()}</td><td>${actionBtns}</td>`;
+        body.appendChild(tr);
+      });
     }
 
     async function viewRequest(id) {
@@ -3351,7 +3386,7 @@
     };
 
     window.addEventListener('DOMContentLoaded', () => {
-      const theme = localStorage.getItem("theme") || "light";
+      const theme = (typeof window.getZyroTheme === 'function') ? window.getZyroTheme() : (localStorage.getItem("zyro_theme_emp") || localStorage.getItem("theme") || "light");
       if (theme === "dark") {
         document.body.classList.remove("light-theme");
         document.body.classList.add("dark-theme");
