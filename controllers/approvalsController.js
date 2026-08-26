@@ -300,10 +300,17 @@ exports.reject = async (req, res, next) => {
         await conn.execute('UPDATE approvals SET status = ? WHERE id = ?', ['rejected', current.id]);
       }
     }
-    await conn.execute(
-      "UPDATE workflow_requests SET status = 'Rejected', approval_stage = 'Rejected', current_role = 'Rejected', current_approver = 'Rejected' WHERE id = ?",
-      [id]
-    );
+    try {
+      await conn.execute(
+        "UPDATE workflow_requests SET status = 'Rejected', approval_stage = 'Rejected', current_role = 'Rejected', current_approver = 'Rejected', rejection_reason = ? WHERE id = ?",
+        [reasonStr, id]
+      );
+    } catch (e) {
+      await conn.execute(
+        "UPDATE workflow_requests SET status = 'Rejected', approval_stage = 'Rejected', current_role = 'Rejected', current_approver = 'Rejected' WHERE id = ?",
+        [id]
+      );
+    }
 
     // Record action in request_history and approval_history
     const performer = req.user ? (req.user.name || req.user.email) : role;

@@ -286,7 +286,7 @@
 
             <div class="zyro-form-group">
               <label class="zyro-form-label">Email Address</label>
-              <input type="email" class="zyro-input" id="zyroProfEditEmail" placeholder="user@zyroflow.com" />
+              <input type="email" class="zyro-input" id="zyroProfEditEmail" placeholder="user@zyroflow.com" readonly style="opacity:0.75; cursor:not-allowed;" title="Email address is provisioned by administrator and cannot be modified." />
             </div>
 
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">

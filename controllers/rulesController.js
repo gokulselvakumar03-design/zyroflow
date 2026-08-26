@@ -27,3 +27,13 @@ exports.createRule = async (req, res, next) => {
     next(err);
   }
 };
+
+exports.deleteRule = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    await pool.execute('DELETE FROM rules WHERE id = ?', [id]);
+    res.json({ success: true, message: 'Rule deleted' });
+  } catch (err) {
+    next(err);
+  }
+};

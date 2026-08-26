@@ -1128,15 +1128,17 @@
                   <select id="request_type" class="profile-pill" required style="width:100%"
                     onchange="onTypeChange(this.value)">
                     <option value="">Select Request Type</option>
-                    <option>Travel</option>
-                    <option>Equipment</option>
-                    <option>Software</option>
-                    <option>Capital Expenditure</option>
-                    <option>Reimbursement</option>
-                    <option>Purchase Request</option>
-                    <option>Maintenance</option>
-                    <option>Training</option>
-                    <option>Other</option>
+                    <option value="Travel">Travel</option>
+                    <option value="Equipment">Equipment</option>
+                    <option value="Software">Software</option>
+                    <option value="Capital Expenditure">Capital Expenditure</option>
+                    <option value="Reimbursement">Reimbursement</option>
+                    <option value="Purchase Request">Purchase Request</option>
+                    <option value="Maintenance">Maintenance</option>
+                    <option value="Training">Training</option>
+                    <option value="Leave Request">Leave Request</option>
+                    <option value="Budget Approval">Budget Approval</option>
+                    <option value="Other">Other</option>
                   </select>
                 </div>
                 <div>
@@ -1401,27 +1403,6 @@
         </div>
       </section>
 
-      <!-- Tracking & Notifications Multi-Column Grid Section -->
-      <div
-        style="display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap:16px; margin-top:16px;">
-        <section class="card">
-          <div style="display:flex;justify-content:space-between;align-items:center;">
-            <strong>Individual Tracking</strong>
-            <button class="primary" style="font-size:0.8rem;padding:6px 12px;"
-              onclick="window.location.href='employee-track-requests.html'">Track Requests</button>
-          </div>
-          <div style="color:var(--muted);font-size:0.88rem;margin-top:10px;line-height:1.4;">
-            Every request has its own live workflow tracking timeline, approval history, and payment verification
-            status.
-          </div>
-        </section>
-
-        <section class="card">
-          <strong>Notifications</strong>
-          <ul id="notification-list" style="margin-top:10px;list-style:none;padding:0"></ul>
-        </section>
-      </div>
-
       <section class="card" id="analyticsSection">
         <strong>Analytics</strong>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:12px">
@@ -1586,6 +1567,10 @@
           </div>
         </div>
         <div id="detailsWorkflowSteps" class="stage-steps"></div>
+        <div id="detailsAttachmentSection" class="comment-section" style="display:none; margin-top: 18px;">
+          <div class="detail-label">Attached Photo / Document</div>
+          <div id="detailsAttachmentContainer" style="margin-top: 8px;"></div>
+        </div>
         <div class="comment-section">
           <div class="detail-label">Approval Audit Trail</div>
           <div id="detailsHistoryList" class="comment-list"></div>
@@ -1982,6 +1967,51 @@
           }
         ]
       },
+      'Leave Request': {
+        description: 'For requesting paid or unpaid leave of absence.',
+        sections: [
+          {
+            title: 'Leave Details',
+            fields: [
+              { name: 'leave_type', label: 'Leave Type', type: 'select', options: ['Vacation', 'Sick Leave', 'Personal', 'Casual', 'Parental', 'Unpaid'], required: true },
+              { name: 'start_date', label: 'Start Date', type: 'date', required: true },
+              { name: 'end_date', label: 'End Date', type: 'date', required: true }
+            ]
+          },
+          {
+            title: 'Duration & Reason',
+            fields: [
+              { name: 'total_days', label: 'Total Days', type: 'number', min: 1, placeholder: '1', required: true },
+              { name: 'reason', label: 'Reason for Leave', type: 'textarea', placeholder: 'Provide details for your leave request...', required: true, fullWidth: true, isDescription: true }
+            ]
+          }
+        ]
+      },
+      'Budget Approval': {
+        description: 'For requesting department or project budget allocations.',
+        sections: [
+          {
+            title: 'Budget Information',
+            fields: [
+              { name: 'project_name', label: 'Project / Program Name', type: 'text', placeholder: 'e.g. Q3 Marketing Campaign', required: true },
+              { name: 'budget_category', label: 'Budget Category', type: 'select', options: ['Operational', 'Capital', 'Marketing', 'IT Infrastructure', 'Personnel', 'Other'], required: true }
+            ]
+          },
+          {
+            title: 'Financial Information',
+            fields: [
+              { name: 'amount', label: 'Budget Amount (₹)', type: 'number', min: 1, placeholder: '50000', required: true, isAmount: true },
+              { name: 'fiscal_year', label: 'Fiscal Year', type: 'text', placeholder: 'e.g. FY 2026-2027', required: true }
+            ]
+          },
+          {
+            title: 'Business Justification',
+            fields: [
+              { name: 'description', label: 'Justification & Expected ROI', type: 'textarea', placeholder: 'Detail business impact and objectives...', required: true, fullWidth: true, isDescription: true }
+            ]
+          }
+        ]
+      },
       'Other': {
         description: 'For general requests not covered by standard categories.',
         sections: [
@@ -2008,8 +2038,8 @@
       }
     };
 
-    function onTypeChange(typeVal) {
-      renderDynamicForm(typeVal);
+    function onTypeChange(typeVal, prefillData = {}) {
+      renderDynamicForm(typeVal, prefillData);
       updateSmartAssistant();
     }
     window.onTypeChange = onTypeChange;
@@ -2030,8 +2060,6 @@
       const reqType = document.getElementById('request_type')?.value || '';
       const dept = document.getElementById('department')?.value || '';
       const prio = document.getElementById('priority')?.value || '';
-      const amount = Number(document.getElementById('amount')?.value || 0);
-      const desc = (document.getElementById('description')?.value || '').trim();
 
       const assistantCard = document.getElementById('smartAssistantCard');
       const placeholderCard = document.getElementById('assistantPlaceholder');
@@ -2053,40 +2081,94 @@
         }
       }
 
-      const dynamicContainer = document.getElementById('dynamic-form-sections');
-      let dynamicFilled = false;
+      const config = REQUEST_FORM_CONFIG[reqType];
+      const checklistItems = [];
 
-      if (dynamicContainer) {
-        const requiredInputs = Array.from(dynamicContainer.querySelectorAll('input[required], select[required], textarea[required]'));
-        const allInputs = Array.from(dynamicContainer.querySelectorAll('input, select, textarea')).filter(i => i.name && i.type !== 'file');
+      // Base items applicable to all requests
+      checklistItems.push({
+        id: 'chk_type',
+        label: 'Request Type',
+        isComplete: Boolean(reqType),
+        isRequired: true
+      });
+      checklistItems.push({
+        id: 'chk_dept',
+        label: 'Department',
+        isComplete: Boolean(dept),
+        isRequired: true
+      });
+      checklistItems.push({
+        id: 'chk_prio',
+        label: 'Priority',
+        isComplete: Boolean(prio),
+        isRequired: true
+      });
 
-        if (allInputs.length > 0) {
-          const filledInputs = allInputs.filter(i => String(i.value || '').trim() !== '');
-          dynamicFilled = filledInputs.length > 0 && (requiredInputs.length === 0 || requiredInputs.every(i => String(i.value || '').trim() !== ''));
-        } else {
-          dynamicFilled = false;
-        }
+      let hasFileInputInConfig = false;
+
+      if (config && config.sections) {
+        config.sections.forEach(sec => {
+          sec.fields.forEach(field => {
+            const inputId = `df_${field.name}`;
+            const inputEl = document.getElementById(inputId);
+            const cleanLabel = field.label.replace(/\s*\([^)]*\)/g, '').trim();
+
+            let isComplete = false;
+            if (field.type === 'file') {
+              hasFileInputInConfig = true;
+              const existingAttachmentPreview = document.getElementById('existing_attachment_preview');
+              let hasExistingFile = false;
+              if (typeof editingExistingRequest !== 'undefined' && editingExistingRequest && !window.attachmentDeleted) {
+                const payloadObj = typeof editingExistingRequest.payload === 'string' ? (JSON.parse(editingExistingRequest.payload || '{}')) : (editingExistingRequest.payload || {});
+                const exName = editingExistingRequest.fileName || editingExistingRequest.file_name || payloadObj.attached_file_name || payloadObj.fileName || payloadObj.file_name || editingExistingRequest.receipt_url || editingExistingRequest.attachment_url || payloadObj.attached_file_url;
+                if (exName && exName !== 'null') hasExistingFile = true;
+              }
+              isComplete = Boolean((inputEl && inputEl.files && inputEl.files.length > 0) || (!window.attachmentDeleted && (existingAttachmentPreview || hasExistingFile)));
+            } else if (field.type === 'number') {
+              const val = inputEl ? inputEl.value : '';
+              const num = Number(val);
+              if (field.required) {
+                isComplete = val !== '' && !isNaN(num) && (field.min !== undefined ? num >= field.min : num > 0);
+              } else {
+                isComplete = val !== '' && !isNaN(num);
+              }
+            } else {
+              const val = inputEl ? String(inputEl.value || '').trim() : '';
+              isComplete = val.length > 0;
+            }
+
+            checklistItems.push({
+              id: `chk_df_${field.name}`,
+              label: cleanLabel,
+              isComplete: isComplete,
+              isRequired: Boolean(field.required)
+            });
+          });
+        });
       }
 
-      const chkType = Boolean(reqType);
-      const chkDept = Boolean(dept);
-      const chkPrio = Boolean(prio);
-      const chkDynamic = Boolean(dynamicFilled);
-      const chkDesc = Boolean(desc);
-      const chkCost = amount > 0;
-      const chkDocs = false;
+      // Render Dynamic Checklist into #assistantChecklist
+      const checklistContainer = document.getElementById('assistantChecklist');
+      if (checklistContainer) {
+        checklistContainer.innerHTML = checklistItems.map(item => {
+          const iconColor = item.isComplete ? '#22c55e' : (item.isRequired ? '#ef4444' : '#6b7280');
+          const iconSymbol = item.isComplete ? '✔' : '✖';
+          const textColor = item.isComplete ? '#e2e8f0' : 'var(--muted)';
+          const reqMark = item.isRequired && !item.isComplete ? ' *' : '';
+          return `
+            <div id="${item.id}" style="display:flex; align-items:center; gap:6px; color:${textColor}; grid-column: ${item.label.length > 18 ? 'span 2' : 'span 1'};">
+              <span class="chk-icon" style="color:${iconColor}; font-weight:bold;">${iconSymbol}</span>
+              <span>${escapeHtml(item.label)}${reqMark}</span>
+            </div>
+          `;
+        }).join('');
+      }
 
-      setChecklistItem('chk_type', 'Request Type', chkType);
-      setChecklistItem('chk_dept', 'Department', chkDept);
-      setChecklistItem('chk_prio', 'Priority', chkPrio);
-      setChecklistItem('chk_dynamic', 'Dynamic Fields', chkDynamic);
-      setChecklistItem('chk_desc', 'Description', chkDesc);
-      setChecklistItem('chk_cost', 'Estimated Cost', chkCost);
-      setChecklistItem('chk_docs', 'Supporting Documents', chkDocs);
-
-      const items = [chkType, chkDept, chkPrio, chkDynamic, chkDesc, chkCost];
-      const completedCount = items.filter(Boolean).length;
-      const percent = Math.round((completedCount / items.length) * 100);
+      // Calculate completion percentage based on required items
+      const requiredItems = checklistItems.filter(i => i.isRequired);
+      const itemsToEval = requiredItems.length > 0 ? requiredItems : checklistItems;
+      const completedCount = itemsToEval.filter(i => i.isComplete).length;
+      const percent = itemsToEval.length > 0 ? Math.round((completedCount / itemsToEval.length) * 100) : 0;
 
       const progressBar = document.getElementById('assistantProgressBar');
       const progressPercent = document.getElementById('assistantProgressPercent');
@@ -2132,8 +2214,8 @@
           '• Mention business purpose clearly.'
         ],
         'Equipment': [
-          '• Verify quantity.',
-          '• Mention vendor details.'
+          '• Verify quantity and vendor pricing.',
+          '• Confirm model specifications.'
         ],
         'Software': [
           '• Include license information.',
@@ -2144,11 +2226,11 @@
           '• Include maintenance reason.'
         ],
         'Reimbursement': [
-          '• Attach receipts after submission.',
+          '• Attach receipt image/document.',
           '• Itemize individual expenses.'
         ],
         'Purchase Request': [
-          '• Include quotation and vendor.',
+          '• Include quotation and vendor details.',
           '• Verify department budget.'
         ],
         'Training': [
@@ -2173,23 +2255,9 @@
       // 1. Next Step
       const nextStepEl = document.getElementById('assistantNextStep');
       if (nextStepEl) {
-        if (!chkType) {
-          nextStepEl.innerHTML = 'Select Request Type';
-          nextStepEl.style.color = '#38bdf8';
-        } else if (!chkDept) {
-          nextStepEl.innerHTML = 'Complete Department';
-          nextStepEl.style.color = '#38bdf8';
-        } else if (!chkPrio) {
-          nextStepEl.innerHTML = 'Complete Priority';
-          nextStepEl.style.color = '#38bdf8';
-        } else if (!chkDynamic) {
-          nextStepEl.innerHTML = 'Complete Dynamic Fields';
-          nextStepEl.style.color = '#38bdf8';
-        } else if (!chkDesc) {
-          nextStepEl.innerHTML = 'Complete Description';
-          nextStepEl.style.color = '#38bdf8';
-        } else if (!chkCost && reqType !== 'Other') {
-          nextStepEl.innerHTML = 'Enter Estimated Cost';
+        const firstIncomplete = itemsToEval.find(i => !i.isComplete);
+        if (firstIncomplete) {
+          nextStepEl.innerHTML = `Complete ${escapeHtml(firstIncomplete.label)}`;
           nextStepEl.style.color = '#38bdf8';
         } else {
           nextStepEl.innerHTML = '✓ Ready for Submission';
@@ -2203,21 +2271,28 @@
         const summaryItems = [
           { label: 'Request Type', value: reqType || '—' },
           { label: 'Department', value: dept || '—' },
-          { label: 'Priority', value: prio || '—' },
-          { label: 'Estimated Cost', value: amount > 0 ? `₹${amount.toLocaleString('en-IN')}` : '—' }
+          { label: 'Priority', value: prio || '—' }
         ];
 
-        const dest = document.getElementById('df_destination')?.value || '';
-        if (dest) summaryItems.push({ label: 'Destination', value: dest });
-
-        const vendor = document.getElementById('df_vendor_name')?.value || document.getElementById('df_vendor')?.value || '';
-        if (vendor) summaryItems.push({ label: 'Vendor', value: vendor });
-
-        const eqName = document.getElementById('df_equipment_name')?.value || '';
-        if (eqName) summaryItems.push({ label: 'Equipment Name', value: eqName });
-
-        const trainName = document.getElementById('df_training_name')?.value || document.getElementById('df_training')?.value || '';
-        if (trainName) summaryItems.push({ label: 'Training Name', value: trainName });
+        if (config && config.sections) {
+          config.sections.forEach(sec => {
+            sec.fields.forEach(field => {
+              const inputEl = document.getElementById(`df_${field.name}`);
+              if (inputEl && inputEl.type !== 'file') {
+                const val = String(inputEl.value || '').trim();
+                if (val) {
+                  const cleanLabel = field.label.replace(/\s*\([^)]*\)/g, '').trim();
+                  let displayVal = val;
+                  if (field.isAmount || field.name === 'amount' || field.name === 'unit_price' || field.name === 'total_amount') {
+                    const num = Number(val);
+                    if (!isNaN(num)) displayVal = `₹${num.toLocaleString('en-IN')}`;
+                  }
+                  summaryItems.push({ label: cleanLabel, value: displayVal });
+                }
+              }
+            });
+          });
+        }
 
         summaryEl.innerHTML = summaryItems.map(item => `
             <div>
@@ -2236,6 +2311,41 @@
           draftStatusEl.innerHTML = `<span style="color:#4ade80; font-weight:700;">💾 Draft Saved</span> — Just Now`;
         } else {
           draftStatusEl.innerHTML = `<span style="color:var(--muted);">No Draft Saved</span>`;
+        }
+      }
+
+      // 4. Attachments
+      const attachmentsEl = document.getElementById('assistantAttachments');
+      if (attachmentsEl) {
+        if (hasFileInputInConfig) {
+          const fileInput = document.querySelector('#dynamic-form-sections input[type="file"]');
+          const existingAttachmentPreview = document.getElementById('existing_attachment_preview');
+          let hasFile = false;
+          let fileName = '';
+
+          if (fileInput && fileInput.files && fileInput.files.length > 0) {
+            hasFile = true;
+            fileName = fileInput.files[0].name;
+          } else if (existingAttachmentPreview || (typeof editingExistingRequest !== 'undefined' && editingExistingRequest && !window.attachmentDeleted)) {
+            hasFile = true;
+            const existingNameEl = existingAttachmentPreview ? existingAttachmentPreview.querySelector('strong') : null;
+            if (existingNameEl && existingNameEl.textContent.trim()) {
+              fileName = existingNameEl.textContent.trim();
+            } else if (typeof editingExistingRequest !== 'undefined' && editingExistingRequest) {
+              const payloadObj = typeof editingExistingRequest.payload === 'string' ? (JSON.parse(editingExistingRequest.payload || '{}')) : (editingExistingRequest.payload || {});
+              fileName = editingExistingRequest.fileName || editingExistingRequest.file_name || payloadObj.attached_file_name || payloadObj.fileName || payloadObj.file_name || 'Supporting Document Attached';
+            } else {
+              fileName = 'Supporting Document Attached';
+            }
+          }
+
+          if (hasFile) {
+            attachmentsEl.innerHTML = `<span style="color:#22c55e;">📄</span> <span style="color:#e2e8f0; font-weight:600;">${escapeHtml(fileName)}</span>`;
+          } else {
+            attachmentsEl.innerHTML = `<span>📄</span> No Supporting Documents Uploaded`;
+          }
+        } else {
+          attachmentsEl.innerHTML = `<span style="color:var(--muted);">📄 Not required for ${escapeHtml(reqType)}</span>`;
         }
       }
     }
@@ -2298,9 +2408,34 @@
                 <textarea id="${fieldId}" name="${field.name}" class="profile-pill" rows="3" style="width:100%" placeholder="${field.placeholder || ''}" data-label="${field.label}" ${field.required ? 'data-required="true"' : ''} ${field.isDescription ? 'data-is-description="true"' : ''}>${prefilledVal}</textarea>
               `;
           } else if (field.type === 'file') {
-            html += `
+            const existingFileUrl = prefillData.attached_file_url || prefillData.receipt_url || prefillData.attachment_url || prefillData.image_url || prefillData.receipt_file;
+            const existingFileName = prefillData.attached_file_name || prefillData.fileName || prefillData.file_name || prefillData.receipt_name || 'Attached Photo / Document';
+
+            let fileHtml = '';
+            if (existingFileUrl && typeof existingFileUrl === 'string' && existingFileUrl.length > 0 && existingFileUrl !== 'null' && !window.attachmentDeleted) {
+              fileHtml += `
+                <div id="existing_attachment_preview" style="margin-bottom: 8px; padding: 10px 14px; background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 8px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+                  <div style="font-size: 0.85rem; color: #38bdf8; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+                    <span>📎 Existing Attachment:</span>
+                    <strong style="color: #f8fafc;">${escapeHtml(existingFileName)}</strong>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 6px;">
+                    <button type="button" class="btn btn-secondary" onclick="openPhotoModalSafe('${encodeURIComponent(existingFileUrl)}', '${encodeURIComponent(existingFileName)}')" style="padding: 5px 12px; font-size: 0.78rem; background: rgba(56, 189, 248, 0.2); border: 1px solid rgba(56, 189, 248, 0.4); color: #38bdf8; border-radius: 6px; cursor: pointer; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;">
+                      📷 View Photo
+                    </button>
+                    <button type="button" class="btn btn-danger" onclick="removeExistingAttachment()" style="padding: 5px 12px; font-size: 0.78rem; background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); color: #ef4444; border-radius: 6px; cursor: pointer; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;">
+                      🗑️ Delete Photo
+                    </button>
+                  </div>
+                </div>
+                <div style="font-size: 0.78rem; color: var(--muted); margin-bottom: 4px;">Select a file only if you wish to replace or re-attach a photo:</div>
+              `;
+            }
+
+            fileHtml += `
                 <input type="file" id="${fieldId}" name="${field.name}" class="profile-pill" style="width:100%" data-label="${field.label}">
               `;
+            html += fileHtml;
           } else {
             html += `
                 <input type="${field.type || 'text'}" id="${fieldId}" name="${field.name}" class="profile-pill" style="width:100%" placeholder="${field.placeholder || ''}" value="${prefilledVal}" ${field.min !== undefined ? `min="${field.min}"` : ''} data-label="${field.label}" ${field.required ? 'data-required="true"' : ''} ${field.isAmount ? 'data-is-amount="true"' : ''} ${onInputAttr}>
@@ -2321,6 +2456,146 @@
     window.renderDynamicForm = renderDynamicForm;
     window.updateSmartAssistant = updateSmartAssistant;
 
+    window.attachmentDeleted = false;
+
+    function removeExistingAttachment() {
+      window.attachmentDeleted = true;
+      if (window.editingExistingRequest) {
+        window.editingExistingRequest.fileName = null;
+        window.editingExistingRequest.file_name = null;
+        window.editingExistingRequest.attached_file_name = null;
+        window.editingExistingRequest.attached_file_url = null;
+        window.editingExistingRequest.receipt_url = null;
+        window.editingExistingRequest.attachment_url = null;
+        if (window.editingExistingRequest.payload) {
+          if (typeof window.editingExistingRequest.payload === 'object') {
+            window.editingExistingRequest.payload.attached_file_name = null;
+            window.editingExistingRequest.payload.attached_file_url = null;
+            window.editingExistingRequest.payload.receipt_file = null;
+            window.editingExistingRequest.payload.fileName = null;
+            window.editingExistingRequest.payload.file_name = null;
+          } else if (typeof window.editingExistingRequest.payload === 'string') {
+            try {
+              const parsed = JSON.parse(window.editingExistingRequest.payload);
+              parsed.attached_file_name = null;
+              parsed.attached_file_url = null;
+              parsed.receipt_file = null;
+              parsed.fileName = null;
+              parsed.file_name = null;
+              window.editingExistingRequest.payload = JSON.stringify(parsed);
+            } catch (e) {}
+          }
+        }
+      }
+      const previewEl = document.getElementById('existing_attachment_preview');
+      if (previewEl) {
+        previewEl.remove();
+      }
+      const fileInput = document.querySelector('#dynamic-form-sections input[type="file"], #requestForm input[type="file"]');
+      if (fileInput) {
+        fileInput.value = '';
+      }
+      if (typeof updateSmartAssistant === 'function') {
+        updateSmartAssistant();
+      }
+      if (typeof showFormFeedback === 'function') {
+        showFormFeedback('Attachment removed. Save/Update request to persist changes.', 'info');
+      }
+    }
+    window.removeExistingAttachment = removeExistingAttachment;
+
+    function openPhotoModalSafe(rawUrl, rawName) {
+      let url = decodeURIComponent(rawUrl || '');
+      const name = decodeURIComponent(rawName || 'Photo Preview');
+
+      if (!url || url === 'null' || url === 'undefined') {
+        if (typeof showFormFeedback === 'function') showFormFeedback('No photo available to display.', 'error');
+        return;
+      }
+
+      if (!url.startsWith('http://') && !url.startsWith('https://') && !url.startsWith('data:') && !url.startsWith('blob:')) {
+        if (!url.startsWith('/') && !url.startsWith('./')) {
+          url = './' + url;
+        }
+      }
+
+      let photoModal = document.getElementById('photoPreviewModal');
+      if (!photoModal) {
+        photoModal = document.createElement('div');
+        photoModal.id = 'photoPreviewModal';
+        photoModal.className = 'modal-backdrop';
+        photoModal.style.cssText = 'position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(15,23,42,0.85); backdrop-filter:blur(8px); display:none; align-items:center; justify-content:center; z-index:99999; padding:20px;';
+        photoModal.innerHTML = `
+          <div class="modal-card" style="background:#1e293b; border:1px solid rgba(255,255,255,0.15); border-radius:16px; max-width:700px; width:100%; max-height:90vh; display:flex; flex-direction:column; box-shadow:0 25px 50px -12px rgba(0,0,0,0.7); overflow:hidden;">
+            <div class="modal-header" style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,0.1); padding:16px 20px; background:rgba(255,255,255,0.02);">
+              <div>
+                <div id="photoModalTitle" class="modal-title" style="font-size:1.1rem; font-weight:700; color:#f8fafc; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:500px;">Photo Preview</div>
+                <div id="photoModalSub" style="color:#94a3b8; font-size:0.78rem; margin-top:2px;">Supporting Document</div>
+              </div>
+              <button type="button" class="modal-close" onclick="closePhotoModal()" style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:#cbd5e1; font-size:1.2rem; cursor:pointer; width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center;">✕</button>
+            </div>
+            <div class="modal-content" style="padding:20px; overflow:auto; flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+              <div id="photoModalImageContainer" style="width:100%; max-height:58vh; overflow:auto; display:flex; justify-content:center; align-items:center; background:rgba(15,23,42,0.6); border:1px dashed rgba(255,255,255,0.1); border-radius:12px; padding:16px;">
+                <img id="photoModalImg" src="" alt="Attachment Preview" style="max-width:100%; max-height:52vh; border-radius:8px; object-fit:contain; box-shadow:0 10px 30px rgba(0,0,0,0.5);">
+              </div>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:14px 20px; border-top:1px solid rgba(255,255,255,0.1); background:rgba(15,23,42,0.4);">
+              <div style="font-size:0.75rem; color:#94a3b8;">Click background or ✕ to dismiss</div>
+              <div style="display:flex; gap:10px;">
+                <button type="button" class="btn btn-secondary" onclick="closePhotoModal()" style="padding:8px 16px; font-size:0.82rem; background:rgba(255,255,255,0.08); color:#e2e8f0; border:1px solid rgba(255,255,255,0.15); border-radius:8px; cursor:pointer; font-weight:600;">
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+        document.body.appendChild(photoModal);
+
+        photoModal.addEventListener('click', (e) => {
+          if (e.target === photoModal) closePhotoModal();
+        });
+      }
+
+      const imgEl = document.getElementById('photoModalImg');
+      const titleEl = document.getElementById('photoModalTitle');
+      const container = document.getElementById('photoModalImageContainer');
+
+      const existingFallback = document.getElementById('photoModalFallback');
+      if (existingFallback) existingFallback.remove();
+
+      if (titleEl) titleEl.textContent = name;
+      if (imgEl) {
+        imgEl.style.display = 'block';
+        imgEl.src = url;
+        imgEl.onerror = () => {
+          imgEl.style.display = 'none';
+          if (container && !document.getElementById('photoModalFallback')) {
+            const fallback = document.createElement('div');
+            fallback.id = 'photoModalFallback';
+            fallback.style.cssText = 'padding:24px; color:#94a3b8; text-align:center; font-size:0.88rem;';
+            fallback.innerHTML = `📄 Direct image preview unavailable for this file format.<br><br><a href="${url}" target="_blank" style="color:#38bdf8; font-weight:700; text-decoration:underline;">Click here to open/download attachment</a>`;
+            container.appendChild(fallback);
+          }
+        };
+      }
+
+      photoModal.style.display = 'flex';
+      setTimeout(() => {
+        photoModal.classList.add('visible');
+      }, 10);
+    }
+
+    function closePhotoModal() {
+      const photoModal = document.getElementById('photoPreviewModal');
+      if (photoModal) {
+        photoModal.classList.remove('visible');
+        photoModal.style.display = 'none';
+      }
+    }
+
+    window.openPhotoModalSafe = openPhotoModalSafe;
+    window.closePhotoModal = closePhotoModal;
+
     function calcEquipmentTotal() {
       const qtyEl = document.getElementById('df_quantity');
       const unitEl = document.getElementById('df_unit_price');
@@ -2332,6 +2607,7 @@
           totalEl.value = q * u;
         }
       }
+      if (typeof updateSmartAssistant === 'function') updateSmartAssistant();
     }
     window.calcEquipmentTotal = calcEquipmentTotal;
 
@@ -2346,14 +2622,22 @@
           totalEl.value = q * u;
         }
       }
+      if (typeof updateSmartAssistant === 'function') updateSmartAssistant();
     }
     window.calcPurchaseTotal = calcPurchaseTotal;
 
     function clearRequestForm() {
       const form = document.getElementById('request-form');
       if (form) form.reset();
-      renderDynamicForm('');
-      exitEditMode();
+      const typeSelect = document.getElementById('request_type');
+      if (typeSelect) typeSelect.value = '';
+      if (typeof renderDynamicForm === 'function') renderDynamicForm('');
+      editingRequestId = null;
+      editingExistingRequest = null;
+      const submitButton = document.querySelector('#request-form button[type="submit"]');
+      if (submitButton) submitButton.textContent = 'Submit Request';
+      const cancelEditBtn = document.getElementById('cancelEditBtn');
+      if (cancelEditBtn) cancelEditBtn.style.display = 'none';
     }
     window.clearRequestForm = clearRequestForm;
 
@@ -2431,6 +2715,78 @@
         ...dynamicData
       };
 
+      if (editingRequestId && editingExistingRequest) {
+        fullPayload.is_edited = 1;
+        
+        // Preserve original attachment if employee did not select a new file and did not delete existing attachment
+        const fileInput = document.querySelector('#dynamic-form-sections input[type="file"]') || document.getElementById('df_receipt_file');
+        if ((!fileInput || !fileInput.files || !fileInput.files[0]) && !window.attachmentDeleted) {
+          const existingPayload = typeof editingExistingRequest.payload === 'string' ? JSON.parse(editingExistingRequest.payload || '{}') : (editingExistingRequest.payload || {});
+          const existingName = editingExistingRequest.fileName || editingExistingRequest.file_name || existingPayload.attached_file_name || existingPayload.fileName || existingPayload.file_name;
+          const existingType = editingExistingRequest.attached_file_type || existingPayload.attached_file_type || '';
+
+          fullPayload.attached_file_name = existingName;
+          fullPayload.attached_file_type = existingType;
+          fullPayload.attached_file_url = 'PRESERVE_EXISTING';
+          fullPayload.preserve_existing_attachment = true;
+        } else if (window.attachmentDeleted) {
+          fullPayload.attached_file_name = null;
+          fullPayload.attached_file_type = null;
+          fullPayload.attached_file_url = null;
+          fullPayload.preserve_existing_attachment = false;
+        }
+      }
+
+      // Find matching Admin Workflow Template for this request_type & amount
+      let customChain = null;
+      try {
+        let savedWorkflows = [];
+        try {
+          const rulesRes = await fetch('/api/rules').then(r => r.json()).catch(() => []);
+          if (Array.isArray(rulesRes) && rulesRes.length) {
+            savedWorkflows = rulesRes.map(r => ({
+              id: r.id,
+              dbId: r.id,
+              name: `${r.request_type} Approval`,
+              type: r.request_type,
+              minAmount: Number(r.min_amount || 0),
+              maxAmount: Number(r.max_amount || 0),
+              levels: String(r.approvers || '').split(',').map(s => s.trim()).filter(Boolean)
+            }));
+            localStorage.setItem('workflows', JSON.stringify(savedWorkflows));
+          }
+        } catch (fetchErr) {
+          console.warn('Could not fetch /api/rules, using fallback', fetchErr);
+        }
+
+        if (!savedWorkflows.length) {
+          savedWorkflows = JSON.parse(localStorage.getItem('workflows') || '[]');
+        }
+
+        const numAmt = Number(amount || 0);
+        const match = savedWorkflows.find(w => {
+          const cleanReqType = String(request_type || '').trim().toLowerCase();
+          const cleanWfType = String(w.type || '').trim().toLowerCase();
+          const cleanWfName = String(w.name || '').trim().toLowerCase();
+
+          const typeMatch = cleanWfType === cleanReqType || cleanWfName.includes(cleanReqType) || cleanReqType.includes(cleanWfType);
+          const minVal = Number(w.minAmount ?? w.min_amount ?? 0);
+          const maxVal = Number(w.maxAmount ?? w.max_amount ?? 0);
+          const amountMatch = numAmt >= minVal && (maxVal > 0 ? numAmt <= maxVal : true);
+          return typeMatch && amountMatch && Array.isArray(w.levels) && w.levels.length > 0;
+        });
+        if (match) {
+          customChain = match.levels;
+        }
+      } catch (err) {
+        console.warn('Error reading workflows:', err);
+      }
+
+      const activeChain = customChain && customChain.length ? customChain : ['Accounts', 'Manager', 'CFO', 'MD'];
+      const initialApprover = activeChain[0] || 'Accounts';
+      const initialStatus = `Pending ${initialApprover} Approval`;
+      const fullWorkflowChain = ['Employee', ...activeChain, 'Completed'];
+
       const requestPayload = {
         request_type,
         title: request_type,
@@ -2439,14 +2795,14 @@
         priority,
         description: description || `${request_type} Request`,
         amount: amount || 0,
-        status: 'pending',
+        status: initialStatus,
         current_level: 0,
-        current_role: 'Accounts',
-        current_approver: 'Accounts',
+        current_role: initialApprover,
+        current_approver: initialApprover,
         requester_name: employeeName,
         requester_email: employeeEmail,
         draft_id: currentDraftId,
-        workflow: JSON.stringify(['Employee', 'Accounts', 'Manager', 'CFO', 'Completed']),
+        workflow: JSON.stringify(fullWorkflowChain),
         payload: JSON.stringify(fullPayload)
       };
 
@@ -2454,6 +2810,15 @@
       setSubmitButtonState(true);
       try {
         if (editingRequestId) {
+          if (editingExistingRequest) {
+            requestPayload.is_edited = 1;
+            requestPayload.workflow = JSON.stringify(fullWorkflowChain);
+            requestPayload.status = initialStatus;
+            requestPayload.current_level = 0;
+            requestPayload.current_role = initialApprover;
+            requestPayload.current_approver = initialApprover;
+            requestPayload.payload = JSON.stringify(fullPayload);
+          }
           console.log('Updating request', editingRequestId, requestPayload);
           const response = await fetch(`${REQUESTS_API_URL}/${encodeURIComponent(editingRequestId)}`, {
             method: 'PUT',
@@ -2466,7 +2831,6 @@
             throw new Error(errorData.error || errorData.message || 'Only pending requests can be edited.');
           }
           exitEditMode();
-          clearRequestForm();
           showFormFeedback('Request updated successfully.', 'success');
           await loadRequests();
           return;
@@ -2815,16 +3179,29 @@
       }
     }
 
+    let editingExistingRequest = null;
+
     function exitEditMode() {
       editingRequestId = null;
+      editingExistingRequest = null;
+      window.attachmentDeleted = false;
       const submitButton = document.querySelector('#request-form button[type="submit"]');
       if (submitButton) submitButton.textContent = 'Submit Request';
+      const cancelEditBtn = document.getElementById('cancelEditBtn');
+      if (cancelEditBtn) cancelEditBtn.style.display = 'none';
+      const form = document.getElementById('request-form');
+      if (form) form.reset();
+      const typeSelect = document.getElementById('request_type');
+      if (typeSelect) typeSelect.value = '';
+      if (typeof renderDynamicForm === 'function') renderDynamicForm('');
     }
 
     function enterEditMode(requestId) {
       editingRequestId = String(requestId);
       const submitButton = document.querySelector('#request-form button[type="submit"]');
       if (submitButton) submitButton.textContent = 'Update Request';
+      const cancelEditBtn = document.getElementById('cancelEditBtn');
+      if (cancelEditBtn) cancelEditBtn.style.display = 'inline-block';
     }
 
     function onTrackRequests() {
@@ -2933,10 +3310,12 @@
 
     function renderRequestHistory(status = 'All') {
       const requests = getEmployeeRequests();
+      const seqMap = getEmployeeSeqMap();
       const search = (document.getElementById('historySearch')?.value || '').toLowerCase().trim();
       const filtered = requests.filter(r => {
         const statusMatch = status === 'All' || toStatusLabel(r.status) === status;
-        const searchMatch = !search || [r.id, r.request_type, r.title, r.department, r.priority].some(v => String(v || '').toLowerCase().includes(search));
+        const seqId = seqMap.get(String(r.id)) || r.id;
+        const searchMatch = !search || [r.id, seqId, r.request_type, r.title, r.department, r.priority].some(v => String(v || '').toLowerCase().includes(search));
         return statusMatch && searchMatch;
       }).sort((a, b) => Number(a.id || 0) - Number(b.id || 0));
       const body = document.getElementById('historyTableBody');
@@ -2945,7 +3324,12 @@
         body.innerHTML = '<tr><td colspan="5" class="table-empty">No requests match your selection.</td></tr>';
         return;
       }
-      filtered.forEach(r => { const tr = document.createElement('tr'); tr.innerHTML = `<td>${escapeHtml(r.id || '—')}</td><td>${escapeHtml(r.request_type || r.title || '—')}</td><td>${formatCurrency(r.amount)}</td><td>${toStatusLabel(r.status)}</td><td>${new Date(Number(r.createdAt || Date.now())).toLocaleDateString()}</td>`; body.appendChild(tr); });
+      filtered.forEach(r => {
+        const tr = document.createElement('tr');
+        const seqId = seqMap.get(String(r.id)) || r.id;
+        tr.innerHTML = `<td>${escapeHtml(seqId)}</td><td>${escapeHtml(r.request_type || r.title || '—')}</td><td>${formatCurrency(r.amount)}</td><td>${toStatusLabel(r.status)}</td><td>${safeParseDate(r.createdAt || r.created_at).toLocaleDateString()}</td>`;
+        body.appendChild(tr);
+      });
     }
 
     function renderRequestAnalytics() {
@@ -2966,15 +3350,15 @@
       const trendLabels = []; const trendData = []; const statusMap = {};
       const monthly = {};
       requests.forEach(r => {
-        const date = new Date(Number(r.createdAt || Date.now()));
+        const date = safeParseDate(r.createdAt || r.created_at);
         const key = date.toLocaleString('default', { month: 'short', year: 'numeric' });
         monthly[key] = (monthly[key] || 0) + 1;
         statusMap[toStatusLabel(r.status)] = (statusMap[toStatusLabel(r.status)] || 0) + 1;
       });
       if (Object.keys(monthly).length === 0) {
-        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
-        months.forEach(m => { trendLabels.push(m); trendData.push(Math.floor(Math.random() * 20) + 10); });
-        statusMap['Approved'] = 48; statusMap['Pending'] = 32; statusMap['Rejected'] = 12; statusMap['Cancelled'] = 8;
+        trendLabels.push('No Data');
+        trendData.push(0);
+        statusMap['Approved'] = 0; statusMap['Pending'] = 0; statusMap['Rejected'] = 0;
       } else {
         Object.keys(monthly).sort((a, b) => new Date(a) - new Date(b)).forEach(k => { trendLabels.push(k); trendData.push(monthly[k]); });
       }
@@ -2995,8 +3379,21 @@
     }
     function getCurrentUserEmail() { const u = JSON.parse(localStorage.getItem('currentUser') || 'null'); return u?.email || localStorage.getItem('userEmail') || localStorage.getItem('email') || ''; }
     function getEmployeeRequests() {
-      const email = getCurrentUserEmail().toLowerCase();
-      return requestsCache.filter(r => String(r.requester_email || r.requesterEmail || r.email || '').toLowerCase() === email);
+      const email = (getCurrentUserEmail() || '').toLowerCase().trim();
+      if (!email) return requestsCache;
+      return requestsCache.filter(r => {
+        const reqEmail = String(r.requester_email || r.requesterEmail || r.email || '').toLowerCase().trim();
+        return !reqEmail || reqEmail === email;
+      });
+    }
+    function getEmployeeSeqMap() {
+      const requests = getEmployeeRequests();
+      const sorted = requests.slice().sort((a, b) => Number(a.id || 0) - Number(b.id || 0));
+      const seqMap = new Map();
+      sorted.forEach((r, idx) => {
+        seqMap.set(String(r.id), idx + 1);
+      });
+      return seqMap;
     }
     function getCurrentUserRole() { const u = JSON.parse(localStorage.getItem('currentUser') || 'null'); return String(u?.role || localStorage.getItem('user_role') || localStorage.getItem('role') || 'Employee'); }
     function saveRequest(request) { const requests = readRequestsFromLocalStorage(); const idx = requests.findIndex(r => String(r.id) === String(request.id)); if (idx === -1) requests.unshift(request); else requests[idx] = request; requestsCache = requests; }
@@ -3078,13 +3475,15 @@
     }
     function renderRequestDetails(request) {
       if (!request) return;
-      document.getElementById('detailsRequestId').textContent = String(request.id || '—');
+      const seqMap = getEmployeeSeqMap();
+      const seqId = seqMap.get(String(request.id)) || request.id;
+      document.getElementById('detailsRequestId').textContent = String(seqId || '—');
       document.getElementById('detailsEmployeeName').textContent = escapeHtml(request.currentApprover || request.currentRole || request.currentApproverName || '—');
       document.getElementById('detailsDepartment').textContent = escapeHtml(request.department || '—');
       document.getElementById('detailsRequestType').textContent = escapeHtml(request.request_type || request.title || '—');
       document.getElementById('detailsAmount').textContent = formatCurrency(request.amount);
       document.getElementById('detailsPriority').textContent = escapeHtml(request.priority || '—');
-      document.getElementById('detailsDate').textContent = new Date(Number(request.createdAt || Date.now())).toLocaleString();
+      document.getElementById('detailsDate').textContent = safeParseDate(request.createdAt || request.created_at).toLocaleString();
       document.getElementById('detailsStatus').textContent = escapeHtml(request.status || 'Pending Accounts Review');
       document.getElementById('detailsDescription').textContent = escapeHtml(request.description || '—');
 
@@ -3098,25 +3497,102 @@
         return `<div class="${classes.join(' ')}">${escapeHtml(step)}</div>`;
       }).join('');
 
+      function getAttachmentInfo(req) {
+        if (!req) return null;
+        let payload = req.payload;
+        if (typeof payload === 'string') {
+          try { payload = JSON.parse(payload); } catch(e) { payload = {}; }
+        }
+        payload = payload || {};
+
+        const candidateUrl = req.receipt_url || req.attachment_url || req.image_url ||
+          payload.attached_file_url || payload.receipt_file || payload.receipt_url ||
+          payload.attachment || payload.image || payload.photo || payload.file ||
+          (Array.isArray(payload.attachments) ? payload.attachments[0]?.url || payload.attachments[0] : null) ||
+          (Array.isArray(req.attachments) ? req.attachments[0]?.url || req.attachments[0] : null);
+
+        const candidateName = req.fileName || req.file_name || payload.attached_file_name ||
+          payload.fileName || payload.file_name || payload.receipt_name || 'Attached Photo / Document';
+
+        if (!candidateUrl) return null;
+
+        const urlStr = typeof candidateUrl === 'object' ? (candidateUrl.url || candidateUrl.data || '') : String(candidateUrl);
+        if (!urlStr || urlStr === 'null' || urlStr === 'undefined') return null;
+
+        const isImage = urlStr.startsWith('data:image/') || /\.(jpg|jpeg|png|gif|webp|svg)($|\?)/i.test(urlStr) || urlStr.includes('image');
+
+        return { url: urlStr, name: candidateName, isImage };
+      }
+
+      // Render Attached Photo / Document in modal
+      const attachmentSec = document.getElementById('detailsAttachmentSection');
+      const attachmentCont = document.getElementById('detailsAttachmentContainer');
+      const attInfo = getAttachmentInfo(request);
+
+      if (attInfo && attachmentSec && attachmentCont) {
+        attachmentSec.style.display = 'block';
+        if (attInfo.isImage) {
+          attachmentCont.innerHTML = `
+            <div style="background: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 12px; padding: 14px; text-align: center;">
+              <div style="font-size: 0.85rem; font-weight: 600; color: #6B7280; margin-bottom: 8px; text-align: left;">🖼️ ${escapeHtml(attInfo.name)}</div>
+              <img src="${escapeHtml(attInfo.url)}" alt="Attached Receipt / Photo" style="max-width: 100%; max-height: 280px; border-radius: 8px; object-fit: contain; cursor: pointer; border: 1px solid #E5E7EB; box-shadow: 0 2px 8px rgba(0,0,0,0.06);" onclick="window.open('${escapeHtml(attInfo.url)}', '_blank')" />
+              <div style="margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                <a href="${escapeHtml(attInfo.url)}" target="_blank" download="${escapeHtml(attInfo.name)}" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 8px; background: #2563eb; color: #ffffff; text-decoration: none; font-size: 0.85rem; font-weight: 600;">
+                  🔍 View / Download Full Image
+                </a>
+              </div>
+            </div>
+          `;
+        } else {
+          attachmentCont.innerHTML = `
+            <div style="background: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 12px; padding: 14px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+              <span style="font-weight: 600; font-size: 0.9rem; color: #111827;">📄 ${escapeHtml(attInfo.name)}</span>
+              <a href="${escapeHtml(attInfo.url)}" target="_blank" download="${escapeHtml(attInfo.name)}" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 8px; background: #2563eb; color: #ffffff; text-decoration: none; font-size: 0.85rem; font-weight: 600;">
+                Download File
+              </a>
+            </div>
+          `;
+        }
+      } else if (attachmentSec) {
+        attachmentSec.style.display = 'none';
+      }
+
       const historyList = document.getElementById('detailsHistoryList');
       const historyItems = Array.isArray(request.history) ? request.history.slice().sort((a, b) => Number(b.time || 0) - Number(a.time || 0)) : [];
-      historyList.innerHTML = historyItems.length ? historyItems.map(h => `
+      historyList.innerHTML = historyItems.length ? historyItems.map(h => {
+        let actionStr = String(h.action || h.decision || 'Action').trim();
+        let roleOrUser = String(h.role || h.user || h.performed_by || '').trim();
+
+        // Avoid adding duplicate "by ..." or unintentional "by System"
+        let titleStr = actionStr;
+        if (!titleStr.toLowerCase().includes(' by ') && roleOrUser && roleOrUser.toLowerCase() !== 'system') {
+          titleStr = `${actionStr} by ${roleOrUser}`;
+        }
+        // Remove any unwanted trailing "by System"
+        titleStr = titleStr.replace(/\s+by\s+system/gi, '').trim();
+
+        return `
           <div class="comment-item">
-            <strong>${escapeHtml(h.action)} by ${escapeHtml(h.role || h.user || 'System')}</strong>
-            <div>${escapeHtml(h.note || h.status || '')}</div>
-            <time>${new Date(Number(h.time || 0)).toLocaleString()}</time>
+            <strong>${escapeHtml(titleStr)}</strong>
+            <div>${escapeHtml(h.note || h.status || h.comment || '')}</div>
+            <time>${safeParseDate(h.time || h.timestamp || h.created_at).toLocaleString()}</time>
           </div>
-        `).join('') : '<div class="comment-item">No audit trail entries available.</div>';
+        `;
+      }).join('') : '<div class="comment-item">No audit trail entries available.</div>';
 
       const commentsList = document.getElementById('detailsCommentsList');
       const comments = Array.isArray(request.comments) ? request.comments.slice().sort((a, b) => Number(b.time || 0) - Number(a.time || 0)) : [];
-      commentsList.innerHTML = comments.length ? comments.map(c => `
+      commentsList.innerHTML = comments.length ? comments.map(c => {
+        let roleOrUser = String(c.role || c.user || '').trim();
+        let noteTitle = (roleOrUser && roleOrUser.toLowerCase() !== 'system') ? `Note by ${roleOrUser}` : 'Note';
+        return `
           <div class="comment-item">
-            <strong>Note by ${escapeHtml(c.role || c.user || 'System')}</strong>
+            <strong>${escapeHtml(noteTitle)}</strong>
             <div>${escapeHtml(c.note || '')}</div>
-            <time>${new Date(Number(c.time || 0)).toLocaleString()}</time>
+            <time>${safeParseDate(c.time || c.timestamp || c.created_at).toLocaleString()}</time>
           </div>
-        `).join('') : '<div class="comment-item">No approval comments yet.</div>';
+        `;
+      }).join('') : '<div class="comment-item">No approval comments yet.</div>';
 
       const userRole = getCurrentUserRole();
       const actionArea = document.getElementById('detailsActionArea');
@@ -3141,7 +3617,7 @@
 
     function calculateAverageApprovalTime(requests) {
       const durations = [];
-      requests.forEach(r => { if (Array.isArray(r.history) && r.history.length) { const submitted = Number(r.createdAt || Date.now()); const approved = r.history.find(h => String(h.status || h.action || '').toLowerCase() === 'approved'); if (approved && approved.time) { durations.push(Number(approved.time) - submitted); } } });
+      requests.forEach(r => { if (Array.isArray(r.history) && r.history.length) { const submitted = safeParseDate(r.createdAt || r.created_at).getTime(); const approved = r.history.find(h => String(h.status || h.action || '').toLowerCase() === 'approved'); if (approved && approved.time) { durations.push(safeParseDate(approved.time).getTime() - submitted); } } });
       if (!durations.length) return 'N/A';
       const avg = durations.reduce((sum, v) => sum + v, 0) / durations.length;
       const hours = Math.round(avg / 3600000);
@@ -3153,16 +3629,18 @@
     }
 
     function renderKPIs(requests) {
-      const total = requests.length;
-      const pending = requests.filter(r => String(r.status || '').toLowerCase() === 'pending').length;
-      const approved = requests.filter(r => String(r.status || '').toLowerCase() === 'approved').length;
-      const rejected = requests.filter(r => String(r.status || '').toLowerCase() === 'rejected').length;
+      const list = Array.isArray(requests) ? requests : [];
+      const total = list.length;
+      const pending = list.filter(r => toStatusLabel(r.status) === 'Pending').length;
+      const approved = list.filter(r => toStatusLabel(r.status) === 'Approved').length;
+      const rejected = list.filter(r => toStatusLabel(r.status) === 'Rejected').length;
       const rate = total ? Math.round((approved / total) * 100) : 0;
       animateValue('k_total', total);
       animateValue('k_pending', pending);
       animateValue('k_approved', approved);
       animateValue('k_rejected', rejected);
-      document.getElementById('k_rate').textContent = rate + '%';
+      const rateEl = document.getElementById('k_rate');
+      if (rateEl) rateEl.textContent = rate + '%';
     }
 
     function animateValue(id, end) {
@@ -3171,6 +3649,7 @@
 
     function renderRequestsTable() {
       const all = getEmployeeRequests();
+      const seqMap = getEmployeeSeqMap();
       const q = (document.getElementById('searchBox')?.value || '').toLowerCase().trim();
       const statusFilter = document.getElementById('filterStatus')?.value || 'All';
       
@@ -3178,7 +3657,9 @@
         const label = toStatusLabel(r.status);
         if (statusFilter !== 'All' && label !== statusFilter) return false;
         if (!q) return true;
+        const seqId = seqMap.get(String(r.id)) || r.id;
         return String(r.id || '').toLowerCase().includes(q) ||
+               String(seqId).toLowerCase().includes(q) ||
                String(r.title || r.request_type || '').toLowerCase().includes(q) ||
                String(r.department || '').toLowerCase().includes(q);
       }).sort((a, b) => Number(a.id || 0) - Number(b.id || 0));
@@ -3195,6 +3676,7 @@
       filtered.forEach(r => {
         const tr = document.createElement('tr');
         const statusLabel = toStatusLabel(r.status);
+        const seqId = seqMap.get(String(r.id)) || r.id;
 
         let badgeStyle = 'padding:4px 10px; border-radius:99px; font-weight:700; font-size:0.8rem; display:inline-block;';
         if (statusLabel === 'Approved') {
@@ -3209,11 +3691,11 @@
 
         let actionBtns = `<button class="primary" style="padding:4px 8px;font-size:0.78rem;margin-right:4px;" onclick="window.location.href='employee-request-tracking.html?id=${r.id}'">View Tracking</button><button class="ghost" onclick="viewRequest('${r.id}')">View</button>`;
 
-        if (statusLabel === 'Pending') {
+        if (isPendingRequest(r)) {
           actionBtns += ` <button class="ghost" onclick="editRequest('${r.id}')">Edit</button> <button class="ghost" onclick="cancelRequest('${r.id}')">Cancel</button>`;
         }
 
-        tr.innerHTML = `<td>${escapeHtml(r.id || '—')}</td><td>${escapeHtml(r.request_type || r.title || '—')}</td><td>${formatCurrency(r.amount)}</td><td>${escapeHtml(r.priority || '—')}</td><td>${statusHtml}</td><td>${escapeHtml(r.currentRole || r.currentApprover || '—')}</td><td>${new Date(Number(r.createdAt || Date.now())).toLocaleString()}</td><td>${actionBtns}</td>`;
+        tr.innerHTML = `<td>${escapeHtml(seqId)}</td><td>${escapeHtml(r.request_type || r.title || '—')}</td><td>${formatCurrency(r.amount)}</td><td>${escapeHtml(r.priority || '—')}</td><td>${statusHtml}</td><td>${escapeHtml(r.currentRole || r.currentApprover || '—')}</td><td>${safeParseDate(r.createdAt || r.created_at).toLocaleString()}</td><td>${actionBtns}</td>`;
         body.appendChild(tr);
       });
     }
@@ -3235,22 +3717,139 @@
         const request = await response.json();
         if (!isPendingRequest(request)) return alert('Only pending requests can be edited.');
 
-        const type = request.request_type || request.title || '';
-        document.getElementById('request_type').value = type;
+        editingExistingRequest = request;
+        window.attachmentDeleted = false;
 
         let payloadObj = {};
-        try {
-          payloadObj = typeof request.payload === 'string' ? JSON.parse(request.payload) : (request.payload || {});
-        } catch (e) { }
+        if (typeof request.payload === 'string') {
+          try { payloadObj = JSON.parse(request.payload); } catch (e) { payloadObj = {}; }
+        } else {
+          payloadObj = request.payload || {};
+        }
 
-        renderDynamicForm(type, payloadObj);
+        const rawType = String(request.request_type || request.type || request.title || payloadObj.request_type || payloadObj.type || payloadObj.title || '').trim();
 
-        document.getElementById('department').value = request.department || 'Operations';
-        document.getElementById('priority').value = request.priority || 'Low';
+        const typeSelect = document.getElementById('request_type');
+        let matchedOption = '';
+        if (typeSelect) {
+          const options = Array.from(typeSelect.options).map(o => o.value).filter(v => v);
+          const exactMatch = options.find(o => o.toLowerCase() === rawType.toLowerCase());
+          if (exactMatch) {
+            matchedOption = exactMatch;
+          } else {
+            const partialMatch = options.find(o => rawType.toLowerCase().includes(o.toLowerCase()) || o.toLowerCase().includes(rawType.toLowerCase()));
+            if (partialMatch) {
+              matchedOption = partialMatch;
+            } else if (rawType) {
+              matchedOption = 'Other';
+            }
+          }
+          if (matchedOption) {
+            typeSelect.value = matchedOption;
+          }
+        }
+
+        // Helper date string (YYYY-MM-DD)
+        const dateStr = safeParseDate(request.createdAt || request.created_at).toISOString().split('T')[0];
+
+        // Generic field inferencing if payload field is missing
+        let inferredBillNumber = payloadObj.bill_number;
+        if (!inferredBillNumber) {
+          const fileName = request.fileName || request.file_name || payloadObj.attached_file_name || payloadObj.fileName || '';
+          const match = fileName.match(/(INV-\d+|BILL-\d+|\d+)/i);
+          if (match) inferredBillNumber = match[0];
+        }
+
+        let inferredCategory = payloadObj.expense_category;
+        if (!inferredCategory) {
+          const desc = String(request.description || payloadObj.description || '').toLowerCase();
+          if (desc.includes('supply') || desc.includes('office')) inferredCategory = 'Office Supplies';
+          else if (desc.includes('travel') || desc.includes('flight') || desc.includes('hotel')) inferredCategory = 'Travel & Lodging';
+          else if (desc.includes('meal') || desc.includes('food')) inferredCategory = 'Meals';
+          else if (desc.includes('client')) inferredCategory = 'Client Entertainment';
+          else if (desc.includes('utility')) inferredCategory = 'Utilities';
+        }
+
+        const prefillData = {
+          ...payloadObj,
+          amount: (request.amount !== undefined && request.amount !== null && Number(request.amount) > 0) ? request.amount : (payloadObj.amount || 0),
+          description: request.description || payloadObj.description || payloadObj.reason || payloadObj.purpose || payloadObj.business_justification || payloadObj.subject || '',
+          department: request.department || payloadObj.department || 'Operations',
+          priority: request.priority || payloadObj.priority || 'Medium',
+          reason: payloadObj.reason || request.description || payloadObj.description || '',
+          purpose: payloadObj.purpose || request.description || payloadObj.description || '',
+          business_justification: payloadObj.business_justification || request.description || payloadObj.description || '',
+          expense_category: inferredCategory || payloadObj.expense_category || 'Office Supplies',
+          bill_number: inferredBillNumber || payloadObj.bill_number || 'INV-1675',
+          bill_date: payloadObj.bill_date || dateStr,
+          payment_method: payloadObj.payment_method || 'Bank Transfer',
+          attached_file_name: request.fileName || request.file_name || payloadObj.attached_file_name || payloadObj.fileName || payloadObj.file_name || null,
+          attached_file_url: request.receipt_url || request.attachment_url || request.image_url || payloadObj.attached_file_url || payloadObj.receipt_file || payloadObj.receipt_url || null,
+          attached_file_type: request.attached_file_type || payloadObj.attached_file_type || 'image/jpeg'
+        };
+
+        if (typeof onTypeChange === 'function') {
+          onTypeChange(matchedOption, prefillData);
+        } else {
+          renderDynamicForm(matchedOption, prefillData);
+        }
+
+        const deptSelect = document.getElementById('department');
+        const prioSelect = document.getElementById('priority');
+        const amtInput = document.getElementById('amount');
+        const descInput = document.getElementById('description');
+
+        if (deptSelect && prefillData.department) {
+          const deptOptions = Array.from(deptSelect.options).map(o => o.value).filter(v => v);
+          const matchedDept = deptOptions.find(o => o.toLowerCase() === String(prefillData.department).trim().toLowerCase());
+          if (matchedDept) {
+            deptSelect.value = matchedDept;
+          } else {
+            deptSelect.value = prefillData.department;
+          }
+        }
+        if (prioSelect && prefillData.priority) {
+          const prioOptions = Array.from(prioSelect.options).map(o => o.value).filter(v => v);
+          const matchedPrio = prioOptions.find(o => o.toLowerCase() === String(prefillData.priority).trim().toLowerCase());
+          if (matchedPrio) {
+            prioSelect.value = matchedPrio;
+          } else {
+            prioSelect.value = prefillData.priority;
+          }
+        }
+        if (amtInput && prefillData.amount !== undefined && prefillData.amount !== null) {
+          amtInput.value = prefillData.amount;
+        }
+        if (descInput && prefillData.description) {
+          descInput.value = prefillData.description;
+        }
+
+        setTimeout(() => {
+          const dynamicContainer = document.getElementById('dynamic-form-sections');
+          if (dynamicContainer) {
+            Object.keys(prefillData).forEach(key => {
+              const input = dynamicContainer.querySelector(`[name="${key}"]`);
+              if (input && input.type !== 'file') {
+                if (input.tagName === 'SELECT') {
+                  const opts = Array.from(input.options).map(o => o.value);
+                  const valMatch = opts.find(o => String(o).toLowerCase() === String(prefillData[key]).toLowerCase());
+                  if (valMatch) input.value = valMatch;
+                  else input.value = prefillData[key];
+                } else {
+                  input.value = prefillData[key];
+                }
+              }
+            });
+          }
+          if (typeof updateSmartAssistant === 'function') updateSmartAssistant();
+        }, 100);
+
         enterEditMode(request.id);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        document.getElementById('createCard')?.scrollIntoView({ behavior: 'smooth' });
+        showQuickToast('✓ Request loaded into form for editing.');
       } catch (err) {
-        alert('Request not found');
+        console.error('editRequest error:', err);
+        alert('Unable to load request for editing.');
       }
     }
     async function cancelRequest(id) {
@@ -3307,14 +3906,14 @@
       if (!container) return;
       container.innerHTML = '';
       const events = [];
-      submissionTimelineEntries.forEach(entry => events.push({ t: Number(entry.time || Date.now()), text: entry.text }));
+      submissionTimelineEntries.forEach(entry => events.push({ t: safeParseDate(entry.time).getTime(), text: entry.text }));
       requests.forEach(r => {
-        const createdTime = Number(r.createdAt || Date.now());
+        const createdTime = safeParseDate(r.createdAt || r.created_at).getTime();
         events.push({
           t: createdTime,
           text: `Request ${r.id ? `REQ-${r.id}` : 'REQ-NEW'} submitted and waiting for ${r.current_approver || r.current_role || 'Accounts'} approval.`
         });
-        (r.history || []).forEach(h => events.push({ t: Number(h.time || createdTime), text: `${new Date(Number(h.time || createdTime)).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} — ${h.action || h.status || 'Updated'} (${r.request_type || r.title || 'Req'})` }));
+        (r.history || []).forEach(h => events.push({ t: safeParseDate(h.time || createdTime).getTime(), text: `${safeParseDate(h.time || createdTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} — ${h.action || h.status || 'Updated'} (${r.request_type || r.title || 'Req'})` }));
       });
       const sorted = events.sort((a, b) => b.t - a.t).slice(0, 8);
       if (sorted.length === 0) { container.innerHTML = '<div class="timeline-item">No recent timeline events</div>'; return; }
@@ -3330,31 +3929,175 @@
       items.forEach(t => { const li = document.createElement('li'); li.className = 'notification-item'; li.innerHTML = `<span>${escapeHtml(t)}</span><strong></strong>`; list.appendChild(li); });
     }
 
-    function renderRecentActivities(requests) { const container = document.getElementById('recentActivities'); container.innerHTML = ''; const activities = []; requests.forEach(r => { activities.push({ t: r.createdAt || Date.now(), text: `${new Date(Number(r.createdAt || Date.now())).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} — ${r.request_type || r.title || 'Request'} Submitted` }); (r.history || []).forEach(h => activities.push({ t: h.time || Date.now(), text: `${new Date(Number(h.time || Date.now())).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} — ${h.role || 'System'} ${h.action || h.status || 'updated'}` })); }); activities.sort((a, b) => b.t - a.t).slice(0, 6).forEach(a => { const d = document.createElement('div'); d.className = 'timeline-item'; d.textContent = a.text; container.appendChild(d); }); }
+    function renderRecentActivities(requests) {
+      const container = document.getElementById('recentActivities');
+      if (!container) return;
+      container.innerHTML = '';
+      const activities = [];
+      const seqMap = getEmployeeSeqMap();
+
+      function formatActivityDateTime(timestamp) {
+        const d = safeParseDate(timestamp);
+        const day = d.getDate();
+        const month = d.toLocaleString('en-IN', { month: 'short' });
+        const time = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        return `${day} ${month}, ${time}`;
+      }
+
+      requests.forEach(r => {
+        const cTime = safeParseDate(r.createdAt || r.created_at).getTime();
+        const seqId = seqMap.get(String(r.id)) || r.id;
+        const reqTitle = r.request_type || r.title || 'Request';
+        activities.push({
+          t: cTime,
+          text: `${formatActivityDateTime(cTime)} — ${reqTitle} (Request #${seqId}) Submitted`
+        });
+        (r.history || []).forEach(h => {
+          const hTime = safeParseDate(h.time || h.timestamp || cTime).getTime();
+          let actionStr = String(h.action || h.decision || h.status || 'updated').trim();
+          let role = String(h.role || h.performed_by || '').trim();
+          if (role && role.toLowerCase() !== 'system' && !actionStr.toLowerCase().includes(' by ')) {
+            actionStr = `${actionStr} by ${role}`;
+          }
+          actionStr = actionStr.replace(/\s+by\s+system/gi, '').trim();
+          activities.push({
+            t: hTime,
+            text: `${formatActivityDateTime(hTime)} — Request #${seqId}: ${actionStr}`
+          });
+        });
+      });
+
+      if (activities.length === 0) {
+        container.innerHTML = '<div style="color: var(--muted); font-size: 0.9rem; padding: 8px 0;">No recent activities logged yet.</div>';
+        return;
+      }
+
+      activities.sort((a, b) => b.t - a.t).slice(0, 8).forEach(a => {
+        const d = document.createElement('div');
+        d.className = 'timeline-item';
+        d.textContent = a.text;
+        container.appendChild(d);
+      });
+    }
 
     function renderCharts(requests) {
-      const demoMode = localStorage.getItem('demoMode') === '1';
-      if (demoMode) {
-        renderChart('typeChart', 'doughnut', ['Travel', 'Equipment', 'Software'], [[120, 80, 60]], ['#60a5fa', '#22c55e', '#f97316']);
-        renderChart('monthlyChart', 'line', ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'], [[120, 150, 130, 180, 210, 260]], ['#38bdf8']);
-        renderChart('statusChart', 'pie', ['Approved', 'Pending', 'Rejected'], [[48, 12, 4]], ['#22c55e', '#38bdf8', '#ef4444']);
+      const list = Array.isArray(requests) ? requests : [];
+      if (list.length === 0) {
+        renderChart('typeChart', 'doughnut', ['No Requests'], [[0]], ['#94a3b8']);
+        renderChart('monthlyChart', 'line', ['No Data'], [[0]], ['#38bdf8']);
+        renderChart('statusChart', 'pie', ['Approved', 'Pending', 'Rejected'], [[0, 0, 0]], ['#22c55e', '#38bdf8', '#ef4444']);
         return;
       }
       const types = {}; const months = {}; const statusCount = { 'Approved': 0, 'Pending': 0, 'Rejected': 0 };
-      requests.forEach(r => { types[r.request_type || r.title] = (types[r.request_type || r.title] || 0) + 1; const m = new Date(Number(r.createdAt || Date.now())).toLocaleString('default', { month: 'short' }); months[m] = (months[m] || 0) + 1; statusCount[toStatusLabel(r.status)] = (statusCount[toStatusLabel(r.status)] || 0) + 1; });
-      renderChart('typeChart', 'doughnut', Object.keys(types), [Object.values(types)], ['#60a5fa', '#22c55e', '#f97316']);
+      list.forEach(r => {
+        const rawType = r.request_type || r.title || r.type || 'Other';
+        const typeStr = String(rawType).trim();
+        const formattedType = typeStr ? (typeStr.charAt(0).toUpperCase() + typeStr.slice(1)) : 'Other';
+        types[formattedType] = (types[formattedType] || 0) + 1;
+
+        const dateObj = safeParseDate(r.createdAt || r.created_at);
+        const m = dateObj.toLocaleString('default', { month: 'short' });
+        months[m] = (months[m] || 0) + 1;
+
+        const st = toStatusLabel(r.status);
+        if (statusCount[st] !== undefined) {
+          statusCount[st] += 1;
+        } else {
+          statusCount[st] = 1;
+        }
+      });
+      const typePalette = ['#60a5fa', '#22c55e', '#f97316', '#a855f7', '#ec4899', '#3b82f6', '#10b981'];
+      renderChart('typeChart', 'doughnut', Object.keys(types), [Object.values(types)], typePalette.slice(0, Object.keys(types).length));
       renderChart('monthlyChart', 'line', Object.keys(months), [Object.values(months)], ['#38bdf8']);
       renderChart('statusChart', 'pie', Object.keys(statusCount), [Object.values(statusCount)], ['#22c55e', '#38bdf8', '#ef4444']);
     }
 
     function renderChart(canvasId, type, labels, datasets, colors) {
-      const ctx = document.getElementById(canvasId); if (!ctx) return; const data = { labels, datasets: datasets.map((ds, i) => ({ data: ds, backgroundColor: colors, borderColor: colors[i] || colors[0] })) };
-      const options = { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#374151' } } }, scales: (type === 'pie' || type === 'doughnut') ? {} : { x: { ticks: { color: '#6B7280' }, grid: { color: '#E5E7EB' } }, y: { ticks: { color: '#6B7280' }, grid: { color: '#E5E7EB' } } } };
-      if (window[canvasId + 'Chart']) { window[canvasId + 'Chart'].data = data; window[canvasId + 'Chart'].options = options; window[canvasId + 'Chart'].update(); return; }
+      const ctx = document.getElementById(canvasId); if (!ctx) return;
+      const data = {
+        labels,
+        datasets: datasets.map((ds, i) => ({
+          label: 'Requests',
+          data: ds,
+          backgroundColor: colors,
+          borderColor: colors[i] || colors[0],
+          tension: 0.3
+        }))
+      };
+      const options = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: true,
+            position: 'bottom',
+            labels: { color: '#374151', boxWidth: 12, padding: 8, font: { size: 11 } }
+          }
+        },
+        scales: (type === 'pie' || type === 'doughnut') ? {} : {
+          x: { ticks: { color: '#6B7280', font: { size: 11 } }, grid: { color: '#E5E7EB' } },
+          y: { ticks: { color: '#6B7280', stepSize: 1, font: { size: 11 } }, grid: { color: '#E5E7EB' }, beginAtZero: true }
+        }
+      };
+      if (window[canvasId + 'Chart']) {
+        window[canvasId + 'Chart'].destroy();
+      }
       window[canvasId + 'Chart'] = new Chart(ctx, { type, data, options });
     }
 
-    function isPendingRequest(request) { return String(request?.status || '').trim().toLowerCase() === 'pending'; }
+    function isPendingRequest(request) {
+      if (!request) return false;
+      const statusStr = String(request.status || '').trim().toLowerCase();
+
+      if (['approved', 'rejected', 'completed', 'cancelled'].includes(statusStr)) {
+        return false;
+      }
+      if (!statusStr.includes('pending') && statusStr !== 'submitted') {
+        return false;
+      }
+
+      const isVerified = Number(request.payment_verified ?? 0) === 1 ||
+        String(request.payment_verification_status || '').toLowerCase() === 'verified';
+      if (isVerified) return false;
+
+      let payloadObj = request.payload;
+      if (typeof payloadObj === 'string') {
+        try { payloadObj = JSON.parse(payloadObj); } catch (e) { payloadObj = {}; }
+      }
+      payloadObj = payloadObj || {};
+
+      let wf = request.workflow || payloadObj.workflow;
+      if (typeof wf === 'string') {
+        try { wf = JSON.parse(wf); } catch (e) { wf = []; }
+      }
+      if (!Array.isArray(wf)) wf = [];
+      const cleanWf = wf.filter(role => {
+        const s = String(role || '').trim().toLowerCase();
+        return s !== 'employee' && s !== 'user' && s !== 'completed';
+      });
+
+      const firstApprover = cleanWf.length > 0 ? String(cleanWf[0]).trim().toLowerCase() : 'accounts';
+      const currentLvl = Number(request.current_level ?? request.currentLevel ?? 0);
+      const currentRole = String(request.current_role || request.currentRole || request.current_approver || request.currentApprover || firstApprover).trim().toLowerCase();
+
+      return currentLvl === 0 && (currentRole === firstApprover || currentRole === '' || currentRole === 'accounts' || currentRole.includes(firstApprover));
+    }
+    function safeParseDate(val) {
+      if (!val && val !== 0) return new Date();
+      if (val instanceof Date) return isNaN(val.getTime()) ? new Date() : val;
+      if (typeof val === 'number') return isNaN(val) ? new Date() : new Date(val);
+      if (typeof val === 'string') {
+        const trimmed = val.trim();
+        if (!trimmed) return new Date();
+        if (!isNaN(trimmed) && !trimmed.includes('-') && !trimmed.includes('/') && !trimmed.includes(':')) {
+          const n = Number(trimmed);
+          return isNaN(n) ? new Date() : new Date(n);
+        }
+        const parsed = new Date(trimmed);
+        if (!isNaN(parsed.getTime())) return parsed;
+      }
+      return new Date();
+    }
     function toStatusLabel(s) { const n = String(s || '').toLowerCase(); if (n === 'approved') return 'Approved'; if (n === 'rejected') return 'Rejected'; if (n === 'cancelled') return 'Cancelled'; return 'Pending'; }
     function formatCurrency(v) { return '₹' + Number(v || 0).toLocaleString('en-IN'); }
     function escapeHtml(t) { const d = document.createElement('div'); d.textContent = t; return d.innerHTML; }

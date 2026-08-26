@@ -614,7 +614,6 @@
       <div class="filter-chips" id="filterChips">
         <button class="chip active" data-filter="All" onclick="setFilter('All')">All</button>
         <button class="chip" data-filter="Pending" onclick="setFilter('Pending')">Pending</button>
-        <button class="chip" data-filter="Approved" onclick="setFilter('Approved')">Approved</button>
         <button class="chip" data-filter="Rejected" onclick="setFilter('Rejected')">Rejected</button>
         <button class="chip" data-filter="Completed" onclick="setFilter('Completed')">Completed</button>
       </div>
@@ -728,93 +727,149 @@
 
     function calculateProgress(req) {
       const s = String(req.status || '').toLowerCase().trim();
-      if (s === 'approved' || s === 'completed') return { percent: 100, label: '7 / 7 stages completed', isCompleted: true, isRejected: false };
+      let wf = Array.isArray(req.workflow) ? req.workflow : [];
+      if (!wf.length && typeof req.workflow === 'string') {
+        try { wf = JSON.parse(req.workflow); } catch (e) { wf = []; }
+      }
+      if (!Array.isArray(wf) || !wf.length) {
+        wf = ['Accounts', 'Manager', 'CFO', 'MD'];
+      }
+      const cleanChain = wf.filter(r => {
+        const l = String(r).toLowerCase();
+        return r && l !== 'employee' && l !== 'requester' && l !== 'completed';
+      });
+
+      const totalSteps = cleanChain.length + 2; // Submitted + Approvers + Completed
+
+      if (s === 'approved' || s === 'completed') {
+        return { percent: 100, label: `${totalSteps} / ${totalSteps} stages completed`, isCompleted: true, isRejected: false };
+      }
       if (s === 'rejected') {
-        const level = Number(req.current_level ?? 1);
-        const percent = Math.min(Math.round((level / 6) * 100), 90);
-        return { percent, label: 'Rejected', isCompleted: false, isRejected: true };
+        return { percent: 50, label: 'Rejected', isCompleted: false, isRejected: true };
       }
 
-      const role = String(req.current_role || req.currentRole || 'Accounts').toLowerCase();
-      const isPv = Number(req.payment_verified ?? 0) === 1 || String(req.payment_verification_status).toLowerCase() === 'verified';
+      const currentLevel = Number(req.current_level ?? req.currentLevel ?? 0);
+      const role = String(req.current_role || req.currentRole || cleanChain[0] || '').toLowerCase();
 
-      let completedSteps = 1; // Submitted
-      if (isPv) completedSteps = 3; // Payment verified
-      else if (role !== 'accounts') completedSteps = 2; // Past accounts
+      let currentRoleIdx = cleanChain.findIndex(r => String(r).toLowerCase() === role);
+      if (currentRoleIdx < 0) currentRoleIdx = Math.min(currentLevel, cleanChain.length - 1);
 
-      if (role === 'manager') completedSteps = Math.max(completedSteps, 3);
-      else if (role === 'cfo') completedSteps = 4;
-      else if (role === 'md') completedSteps = 5;
-
-      const totalSteps = 7;
+      const completedSteps = Math.max(1, 1 + currentRoleIdx);
       const percent = Math.min(Math.round((completedSteps / totalSteps) * 100), 95);
+
       return { percent, label: `${completedSteps} / ${totalSteps} stages completed`, isCompleted: false, isRejected: false };
     }
 
+    function getEmployeeSeqMap(requests) {
+      const map = new Map();
+      const sorted = [...requests].sort((a, b) => Number(a.id || 0) - Number(b.id || 0));
+      sorted.forEach((r, idx) => {
+        map.set(String(r.id), idx + 1);
+      });
+      return map;
+    }
+
     function getDecisionDetails(r) {
-      if (!r) return { isApproved: false, isRejected: false, isPending: true, role: 'Accounts', reason: '' };
+      if (!r) return { isApproved: false, isRejected: false, isPending: true, role: 'Approver', reason: '' };
+
+      const s = String(r.status || '').toLowerCase().trim();
+      let wf = Array.isArray(r.workflow) ? r.workflow : [];
+      if (!wf.length && typeof r.workflow === 'string') {
+        try { wf = JSON.parse(r.workflow); } catch (e) { wf = []; }
+      }
+      if (!Array.isArray(wf) || !wf.length) {
+        wf = ['Manager', 'MD'];
+      }
+      const cleanChain = wf.filter(role => {
+        const l = String(role).toLowerCase();
+        return role && l !== 'employee' && l !== 'requester' && l !== 'completed';
+      });
+      const lastRole = cleanChain.length > 0 ? cleanChain[cleanChain.length - 1] : 'MD';
 
       const hist = Array.isArray(r.approval_history) ? r.approval_history : (Array.isArray(r.history) ? r.history : []);
       const apps = Array.isArray(r.approvals) ? r.approvals : [];
-      const s = String(r.status || '').toLowerCase().trim();
 
       // 1. Check if Rejected
-      if (s === 'rejected' || String(r.current_role).toLowerCase() === 'rejected') {
-        const rejHist = [...hist].reverse().find(h => String(h.decision || h.action || '').toLowerCase().includes('reject'));
-        let role = 'Accounts';
-        if (rejHist) {
-          let raw = rejHist.approval_stage || rejHist.performed_by || rejHist.stage || rejHist.role || '';
-          if (!raw || raw.toLowerCase() === 'rejected' || raw.toLowerCase() === 'system') {
-            const match = String(rejHist.action || '').match(/REJECTED by ([^:]+)/i);
-            if (match && match[1]) raw = match[1].trim();
-          }
-          if (raw) role = raw;
-        } else {
-          const rejStep = apps.find(a => String(a.status).toLowerCase() === 'rejected');
-          if (rejStep && (rejStep.approver_role || rejStep.role)) role = rejStep.approver_role || rejStep.role;
-        }
-        const roleLower = role.toLowerCase();
-        let normalized = 'Accounts';
-        if (roleLower.includes('account')) normalized = 'Accounts';
-        else if (roleLower.includes('manager')) normalized = 'Manager';
-        else if (roleLower.includes('cfo')) normalized = 'CFO';
-        else if (roleLower.includes('md')) normalized = 'MD';
+      if (s === 'rejected' || s.includes('rejected') || String(r.approval_stage || '').toLowerCase().includes('reject') || String(r.current_role || '').toLowerCase().includes('reject') || String(r.current_approver || '').toLowerCase().includes('reject')) {
+        let rejRole = '';
+        let reason = r.rejection_reason || r.rejectionReason || r.comments || '';
 
-        let reason = rejHist ? (rejHist.comments || rejHist.rejection_reason || '') : '';
-        return { isApproved: false, isRejected: true, isPending: false, role: normalized, reason: reason || r.rejection_reason || '' };
+        // Check if current_approver / status text contains the role (e.g. "Rejected by Accounts")
+        const combined = `${r.status || ''} ${r.current_approver || ''} ${r.current_role || ''} ${r.approval_stage || ''}`.toLowerCase();
+        if (combined.includes('account')) rejRole = 'Accounts';
+        else if (combined.includes('manager')) rejRole = 'Manager';
+        else if (combined.includes('cfo')) rejRole = 'CFO';
+        else if (combined.includes('md')) rejRole = 'MD';
+
+        // Search history / approval_history
+        const rejHist = [...hist].reverse().find(h => {
+          const act = String(h.decision || h.action || '').toLowerCase();
+          return act.includes('reject');
+        });
+
+        if (rejHist) {
+          const rawRole = rejHist.approval_stage || rejHist.performed_by || rejHist.stage || rejHist.role || '';
+          if (rawRole) {
+            const rawLower = String(rawRole).toLowerCase();
+            if (rawLower.includes('account')) rejRole = 'Accounts';
+            else if (rawLower.includes('manager')) rejRole = 'Manager';
+            else if (rawLower.includes('cfo')) rejRole = 'CFO';
+            else if (rawLower.includes('md')) rejRole = 'MD';
+          }
+          if (!reason) {
+            reason = rejHist.comments || rejHist.rejection_reason || rejHist.note || '';
+            if (!reason && String(rejHist.action || '').includes(':')) {
+              reason = String(rejHist.action).split(':')[1].trim();
+            }
+          }
+        }
+
+        // Search approvals table
+        if (!rejRole) {
+          const rejStep = apps.find(a => String(a.status).toLowerCase() === 'rejected');
+          if (rejStep && (rejStep.approver_role || rejStep.role)) {
+            rejRole = rejStep.approver_role || rejStep.role;
+            if (!reason) reason = rejStep.comments || '';
+          }
+        }
+
+        let payload = r.payload;
+        if (typeof payload === 'string') {
+          try { payload = JSON.parse(payload); } catch(e) { payload = {}; }
+        }
+        payload = payload || {};
+        if (!reason) {
+          reason = payload.rejection_reason || payload.rejectionReason || payload.reason || payload.comments || '';
+        }
+
+        if (!rejRole) {
+          rejRole = 'Accounts';
+        }
+
+        return { isApproved: false, isRejected: true, isPending: false, role: rejRole, reason: reason ? String(reason).trim() : '' };
       }
 
       // 2. Check if Approved / Completed
-      if (s === 'approved' || s === 'completed') {
-        const appHist = [...hist].reverse().find(h => String(h.decision || h.action || '').toLowerCase().includes('approve'));
-        let role = 'Accounts';
-        if (appHist) {
-          let raw = appHist.approval_stage || appHist.performed_by || appHist.stage || appHist.role || '';
-          if (raw) role = raw;
+      if (s === 'approved' || s === 'completed' || s.includes('approved')) {
+        let appRole = lastRole;
+        if (r.md_decision === 'APPROVED' || String(r.mdAction).toUpperCase() === 'APPROVED') {
+          appRole = 'MD';
+        } else if (r.cfo_decision === 'APPROVED' || String(r.cfoAction).toUpperCase() === 'APPROVED') {
+          appRole = 'CFO';
+        } else if (r.manager_decision === 'APPROVED' || String(r.managerAction).toUpperCase() === 'APPROVED') {
+          appRole = 'Manager';
         } else {
-          const appStep = [...apps].reverse().find(a => String(a.status).toLowerCase() === 'approved');
-          if (appStep && (appStep.approver_role || appStep.role)) role = appStep.approver_role || appStep.role;
+          const appHist = [...hist].reverse().find(h => String(h.decision || h.action || '').toLowerCase().includes('approve'));
+          if (appHist) {
+            appRole = appHist.approval_stage || appHist.performed_by || appHist.stage || appHist.role || lastRole;
+          }
         }
-        const roleLower = role.toLowerCase();
-        let normalized = 'Accounts';
-        if (roleLower.includes('md')) normalized = 'MD';
-        else if (roleLower.includes('cfo')) normalized = 'CFO';
-        else if (roleLower.includes('manager')) normalized = 'Manager';
-        else if (roleLower.includes('account')) normalized = 'Accounts';
-
-        return { isApproved: true, isRejected: false, isPending: false, role: normalized, reason: '' };
+        return { isApproved: true, isRejected: false, isPending: false, role: appRole, reason: '' };
       }
 
       // 3. Pending / In Progress
-      const currRole = String(r.current_role || r.currentRole || 'Accounts');
-      let normalized = currRole;
-      const roleLower = currRole.toLowerCase();
-      if (roleLower.includes('account')) normalized = 'Accounts';
-      else if (roleLower.includes('manager')) normalized = 'Manager';
-      else if (roleLower.includes('cfo')) normalized = 'CFO';
-      else if (roleLower.includes('md')) normalized = 'MD';
-
-      return { isApproved: false, isRejected: false, isPending: true, role: normalized, reason: '' };
+      const curRole = r.current_approver || r.current_role || r.currentRole || cleanChain[0] || 'Manager';
+      return { isApproved: false, isRejected: false, isPending: true, role: curRole, reason: '' };
     }
 
     function filterAndRenderCards() {
@@ -824,21 +879,25 @@
       sessionStorage.setItem('zyro_track_search', rawSearch);
       sessionStorage.setItem('zyro_track_filter', currentFilter);
 
+      const seqMap = getEmployeeSeqMap(allRequests);
+
       const filtered = allRequests.filter(r => {
         const cat = toStatusCategory(r.status);
         const matchesFilter = currentFilter === 'All' ||
           (currentFilter === 'Pending' && cat === 'Pending') ||
-          (currentFilter === 'Approved' && (cat === 'Approved' || cat === 'Completed')) ||
           (currentFilter === 'Completed' && cat === 'Completed') ||
           (currentFilter === 'Rejected' && cat === 'Rejected');
 
         if (!matchesFilter) return false;
         if (!q) return true;
 
+        const seqId = seqMap.get(String(r.id)) || r.id;
         const searchTarget = [
           `req-${r.id}`,
           `request #${r.id}`,
+          `request #${seqId}`,
           r.id,
+          seqId,
           r.request_type,
           r.title,
           r.type,
@@ -861,26 +920,27 @@
       }
 
       container.innerHTML = filtered.map(r => {
-        const reqId = r.id || '—';
+        const dbId = r.id;
+        const seqId = seqMap.get(String(r.id)) || r.id;
         const title = r.request_type || r.title || r.type || 'General Request';
         const dept = r.department || 'Operations';
         const amount = r.amount ? `₹${Number(r.amount).toLocaleString('en-IN')}` : '₹0';
         const statusCat = toStatusCategory(r.status);
         const decDetails = getDecisionDetails(r);
 
-        let currentStage = 'Accounts Review';
+        let currentStage = 'In Review';
         let decisionBadgeInfo = '';
 
         if (decDetails.isApproved) {
-          currentStage = `Approved by ${decDetails.role}`;
+          currentStage = 'Completed';
           decisionBadgeInfo = `<div class="approved-by" style="grid-column: 1 / -1; margin-top: 6px; color:#10b981; font-weight:600; font-size:13px;">
-               ✅ Approved By: ${escapeHtml(decDetails.role)}
+               ✅ Approved by ${escapeHtml(decDetails.role)} (Completed)
              </div>`;
         } else if (decDetails.isRejected) {
           currentStage = `Rejected by ${decDetails.role}`;
           decisionBadgeInfo = `<div class="rejected-by" style="grid-column: 1 / -1; margin-top: 6px; color:#ef4444; font-weight:600; font-size:13px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
                <span>✕ Rejected By: ${escapeHtml(decDetails.role)}</span>
-               <button type="button" class="view-reason-btn" onclick="openRejectionModal('${reqId}')">View Reason</button>
+               <button type="button" class="view-reason-btn" onclick="openRejectionModal('${dbId}')">View Reason</button>
              </div>`;
         } else {
           currentStage = `Pending ${decDetails.role} Review`;
@@ -903,7 +963,7 @@
               <div>
                 <div class="card-header">
                   <div>
-                    <div class="req-id">Request #${reqId}</div>
+                    <div class="req-id">Request #${seqId}</div>
                     <div class="req-title">${escapeHtml(title)}</div>
                   </div>
                   <span class="badge ${badgeClass}">${statusText}</span>
@@ -938,12 +998,12 @@
                     <div class="progress-fill ${progress.isCompleted ? 'completed' : ''} ${progress.isRejected ? 'rejected' : ''}" style="width: ${progress.percent}%;"></div>
                   </div>
                 </div>
-              </div>
 
-              <div class="card-actions">
-                <button class="btn primary" onclick="goToTrackingDetails('${reqId}')">
-                  <span>📊 View Tracking</span>
-                </button>
+                <div class="card-actions" style="margin-top: 16px;">
+                  <button class="btn primary" onclick="goToTrackingDetails('${dbId}')" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 16px; border-radius: 10px; font-weight: 700;">
+                    <span>📊</span> View Tracking
+                  </button>
+                </div>
               </div>
             </div>
           `;
@@ -961,7 +1021,7 @@
       window.location.href = targetUrl;
     }
 
-    function openRejectionModal(reqId) {
+    async function openRejectionModal(reqId) {
       const r = allRequests.find(req => String(req.id) === String(reqId));
       const reasonEl = document.getElementById('rejectionModalReasonText');
       const modalEl = document.getElementById('rejectionModal');
@@ -969,7 +1029,29 @@
       let reasonText = '';
       if (r) {
         const dec = getDecisionDetails(r);
-        reasonText = dec.reason || r.rejection_reason || r.comments || '';
+        reasonText = dec.reason || r.rejection_reason || r.rejectionReason || r.comments || '';
+      }
+
+      if ((!reasonText || !reasonText.trim() || reasonText.toLowerCase() === 'no specific reason provided.') && reqId) {
+        try {
+          const token = getToken();
+          const res = await fetch(`http://localhost:4000/requests/${encodeURIComponent(reqId)}`, {
+            headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+          });
+          if (res.ok) {
+            const detail = await res.json();
+            const dec = getDecisionDetails(detail);
+            reasonText = dec.reason || detail.rejection_reason || detail.rejectionReason || detail.comments || '';
+            if (!reasonText && Array.isArray(detail.history)) {
+              const rejH = [...detail.history].reverse().find(h => String(h.action || '').toLowerCase().includes('reject'));
+              if (rejH && String(rejH.action).includes(':')) {
+                reasonText = String(rejH.action).split(':')[1].trim();
+              }
+            }
+          }
+        } catch(e) {
+          console.error('Error fetching rejection details:', e);
+        }
       }
 
       if (!reasonText || !reasonText.trim()) {

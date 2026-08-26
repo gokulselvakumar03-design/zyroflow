@@ -2084,16 +2084,8 @@
         }
 
         function checkEscalation(request) {
-            if (normalizeStatus(request.status) !== 'pending') return false;
-            if (!checkSLA(request)) return false;
-            const workflow = Array.isArray(request.workflow) ? request.workflow : [];
-            const cfoIndex = workflow.findIndex((role) => canonicalRole(role) === 'CFO');
-            if (cfoIndex === -1 || Number(request.currentLevel || 0) >= cfoIndex) return false;
-            request.currentLevel = cfoIndex;
-            request.currentRole = 'CFO';
-            request.escalated = true;
-            request.updatedAt = Date.now();
-            return true;
+            if (!request) return false;
+            return Boolean(request.escalated === true || String(request.status || '').toLowerCase().includes('escalat'));
         }
 
         function addHistory(request, action, user) {
@@ -2124,15 +2116,6 @@
 
         async function renderRequests() {
             const requests = readRequestsFromLocalStorage().map(normalizeRequest);
-            let hasEscalationChanges = false;
-            for (const request of requests) {
-                if (checkEscalation(request)) {
-                    hasEscalationChanges = true;
-                    addHistory(request, 'Escalated to CFO', 'System');
-                    await saveHistory(request.id, 'Escalated', 'System');
-                }
-            }
-            if (hasEscalationChanges) writeRequestsToLocalStorage(requests);
             updateNotifications(requests, currentRole);
             renderSummary(requests, currentRole);
             renderTopHighValueRequests(requests);
@@ -2331,6 +2314,54 @@
                 return `<span style="padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 4px; ${badgeStyle}">${stepRole}</span>`;
             }).join(' <span style="color: #64748b; font-weight: bold;">→</span> ');
 
+            let payloadObj = r.payload;
+            if (typeof payloadObj === 'string') {
+                try { payloadObj = JSON.parse(payloadObj); } catch(e) { payloadObj = {}; }
+            }
+            payloadObj = payloadObj || {};
+
+            let dynamicPhoto = null;
+            if (typeof payloadObj === 'object' && payloadObj !== null) {
+                Object.keys(payloadObj).forEach(k => {
+                    const val = payloadObj[k];
+                    if (typeof val === 'string' && val.startsWith('data:image/')) {
+                        dynamicPhoto = val;
+                    }
+                });
+            }
+
+            const candidateUrl = r.receipt_url || r.attachment_url || r.image_url ||
+                payloadObj.attached_file_url || payloadObj.receipt_file || payloadObj.receipt_url ||
+                payloadObj.attachment || payloadObj.image || payloadObj.photo || payloadObj.file ||
+                payloadObj.receipt_photo || payloadObj.bill_image || payloadObj.upload || dynamicPhoto ||
+                (Array.isArray(payloadObj.attachments) ? payloadObj.attachments[0]?.url || payloadObj.attachments[0] : null) ||
+                (Array.isArray(r.attachments) ? r.attachments[0]?.url || r.attachments[0] : null);
+
+            const candidateName = r.fileName || r.file_name || payloadObj.attached_file_name ||
+                payloadObj.fileName || payloadObj.file_name || payloadObj.receipt_name || 'Attached Photo / Document';
+
+            let photoHtml = '';
+            if (candidateUrl && typeof candidateUrl === 'string' && candidateUrl !== 'null' && candidateUrl !== 'undefined') {
+                const isImg = candidateUrl.startsWith('data:image/') || /\.(jpg|jpeg|png|gif|webp|svg)($|\?)/i.test(candidateUrl) || candidateUrl.includes('image');
+                if (isImg) {
+                    photoHtml = `
+                        <div class="cfo-info-item" style="grid-column: span 2; margin-top: 6px; background: rgba(0,0,0,0.3); padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); text-align: center;">
+                            <span class="cfo-info-label" style="color: #60E8FF; margin-bottom: 6px; display: block;">🖼️ Attached Photo / Receipt (${escapeHtml(candidateName)})</span>
+                            <img src="${escapeHtml(candidateUrl)}" alt="Attached Photo" style="max-width: 100%; max-height: 250px; border-radius: 6px; object-fit: contain; cursor: pointer;" onclick="window.open('${escapeHtml(candidateUrl)}', '_blank')" />
+                            <div style="margin-top: 6px;">
+                                <a href="${escapeHtml(candidateUrl)}" target="_blank" download="${escapeHtml(candidateName)}" style="color: #38bdf8; font-size: 0.8rem; text-decoration: none; font-weight: 600;">🔍 View / Download Photo</a>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    photoHtml = `
+                        <div class="cfo-info-item" style="grid-column: span 2; margin-top: 6px;">
+                            <a href="${escapeHtml(candidateUrl)}" target="_blank" download="${escapeHtml(candidateName)}" style="color: #38bdf8; font-size: 0.82rem; text-decoration: none; font-weight: 600;">📎 Attached Document (${escapeHtml(candidateName)})</a>
+                        </div>
+                    `;
+                }
+            }
+
             infoGrid.innerHTML = `
                 <div class="cfo-info-item"><span class="cfo-info-label">Request ID</span><strong>#${r.id}</strong></div>
                 <div class="cfo-info-item"><span class="cfo-info-label">Employee</span><strong>${escapeHtml(empName)}</strong></div>
@@ -2345,6 +2376,7 @@
                         ${workflowHtml}
                     </div>
                 </div>
+                ${photoHtml}
             `;
 
             msgEl.innerHTML = canAct 
@@ -2885,6 +2917,13 @@
 
         function isPendingCfoRequest(r) {
             if (!r) return false;
+            const workflowChain = Array.isArray(r.workflow) ? r.workflow.map(canonicalRole) : (typeof r.workflow === 'string' ? JSON.parse(r.workflow || '[]').map(canonicalRole) : ['Accounts', 'Manager', 'CFO', 'MD']);
+            const isCfoInChain = workflowChain.some(w => canonicalRole(w) === 'CFO');
+            const isExplicitlyEscalatedToCfo = Boolean(r.escalated) || String(r.status || '').toLowerCase().includes('cfo');
+            if (!isCfoInChain && !isExplicitlyEscalatedToCfo) {
+                return false;
+            }
+
             const rawStatus = String(r.status || r.request_status || '').trim().toLowerCase();
 
             // 1. Exclude any request with a status indicating rejection, cancellation, completion, or final approval
@@ -2923,7 +2962,7 @@
 
             // 3. Verify Manager Approval Requirement:
             // The request must have passed Manager approval (or Manager stage must not be pending).
-            const workflow = Array.isArray(r.workflow) ? r.workflow.map(canonicalRole) : ['Accounts', 'Manager', 'CFO'];
+            const workflow = Array.isArray(r.workflow) ? r.workflow.map(canonicalRole) : ['Accounts', 'Manager', 'CFO', 'MD'];
             const mgrIndex = workflow.indexOf('Manager');
             const cfoIndex = workflow.indexOf('CFO');
             const currentLevel = Number(r.currentLevel ?? r.current_level ?? 0);

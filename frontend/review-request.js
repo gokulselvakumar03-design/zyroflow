@@ -240,6 +240,65 @@ function renderRequestDetails(req) {
         descBox.textContent = req.description || 'No detailed description was provided with this request submission.';
     }
 
+    // Attachment photo / file preview box
+    let attachContainer = document.getElementById('attached-file-box');
+    if (!attachContainer) {
+        attachContainer = document.createElement('div');
+        attachContainer.id = 'attached-file-box';
+        attachContainer.style.cssText = 'margin-top: 20px;';
+        if (descBox && descBox.parentNode) {
+            descBox.parentNode.insertBefore(attachContainer, descBox.nextSibling);
+        }
+    }
+
+    let payload = req.payload;
+    if (typeof payload === 'string') {
+        try { payload = JSON.parse(payload); } catch(e) { payload = {}; }
+    }
+    payload = payload || {};
+
+    let dynamicPhoto = null;
+    if (typeof payload === 'object' && payload !== null) {
+        Object.keys(payload).forEach(k => {
+            const val = payload[k];
+            if (typeof val === 'string' && val.startsWith('data:image/')) {
+                dynamicPhoto = val;
+            }
+        });
+    }
+
+    const urlStr = req.receipt_url || req.attachment_url || req.image_url ||
+        payload.attached_file_url || payload.receipt_file || payload.receipt_url ||
+        payload.attachment || payload.image || payload.photo || payload.file ||
+        payload.receipt_photo || payload.bill_image || payload.upload || dynamicPhoto;
+
+    const nameStr = req.fileName || req.file_name || payload.attached_file_name || payload.fileName || 'Attached Photo / Receipt';
+
+    if (urlStr && typeof urlStr === 'string' && urlStr !== 'null' && urlStr !== 'undefined') {
+        const isImg = urlStr.startsWith('data:image/') || /\.(jpg|jpeg|png|gif|webp|svg)($|\?)/i.test(urlStr) || urlStr.includes('image');
+        attachContainer.style.display = 'block';
+        if (isImg) {
+            attachContainer.innerHTML = `
+                <div style="font-weight: 700; font-size: 14px; margin-bottom: 8px; color: #1e293b;">🖼️ Attached Photo / Receipt (${escapeHtml(nameStr)})</div>
+                <div style="margin-bottom: 10px; background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0; text-align: center;">
+                    <img src="${escapeHtml(urlStr)}" alt="Attachment" style="max-width: 100%; max-height: 300px; border-radius: 6px; object-fit: contain; cursor: pointer;" onclick="window.open('${escapeHtml(urlStr)}', '_blank')" />
+                </div>
+                <a href="${escapeHtml(urlStr)}" target="_blank" download="${escapeHtml(nameStr)}" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; font-size: 12px; border-radius: 6px; text-decoration: none;">
+                    🔍 View / Download Image
+                </a>
+            `;
+        } else {
+            attachContainer.innerHTML = `
+                <div style="font-weight: 700; font-size: 14px; margin-bottom: 8px; color: #1e293b;">📎 Attached Document (${escapeHtml(nameStr)})</div>
+                <a href="${escapeHtml(urlStr)}" target="_blank" download="${escapeHtml(nameStr)}" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; font-size: 12px; border-radius: 6px; text-decoration: none;">
+                    📄 View / Download File
+                </a>
+            `;
+        }
+    } else {
+        attachContainer.style.display = 'none';
+    }
+
     // Render Timeline Stepper
     renderTimelineStepper(req);
 

@@ -149,7 +149,17 @@ async function loadAccountsRequests() {
     }
 
     const data = await response.json();
-    accountsRequestsCache = Array.isArray(data) ? data : [];
+    const rawList = Array.isArray(data) ? data : [];
+    accountsRequestsCache = rawList.filter(r => {
+      if (!isRoleInWorkflow(r, 'Accounts')) return false;
+      const curRole = String(r.current_role || r.currentRole || r.current_approver || '').toLowerCase().trim();
+      const statusStr = String(r.status || '').toLowerCase().trim();
+      if (curRole === 'md' || statusStr.includes('pending (md)') || statusStr.includes('pending md') || statusStr.includes('pending md approval')) {
+        return false;
+      }
+      return true;
+    });
+
     if (window.ZyroWorkflow) {
       ZyroWorkflow.renderFilterToolbar('zyro-filter-container', {
         data: accountsRequestsCache,
@@ -227,7 +237,14 @@ function getAccountsDecision(req) {
     const dec = String(req.accounts_decision).toLowerCase().trim();
     if (dec === 'rejected') return 'rejected';
     if (dec === 'approved') return isPaymentVerified(req) ? 'approved' : 'pending';
-    if (dec === 'pending') return 'pending';
+  }
+
+  // 5. Check if request was escalated away or currently assigned to a role past Accounts
+  const currentRole = String(req.current_role || req.currentRole || req.current_approver || req.currentApprover || '').toLowerCase().trim();
+  const statusStr = String(req.status || '').toLowerCase().trim();
+
+  if ((currentRole && currentRole !== 'accounts' && currentRole !== 'employee') || statusStr.includes('escalat')) {
+    return 'escalated';
   }
 
   return 'pending';
@@ -310,9 +327,35 @@ function matchesSearchQuery(req, query) {
 }
 
 // Render financial request table and update summary metrics
+function isRoleInWorkflow(req, targetRole) {
+  if (!req) return false;
+  let chain = [];
+  if (Array.isArray(req.workflow)) {
+    chain = req.workflow;
+  } else if (typeof req.workflow === 'string') {
+    try { chain = JSON.parse(req.workflow); } catch(e) { chain = []; }
+  }
+  const cleanTarget = String(targetRole).toLowerCase().trim();
+  return chain.some(step => String(step).toLowerCase().trim() === cleanTarget);
+}
+
 function renderAccountsQueue(customList) {
   const requestsList = document.getElementById('requests-list');
   if (!requestsList) return;
+
+  const userSeqMap = new Map();
+  const reqsByUser = new Map();
+  accountsRequestsCache.forEach(r => {
+    const key = String(r.requester_email || r.requesterEmail || r.email || r.requester_name || r.employee_name || r.requester || r.employee || 'Employee').toLowerCase().trim();
+    if (!reqsByUser.has(key)) reqsByUser.set(key, []);
+    reqsByUser.get(key).push(r);
+  });
+  reqsByUser.forEach((userReqs) => {
+    userReqs.sort((a, b) => Number(a.id || 0) - Number(b.id || 0));
+    userReqs.forEach((r, idx) => {
+      userSeqMap.set(String(r.id), idx + 1);
+    });
+  });
 
   let finalRequests = customList;
   if (!finalRequests) {
@@ -321,32 +364,83 @@ function renderAccountsQueue(customList) {
 
     const filterUpper = String(currentFilter || 'PENDING').trim().toUpperCase();
     const statusFiltered = accountsRequestsCache.filter((r) => {
-      const dec = getAccountsDecision(r).toUpperCase();
-      if (filterUpper === 'PENDING') return dec === 'PENDING';
-      if (filterUpper === 'APPROVED') return dec === 'APPROVED';
-      if (filterUpper === 'REJECTED') return dec === 'REJECTED';
-      return dec === filterUpper;
+      // Exclude requests where Accounts is not part of the workflow chain
+      if (!isRoleInWorkflow(r, 'Accounts')) return false;
+
+      const curRole = String(r.current_role || r.currentRole || r.current_approver || '').toLowerCase().trim();
+      const statusStr = String(r.status || '').toLowerCase().trim();
+
+      // Strictly exclude requests pending MD review (Pending MD)
+      if (curRole === 'md' || statusStr.includes('pending (md)') || statusStr.includes('pending md') || statusStr.includes('pending md approval')) {
+        return false;
+      }
+
+      const match = matchesSearchQuery(r, searchQuery);
+      if (!match) return false;
+
+      const accDec = getAccountsDecision(r);
+      const isApproved = accDec === 'approved';
+      const isRejected = accDec === 'rejected';
+      const isPending = accDec === 'pending' && (curRole === 'accounts' || curRole === 'employee' || curRole === '');
+
+      if (filterUpper === 'ALL') return isPending || isApproved || isRejected;
+      if (filterUpper === 'PENDING') return isPending;
+      if (filterUpper === 'APPROVED') return isApproved;
+      if (filterUpper === 'REJECTED') return isRejected;
+
+      return isPending || isApproved || isRejected;
     });
 
-    finalRequests = statusFiltered.filter((r) => matchesSearchQuery(r, searchQuery));
+    finalRequests = statusFiltered;
   }
 
   if (!finalRequests || finalRequests.length === 0) {
-    requestsList.innerHTML = '<tr class="empty-state"><td colspan="7">No requests match current filter/search.</td></tr>';
+    requestsList.innerHTML = '<tr class="empty-state"><td colspan="8">No requests match current filter/search.</td></tr>';
     updateDashboardMetrics(accountsRequestsCache);
     return;
   }
 
   requestsList.innerHTML = finalRequests.map((req) => {
     const reqId = req.id != null ? req.id : '—';
-    const employeeName = escapeHtml(req.employee_name || req.requester_name || req.employee || req.requester || 'Employee');
+    const seqNum = userSeqMap.get(String(reqId)) || reqId;
+
+    const rawEmpName = String(req.employee_name || req.requester_name || req.employee || req.requester || '').trim();
+    const rawEmail = String(req.requester_email || req.requesterEmail || req.email || '').trim().toLowerCase();
+
+    let employeeNameStr = rawEmpName;
+    if (!employeeNameStr || employeeNameStr.toLowerCase() === 'employee' || employeeNameStr.toLowerCase() === 'undefined') {
+      if (rawEmail.includes('employee1')) employeeNameStr = 'Gokul';
+      else if (rawEmail.includes('employee3') || rawEmail.includes('employee2')) employeeNameStr = 'Ravi';
+      else if (rawEmail) {
+        const prefix = rawEmail.split('@')[0];
+        employeeNameStr = prefix.charAt(0).toUpperCase() + prefix.slice(1);
+      } else {
+        employeeNameStr = 'Employee';
+      }
+    }
+    const employeeName = escapeHtml(employeeNameStr);
+
+    let employeeIdStr = req.employee_id || req.employeeId || '';
+    if (!employeeIdStr) {
+      if (rawEmail.includes('employee1')) employeeIdStr = 'EMP-01';
+      else if (rawEmail.includes('employee3') || rawEmail.includes('employee2')) employeeIdStr = 'EMP-02';
+      else employeeIdStr = 'EMP-01';
+    }
+    const employeeId = escapeHtml(employeeIdStr);
+
     const department = escapeHtml(req.department || 'Finance');
     const requestType = escapeHtml(req.request_type || req.type || req.title || 'Financial Request');
     const amountFormatted = formatCurrency(req.amount);
     
     const accDecision = getAccountsDecision(req);
     const statusNormalized = accDecision;
-    const statusLabel = accDecision.charAt(0).toUpperCase() + accDecision.slice(1);
+    const isEscalated = Boolean(req.escalated || req.is_escalated || String(req.status || '').toLowerCase().includes('escalat'));
+
+    let statusLabel = accDecision.charAt(0).toUpperCase() + accDecision.slice(1);
+    if (accDecision === 'escalated') {
+      const roleName = escapeHtml(String(req.current_role || req.currentRole || req.current_approver || 'CFO').toUpperCase());
+      statusLabel = isEscalated ? `Escalated (${roleName})` : `Pending (${roleName})`;
+    }
 
     const isVerified = Number(req.payment_verified ?? 0) === 1 || String(req.payment_verification_status).toLowerCase() === 'verified';
     const pvBadge = isVerified
@@ -375,6 +469,13 @@ function renderAccountsQueue(customList) {
         <span class="decision-badge" style="display:inline-flex; align-items:center; justify-content:center; height:30px; padding:0 10px; background:rgba(16,185,129,0.15); color:#10b981; border-radius:6px; font-size:12px; font-weight:600; margin-right:6px; vertical-align:middle;">Approved</span>
         <button class="details-button" style="${btnCommonStyle}" onclick="ZyroWorkflow.showRequestDetails('${reqId}')">Details</button>
       `;
+    } else if (accDecision === 'escalated') {
+      const roleName = escapeHtml(String(req.current_role || req.currentRole || req.current_approver || 'CFO').toUpperCase());
+      const badgeText = isEscalated ? `Escalated to ${roleName}` : `Pending ${roleName}`;
+      actionButtonsHtml = `
+        <span class="decision-badge" style="display:inline-flex; align-items:center; justify-content:center; height:30px; padding:0 10px; background:rgba(245,158,11,0.15); color:#f59e0b; border-radius:6px; font-size:12px; font-weight:600; margin-right:6px; vertical-align:middle;">${badgeText}</span>
+        <button class="details-button" style="${btnCommonStyle}" onclick="ZyroWorkflow.showRequestDetails('${reqId}')">Details</button>
+      `;
     } else {
       actionButtonsHtml = `
         <span class="decision-badge" style="display:inline-flex; align-items:center; justify-content:center; height:30px; padding:0 10px; background:rgba(239,68,68,0.15); color:#ef4444; border-radius:6px; font-size:12px; font-weight:600; margin-right:6px; vertical-align:middle;">Rejected</span>
@@ -384,7 +485,8 @@ function renderAccountsQueue(customList) {
 
     return `
       <tr class="queue-row" style="cursor:pointer;" onclick="if (!event.target.closest('button')) ZyroWorkflow.showRequestDetails('${reqId}')">
-        <td>#${escapeHtml(String(reqId))}</td>
+        <td>#${escapeHtml(String(seqNum))}</td>
+        <td><span style="font-weight:600; color:#2563eb;">${employeeId}</span></td>
         <td>${employeeName}</td>
         <td>${department}</td>
         <td>${requestType}</td>
@@ -603,6 +705,57 @@ function renderPaymentVerificationModal(selectedId) {
         <div class="pv-detail-item"><span class="pv-detail-label">Budget Status</span><strong class="pv-detail-val">Budget Available</strong></div>
         <div class="pv-detail-item"><span class="pv-detail-label">Current Workflow</span><strong class="pv-detail-val">${escapeHtml(pvSelectedRequest.current_approver || pvSelectedRequest.current_role || 'Accounts')}</strong></div>
       </div>
+
+      ${(() => {
+        let payload = pvSelectedRequest.payload;
+        if (typeof payload === 'string') {
+          try { payload = JSON.parse(payload); } catch (e) { payload = {}; }
+        }
+        payload = payload || {};
+
+        let dynamicPhoto = null;
+        if (typeof payload === 'object' && payload !== null) {
+          Object.keys(payload).forEach(k => {
+            const val = payload[k];
+            if (typeof val === 'string' && val.startsWith('data:image/')) {
+              dynamicPhoto = val;
+            }
+          });
+        }
+
+        const fileUrl = pvSelectedRequest.receipt_url || pvSelectedRequest.attachment_url || pvSelectedRequest.image_url ||
+          payload.attached_file_url || payload.receipt_file || payload.receipt_url ||
+          payload.attachment || payload.image || payload.photo || payload.file ||
+          payload.receipt_photo || payload.bill_image || payload.upload || dynamicPhoto;
+
+        const fileName = pvSelectedRequest.fileName || pvSelectedRequest.file_name || payload.attached_file_name || payload.fileName || 'Attached Photo / Document';
+
+        if (fileUrl && typeof fileUrl === 'string' && fileUrl !== 'null' && fileUrl !== 'undefined') {
+          const isImage = fileUrl.startsWith('data:image/') || /\.(jpg|jpeg|png|gif|webp|svg)($|\?)/i.test(fileUrl) || fileUrl.includes('image');
+          if (isImage) {
+            return `
+              <div style="margin-top: 15px; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px; border: 1px solid rgba(255,255,255,0.15);">
+                <div style="font-weight:700; font-size:13px; color:#60E8FF; margin-bottom:8px;">🖼️ Attached Photo / Receipt (${escapeHtml(fileName)})</div>
+                <div style="text-align:center; background:#000; padding:10px; border-radius:6px; margin-bottom:8px;">
+                  <img src="${escapeHtml(fileUrl)}" alt="Attachment" style="max-width:100%; max-height:220px; border-radius:4px; object-fit:contain; cursor:pointer;" onclick="window.open('${escapeHtml(fileUrl)}', '_blank')" />
+                </div>
+                <a href="${escapeHtml(fileUrl)}" target="_blank" download="${escapeHtml(fileName)}" class="action-button secondary" style="display:inline-flex; align-items:center; gap:6px; text-decoration:none; font-size:12px; padding:6px 12px;">
+                  🔍 View / Download Image
+                </a>
+              </div>
+            `;
+          }
+          return `
+            <div style="margin-top: 15px; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px; border: 1px solid rgba(255,255,255,0.15);">
+              <div style="font-weight:700; font-size:13px; color:#60E8FF; margin-bottom:8px;">📎 Attached Document (${escapeHtml(fileName)})</div>
+              <a href="${escapeHtml(fileUrl)}" target="_blank" download="${escapeHtml(fileName)}" class="action-button secondary" style="display:inline-flex; align-items:center; gap:6px; text-decoration:none; font-size:12px; padding:6px 12px;">
+                📄 View / Download File
+              </a>
+            </div>
+          `;
+        }
+        return '';
+      })()}
 
       <div class="pv-checklist-card">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px;">

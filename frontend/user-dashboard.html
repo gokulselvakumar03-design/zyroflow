@@ -598,11 +598,17 @@
                     <label class="form-label" for="requestType">Request Type</label>
                     <select id="requestType" class="form-select" required>
                         <option value="">Select Request Type</option>
-                        <option value="leave">Leave Request</option>
-                        <option value="budget">Budget Approval</option>
-                        <option value="equipment">Equipment Request</option>
-                        <option value="travel">Travel Request</option>
-                        <option value="reimbursement">Reimbursement</option>
+                        <option value="Travel">Travel</option>
+                        <option value="Equipment">Equipment</option>
+                        <option value="Software">Software</option>
+                        <option value="Capital Expenditure">Capital Expenditure</option>
+                        <option value="Reimbursement">Reimbursement</option>
+                        <option value="Purchase Request">Purchase Request</option>
+                        <option value="Maintenance">Maintenance</option>
+                        <option value="Training">Training</option>
+                        <option value="Leave Request">Leave Request</option>
+                        <option value="Budget Approval">Budget Approval</option>
+                        <option value="Other">Other</option>
                     </select>
                 </div>
 
@@ -851,17 +857,8 @@
         }
 
         function checkEscalation(request) {
-            if (normalizeStatus(request.status) !== 'pending') return false;
-            if (!checkSLA(request)) return false;
-            const workflow = Array.isArray(request.workflow) ? request.workflow : [];
-            const cfoIndex = workflow.findIndex((role) => canonicalRole(role) === 'CFO');
-            if (cfoIndex === -1 || getCurrentLevel(request) >= cfoIndex) return false;
-            request.current_level = cfoIndex;
-            delete request.currentLevel;
-            request.currentRole = 'CFO';
-            request.escalated = true;
-            request.updatedAt = Date.now();
-            return true;
+            if (!request) return false;
+            return Boolean(request.escalated === true || String(request.status || '').toLowerCase().includes('escalat'));
         }
 
         function addHistory(request, action, user) {
@@ -905,23 +902,36 @@
         }
 
         const defaultWorkflowMap = {
-            leave: ['Manager'],
+            leave: ['Accounts', 'Manager', 'CFO', 'MD'],
             budget: ['Accounts', 'Manager', 'CFO', 'MD'],
-            travel: ['Manager', 'Accounts'],
-            reimbursement: ['Accounts', 'CFO'],
-            equipment: ['Manager', 'Accounts']
+            travel: ['Accounts', 'Manager', 'CFO', 'MD'],
+            reimbursement: ['Accounts', 'Manager', 'CFO', 'MD'],
+            equipment: ['Accounts', 'Manager', 'CFO', 'MD']
         };
 
+        function getDefaultWorkflow(type) {
+            return ['Accounts', 'Manager', 'CFO', 'MD'];
+        }
+
         function getRequestTypeLabel(type) {
+            if (!type) return 'General Request';
+            const cleanType = String(type).trim();
             const labels = {
-                leave: 'Leave Request',
-                budget: 'Budget Approval',
-                equipment: 'Equipment Request',
-                travel: 'Travel Request',
-                reimbursement: 'Reimbursement',
-                legacy: 'Legacy Request'
+                'travel': 'Travel',
+                'equipment': 'Equipment',
+                'software': 'Software',
+                'capital expenditure': 'Capital Expenditure',
+                'reimbursement': 'Reimbursement',
+                'purchase request': 'Purchase Request',
+                'maintenance': 'Maintenance',
+                'training': 'Training',
+                'leave': 'Leave Request',
+                'leave request': 'Leave Request',
+                'budget': 'Budget Approval',
+                'budget approval': 'Budget Approval',
+                'other': 'Other'
             };
-            return labels[type] || 'General Request';
+            return labels[cleanType.toLowerCase()] || cleanType;
         }
 
         function setupDynamicRequestFields() {
@@ -1193,7 +1203,16 @@
             }
 
             const adminWorkflows = getWorkflows();
-            const matchedWorkflow = adminWorkflows.find((w) => w && w.type === type);
+            const matchedWorkflow = adminWorkflows.find((w) => {
+                if (!w) return false;
+                const cleanType = String(type || '').trim().toLowerCase();
+                const cleanWfType = String(w.type || '').trim().toLowerCase();
+                const typeMatch = cleanWfType === cleanType || String(w.name || '').toLowerCase().includes(cleanType);
+                const minVal = Number(w.minAmount ?? w.min_amount ?? 0);
+                const maxVal = Number(w.maxAmount ?? w.max_amount ?? 0);
+                const amountMatch = amount >= minVal && (maxVal > 0 ? amount <= maxVal : true);
+                return typeMatch && amountMatch && Array.isArray(w.levels) && w.levels.length > 0;
+            });
 
             let chosenWorkflow;
 
@@ -1201,16 +1220,6 @@
                 chosenWorkflow = [...matchedWorkflow.levels];
             } else {
                 chosenWorkflow = getDefaultWorkflow(type);
-            }
-
-            if (type === 'budget') {
-                if (amount < 50000) {
-                    chosenWorkflow = ['Accounts'];
-                } else if (amount <= 100000) {
-                    chosenWorkflow = ['Accounts', 'Manager'];
-                } else {
-                    chosenWorkflow = ['Accounts', 'Manager', 'CFO', 'MD'];
-                }
             }
 
             if (!chosenWorkflow.length) {
@@ -1221,6 +1230,22 @@
             console.log('Request Type:', type);
             console.log('Workflow Applied:', chosenWorkflow);
 
+            let attachedFileUrl = null;
+            let attachedFileName = file ? file.name : null;
+            let attachedFileType = file ? file.type : null;
+            if (file) {
+                try {
+                    attachedFileUrl = await new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onload = () => resolve(reader.result);
+                        reader.onerror = err => reject(err);
+                        reader.readAsDataURL(file);
+                    });
+                } catch (e) {
+                    console.error('Error reading file:', e);
+                }
+            }
+
             // Create request object
             const request = {
                 id: Date.now(),
@@ -1228,7 +1253,13 @@
                 title,
                 description,
                 amount,
-                dynamicData: details,
+                dynamicData: {
+                    ...details,
+                    attached_file_url: attachedFileUrl,
+                    attached_file_name: attachedFileName,
+                    attached_file_type: attachedFileType,
+                    attachments: file ? [{ name: file.name, type: file.type, url: attachedFileUrl }] : []
+                },
                 status: 'pending',
                 current_level: 0,
                 workflow: chosenWorkflow,
@@ -1241,7 +1272,12 @@
                 cancelWindowActive: true,
                 email: localStorage.getItem('userEmail'),
                 workflowName: matchedWorkflow ? matchedWorkflow.name : 'Default Workflow',
-                fileName: file ? file.name : null,
+                fileName: attachedFileName,
+                file_name: attachedFileName,
+                attached_file_url: attachedFileUrl,
+                attached_file_name: attachedFileName,
+                attached_file_type: attachedFileType,
+                attachments: file ? [{ name: file.name, type: file.type, url: attachedFileUrl }] : [],
                 escalated: false
             };
 
@@ -1283,18 +1319,6 @@
 
         async function renderRequests() {
             const requests = readRequestsFromLocalStorage().map(normalizeRequest);
-            let hasEscalationChanges = false;
-            for (const r of requests) {
-                if (checkEscalation(r)) {
-                    hasEscalationChanges = true;
-                    addHistory(r, 'Escalated to CFO', 'System');
-                    await saveHistory(r.id, 'Escalated', 'System');
-                    simulateEmail('escalation', 'CFO');
-                }
-            }
-            if (hasEscalationChanges) {
-                writeRequestsToLocalStorage(requests);
-            }
 
             const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
             updateNotifications(requests, (currentUser && currentUser.role) || 'employee');

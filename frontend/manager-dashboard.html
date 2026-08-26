@@ -1982,16 +1982,8 @@
         }
 
         function checkEscalation(request) {
-            if (normalizeStatus(request.status) !== 'pending') return false;
-            if (!checkSLA(request)) return false;
-            const workflow = Array.isArray(request.workflow) ? request.workflow : [];
-            const cfoIndex = workflow.findIndex((role) => canonicalRole(role) === 'CFO');
-            if (cfoIndex === -1 || Number(request.currentLevel || 0) >= cfoIndex) return false;
-            request.currentLevel = cfoIndex;
-            request.currentRole = 'CFO';
-            request.escalated = true;
-            request.updatedAt = Date.now();
-            return true;
+            if (!request) return false;
+            return Boolean(request.escalated === true || String(request.status || '').toLowerCase().includes('escalat'));
         }
 
         function addHistory(request, action, user) {
@@ -2048,19 +2040,6 @@
         // Load pending requests
         async function renderRequests() {
             const requests = readRequestsFromLocalStorage().map(normalizeRequest);
-            let hasEscalationChanges = false;
-            for (const r of requests) {
-                if (checkEscalation(r)) {
-                    hasEscalationChanges = true;
-                    addHistory(r, 'Escalated to CFO', 'System');
-                    await saveHistory(r.id, 'Escalated', 'System');
-                    simulateEmail('escalation', 'CFO');
-                }
-            }
-            if (hasEscalationChanges) {
-                writeRequestsToLocalStorage(requests);
-            }
-
             updateNotifications(requests, currentRole);
             renderSummary(requests, currentRole);
             renderActionCenter(requests);
@@ -3110,6 +3089,11 @@
             const list = document.getElementById('recent-decisions-list');
             if (!list) return;
 
+            const reqMap = new Map();
+            (requests || []).forEach(r => {
+                if (r && r.id != null) reqMap.set(String(r.id), r);
+            });
+
             const seen = new Set();
             const entries = [];
 
@@ -3119,16 +3103,28 @@
                 const isReject = dec.includes('reject');
                 if (!isApprove && !isReject) return;
 
-                const key = `${item.request_id}_${isApprove ? 'approve' : 'reject'}_${item.approval_stage || item.manager_name}`;
+                const reqId = item.request_id || item.id;
+                const parentReq = reqMap.get(String(reqId)) || {};
+
+                const key = `${reqId}_${isApprove ? 'approve' : 'reject'}_${item.approval_stage || item.manager_name}`;
                 if (!seen.has(key)) {
                     seen.add(key);
+
+                    const amountVal = item.amount != null && Number(item.amount) > 0 
+                        ? Number(item.amount) 
+                        : Number(parentReq.amount || parentReq.amount_requested || 0);
+
+                    const empName = item.employee_name || parentReq.requester_name || parentReq.requester || parentReq.employee || 'Employee';
+                    const deptName = item.department || parentReq.department || 'Administration';
+                    const typeName = item.request_type || parentReq.type || parentReq.title || 'Financial Request';
+
                     entries.push({
-                        id: `#${item.request_id}`,
-                        employee: escapeHtml(item.employee_name || 'Employee'),
-                        dept: escapeHtml(item.department || 'Finance'),
-                        type: escapeHtml(item.request_type || 'Financial Request'),
-                        amount: formatCurrency(item.amount || 0),
-                        decision: isApprove ? '✓ Approved' : '✕ Rejected',
+                        id: `#${reqId}`,
+                        employee: escapeHtml(empName),
+                        dept: escapeHtml(deptName),
+                        type: escapeHtml(typeName),
+                        amount: formatCurrency(amountVal),
+                        decision: isApprove ? '✓ APPROVED' : '✕ REJECTED',
                         isApprove,
                         time: new Date(item.decision_timestamp || item.timestamp || item.created_at || Date.now()).getTime()
                     });
@@ -3551,15 +3547,20 @@
                     const dateStr = dt.toLocaleDateString();
                     const timeStr = dt.toLocaleTimeString();
                     const commentText = item.comments || item.rejection_reason || '-';
+                    const seqNum = item.seq_num || item.seqNum || item.user_seq || item.request_id;
+                    const empId = item.employee_id || item.employeeId || 'EMP-01';
+                    const empName = item.employee_name || item.employeeName || 'Gokul';
+                    const mgrName = item.manager_name && item.manager_name !== 'Employee' ? item.manager_name : (item.approval_stage || 'Manager');
 
                     return `
                         <tr>
-                            <td><strong>#${item.request_id}</strong></td>
-                            <td>${escapeHtml(item.employee_name || 'Employee')}</td>
+                            <td><strong>#${escapeHtml(String(seqNum))}</strong></td>
+                            <td><span style="font-weight:600; color:#2563eb;">${escapeHtml(String(empId))}</span></td>
+                            <td>${escapeHtml(String(empName))}</td>
                             <td>${escapeHtml(item.department || 'Finance')}</td>
                             <td>${escapeHtml(item.request_type || 'Financial Request')}</td>
                             <td><span class="status-pill ${isApprove ? 'status-approved' : 'status-rejected'}" style="padding: 3px 8px; font-size: 11px;">${escapeHtml(decStr)}</span></td>
-                            <td>${escapeHtml(item.manager_name || 'Manager')}</td>
+                            <td>${escapeHtml(String(mgrName))}</td>
                             <td><em>${escapeHtml(commentText)}</em></td>
                             <td>${escapeHtml(dateStr)} ${escapeHtml(timeStr)}</td>
                         </tr>
@@ -3576,7 +3577,8 @@
                         <thead>
                             <tr>
                                 <th>Req ID</th>
-                                <th>Employee</th>
+                                <th>Employee ID</th>
+                                <th>Employee Name</th>
                                 <th>Department</th>
                                 <th>Request Type</th>
                                 <th>Decision</th>

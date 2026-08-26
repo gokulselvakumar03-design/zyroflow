@@ -17,7 +17,15 @@ exports.getNotifications = async (req, res, next) => {
     `;
     const params = [];
 
-    if (userEmail && userRole) {
+    if (userRole === 'employee') {
+      // Employees must strictly see ONLY their own notifications matched by user_email
+      if (userEmail) {
+        query += ` AND LOWER(user_email) = LOWER(?)`;
+        params.push(userEmail);
+      } else {
+        query += ` AND 1=0`;
+      }
+    } else if (userEmail && userRole) {
       query += ` AND (LOWER(user_email) = LOWER(?) OR LOWER(user_role) = LOWER(?))`;
       params.push(userEmail, userRole);
     } else if (userEmail) {
@@ -90,7 +98,14 @@ exports.markAllAsRead = async (req, res, next) => {
     let query = `UPDATE notifications SET is_read = 1 WHERE 1=1`;
     const params = [];
 
-    if (userEmail && userRole) {
+    if (userRole === 'employee') {
+      if (userEmail) {
+        query += ` AND LOWER(user_email) = LOWER(?)`;
+        params.push(userEmail);
+      } else {
+        query += ` AND 1=0`;
+      }
+    } else if (userEmail && userRole) {
       query += ` AND (LOWER(user_email) = LOWER(?) OR LOWER(user_role) = LOWER(?))`;
       params.push(userEmail, userRole);
     } else if (userEmail) {

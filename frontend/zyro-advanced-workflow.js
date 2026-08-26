@@ -128,6 +128,7 @@ const ZyroWorkflow = (function () {
         if (targetStatus === 'pending' && dec !== 'pending') return false;
         if (targetStatus === 'approved' && dec !== 'approved') return false;
         if (targetStatus === 'rejected' && dec !== 'rejected') return false;
+        if (targetStatus === 'escalated' && dec !== 'escalated') return false;
       }
 
       // 3. Priority Filter
@@ -211,6 +212,7 @@ const ZyroWorkflow = (function () {
             <option value="Pending" ${filterState.status === 'Pending' ? 'selected' : ''}>Pending</option>
             <option value="Approved" ${filterState.status === 'Approved' ? 'selected' : ''}>Approved</option>
             <option value="Rejected" ${filterState.status === 'Rejected' ? 'selected' : ''}>Rejected</option>
+            <option value="ALL" ${filterState.status === 'ALL' ? 'selected' : ''}>All Statuses</option>
           </select>
 
           <select id="zyro-filter-priority" class="zyro-filter-select">
@@ -234,11 +236,17 @@ const ZyroWorkflow = (function () {
 
           <select id="zyro-filter-type" class="zyro-filter-select">
             <option value="ALL">All Request Types</option>
-            <option value="budget">Budget Request</option>
-            <option value="leave">Leave Request</option>
-            <option value="equipment">Equipment Request</option>
-            <option value="travel">Travel Request</option>
-            <option value="reimbursement">Reimbursement</option>
+            <option value="Travel">Travel</option>
+            <option value="Equipment">Equipment</option>
+            <option value="Software">Software</option>
+            <option value="Capital Expenditure">Capital Expenditure</option>
+            <option value="Reimbursement">Reimbursement</option>
+            <option value="Purchase Request">Purchase Request</option>
+            <option value="Maintenance">Maintenance</option>
+            <option value="Training">Training</option>
+            <option value="Leave Request">Leave Request</option>
+            <option value="Budget Approval">Budget Approval</option>
+            <option value="Other">Other</option>
           </select>
         </div>
 
@@ -528,17 +536,85 @@ const ZyroWorkflow = (function () {
         `).join('');
       }
 
-      // Populate Attachments
+      // Populate Attachments & Photos
       const attachList = document.getElementById('zyro-attachment-list');
-      const attachments = req.attachments || [];
-      if (attachments.length === 0) {
-        attachList.innerHTML = '<span style="color:var(--text-muted);font-size:13px;">No attachments available.</span>';
-      } else {
-        attachList.innerHTML = attachments.map(att => `
-          <a href="${escapeHtml(att.url || att)}" target="_blank" class="zyro-attachment-chip">
-            📎 ${escapeHtml(att.name || 'View Attachment')}
-          </a>
-        `).join('');
+      if (attachList) {
+        let payload = req.payload;
+        if (typeof payload === 'string') {
+          try { payload = JSON.parse(payload); } catch(e) { payload = {}; }
+        }
+        payload = payload || {};
+
+        let attachListItems = [];
+        if (Array.isArray(req.attachments) && req.attachments.length) {
+          attachListItems.push(...req.attachments);
+        }
+        if (Array.isArray(payload.attachments) && payload.attachments.length) {
+          attachListItems.push(...payload.attachments);
+        }
+
+        let dynamicPhoto = null;
+        if (typeof payload === 'object' && payload !== null) {
+          Object.keys(payload).forEach(k => {
+            const val = payload[k];
+            if (typeof val === 'string' && val.startsWith('data:image/')) {
+              dynamicPhoto = val;
+            }
+          });
+        }
+
+        const singleUrl = req.receipt_url || req.attachment_url || req.image_url ||
+          payload.attached_file_url || payload.receipt_file || payload.receipt_url ||
+          payload.attachment || payload.image || payload.photo || payload.file ||
+          payload.receipt_photo || payload.bill_image || payload.upload || dynamicPhoto ||
+          payload.receipt_file_url;
+
+        const singleName = req.fileName || req.file_name || payload.attached_file_name ||
+          payload.fileName || payload.file_name || payload.receipt_name || 'Attached Photo / Document';
+
+        if (singleUrl && typeof singleUrl === 'string' && singleUrl !== 'null' && singleUrl !== 'undefined') {
+          attachListItems.push({ name: singleName, url: singleUrl });
+        }
+
+        function formatPhotoSrc(urlStr) {
+          if (!urlStr || typeof urlStr !== 'string') return '';
+          if (urlStr.startsWith('<svg')) {
+            return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(urlStr);
+          }
+          if (urlStr.startsWith('data:image/svg+xml;utf8,<svg')) {
+            const raw = urlStr.substring('data:image/svg+xml;utf8,'.length);
+            return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(raw);
+          }
+          return urlStr;
+        }
+
+        if (attachListItems.length === 0) {
+          attachList.innerHTML = '<span style="color:var(--text-muted);font-size:13px;">No attachments available.</span>';
+        } else {
+          attachList.innerHTML = attachListItems.map(att => {
+            const rawUrl = typeof att === 'object' ? (att.url || att.data || '') : String(att);
+            const nameStr = typeof att === 'object' ? (att.name || 'View Attachment') : 'View Attachment';
+            const urlStr = formatPhotoSrc(rawUrl);
+            const isImg = urlStr.startsWith('data:image/') || /\.(jpg|jpeg|png|gif|webp|svg)($|\?)/i.test(urlStr) || urlStr.includes('image') || urlStr.startsWith('<svg');
+
+            if (isImg) {
+              return `
+                <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 6px; width: 100%;">
+                  <div style="font-size: 12px; font-weight: 600; color: #60E8FF;">🖼️ ${escapeHtml(nameStr)}</div>
+                  <img src="${escapeHtml(urlStr)}" alt="Attachment" style="max-width: 100%; max-height: 250px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); object-fit: contain; background: #000; cursor: pointer;" onclick="window.open('${escapeHtml(urlStr)}', '_blank')" />
+                  <a href="${escapeHtml(urlStr)}" target="_blank" download="${escapeHtml(nameStr)}" class="zyro-attachment-chip" style="display: inline-flex; align-items: center; gap: 6px; width: fit-content; text-decoration: none;">
+                    🔍 View / Download Image
+                  </a>
+                </div>
+              `;
+            }
+            return `
+              <a href="${escapeHtml(urlStr)}" target="_blank" download="${escapeHtml(nameStr)}" class="zyro-attachment-chip">
+                📎 ${escapeHtml(nameStr)}
+              </a>
+            `;
+          }).join('');
+        }
       }
 
       // Configure Approve / Reject buttons inside Details Modal

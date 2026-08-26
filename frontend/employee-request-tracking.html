@@ -731,7 +731,7 @@
     </section>
 
     <!-- Payment Verification Card -->
-    <section class="card">
+    <section class="card" id="pvDetailsCardSection">
       <div class="card-title">Payment Verification Details</div>
       <div class="payment-card">
         <div>
@@ -934,13 +934,36 @@
       badgeHeader.className = `badge ${badgeClass}`;
       badgeHeader.textContent = statusLabel;
 
+      // Workflow check for Accounts
+      let workflowList = [];
+      if (Array.isArray(req.workflow)) {
+        workflowList = req.workflow;
+      } else if (typeof req.workflow === 'string') {
+        try { workflowList = JSON.parse(req.workflow || '[]'); } catch(e) { workflowList = []; }
+      }
+      const includesAccounts = workflowList.some(w => String(w).toLowerCase() === 'accounts');
+
       // Payment Verification Card
+      const pvCardSection = document.getElementById('pvDetailsCardSection');
+      const valPaymentStatusEl = document.getElementById('valPaymentStatus');
       const isVerified = Number(req.payment_verified ?? 0) === 1 || String(req.payment_verification_status || '').toLowerCase() === 'verified' || pv.status === 'Verified';
-      const pvBadgeHtml = isVerified ? `<span class="badge badge-verified">Verified</span>` : `<span class="badge badge-unverified">Pending Verification</span>`;
-      document.getElementById('valPaymentStatus').innerHTML = pvBadgeHtml;
-      document.getElementById('pvStatusBadge').innerHTML = pvBadgeHtml;
-      document.getElementById('pvVerifiedBy').textContent = req.payment_verified_by || pv.verified_by || (isVerified ? 'Accounts Team' : 'Pending');
-      document.getElementById('pvVerifiedAt').textContent = req.payment_verified_at ? new Date(req.payment_verified_at).toLocaleString() : (isVerified ? 'Verified' : 'Pending');
+
+      if (!includesAccounts) {
+        if (pvCardSection) pvCardSection.style.display = 'none';
+        if (valPaymentStatusEl) {
+          valPaymentStatusEl.innerHTML = `<span class="badge" style="background: rgba(148, 163, 184, 0.15); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.3);">N/A (Not Required)</span>`;
+        }
+      } else {
+        if (pvCardSection) pvCardSection.style.display = 'block';
+        const pvBadgeHtml = isVerified ? `<span class="badge badge-verified">Verified</span>` : `<span class="badge badge-unverified">Pending Verification</span>`;
+        if (valPaymentStatusEl) valPaymentStatusEl.innerHTML = pvBadgeHtml;
+        const pvStatusBadgeEl = document.getElementById('pvStatusBadge');
+        if (pvStatusBadgeEl) pvStatusBadgeEl.innerHTML = pvBadgeHtml;
+        const pvVerifiedByEl = document.getElementById('pvVerifiedBy');
+        if (pvVerifiedByEl) pvVerifiedByEl.textContent = req.payment_verified_by || pv.verified_by || (isVerified ? 'Accounts Team' : 'Pending');
+        const pvVerifiedAtEl = document.getElementById('pvVerifiedAt');
+        if (pvVerifiedAtEl) pvVerifiedAtEl.textContent = req.payment_verified_at ? new Date(req.payment_verified_at).toLocaleString() : (isVerified ? 'Verified' : 'Pending');
+      }
 
       // Rejection Reason Banner
       let rejBanner = document.getElementById('rejectionReasonCard');
@@ -975,108 +998,214 @@
       renderHistoryList(history, req, approvals);
     }
 
+    function getAttachmentInfo(req) {
+      if (!req) return null;
+      let payload = req.payload;
+      if (typeof payload === 'string') {
+        try { payload = JSON.parse(payload); } catch(e) { payload = {}; }
+      }
+      payload = payload || {};
+
+      const candidateUrl = req.receipt_url || req.attachment_url || req.image_url ||
+        payload.attached_file_url || payload.receipt_file || payload.receipt_url ||
+        payload.attachment || payload.image || payload.photo || payload.file ||
+        (Array.isArray(payload.attachments) ? payload.attachments[0]?.url || payload.attachments[0] : null) ||
+        (Array.isArray(req.attachments) ? req.attachments[0]?.url || req.attachments[0] : null);
+
+      const candidateName = req.fileName || req.file_name || payload.attached_file_name ||
+        payload.fileName || payload.file_name || payload.receipt_name || 'Attached Photo / Document';
+
+      if (!candidateUrl) return null;
+
+      const urlStr = typeof candidateUrl === 'object' ? (candidateUrl.url || candidateUrl.data || '') : String(candidateUrl);
+      if (!urlStr || urlStr === 'null' || urlStr === 'undefined') return null;
+
+      const isImage = urlStr.startsWith('data:image/') || /\.(jpg|jpeg|png|gif|webp|svg)($|\?)/i.test(urlStr) || urlStr.includes('image');
+
+      return { url: urlStr, name: candidateName, isImage };
+    }
+
+    function renderAttachmentCard(req) {
+      let card = document.getElementById('attachedFileCard');
+      const info = getAttachmentInfo(req);
+      if (!info) {
+        if (card) card.style.display = 'none';
+        return;
+      }
+
+      if (!card) {
+        card = document.createElement('section');
+        card.id = 'attachedFileCard';
+        card.className = 'card';
+        card.style.cssText = 'margin-bottom: 20px;';
+        const pvDetailsSec = document.querySelector('.payment-card');
+        if (pvDetailsSec && pvDetailsSec.parentNode) {
+          pvDetailsSec.parentNode.insertBefore(card, pvDetailsSec.nextSibling);
+        } else {
+          document.querySelector('.container')?.appendChild(card);
+        }
+      }
+
+      card.style.display = 'block';
+      if (info.isImage) {
+        card.innerHTML = `
+          <div class="card-title" style="color: #60E8FF; font-weight: 700; font-size: 1.05rem;">🖼️ Attached Photo / Receipt (${escapeHtml(info.name)})</div>
+          <div style="margin-top: 12px; text-align: center; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px;">
+            <img src="${escapeHtml(info.url)}" alt="Attached Photo" style="max-width: 100%; max-height: 350px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); object-fit: contain; cursor: pointer;" onclick="window.open('${escapeHtml(info.url)}', '_blank')" />
+          </div>
+          <div style="margin-top: 12px;">
+            <a href="${escapeHtml(info.url)}" target="_blank" download="${escapeHtml(info.name)}" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; font-size: 13px; text-decoration: none;">
+              🔍 View / Download Full Image
+            </a>
+          </div>
+        `;
+      } else {
+        card.innerHTML = `
+          <div class="card-title" style="color: #60E8FF; font-weight: 700; font-size: 1.05rem;">📎 Attached Document (${escapeHtml(info.name)})</div>
+          <div style="margin-top: 12px;">
+            <a href="${escapeHtml(info.url)}" target="_blank" download="${escapeHtml(info.name)}" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; font-size: 13px; text-decoration: none;">
+              📄 View / Download File
+            </a>
+          </div>
+        `;
+      }
+    }
+
     function renderWorkflowTimeline(req, isPaymentVerified, history = [], approvals = []) {
       const rawStatus = String(req.status || 'pending').toLowerCase();
       const isCompleted = rawStatus === 'approved' || rawStatus === 'completed';
       const isRejected = rawStatus === 'rejected';
 
-      const rejDetails = isRejected ? getRejectionDetails(req, history, approvals) : { rejectedBy: '', reason: '' };
-      const rejRoleLower = rejDetails.rejectedBy.toLowerCase();
-
-      // 7 Standard Stages (Order: Submitted -> Payment Verified -> Accounts Review -> Manager -> CFO -> MD -> Completed)
-      const stages = [
-        { id: 'submitted', label: 'Submitted', icon: '📝' },
-        { id: 'payment', label: 'Payment Verified', icon: '💳' },
-        { id: 'accounts', label: 'Accounts Review', icon: '🧾' },
-        { id: 'manager', label: 'Manager', icon: '👔' },
-        { id: 'cfo', label: 'CFO', icon: '💼' },
-        { id: 'md', label: 'MD', icon: '🏢' },
-        { id: 'completed', label: 'Completed', icon: '🏁' },
-      ];
-
-      // Stage indices: 0:Submitted, 1:Payment, 2:Accounts, 3:Manager, 4:CFO, 5:MD, 6:Completed
-      let rejStageIdx = -1;
-      if (isRejected) {
-        if (rejRoleLower.includes('account')) rejStageIdx = 2;
-        else if (rejRoleLower.includes('manager')) rejStageIdx = 3;
-        else if (rejRoleLower.includes('cfo')) rejStageIdx = 4;
-        else if (rejRoleLower.includes('md')) rejStageIdx = 5;
-        else rejStageIdx = 2;
+      // Parse dynamic workflow chain
+      let wf = [];
+      if (Array.isArray(req.workflow)) {
+        wf = req.workflow;
+      } else if (typeof req.workflow === 'string') {
+        try { wf = JSON.parse(req.workflow); } catch (e) { wf = []; }
+      }
+      if (!Array.isArray(wf) || wf.length === 0) {
+        wf = ['Accounts', 'Manager', 'CFO', 'MD'];
       }
 
-      const currentRole = String(req.current_role || req.currentRole || 'Accounts').toLowerCase();
-      let currentStageIdx = 2;
-      if (currentRole.includes('manager')) currentStageIdx = 3;
-      else if (currentRole.includes('cfo')) currentStageIdx = 4;
-      else if (currentRole.includes('md')) currentStageIdx = 5;
+      const cleanChain = wf.map(s => String(s).trim()).filter(s => {
+        const l = s.toLowerCase();
+        return s && l !== 'employee' && l !== 'requester' && l !== 'completed';
+      });
+
+      const roleIcons = {
+        'accounts': '🧾',
+        'manager': '👔',
+        'cfo': '💼',
+        'md': '🏢'
+      };
+
+      const stages = [
+        { id: 'submitted', label: 'Submitted', icon: '📝' }
+      ];
+
+      cleanChain.forEach((role, idx) => {
+        const lower = role.toLowerCase();
+        stages.push({
+          id: `stage_${idx}_${lower}`,
+          label: role === 'Accounts' ? 'Accounts Review' : role,
+          role: role,
+          icon: roleIcons[lower] || '🧾'
+        });
+      });
+
+      stages.push({ id: 'completed', label: 'Completed', icon: '🏁' });
+      const totalStages = stages.length;
+
+      const currentLevel = Number(req.current_level ?? req.currentLevel ?? 0);
+      const currentRole = String(req.current_role || req.currentRole || cleanChain[0] || '').toLowerCase();
+
+      let currentStageIdx = 1;
+      if (isCompleted) {
+        currentStageIdx = totalStages - 1;
+      } else if (!isRejected) {
+        const foundIdx = stages.findIndex(st => st.role && st.role.toLowerCase() === currentRole);
+        if (foundIdx > 0) {
+          currentStageIdx = foundIdx;
+        } else {
+          currentStageIdx = Math.min(1 + currentLevel, totalStages - 2);
+        }
+      }
+
+      const rejDetails = isRejected ? getRejectionDetails(req, history, approvals) : { rejectedBy: '', reason: '' };
+      const rejRoleLower = rejDetails.rejectedBy.toLowerCase();
+      let rejStageIdx = -1;
+      if (isRejected) {
+        const foundRejIdx = stages.findIndex(st => st.role && st.role.toLowerCase().includes(rejRoleLower));
+        rejStageIdx = foundRejIdx > 0 ? foundRejIdx : 1;
+      }
 
       const trackEl = document.getElementById('workflowTimelineTrack');
-      trackEl.innerHTML = stages.map((st, idx) => {
-        let stepState = '';
-        let iconContent = st.icon;
-        let subtext = 'Not Reached';
+      if (trackEl) {
+        trackEl.innerHTML = stages.map((st, idx) => {
+          let stepState = '';
+          let iconContent = st.icon;
+          let subtext = 'Not Reached';
 
-        if (idx === 0) {
-          stepState = 'completed';
-          iconContent = '✓';
-          subtext = 'Done';
-        } else if (idx === 1) {
-          // Payment Verified stage
-          if (isPaymentVerified) {
-            stepState = 'completed';
-            iconContent = '✓';
-            subtext = 'Verified';
-          } else if (isRejected && rejStageIdx === 2) {
-            stepState = '';
-            subtext = 'Not Reached';
-          } else {
-            stepState = 'current';
-            subtext = 'Pending';
-          }
-        } else if (isCompleted) {
-          stepState = 'completed';
-          iconContent = '✓';
-          subtext = 'Done';
-        } else if (isRejected) {
-          if (idx === rejStageIdx) {
-            stepState = 'rejected';
-            iconContent = '❌';
-            subtext = 'Rejected';
-          } else if (idx < rejStageIdx) {
+          if (idx === 0) {
             stepState = 'completed';
             iconContent = '✓';
             subtext = 'Done';
-          } else {
-            stepState = '';
-            subtext = 'Not Reached';
-          }
-        } else {
-          if (idx < currentStageIdx) {
+          } else if (isCompleted) {
             stepState = 'completed';
             iconContent = '✓';
             subtext = 'Done';
-          } else if (idx === currentStageIdx) {
-            stepState = 'current';
-            iconContent = '⏳';
-            subtext = 'In Progress';
+          } else if (isRejected) {
+            if (idx === rejStageIdx) {
+              stepState = 'rejected';
+              iconContent = '❌';
+              subtext = 'Rejected';
+            } else if (idx < rejStageIdx) {
+              stepState = 'completed';
+              iconContent = '✓';
+              subtext = 'Done';
+            } else {
+              stepState = '';
+              subtext = 'Not Reached';
+            }
           } else {
-            stepState = '';
-            subtext = 'Upcoming';
+            if (idx < currentStageIdx) {
+              stepState = 'completed';
+              iconContent = '✓';
+              subtext = 'Done';
+            } else if (idx === currentStageIdx) {
+              stepState = 'current';
+              iconContent = '⏳';
+              subtext = 'In Progress';
+            } else {
+              stepState = '';
+              subtext = 'Upcoming';
+            }
           }
-        }
 
-        return `
+          return `
             <div class="timeline-step ${stepState}">
               <div class="step-icon-node">${iconContent}</div>
-              <div class="step-label">${st.label}</div>
+              <div class="step-label">${escapeHtml(st.label)}</div>
               <div class="step-subtext">${subtext}</div>
             </div>
           `;
-      }).join('');
+        }).join('');
+      }
 
-      let completedCount = isCompleted ? 7 : (isRejected ? rejStageIdx : currentStageIdx);
-      if (completedCount < 1) completedCount = 1;
-      const progressPercent = isCompleted ? 100 : (isRejected ? Math.round((completedCount / 7) * 100) : Math.min(Math.round((completedCount / 7) * 100), 95));
+      let completedCount = 1;
+      if (isCompleted) {
+        completedCount = totalStages;
+      } else if (isRejected) {
+        completedCount = Math.max(1, rejStageIdx);
+      } else {
+        completedCount = Math.max(1, currentStageIdx);
+      }
+
+      const progressPercent = isCompleted
+        ? 100
+        : (isRejected
+          ? Math.round((completedCount / totalStages) * 100)
+          : Math.min(Math.round((completedCount / totalStages) * 100), 95));
 
       const progressFill = document.getElementById('progressFillBar');
       if (progressFill) {
@@ -1088,8 +1217,11 @@
       if (statsEl) {
         statsEl.textContent = isRejected
           ? `Rejected at Stage ${rejStageIdx} (${stages[rejStageIdx]?.label || 'Review'})`
-          : `${progressPercent}% (${completedCount} / 7 stages completed)`;
+          : `${progressPercent}% (${completedCount} / ${totalStages} stages completed)`;
       }
+
+      // Render attachment preview card
+      renderAttachmentCard(req);
     }
 
     function renderHistoryList(history = [], req = {}, approvals = []) {

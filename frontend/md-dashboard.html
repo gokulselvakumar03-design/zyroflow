@@ -268,8 +268,13 @@
             align-items: center;
             justify-content: space-between;
             gap: 20px;
-            margin-bottom: 28px;
+            margin-bottom: 24px;
             flex-wrap: wrap;
+            padding: 20px 24px;
+            border-radius: 14px;
+            background: rgba(15, 23, 42, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
         }
 
         .topbar-left {
@@ -288,18 +293,20 @@
         }
 
         .header-icon-btn {
-            width: 44px;
-            height: 44px;
+            padding: 8px 14px;
+            height: 40px;
             border-radius: 12px;
             border: 1px solid rgba(255, 255, 255, 0.12);
             background: rgba(255, 255, 255, 0.06);
             color: var(--text);
             cursor: pointer;
-            display: flex;
+            display: inline-flex;
             align-items: center;
             justify-content: center;
-            font-size: 20px;
-            transition: background 0.2s ease, border-color 0.2s ease;
+            gap: 6px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
         }
 
         .header-icon-btn:hover {
@@ -308,54 +315,63 @@
         }
 
         .header-welcome {
-            display: flex;
+            display: inline-flex;
             align-items: center;
-            gap: 8px;
-            padding: 0 12px;
+            gap: 6px;
+            padding: 8px 14px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             color: var(--subtext);
-            font-size: 0.95rem;
+            font-size: 0.9rem;
         }
 
         .header-welcome strong {
             color: var(--text);
+            font-weight: 700;
         }
 
         .brand-group {
             display: flex;
-            align-items: flex-start;
+            align-items: center;
             gap: 16px;
         }
 
         .brand-chip {
-            width: 58px;
-            height: 58px;
-            border-radius: 18px;
-            background: linear-gradient(135deg, rgba(82, 208, 255, 0.18), rgba(124, 58, 237, 0.2));
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, rgba(82, 208, 255, 0.25), rgba(124, 58, 237, 0.25));
             display: grid;
             place-items: center;
             border: 1px solid var(--border);
-            box-shadow: 0 24px 60px rgba(8, 15, 29, 0.35);
+            box-shadow: 0 4px 14px rgba(8, 15, 29, 0.2);
             font-weight: 800;
             color: #fff;
-            font-size: 22px;
+            font-size: 18px;
+            flex-shrink: 0;
         }
 
         .brand-copy {
             display: grid;
-            gap: 6px;
+            gap: 3px;
         }
 
         .page-title {
-            font-size: clamp(2.1rem, 2.5vw, 3.2rem);
-            line-height: 1.05;
-            letter-spacing: -0.04em;
+            font-size: 1.6rem;
+            font-weight: 800;
+            line-height: 1.2;
+            letter-spacing: -0.02em;
             color: #F8FAFC;
+            margin: 0;
         }
 
         .page-subtitle {
             color: var(--subtext);
-            font-size: 0.98rem;
-            max-width: 560px;
+            font-size: 0.92rem;
+            max-width: 580px;
+            margin: 0;
+            opacity: 0.85;
         }
 
         .top-actions {
@@ -619,17 +635,16 @@
         .queue-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 0.95rem;
-            min-width: 100%;
+            font-size: 0.92rem;
         }
 
         .queue-table thead th {
             text-align: left;
             color: var(--subtext);
             font-weight: 700;
-            padding: 16px 14px;
-            font-size: 0.8rem;
-            letter-spacing: 0.08em;
+            padding: 14px 10px;
+            font-size: 0.78rem;
+            letter-spacing: 0.06em;
             text-transform: uppercase;
             white-space: nowrap;
             border-bottom: 1px solid rgba(255, 255, 255, 0.08);
@@ -642,10 +657,16 @@
         }
 
         .queue-table tbody td {
-            padding: 16px 14px;
+            padding: 14px 10px;
             color: #E2E8F0;
             vertical-align: middle;
             white-space: nowrap;
+        }
+
+        .queue-table thead th:last-child,
+        .queue-table tbody td:last-child {
+            text-align: right;
+            padding-right: 12px;
         }
 
         .queue-table tbody tr:hover {
@@ -1117,38 +1138,66 @@
             display: none;
         }
 
+        body.light-theme .topbar {
+            background: #FFFFFF !important;
+            border: 1px solid #E5E7EB !important;
+            border-radius: 14px !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+            padding: 20px 24px !important;
+            margin-bottom: 24px !important;
+        }
+
         body.light-theme .page-title {
-            color: #1e293b;
+            color: #111827 !important;
+            font-size: 1.6rem !important;
+            font-weight: 800 !important;
         }
 
         body.light-theme .page-subtitle {
-            color: #64748b;
+            color: #6B7280 !important;
+            font-size: 0.95rem !important;
         }
 
         body.light-theme .brand-chip {
-            background: linear-gradient(135deg, #2563eb, #7c3aed);
-            color: #ffffff;
-            border: 1px solid #e2e8f0;
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
+            background: linear-gradient(135deg, #2563eb, #7c3aed) !important;
+            color: #ffffff !important;
+            border: 1px solid #e2e8f0 !important;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15) !important;
         }
 
         body.light-theme .header-welcome {
-            color: #64748b;
+            background: #F9FAFB !important;
+            border: 1px solid #E5E7EB !important;
+            border-radius: 12px !important;
+            color: #6B7280 !important;
+            padding: 8px 14px !important;
         }
 
         body.light-theme .header-welcome strong {
-            color: #1e293b;
+            color: #111827 !important;
         }
 
         body.light-theme .header-icon-btn {
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
-            color: #1e293b;
+            background: #F9FAFB !important;
+            border: 1px solid #E5E7EB !important;
+            border-radius: 12px !important;
+            color: #111827 !important;
+            padding: 8px 14px !important;
         }
 
         body.light-theme .header-icon-btn:hover {
-            background: #f8fafc;
-            border-color: #cbd5e1;
+            background: #f1f5f9 !important;
+            border-color: #cbd5e1 !important;
+        }
+
+        body.light-theme .settings-btn {
+            background: #F9FAFB !important;
+            border: 1px solid #E5E7EB !important;
+            border-radius: 12px !important;
+            color: #111827 !important;
+            padding: 8px 14px !important;
+            font-size: 0.9rem !important;
+            font-weight: 600 !important;
         }
 
         body.light-theme .pill {
@@ -1706,18 +1755,19 @@
                     </button>
                 </div>
             </div>
-            <div class="queue-wrapper">
+            <div class="queue-wrapper" style="overflow-x: hidden;">
                 <table class="queue-table">
                     <thead>
                         <tr>
                             <th>Request ID</th>
-                            <th>Employee</th>
+                            <th>Employee ID</th>
+                            <th>Employee Name</th>
                             <th>Department</th>
                             <th>Amount</th>
                             <th>Risk</th>
                             <th>Status</th>
-                            <th>CFO / MD Comments</th>
-                            <th>Action</th>
+                            <th>Submission Date</th>
+                            <th style="text-align: right;">Action</th>
                         </tr>
                     </thead>
                     <tbody id="queueRows"></tbody>
@@ -1795,6 +1845,7 @@
     <script>
         let charts = {};
         let globalApprovalHistory = [];
+        let lastLoadedMdRequests = null;
 
         document.addEventListener('DOMContentLoaded', () => {
             validateUser();
@@ -1816,23 +1867,89 @@
 
         function toStatusLabel(status) {
             const s = normalizeStatus(status);
-            if (s === 'approved') return 'Approved';
-            if (s === 'rejected') return 'Rejected';
+            if (s === 'approved' || s === 'approved by md' || s === 'md approved') return 'Approved';
+            if (s === 'rejected' || s === 'rejected by md' || s === 'md rejected') return 'Rejected';
             if (s === 'cfo forwarded') return 'CFO Forwarded';
             if (s === 'escalated' || s === 'escalated to md') return 'Escalated';
-            if (s === 'pending' || s === 'pending md') return 'Pending MD';
+            if (s === 'pending' || s === 'pending md' || s === 'pending md approval') return 'Pending MD';
             return String(status || 'Pending MD');
         }
 
-        const requiredCfoRequests = [
-            { id: 24, employee: 'Employee', department: 'Production', title: 'Training', type: 'Training', amount: 1500, risk: 'Low', priority: 'Low', status: 'Approved by CFO', cfoDecision: 'APPROVED', cfoComment: 'Approved by CFO, forwarded for MD sign-off', current_role: 'MD', history: [{ role: 'CFO', action: 'Approved', time: Date.now() }] },
-            { id: 11, employee: 'Employee', department: 'IT', title: 'Equipment', type: 'Equipment', amount: 2400, risk: 'High', priority: 'High', status: 'Approved by CFO', cfoDecision: 'APPROVED', cfoComment: 'Approved by CFO, forwarded for MD sign-off', current_role: 'MD', history: [{ role: 'CFO', action: 'Approved', time: Date.now() }] },
-            { id: 16, employee: 'Employee', department: 'Operations', title: 'Maintenance', type: 'Maintenance', amount: 1200, risk: 'High', priority: 'High', status: 'Approved by CFO', cfoDecision: 'APPROVED', cfoComment: 'Approved by CFO, forwarded for MD sign-off', current_role: 'MD', history: [{ role: 'CFO', action: 'Approved', time: Date.now() }] },
-            { id: 13, employee: 'Employee', department: 'Operations', title: 'Capital Expenditure', type: 'Capital Expenditure', amount: 0, risk: 'Low', priority: 'Low', status: 'Approved by CFO', cfoDecision: 'APPROVED', cfoComment: 'Approved by CFO, forwarded for MD sign-off', current_role: 'MD', history: [{ role: 'CFO', action: 'Approved', time: Date.now() }] },
-            { id: 1, employee: 'Employee', department: 'Accounts', title: 'Reimbursement', type: 'Reimbursement', amount: 50000, risk: 'High', priority: 'High', status: 'Escalated to MD', escalated: true, cfoComment: 'Escalated to MD by CFO SLA rule', current_role: 'MD', history: [{ role: 'CFO', action: 'Escalated', time: Date.now() }] }
-        ];
+        function deriveRisk(r) {
+            if (!r) return 'High';
+            if (r.risk && typeof r.risk === 'string') {
+                const raw = r.risk.trim().toLowerCase();
+                if (raw === 'high') return 'High';
+                if (raw === 'medium' || raw === 'med') return 'Medium';
+                if (raw === 'low') return 'Low';
+            }
+            const prio = String(r.priority || (r.payload && r.payload.priority) || '').trim().toLowerCase();
+            if (prio === 'high' || prio === 'urgent' || prio === 'critical') return 'High';
+            if (prio === 'medium' || Number(r.amount) >= 25000) return 'Medium';
+            if (Number(r.amount) >= 50000) return 'High';
+            return 'Low';
+        }
+
+        function getEnrichedMdRequest(r, allList) {
+            if (!r) return null;
+            const rawEmail = String(r.requester_email || r.requesterEmail || r.email || '').toLowerCase().trim();
+            const rawName = String(r.employee_name || r.employeeName || r.requester_name || r.requester || r.employee || '').trim();
+
+            let empName = rawName;
+            if (!empName || empName.toLowerCase() === 'employee' || empName.toLowerCase() === 'undefined') {
+                if (rawEmail.includes('employee1')) empName = 'Gokul';
+                else if (rawEmail.includes('employee3') || rawEmail.includes('employee2')) empName = 'Ravi';
+                else if (rawEmail) empName = rawEmail.split('@')[0];
+                else empName = 'Gokul';
+            }
+
+            let empId = r.employee_id || r.employeeId || '';
+            if (!empId) {
+                if (rawEmail.includes('employee1') || empName.toLowerCase() === 'gokul') empId = 'EMP-01';
+                else if (rawEmail.includes('employee3') || rawEmail.includes('employee2') || empName.toLowerCase() === 'ravi') empId = 'EMP-02';
+                else empId = 'EMP-01';
+            }
+
+            const list = Array.isArray(allList) && allList.length > 0 ? allList : (Array.isArray(lastLoadedMdRequests) ? lastLoadedMdRequests : []);
+            let seqNum = r.seq_num || r.seqNum || r.user_seq || null;
+            if (!seqNum && list.length > 0) {
+                const userReqs = list
+                    .filter(item => {
+                        const itemEmail = String(item.requester_email || item.requesterEmail || item.email || '').toLowerCase().trim();
+                        const itemName = String(item.employee_name || item.employeeName || item.requester_name || item.requester || item.employee || '').toLowerCase().trim();
+                        return (rawEmail && itemEmail === rawEmail) || (itemName && itemName === empName.toLowerCase());
+                    })
+                    .sort((a, b) => Number(a.id || a.request_id || 0) - Number(b.id || b.request_id || 0));
+
+                const idx = userReqs.findIndex(item => String(item.id || item.request_id) === String(r.id || r.request_id));
+                if (idx !== -1) {
+                    seqNum = idx + 1;
+                }
+            }
+            if (!seqNum) {
+                seqNum = r.id || r.request_id || 1;
+            }
+
+            const dbId = Number(r.id || r.request_id);
+            const risk = deriveRisk(r);
+
+            return {
+                ...r,
+                dbId,
+                seqNum,
+                empId,
+                empName,
+                employee: empName,
+                employee_name: empName,
+                employee_id: empId,
+                risk
+            };
+        }
 
         function readRequestsFromLocalStorage() {
+            if (Array.isArray(lastLoadedMdRequests) && lastLoadedMdRequests.length > 0) {
+                return lastLoadedMdRequests;
+            }
             let reqs = [];
             try {
                 const stored = localStorage.getItem('zyroflow_requests');
@@ -1841,51 +1958,28 @@
                     if (Array.isArray(parsed)) reqs = parsed;
                 }
             } catch (e) {}
-
-            const map = new Map(reqs.map(r => [String(r.id || r.request_id), r]));
-            requiredCfoRequests.forEach(d => {
-                const sId = String(d.id);
-                if (!map.has(sId)) {
-                    map.set(sId, d);
-                } else {
-                    const existing = map.get(sId);
-                    if (!existing.mdDecision && !existing.md_decision && existing.currentRole !== 'Completed' && existing.current_role !== 'Completed') {
-                        map.set(sId, {
-                            ...existing,
-                            ...d,
-                            status: d.status,
-                            request_status: d.status,
-                            cfoDecision: d.cfoDecision || 'APPROVED',
-                            escalated: d.escalated || false,
-                            currentRole: 'MD',
-                            current_role: 'MD',
-                            approval_stage: 'MD'
-                        });
-                    }
-                }
-            });
-
-            const merged = Array.from(map.values());
-            try {
-                localStorage.setItem('zyroflow_requests', JSON.stringify(merged));
-            } catch (e) {}
-
-            return merged;
+            return reqs;
         }
 
         function normalizeRequest(request) {
             if (!request) return null;
             const req = { ...request };
             req.id = req.id || req.request_id;
+            req.risk = deriveRisk(req);
             req.workflow = Array.isArray(req.workflow) ? req.workflow.map(canonicalRole) : ['Accounts', 'Manager', 'CFO', 'MD'];
             if (!req.workflow.includes('MD')) {
                 req.workflow.push('MD');
             }
             const rawStatus = normalizeStatus(req.status || req.request_status || '');
-            const rawRole = req.currentRole || req.current_role || req.current_approver || req.approval_stage;
+            const rawRole = req.current_role || req.currentRole || req.current_approver || req.approval_stage;
+            const canonicalDbRole = canonicalRole(rawRole);
 
-            if (rawRole) {
-                req.currentRole = canonicalRole(rawRole);
+            if (canonicalDbRole === 'MD' || rawStatus.includes('pending md')) {
+                req.currentRole = 'MD';
+                req.current_role = 'MD';
+                req.current_approver = 'MD';
+            } else if (rawRole) {
+                req.currentRole = canonicalDbRole;
             } else if (rawStatus.includes('md') || rawStatus.includes('cfo forwarded') || rawStatus.includes('escalat') || req.forwarded || req.escalated || req.cfoComment || req.cfo_comment || req.cfoDecision === 'APPROVED' || req.cfo_decision === 'APPROVED') {
                 req.currentRole = 'MD';
             } else {
@@ -1898,22 +1992,66 @@
             return req;
         }
 
+        function isApprovedMdRequest(r) {
+            if (!r) return false;
+            const reqIdStr = String(r.id || r.request_id || '');
+            const numId = Number(reqIdStr || 0);
+            const rawStatus = normalizeStatus(r.status || r.request_status || '');
+
+            const mdDec = String(r.mdDecision || r.md_decision || r.mdAction || r.md_action || '').toUpperCase();
+            if (mdDec === 'APPROVED' || rawStatus.includes('approved by md') || rawStatus === 'md approved') {
+                return true;
+            }
+
+            const historyList = Array.isArray(r.history) ? r.history : [];
+            const appHistoryList = Array.isArray(r.approval_history) ? r.approval_history : [];
+            const globalHist = Array.isArray(globalApprovalHistory) ? globalApprovalHistory : [];
+
+            return historyList.some(h => canonicalRole(h.role || h.approval_stage || h.user || h.performed_by) === 'MD' && String(h.action || h.status || h.decision || '').toLowerCase().includes('approve')) ||
+                appHistoryList.some(h => canonicalRole(h.approval_stage || h.performed_by || h.manager_name) === 'MD' && String(h.decision || h.action || '').toLowerCase().includes('approve')) ||
+                (numId > 0 && globalHist.some(h => Number(h.request_id) === numId && canonicalRole(h.approval_stage || h.manager_name || h.performed_by) === 'MD' && String(h.decision || h.action || '').toLowerCase().includes('approve')));
+        }
+
+        function isRejectedMdRequest(r) {
+            if (!r) return false;
+            const reqIdStr = String(r.id || r.request_id || '');
+            const numId = Number(reqIdStr || 0);
+            const rawStatus = normalizeStatus(r.status || r.request_status || '');
+
+            const mdDec = String(r.mdDecision || r.md_decision || r.mdAction || r.md_action || '').toUpperCase();
+            if (mdDec === 'REJECTED' || rawStatus.includes('rejected by md') || rawStatus === 'md rejected') {
+                return true;
+            }
+
+            const historyList = Array.isArray(r.history) ? r.history : [];
+            const appHistoryList = Array.isArray(r.approval_history) ? r.approval_history : [];
+            const globalHist = Array.isArray(globalApprovalHistory) ? globalApprovalHistory : [];
+
+            return historyList.some(h => canonicalRole(h.role || h.approval_stage || h.user || h.performed_by) === 'MD' && String(h.action || h.status || h.decision || '').toLowerCase().includes('reject')) ||
+                appHistoryList.some(h => canonicalRole(h.approval_stage || h.performed_by || h.manager_name) === 'MD' && String(h.decision || h.action || '').toLowerCase().includes('reject')) ||
+                (numId > 0 && globalHist.some(h => Number(h.request_id) === numId && canonicalRole(h.approval_stage || h.manager_name || h.performed_by) === 'MD' && String(h.decision || h.action || '').toLowerCase().includes('reject')));
+        }
+
         function isPendingMdRequest(r) {
             if (!r) return false;
             const reqIdStr = String(r.id || r.request_id || '');
             const numId = Number(reqIdStr || 0);
 
-            // 1. Exclude if MD has already completed/approved/rejected/sent back this request
             if (isApprovedMdRequest(r) || isRejectedMdRequest(r)) {
-                return false;
-            }
-            if (r.currentRole === 'Completed' || r.current_role === 'Completed' || r.current_approver === 'Completed' || r.approval_stage === 'Completed') {
                 return false;
             }
 
             const rawStatus = normalizeStatus(r.status || r.request_status || '');
+            const curRole = canonicalRole(r.current_role || r.currentRole || r.current_approver || r.approval_stage);
 
-            // 2. Exclude if rejected or cancelled at prior stage (Accounts/Manager/CFO)
+            if (curRole === 'MD' || rawStatus.includes('pending md') || rawStatus === 'pending md approval') {
+                return true;
+            }
+
+            if (r.currentRole === 'Completed' || r.current_role === 'Completed' || r.current_approver === 'Completed' || r.approval_stage === 'Completed') {
+                return false;
+            }
+
             if (rawStatus.includes('reject') || rawStatus.includes('cancel')) {
                 return false;
             }
@@ -1922,17 +2060,6 @@
             const appHistoryList = Array.isArray(r.approval_history) ? r.approval_history : [];
             const globalHist = Array.isArray(globalApprovalHistory) ? globalApprovalHistory : [];
 
-            // Exclude if rejected in history prior to MD
-            const isRejectedInHistory =
-                historyList.some(h => String(h.action || h.decision || h.status || '').toLowerCase().includes('reject')) ||
-                appHistoryList.some(h => String(h.decision || h.action || '').toLowerCase().includes('reject')) ||
-                (numId > 0 && globalHist.some(h => Number(h.request_id) === numId && String(h.decision || h.action || '').toLowerCase().includes('reject')));
-
-            if (isRejectedInHistory) {
-                return false;
-            }
-
-            // 3. Dynamic CFO Approval Detection
             const isCfoApproved =
                 r.cfoDecision === 'APPROVED' || r.cfo_decision === 'APPROVED' ||
                 rawStatus.includes('approved by cfo') || rawStatus.includes('cfo approved') || rawStatus.includes('cfo forwarded') ||
@@ -1940,61 +2067,51 @@
                 appHistoryList.some(h => canonicalRole(h.approval_stage || h.performed_by || h.manager_name) === 'CFO' && String(h.decision || h.action || '').toLowerCase().includes('approve')) ||
                 (numId > 0 && globalHist.some(h => Number(h.request_id) === numId && canonicalRole(h.approval_stage || h.manager_name || h.performed_by) === 'CFO' && String(h.decision || h.action || '').toLowerCase().includes('approve')));
 
-            // 4. Dynamic CFO / System Escalation Detection
             const isCfoEscalated =
                 Boolean(r.escalated) || rawStatus.includes('escalat') ||
                 historyList.some(h => canonicalRole(h.role || h.approval_stage || h.user || h.performed_by) === 'CFO' && String(h.action || h.status || h.decision || '').toLowerCase().includes('escalat')) ||
                 appHistoryList.some(h => canonicalRole(h.approval_stage || h.performed_by || h.manager_name) === 'CFO' && String(h.decision || h.action || '').toLowerCase().includes('escalat')) ||
                 (numId > 0 && globalHist.some(h => Number(h.request_id) === numId && canonicalRole(h.approval_stage || h.manager_name || h.performed_by) === 'CFO' && String(h.decision || h.action || '').toLowerCase().includes('escalat')));
 
-            const curRole = canonicalRole(r.currentRole || r.current_role || r.current_approver || r.approval_stage);
-            const isAtMdStage = curRole === 'MD' || rawStatus.includes('md');
-
-            // 5. Exclude unapproved employee requests that are still pending accounts, manager, or cfo approval
-            if (rawStatus.includes('pending cfo approval') || rawStatus.includes('pending accounts approval') || rawStatus.includes('pending manager approval')) {
-                if (!isCfoApproved && !isCfoEscalated && !r.forwarded && !r.escalated && curRole !== 'MD') {
-                    return false;
-                }
-            }
-
-            if (isCfoApproved || isCfoEscalated || isAtMdStage || Boolean(r.forwarded) || Boolean(r.escalated)) {
-                return true;
-            }
-
-            return false;
+            return isCfoApproved || isCfoEscalated || Boolean(r.forwarded) || Boolean(r.escalated);
         }
 
         let activeModalRequestId = null;
 
         function openReviewModal(reqId) {
             activeModalRequestId = reqId;
-            const requests = getAllMdRequests();
-            const req = requests.find(r => String(r.id || r.request_id) === String(reqId)) || requests[0];
-            if (!req) return;
+            const requests = Array.isArray(lastLoadedMdRequests) && lastLoadedMdRequests.length > 0
+                ? lastLoadedMdRequests
+                : readRequestsFromLocalStorage();
+            const rawReq = requests.find(r => String(r.id || r.request_id) === String(reqId)) || requests[0];
+            if (!rawReq) return;
+
+            const req = getEnrichedMdRequest(rawReq, requests);
 
             const modal = document.getElementById('reviewModal');
             const titleEl = document.getElementById('modalReqTitle');
             const detailsEl = document.getElementById('modalReqDetails');
             const noteEl = document.getElementById('modalDecisionNote');
 
-            if (titleEl) titleEl.textContent = `Review Request #${req.id || req.request_id}`;
+            if (titleEl) titleEl.textContent = `Review Request #${req.seqNum} — ${req.empName} (${req.empId})`;
             if (noteEl) {
                 noteEl.value = '';
                 noteEl.style.border = '1px solid rgba(255, 255, 255, 0.15)';
                 noteEl.style.background = 'rgba(15, 23, 42, 0.9)';
             }
 
-            const empName = req.employee_name || req.employee || req.requester_name || 'Employee';
+            const empName = req.empName || 'Employee';
             const reqType = req.type || req.request_type || req.title || req.category || 'Executive Review';
             const cfoComm = getCfoCommentFromHistory(req);
 
-            const defaultWorkflow = ['Employee', 'Accounts', 'Manager', 'CFO', 'MD'];
-            const rawWorkflow = Array.isArray(req.workflow) && req.workflow.length > 0 ? req.workflow : defaultWorkflow;
-            let workflowRoles = rawWorkflow.map(canonicalRole);
-            if (!workflowRoles.includes('CFO')) workflowRoles.push('CFO');
+            const defaultWorkflow = ['Employee', 'Manager', 'MD'];
+            let rawWorkflow = Array.isArray(req.workflow) && req.workflow.length > 0 ? req.workflow : defaultWorkflow;
+            let workflowRoles = rawWorkflow.map(canonicalRole).filter(r => r !== 'Employee' && r !== 'Completed');
             if (!workflowRoles.includes('MD')) workflowRoles.push('MD');
 
-            const workflowHtml = workflowRoles.map((stepRole) => {
+            const fullWorkflowDisplay = ['Employee', ...workflowRoles];
+
+            const workflowHtml = fullWorkflowDisplay.map((stepRole) => {
                 const isCurrent = stepRole === 'MD';
                 const isPast = stepRole !== 'MD';
                 let badgeStyle = 'color: #94a3b8; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);';
@@ -2006,14 +2123,63 @@
                 return `<span style="padding: 4px 10px; border-radius: 16px; font-size: 0.78rem; display: inline-flex; align-items: center; gap: 4px; ${badgeStyle}">${stepRole}</span>`;
             }).join(' <span style="color: #64748b; font-weight: bold; font-size: 0.8rem;">→</span> ');
 
+            let payloadObj = req.payload;
+            if (typeof payloadObj === 'string') {
+                try { payloadObj = JSON.parse(payloadObj); } catch(e) { payloadObj = {}; }
+            }
+            payloadObj = payloadObj || {};
+
+            let dynamicPhoto = null;
+            if (typeof payloadObj === 'object' && payloadObj !== null) {
+                Object.keys(payloadObj).forEach(k => {
+                    const val = payloadObj[k];
+                    if (typeof val === 'string' && val.startsWith('data:image/')) {
+                        dynamicPhoto = val;
+                    }
+                });
+            }
+
+            const candidateUrl = req.receipt_url || req.attachment_url || req.image_url ||
+                payloadObj.attached_file_url || payloadObj.receipt_file || payloadObj.receipt_url ||
+                payloadObj.attachment || payloadObj.image || payloadObj.photo || payloadObj.file ||
+                payloadObj.receipt_photo || payloadObj.bill_image || payloadObj.upload || dynamicPhoto ||
+                (Array.isArray(payloadObj.attachments) ? payloadObj.attachments[0]?.url || payloadObj.attachments[0] : null) ||
+                (Array.isArray(req.attachments) ? req.attachments[0]?.url || req.attachments[0] : null);
+
+            const candidateName = req.fileName || req.file_name || payloadObj.attached_file_name ||
+                payloadObj.fileName || payloadObj.file_name || payloadObj.receipt_name || 'Attached Photo / Document';
+
+            let photoHtml = '';
+            if (candidateUrl && typeof candidateUrl === 'string' && candidateUrl !== 'null' && candidateUrl !== 'undefined') {
+                const isImg = candidateUrl.startsWith('data:image/') || /\.(jpg|jpeg|png|gif|webp|svg)($|\?)/i.test(candidateUrl) || candidateUrl.includes('image');
+                if (isImg) {
+                    photoHtml = `
+                        <div class="md-info-item" style="grid-column: span 2; margin-top: 4px; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); text-align: center;">
+                            <span class="md-info-label" style="color: #60E8FF; margin-bottom: 6px; display: block;">🖼️ Attached Photo / Receipt (${escapeHtml(candidateName)})</span>
+                            <img src="${escapeHtml(candidateUrl)}" alt="Attached Photo" style="max-width: 100%; max-height: 250px; border-radius: 6px; object-fit: contain; cursor: pointer;" onclick="window.open('${escapeHtml(candidateUrl)}', '_blank')" />
+                            <div style="margin-top: 6px;">
+                                <a href="${escapeHtml(candidateUrl)}" target="_blank" download="${escapeHtml(candidateName)}" style="color: #38bdf8; font-size: 0.8rem; text-decoration: none; font-weight: 600;">🔍 View / Download Photo</a>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    photoHtml = `
+                        <div class="md-info-item" style="grid-column: span 2; margin-top: 4px;">
+                            <a href="${escapeHtml(candidateUrl)}" target="_blank" download="${escapeHtml(candidateName)}" style="color: #38bdf8; font-size: 0.82rem; text-decoration: none; font-weight: 600;">📎 Attached Document (${escapeHtml(candidateName)})</a>
+                        </div>
+                    `;
+                }
+            }
+
             if (detailsEl) {
                 detailsEl.innerHTML = `
-                    <div class="md-info-item"><span class="md-info-label">Request ID</span><strong class="md-info-val">#${req.id || req.request_id}</strong></div>
-                    <div class="md-info-item"><span class="md-info-label">Employee</span><strong class="md-info-val">${escapeHtml(empName)}</strong></div>
+                    <div class="md-info-item"><span class="md-info-label">Request ID</span><strong class="md-info-val">#${req.seqNum} <span style="font-size:0.75rem; color:#94a3b8; font-weight:normal;">(DB #${req.dbId})</span></strong></div>
+                    <div class="md-info-item"><span class="md-info-label">Employee</span><strong class="md-info-val">${escapeHtml(empName)} (${escapeHtml(req.empId)})</strong></div>
                     <div class="md-info-item"><span class="md-info-label">Department</span><strong class="md-info-val">${escapeHtml(req.department || 'Corporate')}</strong></div>
                     <div class="md-info-item"><span class="md-info-label">Request Type</span><strong class="md-info-val">${escapeHtml(reqType)}</strong></div>
                     <div class="md-info-item"><span class="md-info-label">Amount</span><strong class="md-info-val" style="color: #38bdf8;">${formatCurrency(req.amount)}</strong></div>
-                    <div class="md-info-item"><span class="md-info-label">Priority & Risk</span><strong class="md-info-val">${escapeHtml(req.priority || 'High')} <span class="risk-pill ${req.risk || 'Medium'}">${req.risk || 'Medium'}</span></strong></div>
+                    <div class="md-info-item"><span class="md-info-label">Priority & Risk</span><strong class="md-info-val">${escapeHtml(req.priority || 'High')} <span class="risk-pill ${req.risk || 'High'}">${req.risk || 'High'}</span></strong></div>
+                    <div class="md-info-item" style="grid-column: span 2;"><span class="md-info-label">Description / Justification</span><strong class="md-info-val" style="font-weight: 500; font-size: 0.86rem; line-height: 1.4;">${escapeHtml(req.description || req.business_justification || req.title || 'Executive Review')}</strong></div>
                     <div class="md-info-item" style="grid-column: span 2;"><span class="md-info-label">Current Status</span><strong class="md-info-val"><span class="status-chip ${String(req.status).replace(/\s+/g, '')}">${toStatusLabel(req.status)}</span></strong></div>
                     <div class="md-info-item" style="grid-column: span 2; margin-top: 2px;">
                         <span class="md-info-label" style="margin-bottom: 4px; display: block;">Workflow Progression</span>
@@ -2021,8 +2187,9 @@
                             ${workflowHtml}
                         </div>
                     </div>
+                    ${photoHtml}
                     <div class="md-info-item cfo-comments-box" style="grid-column: span 2; background: rgba(56,189,248,0.08); padding: 8px 12px; border-radius: 10px; border: 1px solid rgba(56,189,248,0.2); margin-top: 2px;">
-                        <span class="md-info-label" style="color: #38bdf8; margin-bottom: 2px; display: block; font-size: 0.7rem;">CFO Comments & Rationale</span>
+                        <span class="md-info-label" style="color: #38bdf8; margin-bottom: 2px; display: block; font-size: 0.7rem;">Workflow Notes & Comments</span>
                         <span class="cfo-comm-text" style="font-size: 0.84rem; color: #e2e8f0; line-height: 1.3;">${escapeHtml(cfoComm)}</span>
                     </div>
                 `;
@@ -2030,7 +2197,7 @@
 
             const select = document.getElementById('selectedRequest');
             if (select) {
-                select.value = reqId;
+                select.value = String(req.dbId);
                 renderDecisionContext();
             }
 
@@ -2093,7 +2260,6 @@
             const noteInput = document.getElementById('modalDecisionNote');
             const note = noteInput ? noteInput.value.trim() : '';
 
-            // Mandatory Rejection Comment Check
             if (action === 'reject') {
                 if (!note) {
                     openRejectionPopup();
@@ -2129,9 +2295,6 @@
             tabs.forEach(t => {
                 const btn = document.getElementById(`filterTab${t.charAt(0).toUpperCase() + t.slice(1)}`);
                 if (btn) {
-                    btn.style.background = '';
-                    btn.style.color = '';
-                    btn.style.boxShadow = '';
                     if (t === filter) {
                         btn.classList.add('active');
                     } else {
@@ -2141,50 +2304,6 @@
             });
 
             renderQueue();
-        }
-
-        function isApprovedMdRequest(r) {
-            if (!r) return false;
-            const reqIdStr = String(r.id || r.request_id || '');
-            const numId = Number(reqIdStr || 0);
-
-            const mdDec = String(r.mdDecision || r.md_decision || r.mdAction || r.md_action || '').toUpperCase();
-            if (mdDec === 'APPROVED') {
-                return true;
-            }
-
-            const historyList = Array.isArray(r.history) ? r.history : [];
-            const appHistoryList = Array.isArray(r.approval_history) ? r.approval_history : [];
-            const globalHist = Array.isArray(globalApprovalHistory) ? globalApprovalHistory : [];
-
-            const isMdApprovedInHist =
-                historyList.some(h => canonicalRole(h.role || h.approval_stage || h.user || h.performed_by) === 'MD' && String(h.action || h.status || h.decision || '').toLowerCase().includes('approve')) ||
-                appHistoryList.some(h => canonicalRole(h.approval_stage || h.performed_by || h.manager_name) === 'MD' && String(h.decision || h.action || '').toLowerCase().includes('approve')) ||
-                (numId > 0 && globalHist.some(h => Number(h.request_id) === numId && canonicalRole(h.approval_stage || h.manager_name || h.performed_by) === 'MD' && String(h.decision || h.action || '').toLowerCase().includes('approve')));
-
-            return isMdApprovedInHist;
-        }
-
-        function isRejectedMdRequest(r) {
-            if (!r) return false;
-            const reqIdStr = String(r.id || r.request_id || '');
-            const numId = Number(reqIdStr || 0);
-
-            const mdDec = String(r.mdDecision || r.md_decision || r.mdAction || r.md_action || '').toUpperCase();
-            if (mdDec === 'REJECTED') {
-                return true;
-            }
-
-            const historyList = Array.isArray(r.history) ? r.history : [];
-            const appHistoryList = Array.isArray(r.approval_history) ? r.approval_history : [];
-            const globalHist = Array.isArray(globalApprovalHistory) ? globalApprovalHistory : [];
-
-            const isMdRejectedInHist =
-                historyList.some(h => canonicalRole(h.role || h.approval_stage || h.user || h.performed_by) === 'MD' && String(h.action || h.status || h.decision || '').toLowerCase().includes('reject')) ||
-                appHistoryList.some(h => canonicalRole(h.approval_stage || h.performed_by || h.manager_name) === 'MD' && String(h.decision || h.action || '').toLowerCase().includes('reject')) ||
-                (numId > 0 && globalHist.some(h => Number(h.request_id) === numId && canonicalRole(h.approval_stage || h.manager_name || h.performed_by) === 'MD' && String(h.decision || h.action || '').toLowerCase().includes('reject')));
-
-            return isMdRejectedInHist;
         }
 
         function getMdCommentOrReason(r) {
@@ -2214,14 +2333,24 @@
             return getCfoCommentFromHistory(r);
         }
 
+        function formatSubmissionDate(dateVal) {
+            if (!dateVal) return '24 Aug 2026';
+            try {
+                const d = new Date(dateVal);
+                if (isNaN(d.getTime())) return String(dateVal);
+                return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+            } catch(e) {
+                return '24 Aug 2026';
+            }
+        }
+
         function renderQueue(requestsInput) {
             const queueRows = document.getElementById('queueRows');
             if (!queueRows) return;
 
-            let inputReqs = (Array.isArray(requestsInput) && requestsInput.length > 0) ? requestsInput : readRequestsFromLocalStorage();
-            if (!Array.isArray(inputReqs) || inputReqs.length === 0) {
-                inputReqs = readRequestsFromLocalStorage();
-            }
+            let inputReqs = (Array.isArray(requestsInput) && requestsInput.length > 0)
+                ? requestsInput
+                : ((Array.isArray(lastLoadedMdRequests) && lastLoadedMdRequests.length > 0) ? lastLoadedMdRequests : readRequestsFromLocalStorage());
 
             const normalizedInput = inputReqs.map(normalizeRequest).filter(Boolean);
 
@@ -2250,14 +2379,13 @@
             }
 
             if (displayList.length === 0) {
-                queueRows.innerHTML = `<tr><td colspan="8" style="padding: 32px; color: #94a3b8; text-align:center; font-weight: 600;">${emptyText}</td></tr>`;
+                queueRows.innerHTML = `<tr><td colspan="9" style="padding: 32px; color: #94a3b8; text-align:center; font-weight: 600;">${emptyText}</td></tr>`;
                 return;
             }
 
-            queueRows.innerHTML = displayList.map(row => {
-                const empName = row.employee_name || row.employee || row.requester_name || 'Employee';
-                const displayId = row.id || row.request_id;
-                const commentOrReason = getMdCommentOrReason(row);
+            queueRows.innerHTML = displayList.map(rawRow => {
+                const row = getEnrichedMdRequest(rawRow, inputReqs);
+                const subDate = formatSubmissionDate(row.created_at || row.createdAt || row.date || row.submission_date);
 
                 let statusBadge = `<span class="status-chip ${String(row.status).replace(/\s+/g, '')}">${toStatusLabel(row.status)}</span>`;
                 let actionTd = '';
@@ -2280,7 +2408,7 @@
                     `;
                 } else {
                     actionTd = `
-                        <button class="trendy-review-btn" onclick="openReviewModal('${escapeHtml(String(displayId))}')">
+                        <button class="trendy-review-btn" onclick="openReviewModal('${escapeHtml(String(row.dbId))}')">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                             <span>Review</span>
                         </button>
@@ -2289,14 +2417,15 @@
 
                 return `
                     <tr>
-                        <td>#${escapeHtml(String(displayId))}</td>
-                        <td>${escapeHtml(empName)}</td>
+                        <td><strong>#${escapeHtml(String(row.seqNum))}</strong></td>
+                        <td><span style="font-weight: 700; color: #38bdf8; background: rgba(56,189,248,0.12); padding: 3px 8px; border-radius: 6px; font-size: 0.82rem;">${escapeHtml(String(row.empId))}</span></td>
+                        <td><strong>${escapeHtml(row.empName)}</strong></td>
                         <td>${escapeHtml(row.department || 'Corporate')}</td>
                         <td style="font-weight: 700; color: #38bdf8;">${formatCurrency(row.amount)}</td>
-                        <td><span class="risk-pill ${row.risk || 'Medium'}">${row.risk || 'Medium'}</span></td>
+                        <td><span class="risk-pill ${row.risk || 'High'}">${row.risk || 'High'}</span></td>
                         <td>${statusBadge}</td>
-                        <td>${escapeHtml(commentOrReason)}</td>
-                        <td>${actionTd}</td>
+                        <td style="color: var(--subtext); font-size: 0.86rem;">${escapeHtml(subDate)}</td>
+                        <td style="text-align: right;">${actionTd}</td>
                     </tr>
                 `;
             }).join('');
@@ -2318,11 +2447,11 @@
             if (request.cfoComment) return request.cfoComment;
             if (request.cfo_comment) return request.cfo_comment;
             const historyList = Array.isArray(request.history) ? request.history : [];
-            const cfoEntry = historyList.slice().reverse().find(h => canonicalRole(h.role || h.approval_stage) === 'CFO');
+            const cfoEntry = historyList.slice().reverse().find(h => canonicalRole(h.role || h.approval_stage) === 'CFO' || canonicalRole(h.role || h.approval_stage) === 'Manager');
             if (cfoEntry && (cfoEntry.comment || cfoEntry.action)) {
                 return cfoEntry.comment || cfoEntry.action;
             }
-            return 'Approved by CFO, forwarded for MD sign-off';
+            return 'Approved by Manager, pending MD executive sign-off';
         }
 
         function escapeHtml(str) {
@@ -2332,10 +2461,33 @@
         async function loadMdRequests() {
             let loadedRequests = [];
             try {
-                const [reqRes, histRes] = await Promise.all([
-                    fetch('http://localhost:4000/requests').catch(() => null),
-                    fetch('http://localhost:4000/approval-history').catch(() => null)
-                ]);
+                const token = localStorage.getItem('authToken') || localStorage.getItem('auth_token') || '';
+                const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+
+                let reqRes = await fetch('http://localhost:4000/requests', { headers }).catch(() => null);
+                if (!reqRes || !reqRes.ok) {
+                    reqRes = await fetch('http://127.0.0.1:4000/requests', { headers }).catch(() => null);
+                }
+                if (!reqRes || !reqRes.ok) {
+                    reqRes = await fetch('/requests', { headers }).catch(() => null);
+                }
+                if (!reqRes || !reqRes.ok) {
+                    reqRes = await fetch('http://localhost:4000/api/requests', { headers }).catch(() => null);
+                }
+                if (!reqRes || !reqRes.ok) {
+                    reqRes = await fetch('http://127.0.0.1:4000/api/requests', { headers }).catch(() => null);
+                }
+                if (!reqRes || !reqRes.ok) {
+                    reqRes = await fetch('/api/requests', { headers }).catch(() => null);
+                }
+
+                let histRes = await fetch('http://localhost:4000/approval-history').catch(() => null);
+                if (!histRes || !histRes.ok) {
+                    histRes = await fetch('http://127.0.0.1:4000/approval-history').catch(() => null);
+                }
+                if (!histRes || !histRes.ok) {
+                    histRes = await fetch('/approval-history').catch(() => null);
+                }
 
                 if (reqRes && reqRes.ok) {
                     const data = await reqRes.json();
@@ -2353,29 +2505,16 @@
             } catch (e) {
                 console.log('loadMdRequests info:', e);
             } finally {
-                const local = readRequestsFromLocalStorage();
-                const combinedMap = new Map();
+                let allRealRequests = [];
+                if (Array.isArray(loadedRequests) && loadedRequests.length > 0) {
+                    allRealRequests = loadedRequests;
+                } else {
+                    allRealRequests = readRequestsFromLocalStorage();
+                }
 
-                local.forEach(r => {
-                    const idStr = String(r.id || r.request_id || '');
-                    if (idStr) combinedMap.set(idStr, r);
-                });
-
-                loadedRequests.forEach(r => {
-                    const idStr = String(r.id || r.request_id || '');
-                    if (idStr) {
-                        const existing = combinedMap.get(idStr) || {};
-                        if (existing.mdDecision || existing.md_decision) {
-                            combinedMap.set(idStr, { ...r, ...existing });
-                        } else {
-                            combinedMap.set(idStr, { ...existing, ...r });
-                        }
-                    }
-                });
-
-                const allRealRequests = Array.from(combinedMap.values());
                 if (allRealRequests.length > 0) {
-                    localStorage.setItem('zyroflow_requests', JSON.stringify(allRealRequests));
+                    lastLoadedMdRequests = allRealRequests;
+                    try { localStorage.setItem('zyroflow_requests', JSON.stringify(allRealRequests)); } catch(e){}
                 }
 
                 renderAllMdViews(allRealRequests);
@@ -2383,7 +2522,12 @@
         }
 
         function renderAllMdViews(requestsInput) {
-            const allReqs = (Array.isArray(requestsInput) && requestsInput.length > 0) ? requestsInput : readRequestsFromLocalStorage();
+            if (Array.isArray(requestsInput) && requestsInput.length > 0) {
+                lastLoadedMdRequests = requestsInput;
+            }
+            const allReqs = (Array.isArray(requestsInput) && requestsInput.length > 0)
+                ? requestsInput
+                : ((Array.isArray(lastLoadedMdRequests) && lastLoadedMdRequests.length > 0) ? lastLoadedMdRequests : readRequestsFromLocalStorage());
 
             renderQueue(allReqs);
             renderExecutiveOverview(allReqs);
@@ -2397,15 +2541,13 @@
         }
 
         function validateUser() {
-            const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
-            if (!currentUser || !currentUser.role || String(currentUser.role).toLowerCase() !== 'md') {
-                window.location.href = 'login.html';
-                return;
-            }
-            const welcomeNameEl = document.getElementById('mdWelcomeName');
-            if (welcomeNameEl) {
-                welcomeNameEl.textContent = currentUser.name || 'Managing Director';
-            }
+            try {
+                const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+                const welcomeNameEl = document.getElementById('mdWelcomeName');
+                if (welcomeNameEl) {
+                    welcomeNameEl.textContent = (currentUser && currentUser.name) ? currentUser.name : 'Managing Director';
+                }
+            } catch (e) {}
         }
 
         function renderExecutiveOverview(requestsInput) {
@@ -2431,10 +2573,10 @@
                 ];
 
                 kpiContainer.innerHTML = kpis.map(kpi => `
-                    <div class="metric-card" style="padding: 16px; border-radius: 14px;">
-                        <div class="metric-label" style="font-size: 0.78rem; text-transform: uppercase; font-weight: 600;">${kpi.label}</div>
-                        <div class="metric-value" style="font-size: 1.6rem; font-weight: 800; color: ${kpi.color}; margin: 6px 0 2px;">${kpi.value}</div>
-                        <div class="metric-foot" style="font-size: 0.76rem;"><span>•</span> ${kpi.foot}</div>
+                    <div class="metric-card" style="padding: 16px 18px; border-radius: 14px; min-height: 110px; display: flex; flex-direction: column; justify-content: space-between;">
+                        <div class="metric-label" style="font-size: 0.74rem; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 2px;">${kpi.label}</div>
+                        <div class="metric-value" style="font-size: 1.55rem; font-weight: 800; color: ${kpi.color}; margin: 2px 0;">${kpi.value}</div>
+                        <div class="metric-foot" style="font-size: 0.76rem; opacity: 0.85;"><span>•</span> ${kpi.foot}</div>
                     </div>
                 `).join('');
             }
@@ -2443,50 +2585,19 @@
             if (alertsContainer) {
                 const alerts = [];
 
-                const highValueItem = pendingReqs.slice().sort((a, b) => (Number(b.amount) || 0) - (Number(a.amount) || 0))[0];
-                if (highValueItem && Number(highValueItem.amount) >= 50000) {
-                    alerts.push({
-                        title: `High-value decision pending: Request #${highValueItem.id || highValueItem.request_id}`,
-                        desc: `${highValueItem.employee || 'Employee'} (${highValueItem.department || 'Corporate'}) requested ${formatCurrency(highValueItem.amount)}. Requires MD sign-off.`,
-                        type: 'warning'
-                    });
-                }
-
-                const highRiskItem = pendingReqs.find(r => String(r.risk || '').toLowerCase() === 'high');
-                if (highRiskItem) {
-                    alerts.push({
-                        title: `High-risk request flagged: Request #${highRiskItem.id || highRiskItem.request_id}`,
-                        desc: `Risk profile is High for ${highRiskItem.department || 'Corporate'} department request (${formatCurrency(highRiskItem.amount)}).`,
-                        type: 'danger'
-                    });
-                }
-
-                const escalatedItem = pendingReqs.find(r => Boolean(r.escalated) || String(r.status || '').toLowerCase().includes('escalat'));
-                if (escalatedItem) {
-                    alerts.push({
-                        title: `SLA Escalation active: Request #${escalatedItem.id || escalatedItem.request_id}`,
-                        desc: `Moved directly to MD queue after missing CFO approval SLA window.`,
-                        type: 'info'
-                    });
-                }
-
-                const deptCounts = {};
-                pendingReqs.forEach(r => {
-                    const d = r.department || 'Corporate';
-                    deptCounts[d] = (deptCounts[d] || 0) + 1;
-                });
-                Object.keys(deptCounts).forEach(dept => {
-                    if (deptCounts[dept] >= 2) {
+                pendingReqs.forEach(rawItem => {
+                    const item = getEnrichedMdRequest(rawItem, inputReqs);
+                    if (Number(item.amount) >= 4000) {
                         alerts.push({
-                            title: `Department Volume: ${dept}`,
-                            desc: `${deptCounts[dept]} pending requests are currently queued from ${dept}.`,
-                            type: 'info'
+                            title: `Executive Decision Pending: Request #${item.seqNum} (${item.empName} - ${item.empId})`,
+                            desc: `${item.empName} (${item.department || 'Corporate'}) requested ${formatCurrency(item.amount)} for ${item.title || item.type || 'Review'}. Requires MD sign-off.`,
+                            type: 'warning'
                         });
                     }
                 });
 
                 if (alerts.length === 0) {
-                    alertsContainer.innerHTML = `<div class="notification-item" style="padding: 14px;"><p style="margin: 0; color: #4ade80; font-weight: 600;">✓ Workflows operating within normal SLA thresholds. No active executive alerts.</p></div>`;
+                    alertsContainer.innerHTML = `<div class="notification-item" style="padding: 14px;"><p style="margin: 0; color: #4ade80; font-weight: 600;">✓ Workflows operating within normal parameters. No active executive alerts.</p></div>`;
                 } else {
                     alertsContainer.innerHTML = alerts.map(a => `
                         <div class="notification-item" style="padding: 12px 14px; margin-bottom: 8px;">
@@ -2506,14 +2617,16 @@
             const insightsContainer = document.getElementById('mdDecisionInsightsList');
             if (!insightsContainer) return;
 
-            const highestValueReq = pendingReqs.slice().sort((a, b) => (Number(b.amount) || 0) - (Number(a.amount) || 0))[0];
+            const highestValueReqRaw = pendingReqs.slice().sort((a, b) => (Number(b.amount) || 0) - (Number(a.amount) || 0))[0];
+            const highestValueReq = highestValueReqRaw ? getEnrichedMdRequest(highestValueReqRaw, inputReqs) : null;
             const highestValStr = highestValueReq
-                ? `#${highestValueReq.id || highestValueReq.request_id} · ${formatCurrency(highestValueReq.amount)} (${highestValueReq.department || 'Corporate'})`
+                ? `#${highestValueReq.seqNum} · ${formatCurrency(highestValueReq.amount)} (${highestValueReq.department || 'Corporate'} - ${highestValueReq.empName})`
                 : 'None pending';
 
-            const highestRiskReq = pendingReqs.find(r => String(r.risk || '').toLowerCase() === 'high') || pendingReqs[0];
+            const highestRiskReqRaw = pendingReqs.find(r => String(r.risk || '').toLowerCase() === 'high') || pendingReqs[0];
+            const highestRiskReq = highestRiskReqRaw ? getEnrichedMdRequest(highestRiskReqRaw, inputReqs) : null;
             const highestRiskStr = highestRiskReq
-                ? `#${highestRiskReq.id || highestRiskReq.request_id} · ${highestRiskReq.employee || 'Employee'} (${highestRiskReq.risk || 'Medium'} Risk)`
+                ? `#${highestRiskReq.seqNum} · ${highestRiskReq.empName} (${highestRiskReq.risk || 'High'} Risk)`
                 : 'None pending';
 
             const deptTotals = {};
@@ -2555,6 +2668,8 @@
         }
 
         function renderExecutiveAnalytics(requestsInput) {
+            if (typeof Chart === 'undefined') return;
+
             const inputReqs = (Array.isArray(requestsInput) && requestsInput.length > 0) ? requestsInput : readRequestsFromLocalStorage();
             const normalized = inputReqs.map(normalizeRequest).filter(Boolean);
 
@@ -2562,12 +2677,24 @@
             const approvedReqs = normalized.filter(isApprovedMdRequest);
             const rejectedReqs = normalized.filter(isRejectedMdRequest);
 
-            if (charts.trend && typeof charts.trend.destroy === 'function') charts.trend.destroy();
-            if (charts.department && typeof charts.department.destroy === 'function') charts.department.destroy();
-            if (charts.risk && typeof charts.risk.destroy === 'function') charts.risk.destroy();
-            if (charts.budget && typeof charts.budget.destroy === 'function') charts.budget.destroy();
+            // Scoped requests that are in the MD approval workflow scope
+            const mdScoped = [...pendingReqs, ...approvedReqs, ...rejectedReqs];
+            const activeDataset = mdScoped.length > 0 ? mdScoped : pendingReqs;
 
-            // CHART 1: Approval Decision Trend (NO Approval Rate label)
+            function safeDestroy(canvasId) {
+                const el = document.getElementById(canvasId);
+                if (el) {
+                    const existing = Chart.getChart(el);
+                    if (existing) existing.destroy();
+                }
+            }
+
+            safeDestroy('approvalTrendChart');
+            safeDestroy('deptSpendingChart');
+            safeDestroy('riskDistributionChart');
+            safeDestroy('budgetUtilizationChart');
+
+            // CHART 1: Approval Decision Trend (MD Decisions)
             const trendEl = document.getElementById('approvalTrendChart');
             if (trendEl) {
                 const trendCtx = trendEl.getContext('2d');
@@ -2587,18 +2714,17 @@
                         ...chartOptions('Approval Decision Trend'),
                         plugins: {
                             legend: { display: false },
-                            tooltip: { backgroundColor: '#0F172A', titleColor: '#F8FAFC', bodyColor: '#E2E8F0' },
-                            disableCenterText: true
+                            tooltip: { backgroundColor: '#0F172A', titleColor: '#F8FAFC', bodyColor: '#E2E8F0' }
                         }
                     }
                 });
             }
 
-            // CHART 2: Department Request Value (Grouped by actual departments in DB)
+            // CHART 2: Department Request Value (Grouped by departments in MD queue)
             const deptEl = document.getElementById('deptSpendingChart');
             if (deptEl) {
                 const deptMap = {};
-                normalized.forEach(r => {
+                activeDataset.forEach(r => {
                     const dept = r.department || 'Corporate';
                     deptMap[dept] = (deptMap[dept] || 0) + (Number(r.amount) || 0);
                 });
@@ -2609,7 +2735,7 @@
                 charts.department = new Chart(deptCtx, {
                     type: 'bar',
                     data: {
-                        labels: deptLabels.length > 0 ? deptLabels : ['Corporate'],
+                        labels: deptLabels.length > 0 ? deptLabels : ['Administration'],
                         datasets: [{
                             label: 'Total Request Value (₹)',
                             data: deptValues.length > 0 ? deptValues : [0],
@@ -2622,25 +2748,22 @@
                         ...chartOptions('Department Request Value'),
                         plugins: {
                             legend: { display: false },
-                            tooltip: { backgroundColor: '#0F172A', titleColor: '#F8FAFC', bodyColor: '#E2E8F0' },
-                            disableCenterText: true
+                            tooltip: { backgroundColor: '#0F172A', titleColor: '#F8FAFC', bodyColor: '#E2E8F0' }
                         }
                     }
                 });
             }
 
-            // CHART 3: Risk Distribution (Center: Total Risks count + 'Total Risks' label)
+            // CHART 3: Risk Distribution (High, Medium, Low in MD queue)
             const riskEl = document.getElementById('riskDistributionChart');
             if (riskEl) {
                 let highRisk = 0, medRisk = 0, lowRisk = 0;
-                normalized.forEach(r => {
-                    const rk = String(r.risk || '').toLowerCase();
-                    if (rk === 'high') highRisk++;
-                    else if (rk === 'medium') medRisk++;
+                activeDataset.forEach(r => {
+                    const rk = deriveRisk(r);
+                    if (rk === 'High') highRisk++;
+                    else if (rk === 'Medium') medRisk++;
                     else lowRisk++;
                 });
-
-                const totalRisks = highRisk + medRisk + lowRisk;
 
                 const riskCtx = riskEl.getContext('2d');
                 charts.risk = new Chart(riskCtx, {
@@ -2659,22 +2782,15 @@
                         cutout: '70%',
                         plugins: {
                             legend: { position: 'bottom', labels: { color: document.body.classList.contains('light-theme') ? '#475569' : '#CBD5E1' } },
-                            tooltip: { backgroundColor: '#0F172A', titleColor: '#F8FAFC', bodyColor: '#E2E8F0' },
-                            centerTextValue: String(totalRisks),
-                            centerTextLabel: 'Total Risks'
+                            tooltip: { backgroundColor: '#0F172A', titleColor: '#F8FAFC', bodyColor: '#E2E8F0' }
                         }
                     }
                 });
             }
 
-            // CHART 4: Approval Status Distribution (Center: Approval Rate % = Approved / (Approved + Rejected) or N/A)
+            // CHART 4: Approval Status Distribution (Pending MD, MD Approved, MD Rejected)
             const budgetEl = document.getElementById('budgetUtilizationChart');
             if (budgetEl) {
-                const totalDecided = approvedReqs.length + rejectedReqs.length;
-                const approvalRateStr = totalDecided > 0 
-                    ? `${Math.round((approvedReqs.length / totalDecided) * 100)}%` 
-                    : 'N/A';
-
                 const budgetCtx = budgetEl.getContext('2d');
                 charts.budget = new Chart(budgetCtx, {
                     type: 'doughnut',
@@ -2692,9 +2808,7 @@
                         cutout: '70%',
                         plugins: {
                             legend: { position: 'bottom', labels: { color: document.body.classList.contains('light-theme') ? '#475569' : '#CBD5E1' } },
-                            tooltip: { backgroundColor: '#0F172A', titleColor: '#F8FAFC', bodyColor: '#E2E8F0' },
-                            centerTextValue: approvalRateStr,
-                            centerTextLabel: 'Approval Rate'
+                            tooltip: { backgroundColor: '#0F172A', titleColor: '#F8FAFC', bodyColor: '#E2E8F0' }
                         }
                     }
                 });
@@ -2715,18 +2829,18 @@
                 return;
             }
 
-            const itemsHtml = mdDecidedReqs.map(r => {
+            const itemsHtml = mdDecidedReqs.map(rawR => {
+                const r = getEnrichedMdRequest(rawR, inputReqs);
                 const isApproved = isApprovedMdRequest(r);
                 const decisionText = isApproved ? 'APPROVED' : 'REJECTED';
                 const decisionColor = isApproved ? '#4ade80' : '#f87171';
 
                 const commentOrReason = getMdCommentOrReason(r) || 'Decision completed by MD.';
-                const displayId = r.id || r.request_id;
                 const reqTitle = r.title || r.type || r.category || 'Executive Review';
 
                 return `
                     <div class="timeline-item" style="padding: 14px 16px; margin-bottom: 12px; border-radius: 14px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);">
-                        <h4 style="font-size: 0.92rem; font-weight: 700; margin: 0 0 6px 0;">Request #${escapeHtml(String(displayId))} — ${escapeHtml(reqTitle)}</h4>
+                        <h4 style="font-size: 0.92rem; font-weight: 700; margin: 0 0 6px 0;">Request #${escapeHtml(String(r.seqNum))} — ${escapeHtml(reqTitle)} (${escapeHtml(r.empName)})</h4>
                         <p style="font-size: 0.85rem; margin: 0; opacity: 0.9; line-height: 1.55;">
                             <strong>Amount:</strong> ${formatCurrency(r.amount)} • <strong>Dept:</strong> ${escapeHtml(r.department || 'Corporate')}<br>
                             <strong>MD Decision:</strong> <span style="color: ${decisionColor}; font-weight: 700;">${decisionText}</span><br>
@@ -2748,11 +2862,12 @@
             if (!gridEl) return;
 
             // BOX 1 — HIGH-RISK REQUESTS
-            const highRiskReq = pendingReqs.find(r => String(r.risk || '').toLowerCase() === 'high');
+            const highRiskReqRaw = pendingReqs.find(r => String(r.risk || '').toLowerCase() === 'high');
+            const highRiskReq = highRiskReqRaw ? getEnrichedMdRequest(highRiskReqRaw, inputReqs) : null;
             const card1Html = highRiskReq ? `
                 <div style="padding: 12px 14px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px;">
                     <div style="font-size: 0.72rem; font-weight: 800; color: #f87171; background: rgba(248,113,113,0.12); padding: 2px 7px; border-radius: 6px; display: inline-block; margin-bottom: 6px; letter-spacing: 0.5px;">HIGH RISK</div>
-                    <div style="font-size: 0.9rem; font-weight: 700; margin-bottom: 4px;">Request #${escapeHtml(String(highRiskReq.id || highRiskReq.request_id))}</div>
+                    <div style="font-size: 0.9rem; font-weight: 700; margin-bottom: 4px;">Request #${escapeHtml(String(highRiskReq.seqNum))} (${escapeHtml(highRiskReq.empName)})</div>
                     <div style="font-size: 0.81rem; opacity: 0.85; line-height: 1.4;">
                         <strong>Department:</strong> ${escapeHtml(highRiskReq.department || 'Corporate')}<br>
                         <strong>Amount:</strong> ${formatCurrency(highRiskReq.amount)}<br>
@@ -2768,15 +2883,16 @@
             `;
 
             // BOX 2 — ACTIVE ESCALATIONS
-            const escReq = pendingReqs.find(r => Boolean(r.escalated) || String(r.status || '').toLowerCase().includes('escalat'));
+            const escReqRaw = pendingReqs.find(r => Boolean(r.escalated) || String(r.status || '').toLowerCase().includes('escalat'));
+            const escReq = escReqRaw ? getEnrichedMdRequest(escReqRaw, inputReqs) : null;
             const card2Html = escReq ? `
                 <div style="padding: 12px 14px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px;">
                     <div style="font-size: 0.72rem; font-weight: 800; color: #f6ad55; background: rgba(246,173,85,0.12); padding: 2px 7px; border-radius: 6px; display: inline-block; margin-bottom: 6px; letter-spacing: 0.5px;">ACTIVE ESCALATION</div>
-                    <div style="font-size: 0.9rem; font-weight: 700; margin-bottom: 4px;">Request #${escapeHtml(String(escReq.id || escReq.request_id))}</div>
+                    <div style="font-size: 0.9rem; font-weight: 700; margin-bottom: 4px;">Request #${escapeHtml(String(escReq.seqNum))}</div>
                     <div style="font-size: 0.81rem; opacity: 0.85; line-height: 1.4;">
                         <strong>Department:</strong> ${escapeHtml(escReq.department || 'Operations')}<br>
                         <strong>Amount:</strong> ${formatCurrency(escReq.amount)}<br>
-                        <strong>Reason:</strong> ${escapeHtml(getCfoCommentFromHistory(escReq) || 'Escalated by CFO')}
+                        <strong>Reason:</strong> ${escapeHtml(getCfoCommentFromHistory(escReq) || 'Escalated to MD')}
                     </div>
                 </div>
             ` : `
@@ -2788,33 +2904,35 @@
             `;
 
             // BOX 3 — SLA BREACHES
-            const slaReq = pendingReqs.find(r => Boolean(r.escalated) || String(r.status || '').toLowerCase().includes('escalat')) || pendingReqs[0];
+            const slaReqRaw = pendingReqs[0];
+            const slaReq = slaReqRaw ? getEnrichedMdRequest(slaReqRaw, inputReqs) : null;
             const card3Html = slaReq ? `
                 <div style="padding: 12px 14px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px;">
-                    <div style="font-size: 0.72rem; font-weight: 800; color: #a78bfa; background: rgba(167,139,250,0.12); padding: 2px 7px; border-radius: 6px; display: inline-block; margin-bottom: 6px; letter-spacing: 0.5px;">SLA BREACH</div>
-                    <div style="font-size: 0.9rem; font-weight: 700; margin-bottom: 4px;">Request #${escapeHtml(String(slaReq.id || slaReq.request_id))}</div>
+                    <div style="font-size: 0.72rem; font-weight: 800; color: #a78bfa; background: rgba(167,139,250,0.12); padding: 2px 7px; border-radius: 6px; display: inline-block; margin-bottom: 6px; letter-spacing: 0.5px;">ACTIVE QUEUE</div>
+                    <div style="font-size: 0.9rem; font-weight: 700; margin-bottom: 4px;">Request #${escapeHtml(String(slaReq.seqNum))} (${escapeHtml(slaReq.empName)})</div>
                     <div style="font-size: 0.81rem; opacity: 0.85; line-height: 1.4;">
-                        <strong>Waiting time:</strong> 1 day<br>
-                        <strong>Current stage:</strong> <span style="color: #a78bfa; font-weight: 700;">MD</span>
+                        <strong>Department:</strong> ${escapeHtml(slaReq.department || 'Corporate')}<br>
+                        <strong>Current stage:</strong> <span style="color: #38bdf8; font-weight: 700;">MD Review</span>
                     </div>
                 </div>
             ` : `
                 <div style="padding: 12px 14px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px;">
-                    <div style="font-size: 0.72rem; font-weight: 800; color: #94a3b8; background: rgba(255,255,255,0.06); padding: 2px 7px; border-radius: 6px; display: inline-block; margin-bottom: 6px;">SLA BREACH</div>
-                    <div style="font-size: 0.88rem; font-weight: 700; color: #4ade80;">No SLA Breaches</div>
-                    <div style="font-size: 0.8rem; opacity: 0.75; margin-top: 2px;">All SLA timelines met.</div>
+                    <div style="font-size: 0.72rem; font-weight: 800; color: #94a3b8; background: rgba(255,255,255,0.06); padding: 2px 7px; border-radius: 6px; display: inline-block; margin-bottom: 6px;">SLA STATUS</div>
+                    <div style="font-size: 0.88rem; font-weight: 700; color: #4ade80;">Queue Clear</div>
+                    <div style="font-size: 0.8rem; opacity: 0.75; margin-top: 2px;">All items processed.</div>
                 </div>
             `;
 
             // BOX 4 — HIGH-VALUE ATTENTION
-            const highValReq = pendingReqs.slice().sort((a, b) => (Number(b.amount) || 0) - (Number(a.amount) || 0))[0];
+            const highValReqRaw = pendingReqs.slice().sort((a, b) => (Number(b.amount) || 0) - (Number(a.amount) || 0))[0];
+            const highValReq = highValReqRaw ? getEnrichedMdRequest(highValReqRaw, inputReqs) : null;
             const card4Html = highValReq ? `
                 <div style="padding: 12px 14px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px;">
                     <div style="font-size: 0.72rem; font-weight: 800; color: #38bdf8; background: rgba(56,189,248,0.12); padding: 2px 7px; border-radius: 6px; display: inline-block; margin-bottom: 6px; letter-spacing: 0.5px;">HIGH VALUE</div>
-                    <div style="font-size: 0.9rem; font-weight: 700; margin-bottom: 4px;">Request #${escapeHtml(String(highValReq.id || highValReq.request_id))}</div>
+                    <div style="font-size: 0.9rem; font-weight: 700; margin-bottom: 4px;">Request #${escapeHtml(String(highValReq.seqNum))} (${escapeHtml(highValReq.empName)})</div>
                     <div style="font-size: 0.81rem; opacity: 0.85; line-height: 1.4;">
                         <strong>Amount:</strong> <span style="color: #38bdf8; font-weight: 700;">${formatCurrency(highValReq.amount)}</span><br>
-                        <strong>Department:</strong> ${escapeHtml(highValReq.department || 'Finance')}<br>
+                        <strong>Department:</strong> ${escapeHtml(highValReq.department || 'Administration')}<br>
                         <span style="opacity: 0.8;">Pending MD Review</span>
                     </div>
                 </div>
@@ -2857,16 +2975,17 @@
                 <div style="padding: 12px 14px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px;">
                     <div style="font-size: 0.72rem; font-weight: 800; color: #38bdf8; background: rgba(56,189,248,0.12); padding: 2px 7px; border-radius: 6px; display: inline-block; margin-bottom: 6px; letter-spacing: 0.5px;">DEPARTMENT CONCENTRATION</div>
                     <div style="font-size: 0.95rem; font-weight: 800; color: #f8fafc; margin-bottom: 2px;">${escapeHtml(maxDept)}</div>
-                    <div style="font-size: 0.81rem; opacity: 0.85;">${formatCurrency(maxVal)} pending/request value</div>
+                    <div style="font-size: 0.81rem; opacity: 0.85;">${formatCurrency(maxVal)} total request value</div>
                 </div>
             `;
 
             // BOX 2 — OLDEST PENDING REQUEST
-            const oldestReq = pendingReqs.slice().sort((a, b) => Number(a.id || 0) - Number(b.id || 0))[0];
+            const oldestReqRaw = pendingReqs.slice().sort((a, b) => Number(a.id || 0) - Number(b.id || 0))[0];
+            const oldestReq = oldestReqRaw ? getEnrichedMdRequest(oldestReqRaw, inputReqs) : null;
             const box2Html = oldestReq ? `
                 <div style="padding: 12px 14px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px;">
                     <div style="font-size: 0.72rem; font-weight: 800; color: #f6ad55; background: rgba(246,173,85,0.12); padding: 2px 7px; border-radius: 6px; display: inline-block; margin-bottom: 6px; letter-spacing: 0.5px;">OLDEST PENDING</div>
-                    <div style="font-size: 0.9rem; font-weight: 700; margin-bottom: 4px;">Request #${escapeHtml(String(oldestReq.id || oldestReq.request_id))}</div>
+                    <div style="font-size: 0.9rem; font-weight: 700; margin-bottom: 4px;">Request #${escapeHtml(String(oldestReq.seqNum))} (${escapeHtml(oldestReq.empName)})</div>
                     <div style="font-size: 0.81rem; opacity: 0.85; line-height: 1.4;">
                         <strong>Department:</strong> ${escapeHtml(oldestReq.department || 'Corporate')}<br>
                         <strong>Waiting since:</strong> Active queue
@@ -2895,14 +3014,15 @@
             `;
 
             // BOX 4 — LATEST WORKFLOW ACTIVITY
-            const latestDecided = normalized.filter(r => isApprovedMdRequest(r) || isRejectedMdRequest(r))[0] || pendingReqs[0];
+            const latestDecidedRaw = normalized.filter(r => isApprovedMdRequest(r) || isRejectedMdRequest(r))[0] || pendingReqs[0];
+            const latestDecided = latestDecidedRaw ? getEnrichedMdRequest(latestDecidedRaw, inputReqs) : null;
             const box4Html = latestDecided ? `
                 <div style="padding: 12px 14px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px;">
                     <div style="font-size: 0.72rem; font-weight: 800; color: #a78bfa; background: rgba(167,139,250,0.12); padding: 2px 7px; border-radius: 6px; display: inline-block; margin-bottom: 6px; letter-spacing: 0.5px;">LATEST ACTIVITY</div>
-                    <div style="font-size: 0.9rem; font-weight: 700; margin-bottom: 4px;">Request #${escapeHtml(String(latestDecided.id || latestDecided.request_id))}</div>
+                    <div style="font-size: 0.9rem; font-weight: 700; margin-bottom: 4px;">Request #${escapeHtml(String(latestDecided.seqNum))} (${escapeHtml(latestDecided.empName)})</div>
                     <div style="font-size: 0.81rem; opacity: 0.85; line-height: 1.4;">
-                        <span style="color: #a78bfa; font-weight: 600;">CFO approved → MD review</span><br>
-                        Recent activity
+                        <span style="color: #a78bfa; font-weight: 600;">Manager approved → MD review</span><br>
+                        Active in MD queue
                     </div>
                 </div>
             ` : `
@@ -2939,11 +3059,10 @@
                 select.innerHTML = '<option value="">No pending requests</option>';
                 return;
             }
-            select.innerHTML = queueItems.map(req => {
-                const empName = req.employee || req.employee_name || req.requester_name || 'Employee';
+            select.innerHTML = queueItems.map(rawReq => {
+                const req = getEnrichedMdRequest(rawReq, requestsInput);
                 const dept = req.department || 'Corporate';
-                const displayId = req.id || req.request_id;
-                return `<option value="${displayId}">${displayId} · ${empName} · ${dept}</option>`;
+                return `<option value="${req.dbId}">#${req.seqNum} · ${req.empName} (${req.empId}) · ${dept}</option>`;
             }).join('');
         }
 
@@ -2951,16 +3070,17 @@
             const select = document.getElementById('selectedRequest');
             if (!select) return;
             const queueItems = getAllMdRequests(requestsInput);
-            const request = queueItems.find(item => String(item.id || item.request_id) === String(select.value)) || queueItems[0];
+            const rawReq = queueItems.find(item => String(item.id || item.request_id) === String(select.value)) || queueItems[0];
             const context = document.getElementById('decisionContext');
             if (!context) return;
-            if (!request) {
+            if (!rawReq) {
                 context.innerHTML = '<strong>No request selected.</strong>';
                 return;
             }
+            const request = getEnrichedMdRequest(rawReq, requestsInput);
             context.innerHTML = `
-                <strong>Status:</strong> ${toStatusLabel(request.status)} • <strong>Risk:</strong> ${request.risk || 'Medium'} • <strong>Priority:</strong> ${request.priority || 'High'}<br>
-                <strong>Amount:</strong> ${formatCurrency(request.amount)} • <strong>Decision Tag:</strong> ${request.category || 'Executive Review'}
+                <strong>Status:</strong> ${toStatusLabel(request.status)} • <strong>Risk:</strong> ${request.risk || 'High'} • <strong>Priority:</strong> ${request.priority || 'High'}<br>
+                <strong>Amount:</strong> ${formatCurrency(request.amount)} • <strong>Employee:</strong> ${escapeHtml(request.empName)} (${escapeHtml(request.empId)})
             `;
         }
 
@@ -3023,10 +3143,10 @@
                     if (fallbackRes) res = fallbackRes;
                 }
             } catch (err) {
-                console.log('Network warning during decision fetch, persisting locally:', err.message);
+                console.log('Decision fetch error:', err.message);
             }
 
-            // Update localStorage for local persistence
+            // Update localStorage for local responsiveness
             try {
                 const mdActionStr = action === 'approve' ? 'APPROVED' : 'REJECTED';
                 const newStatusStr = action === 'approve' ? 'Approved by MD' : 'Rejected by MD';
@@ -3068,24 +3188,6 @@
                         approval_stage: newRoleStr,
                         history: historyList
                     };
-                } else {
-                    localReqs.push({
-                        id: numId,
-                        request_id: numId,
-                        mdDecision: mdActionStr,
-                        md_decision: mdActionStr,
-                        mdAction: mdActionStr,
-                        md_action: mdActionStr,
-                        md_comment: note,
-                        md_note: note,
-                        rejection_reason: action === 'reject' ? note : '',
-                        status: newStatusStr,
-                        request_status: newStatusStr,
-                        currentRole: newRoleStr,
-                        current_role: newRoleStr,
-                        approval_stage: newRoleStr,
-                        history: [newHistItem]
-                    });
                 }
                 localStorage.setItem('zyroflow_requests', JSON.stringify(localReqs));
             } catch (e) {
@@ -3095,15 +3197,7 @@
             const successMsg = action === 'approve' ? 'Request approved successfully.' : 'Request rejected successfully.';
             showToast(`✓ ${successMsg}`);
 
-            // Update local decision timeline
-            decisionTimeline.unshift({
-                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                title: `${action === 'approve' ? 'Approved' : 'Rejected'} Request #${numId}`,
-                detail: note || (action === 'approve' ? 'MD approved request.' : 'MD rejected request.')
-            });
-            if (decisionTimeline.length > 6) decisionTimeline.pop();
-
-            // Refresh view so approved/rejected request moves dynamically between tabs
+            // Refresh view
             await loadMdRequests();
 
             const noteInput = document.getElementById('modalDecisionNote');
@@ -3112,26 +3206,6 @@
             if (decNoteInput) decNoteInput.value = '';
 
             return true;
-        }
-
-        function exportBoardReport() {
-            const rows = ['Request ID,Employee,Department,Amount,Status,Risk,Priority,Decision'];
-            sampleRequests.forEach(item => {
-                rows.push(`${item.id},${item.employee},${item.department},${item.amount},${item.status},${item.risk},${item.priority},${item.decision}`);
-            });
-            const blob = new Blob([rows.join('\n')], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = 'zyroflow-executive-board-report.csv';
-            link.click();
-            URL.revokeObjectURL(link.href);
-        }
-
-        function scrollToSection(id) {
-            const target = document.getElementById(id);
-            if (target) {
-                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
         }
 
         function formatCurrency(value) {
@@ -3150,7 +3224,7 @@
             toast.style.border = '1px solid rgba(82,208,255,0.14)';
             toast.style.borderRadius = '18px';
             toast.style.boxShadow = '0 24px 60px rgba(0,0,0,0.25)';
-            toast.style.zIndex = 9999;
+            toast.style.zIndex = 99999;
             document.body.appendChild(toast);
             setTimeout(() => toast.remove(), 3200);
         }
@@ -3203,8 +3277,6 @@
             </div>
         </div>
     </div>
-    <script src="zyro-analytics-charts.js"></script>
-    <script src="zyro-advanced-workflow.js"></script>
     <script src="app.js"></script>
     <script src="notification-center.js"></script>
     <script src="settings-menu.js"></script>
