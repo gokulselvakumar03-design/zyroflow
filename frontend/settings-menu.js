@@ -825,13 +825,23 @@
     console.log('[ZyroSettings] Executing user logout...');
     localStorage.removeItem('authToken');
     localStorage.removeItem('auth_token');
+    localStorage.removeItem('token');
     localStorage.removeItem('currentUser');
     localStorage.removeItem('userRole');
     localStorage.removeItem('user_role');
+    localStorage.removeItem('role');
     localStorage.removeItem('userEmail');
     localStorage.removeItem('email');
     localStorage.removeItem('userId');
     localStorage.removeItem('user_id');
+    localStorage.removeItem('employee_id');
+    localStorage.removeItem('employeeId');
+    localStorage.removeItem('userName');
+    localStorage.removeItem('name');
+    localStorage.removeItem('department');
+    localStorage.removeItem('userDepartment');
+    localStorage.removeItem('zyro_remember_me');
+    localStorage.removeItem('rememberMe');
     sessionStorage.clear();
 
     if (typeof window.logout === 'function') {

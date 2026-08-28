@@ -1319,8 +1319,14 @@ async function onNotificationClick(notifId, requestId) {
 function logout() {
   localStorage.removeItem('authToken');
   localStorage.removeItem('auth_token');
+  localStorage.removeItem('token');
   localStorage.removeItem('currentUser');
   localStorage.removeItem('role');
+  localStorage.removeItem('userRole');
+  localStorage.removeItem('userEmail');
+  localStorage.removeItem('zyro_remember_me');
+  localStorage.removeItem('rememberMe');
+  sessionStorage.clear();
   window.location.href = 'login.html';
 }
 

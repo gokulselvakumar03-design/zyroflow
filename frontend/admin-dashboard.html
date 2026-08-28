@@ -1450,7 +1450,16 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label" for="newUserDepartment">Department</label>
-                        <input id="newUserDepartment" class="form-input" type="text" placeholder="Finance" required />
+                        <select id="newUserDepartment" class="form-select" required>
+                            <option value="">Select Department</option>
+                            <option value="Operations">Operations</option>
+                            <option value="Finance">Finance</option>
+                            <option value="HR">HR</option>
+                            <option value="IT">IT</option>
+                            <option value="Sales">Sales</option>
+                            <option value="Marketing">Marketing</option>
+                            <option value="Production">Production</option>
+                        </select>
                     </div>
                     <div class="form-group" id="passwordGroup">
                         <label class="form-label" for="newUserPassword">Password</label>
@@ -1541,18 +1550,24 @@
                     </div>
 
                     <!-- Workflow Configuration Inputs -->
-                    <div class="form-grid">
-                        <div class="form-group">
+                    <div class="form-grid" id="workflow-form-grid">
+                        <div class="form-group" id="workflow-name-group">
                             <label class="form-label" for="workflow-name">Workflow Name</label>
                             <input id="workflow-name" class="form-input" type="text" placeholder="Expense Approval">
                         </div>
-                        <div class="form-group">
+                        <div class="form-group" id="min-amount-group">
                             <label class="form-label" for="min-amount">Min Amount (₹)</label>
                             <input id="min-amount" class="form-input" type="number" min="0" step="0.01" placeholder="0">
                         </div>
-                        <div class="form-group">
+                        <div class="form-group" id="max-amount-group">
                             <label class="form-label" for="max-amount">Max Amount (₹)</label>
                             <input id="max-amount" class="form-input" type="number" min="0" step="0.01" placeholder="50000">
+                        </div>
+                        <div id="non-financial-notice" class="form-group" style="display:none; grid-column: span 2;">
+                            <label class="form-label">Approval Criteria</label>
+                            <div style="padding:10px 14px; background:rgba(56,189,248,0.08); border:1px dashed rgba(56,189,248,0.3); border-radius:8px; font-size:0.82rem; color:#38bdf8; line-height:1.4;">
+                                ℹ️ <strong>Non-Financial Request:</strong> Amount is not applicable for Leave Requests. The approval order configured below will apply to all Leave Requests.
+                            </div>
                         </div>
                     </div>
 
@@ -1898,7 +1913,12 @@
             document.getElementById('newUserEmail').value = user.email || '';
             document.getElementById('newUserPhone').value = user.phone || '';
             document.getElementById('newUserRole').value = user.role || '';
-            document.getElementById('newUserDepartment').value = user.department || '';
+            const deptSelect = document.getElementById('newUserDepartment');
+            if (deptSelect) {
+                const userDept = String(user.department || '').trim();
+                const matchedOption = Array.from(deptSelect.options).find(opt => opt.value.toLowerCase() === userDept.toLowerCase());
+                deptSelect.value = matchedOption ? matchedOption.value : userDept;
+            }
 
             const message = document.getElementById('addUserMessage');
             if (message) {
@@ -2569,6 +2589,9 @@
             const banner = document.getElementById('admin-type-banner');
             const preview = document.getElementById('admin-fields-preview');
             const nameInput = document.getElementById('workflow-name');
+            const minGroup = document.getElementById('min-amount-group');
+            const maxGroup = document.getElementById('max-amount-group');
+            const nonFinNotice = document.getElementById('non-financial-notice');
 
             if (!typeVal) {
                 if (placeholder) placeholder.style.display = 'block';
@@ -2578,6 +2601,13 @@
 
             if (placeholder) placeholder.style.display = 'none';
             if (panel) panel.style.display = 'block';
+
+            const cleanType = String(typeVal).trim().toLowerCase();
+            const isLeave = cleanType === 'leave request' || cleanType === 'leave';
+
+            if (minGroup) minGroup.style.display = isLeave ? 'none' : 'block';
+            if (maxGroup) maxGroup.style.display = isLeave ? 'none' : 'block';
+            if (nonFinNotice) nonFinNotice.style.display = isLeave ? 'block' : 'none';
 
             const config = ADMIN_REQUEST_CONFIG[typeVal];
             if (config) {
@@ -2610,17 +2640,32 @@
         async function saveWorkflow() {
             const name = document.getElementById('workflow-name').value.trim();
             const type = document.getElementById('workflow-type').value;
-            const minAmount = Number(document.getElementById('min-amount').value);
-            const maxAmount = Number(document.getElementById('max-amount').value);
+            const cleanType = String(type || '').trim().toLowerCase();
+            const isLeave = cleanType === 'leave request' || cleanType === 'leave';
 
-            if (!name || !type || Number.isNaN(minAmount) || Number.isNaN(maxAmount)) {
-                showWorkflowMessage('Please fill all workflow fields.', 'err');
-                return;
-            }
+            let minAmount = 0;
+            let maxAmount = 0;
 
-            if (minAmount < 0 || maxAmount < 0 || maxAmount < minAmount) {
-                showWorkflowMessage('Amount range is invalid.', 'err');
-                return;
+            if (!isLeave) {
+                const minVal = document.getElementById('min-amount').value;
+                const maxVal = document.getElementById('max-amount').value;
+                minAmount = Number(minVal);
+                maxAmount = Number(maxVal);
+
+                if (!name || !type || minVal === '' || maxVal === '' || Number.isNaN(minAmount) || Number.isNaN(maxAmount)) {
+                    showWorkflowMessage('Please fill all workflow fields.', 'err');
+                    return;
+                }
+
+                if (minAmount < 0 || maxAmount < 0 || maxAmount < minAmount) {
+                    showWorkflowMessage('Amount range is invalid.', 'err');
+                    return;
+                }
+            } else {
+                if (!name || !type) {
+                    showWorkflowMessage('Please specify a workflow name.', 'err');
+                    return;
+                }
             }
 
             if (!workflowLevels.length) {
@@ -2709,15 +2754,23 @@
                 return;
             }
 
-            container.innerHTML = workflows.map((wf, index) => `
-                <div class="template-card" style="position: relative;">
-                    <button type="button" class="btn-delete-wf" onclick="deleteWorkflow(${index})" style="position: absolute; top: 12px; right: 12px; background: rgba(255,107,107,0.15); border: 1px solid rgba(255,107,107,0.3); color: #FF6B6B; border-radius: 6px; padding: 4px 10px; cursor: pointer; font-size: 12px; font-weight: 600;">Delete</button>
-                    <div class="template-name" style="padding-right: 60px;">${escapeHtml(wf.name)}</div>
-                    <div class="template-range">Type: ${escapeHtml(getRequestTypeLabel(wf.type))}</div>
-                    <div class="template-range">${formatCurrency(wf.minAmount)} - ${formatCurrency(wf.maxAmount)}</div>
-                    <div class="flow-chain">${wf.levels.map(escapeHtml).join(' -> ')}</div>
-                </div>
-            `).join('');
+            container.innerHTML = workflows.map((wf, index) => {
+                const wfTypeClean = String(wf.type || '').trim().toLowerCase();
+                const isLeave = wfTypeClean === 'leave request' || wfTypeClean === 'leave';
+                const rangeDisplay = isLeave
+                    ? '<span style="color:#38bdf8; font-weight:600;">📋 All Leave Requests (Non-Financial)</span>'
+                    : `${formatCurrency(wf.minAmount)} - ${formatCurrency(wf.maxAmount)}`;
+
+                return `
+                    <div class="template-card" style="position: relative;">
+                        <button type="button" class="btn-delete-wf" onclick="deleteWorkflow(${index})" style="position: absolute; top: 12px; right: 12px; background: rgba(255,107,107,0.15); border: 1px solid rgba(255,107,107,0.3); color: #FF6B6B; border-radius: 6px; padding: 4px 10px; cursor: pointer; font-size: 12px; font-weight: 600;">Delete</button>
+                        <div class="template-name" style="padding-right: 60px;">${escapeHtml(wf.name)}</div>
+                        <div class="template-range">Type: ${escapeHtml(getRequestTypeLabel(wf.type))}</div>
+                        <div class="template-range">${rangeDisplay}</div>
+                        <div class="flow-chain">${wf.levels.map(escapeHtml).join(' -> ')}</div>
+                    </div>
+                `;
+            }).join('');
         }
 
         function normalizeStatus(status, request) {
@@ -3415,8 +3468,13 @@
                             const escalatedTag = req.escalated ? ' | Escalated' : '';
                             const workflowStr = formatWorkflowChain(req.workflow);
 
+                            const isNonFinancial = (req.type === 'Leave Request') || (String(req.title || '').toLowerCase().includes('leave')) || (Number(req.amount) === 0 && String(req.type || '').toLowerCase() === 'leave request');
+                            const amountDisplay = isNonFinancial ? '—' : formatCurrency(req.amount || 0);
+
                             let lastActionText = 'No action yet';
-                            if (last) {
+                            if (statusCategory === 'cancelled') {
+                                lastActionText = 'Cancelled by Requester';
+                            } else if (last) {
                                 const actor = escapeHtml(last.role || last.user || 'System');
                                 const act = escapeHtml(String(last.status || last.action || '').toLowerCase());
                                 lastActionText = `${actor} ${act}`;
@@ -3429,14 +3487,19 @@
                                 lastActionText = 'System escalated to CFO';
                             }
 
+                            let statusBadgeHtml = `<span class="badge badge-${statusCategory}">${statusCategory.toUpperCase()}</span>`;
+                            if (statusCategory === 'cancelled') {
+                                statusBadgeHtml = `<span class="badge" style="background: rgba(148, 163, 184, 0.18); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.35); font-weight: 700;">CANCELLED</span>`;
+                            }
+
                             return `
                                 <tr>
                                     <td><strong>${escapeHtml(req.title || req.type || '-')}</strong></td>
-                                    <td>${formatCurrency(req.amount || 0)}</td>
+                                    <td>${amountDisplay}</td>
                                     <td>${workflowStr}</td>
                                     <td><span class="badge" style="background: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; font-weight: 700;">${escapeHtml(current)}</span></td>
                                     <td>
-                                        <span class="badge badge-${statusCategory}">${statusCategory.toUpperCase()}</span>
+                                        ${statusBadgeHtml}
                                         ${overdueTag ? ` <span class="overdue" style="color: #d97706; font-size: 11px; font-weight: 700;">⚠ Overdue</span>` : ''}
                                         ${escalatedTag ? ` <span class="escalated" style="color: #ef4444; font-size: 11px; font-weight: 700;">🚨 Escalated</span>` : ''}
                                     </td>
@@ -3527,9 +3590,15 @@
 
         function logout() {
             localStorage.removeItem('authToken');
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('token');
             localStorage.removeItem('role');
             localStorage.removeItem('userRole');
             localStorage.removeItem('userEmail');
+            localStorage.removeItem('currentUser');
+            localStorage.removeItem('zyro_remember_me');
+            localStorage.removeItem('rememberMe');
+            sessionStorage.clear();
             window.location.href = 'login.html';
         }
 

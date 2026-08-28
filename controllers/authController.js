@@ -2,15 +2,18 @@ const pool = require('../config/db');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const dotenv = require('dotenv');
+const crypto = require('crypto');
+const { sendPasswordResetEmail } = require('../utils/emailService');
 
 dotenv.config();
 
 exports.login = async (req, res, next) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, rememberMe } = req.body;
     console.log('\n[AUTH] ========== LOGIN ATTEMPT START ==========');
     console.log('[AUTH] Email received:', email);
     console.log('[AUTH] Password received:', password ? '***' : 'MISSING');
+    console.log('[AUTH] Remember Me:', Boolean(rememberMe));
 
     if (!email || !password) {
       console.log('[AUTH] ❌ Missing email or password');
@@ -59,13 +62,40 @@ exports.login = async (req, res, next) => {
     console.log('[AUTH] Detected role:', user.role);
 
     const payload = { id: user.id, role: user.role, name: user.name || null, email: user.email };
-    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN || '1h' });
+    const tokenExpiry = rememberMe ? '30d' : (process.env.JWT_EXPIRES_IN || '24h');
+    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: tokenExpiry });
 
     console.log('[AUTH] ✓ JWT token created');
     console.log('[AUTH] Returning to client - role:', user.role, 'userId:', user.id);
     console.log('[AUTH] ========== LOGIN ATTEMPT END (SUCCESS) ==========\n');
 
-    res.json({ token, role: user.role, userId: user.id, employee_id: user.employee_id || '', employeeId: user.employee_id || '' });
+    const isAdmin = String(user.role || '').toLowerCase() === 'admin';
+    const hasRecoveryEmail =
+      isAdmin ||
+      Boolean(user.recovery_email && String(user.recovery_email).trim().length > 0);
+
+    res.json({
+      token,
+      role: user.role,
+      userId: user.id,
+      employee_id: user.employee_id || '',
+      employeeId: user.employee_id || '',
+      name: user.name || '',
+      email: user.email || '',
+      department: user.department || '',
+      hasRecoveryEmail,
+      user: {
+        id: user.id,
+        employee_id: user.employee_id || '',
+        name: user.name || '',
+        email: user.email || '',
+        role: user.role || '',
+        department: user.department || '',
+        phone: user.phone || '',
+        status: user.status || 'ACTIVE',
+        hasRecoveryEmail
+      }
+    });
   } catch (err) {
     console.log('[AUTH] ❌ Exception occurred:', err.message);
     console.log('[AUTH] ========== LOGIN ATTEMPT END (ERROR) ==========\n');
@@ -304,4 +334,283 @@ exports.deactivateUser = async (req, res, next) => {
     next(err);
   }
 };
+
+exports.saveRecoveryEmail = async (req, res, next) => {
+    try {
+        const { userId, recoveryEmail } = req.body;
+
+        if (!userId || !recoveryEmail) {
+            return res.status(400).json({
+                success: false,
+                message: 'User ID and recovery email are required.'
+            });
+        }
+
+        const email = String(recoveryEmail).trim().toLowerCase();
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+        if (!emailRegex.test(email)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Please enter a valid recovery email address.'
+            });
+        }
+
+        const [result] = await pool.execute(
+            'UPDATE users SET recovery_email = ? WHERE id = ?',
+            [email, userId]
+        );
+
+        if (!result || result.affectedRows === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found.'
+            });
+        }
+
+        return res.json({
+            success: true,
+            message: 'Recovery email saved successfully.'
+        });
+
+    } catch (err) {
+        console.error('[AUTH] Recovery email save error:', err);
+        next(err);
+    }
+};
+
+exports.setRecoveryEmail = exports.saveRecoveryEmail;
+
+/**
+ * Initiates the forgot password workflow:
+ * 1. Takes login identifier (login email or employee ID).
+ * 2. Looks up the user in the database.
+ * 3. If non-admin and recovery_email exists: generates secure random token, stores SHA-256 hash in DB with 30-min expiry, sends reset email to recovery_email.
+ * 4. Always returns the same generic message to prevent account enumeration.
+ */
+exports.forgotPassword = async (req, res, next) => {
+  try {
+    const { email, loginId, loginIdentifier } = req.body || {};
+    const inputIdentifier = String(loginIdentifier || email || loginId || '').trim();
+
+    const genericMessage = 'If the account exists and has a recovery email configured, a password reset link has been sent.';
+
+    if (!inputIdentifier) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide your login email address.'
+      });
+    }
+
+    // Lookup user by login email or employee_id
+    const [rows] = await pool.execute(
+      'SELECT id, name, email, employee_id, role, recovery_email, status FROM users WHERE LOWER(TRIM(email)) = LOWER(?) OR LOWER(TRIM(employee_id)) = LOWER(?) LIMIT 1',
+      [inputIdentifier, inputIdentifier]
+    );
+
+    if (!rows || rows.length === 0) {
+      // User not found -> generic response
+      return res.json({
+        success: true,
+        message: genericMessage
+      });
+    }
+
+    const user = rows[0];
+    const isAdmin = String(user.role || '').toLowerCase() === 'admin';
+    const recoveryEmail = (user.recovery_email || '').trim();
+
+    // If Admin or no recovery email -> generic response (no email sent)
+    if (isAdmin || !recoveryEmail) {
+      return res.json({
+        success: true,
+        message: genericMessage
+      });
+    }
+
+    // Generate 32 bytes cryptographically secure random token
+    const rawToken = crypto.randomBytes(32).toString('hex');
+    const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
+
+    // 30 minutes expiration
+    const expiresAt = new Date(Date.now() + 30 * 60 * 1000);
+
+    // Save token hash to database
+    await pool.execute(
+      'INSERT INTO password_reset_tokens (user_id, token_hash, expires_at) VALUES (?, ?, ?)',
+      [user.id, tokenHash, expiresAt]
+    );
+
+    // Send reset email to the stored recovery email
+    await sendPasswordResetEmail(recoveryEmail, rawToken);
+
+    return res.json({
+      success: true,
+      message: genericMessage
+    });
+
+  } catch (err) {
+    console.error('[AUTH] Forgot password error:', err);
+    next(err);
+  }
+};
+
+/**
+ * Completes the reset password workflow:
+ * 1. Validates token hash and checks used_at / expires_at.
+ * 2. Hashes the new password using bcrypt (cost 10).
+ * 3. Updates users.password and marks token as used.
+ */
+exports.resetPassword = async (req, res, next) => {
+  try {
+    const { token, newPassword, confirmPassword } = req.body || {};
+
+    if (!token || !String(token).trim()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Reset token is required.'
+      });
+    }
+
+    if (!newPassword || !String(newPassword).trim()) {
+      return res.status(400).json({
+        success: false,
+        message: 'New password is required.'
+      });
+    }
+
+    if (confirmPassword !== undefined && String(newPassword) !== String(confirmPassword)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Passwords do not match.'
+      });
+    }
+
+    const cleanToken = String(token).trim();
+    const tokenHash = crypto.createHash('sha256').update(cleanToken).digest('hex');
+
+    const [rows] = await pool.execute(
+      'SELECT id, user_id, expires_at, used_at FROM password_reset_tokens WHERE token_hash = ? LIMIT 1',
+      [tokenHash]
+    );
+
+    if (!rows || rows.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid or expired password reset link.'
+      });
+    }
+
+    const record = rows[0];
+
+    if (record.used_at) {
+      return res.status(400).json({
+        success: false,
+        message: 'This password reset link has already been used.'
+      });
+    }
+
+    const now = new Date();
+    const expiresAt = new Date(record.expires_at);
+
+    if (expiresAt < now) {
+      return res.status(400).json({
+        success: false,
+        message: 'This password reset link has expired. Please request a new one.'
+      });
+    }
+
+    // Verify user exists
+    const [userRows] = await pool.execute(
+      'SELECT id FROM users WHERE id = ? LIMIT 1',
+      [record.user_id]
+    );
+
+    if (!userRows || userRows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'User account not found.'
+      });
+    }
+
+    // Hash the new password with bcrypt
+    const hashedPassword = await bcrypt.hash(String(newPassword), 10);
+
+    // Update user's password in users table
+    await pool.execute(
+      'UPDATE users SET password = ? WHERE id = ?',
+      [hashedPassword, record.user_id]
+    );
+
+    // Mark the reset token as used
+    await pool.execute(
+      'UPDATE password_reset_tokens SET used_at = NOW() WHERE id = ?',
+      [record.id]
+    );
+
+    return res.json({
+      success: true,
+      message: 'Password reset successful. You can now log in.'
+    });
+
+  } catch (err) {
+    console.error('[AUTH] Reset password error:', err);
+    next(err);
+  }
+};
+
+/**
+ * Validates the currently active JWT token and returns the current user profile.
+ * Used for session verification during Remember Me automatic login.
+ */
+exports.verifyToken = async (req, res, next) => {
+  try {
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ success: false, message: 'Authentication required' });
+    }
+
+    const [rows] = await pool.execute(
+      'SELECT id, employee_id, name, email, role, department, phone, profile_image, status, recovery_email FROM users WHERE id = ? LIMIT 1',
+      [req.user.id]
+    );
+
+    if (!rows || rows.length === 0) {
+      return res.status(401).json({ success: false, message: 'User account not found' });
+    }
+
+    const user = rows[0];
+
+    if (user.status && user.status.toUpperCase() === 'INACTIVE') {
+      return res.status(403).json({ success: false, message: 'Account is deactivated' });
+    }
+
+    const isAdmin = String(user.role || '').toLowerCase() === 'admin';
+    const hasRecoveryEmail =
+      isAdmin ||
+      Boolean(user.recovery_email && String(user.recovery_email).trim().length > 0);
+
+    return res.json({
+      success: true,
+      user: {
+        id: user.id,
+        employee_id: user.employee_id || '',
+        employeeId: user.employee_id || '',
+        name: user.name || '',
+        email: user.email || '',
+        role: user.role || '',
+        department: user.department || '',
+        phone: user.phone || '',
+        status: user.status || 'ACTIVE',
+        hasRecoveryEmail
+      }
+    });
+
+  } catch (err) {
+    console.error('[AUTH] Verify token error:', err);
+    next(err);
+  }
+};
+
+
 

@@ -224,14 +224,13 @@ const ZyroWorkflow = (function () {
 
           <select id="zyro-filter-dept" class="zyro-filter-select">
             <option value="ALL">All Departments</option>
-            <option value="Finance">Finance</option>
-            <option value="Engineering">Engineering</option>
-            <option value="HR">HR</option>
-            <option value="Sales">Sales</option>
             <option value="Operations">Operations</option>
-            <option value="Accounts">Accounts</option>
+            <option value="Finance">Finance</option>
+            <option value="HR">HR</option>
             <option value="IT">IT</option>
+            <option value="Sales">Sales</option>
             <option value="Marketing">Marketing</option>
+            <option value="Production">Production</option>
           </select>
 
           <select id="zyro-filter-type" class="zyro-filter-select">

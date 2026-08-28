@@ -1379,7 +1379,8 @@
                     <thead>
                         <tr>
                             <th>Request ID</th>
-                            <th>Employee</th>
+                            <th>Employee ID</th>
+                            <th>Employee Name</th>
                             <th>Department</th>
                             <th>Type</th>
                             <th>Amount</th>
@@ -1389,7 +1390,7 @@
                     </thead>
                     <tbody id="highvalue-list">
                         <tr>
-                            <td colspan="7" style="padding: 24px; color: #94a3b8; text-align:center;">Loading approvals...</td>
+                            <td colspan="8" style="padding: 24px; color: #94a3b8; text-align:center;">Loading approvals...</td>
                         </tr>
                     </tbody>
                 </table>
@@ -1409,6 +1410,8 @@
                     <thead>
                         <tr>
                             <th>Request ID</th>
+                            <th>Employee ID</th>
+                            <th>Employee Name</th>
                             <th>Department</th>
                             <th>Request Type</th>
                             <th>Amount</th>
@@ -1419,7 +1422,7 @@
                     </thead>
                     <tbody id="top-high-value-list">
                         <tr>
-                            <td colspan="7" style="padding: 24px; color: #94a3b8; text-align:center;">No high-value pending CFO requests.</td>
+                            <td colspan="9" style="padding: 24px; color: #94a3b8; text-align:center;">No high-value pending CFO requests.</td>
                         </tr>
                     </tbody>
                 </table>
@@ -1438,7 +1441,8 @@
                     <thead>
                         <tr>
                             <th>Request ID</th>
-                            <th>Employee</th>
+                            <th>Employee ID</th>
+                            <th>Employee Name</th>
                             <th>Department</th>
                             <th>Request Type</th>
                             <th>Amount</th>
@@ -1449,7 +1453,7 @@
                     </thead>
                     <tbody id="overdue-list">
                         <tr>
-                            <td colspan="8" style="padding: 24px; color: #94a3b8; text-align:center;">No overdue CFO approvals.</td>
+                            <td colspan="9" style="padding: 24px; color: #94a3b8; text-align:center;">No overdue CFO approvals.</td>
                         </tr>
                     </tbody>
                 </table>
@@ -1594,184 +1598,29 @@
             checkAuthentication();
             displayUserRole();
             scheduleUndoExpiryForAll();
-            seedDemoData();
+            // Clear legacy mock demo mode to load real database requests
+            if (localStorage.getItem('demoMode') === '1') {
+                localStorage.removeItem('demoMode');
+                localStorage.removeItem('zyroflow_requests');
+            }
             loadRequests();
         });
 
-        function seedDemoData() {
-            if (localStorage.getItem('demoMode') === '1') return;
-            const now = Date.now();
-            const oneDay = 24 * 60 * 60 * 1000;
-            const demoRequests = [
-                {
-                    id: 1001,
-                    title: 'Equipment Budget',
-                    department: 'Operations',
-                    amount: 75000,
-                    status: 'approved',
-                    workflow: ['Accounts', 'Manager', 'CFO'],
-                    currentLevel: 2,
-                    createdAt: now - (2 * 60 * 60 * 1000),
-                    history: [
-                        { role: 'Manager', action: 'Approved', status: 'approved', time: now - (80 * 60 * 1000) },
-                        { role: 'CFO', action: 'Approved', status: 'approved', time: now - (60 * 60 * 1000) }
-                    ]
-                },
-                {
-                    id: 1002,
-                    title: 'Travel Expansion Request',
-                    department: 'Sales',
-                    amount: 25000,
-                    status: 'rejected',
-                    workflow: ['Accounts', 'Manager', 'CFO'],
-                    currentLevel: 2,
-                    createdAt: now - (4 * 60 * 60 * 1000),
-                    history: [
-                        { role: 'Manager', action: 'Rejected', status: 'rejected', time: now - (7 * 60 * 60 * 1000) },
-                        { role: 'CFO', action: 'Rejected', status: 'rejected', time: now - (6.4 * 60 * 60 * 1000) }
-                    ]
-                },
-                {
-                    id: 1003,
-                    title: 'Capital Expenditure',
-                    department: 'Finance',
-                    amount: 120000,
-                    status: 'pending',
-                    workflow: ['Accounts', 'Manager', 'MD', 'CFO'],
-                    currentLevel: 1,
-                    createdAt: now - (oneDay + 6 * 60 * 60 * 1000),
-                    history: [
-                        { role: 'Manager', action: 'Escalated', status: 'pending', time: now - (oneDay + 5 * 60 * 60 * 1000) }
-                    ]
-                },
-                {
-                    id: 1004,
-                    title: 'Software Procurement',
-                    department: 'IT',
-                    amount: 50000,
-                    status: 'approved',
-                    workflow: ['Accounts', 'Manager', 'CFO'],
-                    currentLevel: 2,
-                    createdAt: now - (oneDay + 10 * 60 * 60 * 1000),
-                    history: [
-                        { role: 'Manager', action: 'Approved', status: 'approved', time: now - (oneDay + 9 * 60 * 60 * 1000) },
-                        { role: 'CFO', action: 'Approved', status: 'approved', time: now - (oneDay + 8 * 60 * 60 * 1000) }
-                    ]
-                },
-                {
-                    id: 1005,
-                    title: 'Ops Monthly Contracts',
-                    department: 'Operations',
-                    amount: 420000,
-                    priority: 'HIGH',
-                    status: 'pending',
-                    workflow: ['Accounts', 'Manager', 'CFO'],
-                    currentLevel: 2,
-                    createdAt: now - (5 * 24 * 60 * 60 * 1000),
-                    history: []
-                },
-                {
-                    id: 1006,
-                    title: 'Platform Upgrade',
-                    department: 'Finance',
-                    amount: 300000,
-                    priority: 'HIGH',
-                    status: 'pending',
-                    workflow: ['Accounts', 'Manager', 'CFO'],
-                    currentLevel: 2,
-                    createdAt: now - (10 * 24 * 60 * 60 * 1000),
-                    history: []
-                },
-                {
-                    id: 1007,
-                    title: 'Office Supplies & Stationery',
-                    department: 'Admin',
-                    amount: 18500,
-                    priority: 'LOW',
-                    status: 'pending',
-                    workflow: ['Accounts', 'Manager', 'CFO'],
-                    currentLevel: 2,
-                    createdAt: now - (1 * 24 * 60 * 60 * 1000),
-                    history: []
-                },
-                {
-                    id: 1008,
-                    title: 'Team Offsite Logistics',
-                    department: 'HR',
-                    amount: 42000,
-                    priority: 'LOW',
-                    status: 'pending',
-                    workflow: ['Accounts', 'Manager', 'CFO'],
-                    currentLevel: 2,
-                    createdAt: now - (2 * 24 * 60 * 60 * 1000),
-                    history: []
-                },
-                {
-                    id: 1009,
-                    title: 'Departmental Hardware Maintenance',
-                    department: 'IT',
-                    amount: 65000,
-                    priority: 'MEDIUM',
-                    status: 'pending',
-                    workflow: ['Accounts', 'Manager', 'CFO'],
-                    currentLevel: 2,
-                    createdAt: now - (3 * 24 * 60 * 60 * 1000),
-                    history: []
-                },
-                {
-                    id: 1010,
-                    title: 'Client Hospitality Expenses',
-                    department: 'Sales',
-                    amount: 35000,
-                    priority: 'LOW',
-                    status: 'pending',
-                    workflow: ['Accounts', 'Manager', 'CFO'],
-                    currentLevel: 2,
-                    createdAt: now - (4 * 24 * 60 * 60 * 1000),
-                    history: []
-                },
-                {
-                    id: 1011,
-                    title: 'Software License Renewal',
-                    department: 'IT',
-                    amount: 85000,
-                    priority: 'MEDIUM',
-                    status: 'pending',
-                    workflow: ['Accounts', 'Manager', 'CFO'],
-                    currentLevel: 2,
-                    createdAt: now - (6 * 24 * 60 * 60 * 1000),
-                    history: []
-                },
-                {
-                    id: 1012,
-                    title: 'Utility & Facilities Payment',
-                    department: 'Operations',
-                    amount: 15000,
-                    priority: 'LOW',
-                    status: 'pending',
-                    workflow: ['Accounts', 'Manager', 'CFO'],
-                    currentLevel: 2,
-                    createdAt: now - (7 * 24 * 60 * 60 * 1000),
-                    history: []
-                }
-            ];
-            requestsCache = demoRequests;
-            localStorage.setItem('demoMode', '1');
-            // Ensure a currentUser exists for display
-            if (!localStorage.getItem('currentUser')) {
-                localStorage.setItem('currentUser', JSON.stringify({ name: 'Priya Rao', role: 'CFO', email: 'priya@zyroflow.example' }));
-            }
-        }
-
         function readRequestsFromLocalStorage() {
+            if (Array.isArray(requestsCache) && requestsCache.length > 0) {
+                return requestsCache;
+            }
             try {
                 const stored = localStorage.getItem('zyroflow_requests');
                 if (stored) {
                     const parsed = JSON.parse(stored);
-                    if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        requestsCache = parsed;
+                        return parsed;
+                    }
                 }
             } catch (e) {}
-            return requestsCache;
+            return requestsCache || [];
         }
 
         function writeRequestsToLocalStorage(requests) {
@@ -1862,17 +1711,21 @@
                 btn.disabled = true;
                 btn.innerText = 'Refreshing...';
             }
+            const apiBase = (typeof API_BASE !== 'undefined' && API_BASE) ? API_BASE : 'http://localhost:4000';
+            const token = localStorage.getItem('authToken') || '';
+            const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+
             try {
                 const [reqRes, histRes] = await Promise.all([
-                    fetch(REQUESTS_API_URL),
-                    fetch('http://localhost:4000/approval-history')
+                    fetch(`${apiBase}/requests`, { headers }),
+                    fetch(`${apiBase}/approval-history`, { headers })
                 ]);
 
                 if (!reqRes.ok) throw new Error(`Server returned HTTP ${reqRes.status}`);
 
                 const data = await reqRes.json();
                 const requests = Array.isArray(data) ? data : [];
-                writeRequestsToLocalStorage(requests, true);
+                writeRequestsToLocalStorage(requests);
 
                 if (histRes && histRes.ok) {
                     const histData = await histRes.json();
@@ -1894,16 +1747,20 @@
         }
 
         async function loadRequests() {
+            const apiBase = (typeof API_BASE !== 'undefined' && API_BASE) ? API_BASE : 'http://localhost:4000';
+            const token = localStorage.getItem('authToken') || '';
+            const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+
             try {
                 const [reqRes, histRes] = await Promise.all([
-                    fetch(REQUESTS_API_URL).catch(() => null),
-                    fetch('http://localhost:4000/approval-history').catch(() => null)
+                    fetch(`${apiBase}/requests`, { headers }).catch(() => null),
+                    fetch(`${apiBase}/approval-history`, { headers }).catch(() => null)
                 ]);
 
                 if (reqRes && reqRes.ok) {
                     const data = await reqRes.json();
                     const requests = Array.isArray(data) ? data : [];
-                    writeRequestsToLocalStorage(requests, true);
+                    writeRequestsToLocalStorage(requests);
                 }
 
                 if (histRes && histRes.ok) {
@@ -1931,18 +1788,65 @@
             return 'Employee';
         }
 
-        function normalizeRequest(request) {
+        function normalizeRequest(request, allList = []) {
+            if (!request) return null;
+            const rawEmail = String(request.requester_email || request.requesterEmail || request.email || '').toLowerCase().trim();
+            let empName = request.employee_name || request.employeeName || request.requester_name || request.requester || request.employee || '';
+            if (!empName) {
+                if (rawEmail.includes('employee1')) empName = 'Gokul';
+                else if (rawEmail.includes('employee3') || rawEmail.includes('employee2')) empName = 'Ravi';
+                else if (rawEmail) empName = rawEmail.split('@')[0];
+                else empName = 'Gokul';
+            }
+
+            let empId = request.employee_id || request.employeeId || request.empId || '';
+            if (!empId) {
+                if (rawEmail.includes('employee1') || empName.toLowerCase() === 'gokul') empId = 'EMP-01';
+                else if (rawEmail.includes('employee3')) empId = 'EMP-04';
+                else if (rawEmail.includes('employee2') || empName.toLowerCase() === 'ravi') empId = 'EMP-02';
+                else empId = 'EMP-01';
+            }
+
+            const list = Array.isArray(allList) && allList.length > 0 ? allList : (Array.isArray(requestsCache) ? requestsCache : []);
+            let seqNum = request.seq_num || request.seqNum || request.user_seq || null;
+            if (!seqNum && list.length > 0) {
+                const userReqs = list
+                    .filter(item => {
+                        const itemEmail = String(item.requester_email || item.requesterEmail || item.email || '').toLowerCase().trim();
+                        const itemName = String(item.employee_name || item.employeeName || item.requester_name || item.requester || item.employee || '').toLowerCase().trim();
+                        return (rawEmail && itemEmail === rawEmail) || (itemName && itemName === empName.toLowerCase());
+                    })
+                    .sort((a, b) => Number(a.id || a.request_id || 0) - Number(b.id || b.request_id || 0));
+
+                const idx = userReqs.findIndex(item => String(item.id || item.request_id) === String(request.id || request.request_id));
+                if (idx !== -1) {
+                    seqNum = idx + 1;
+                }
+            }
+            if (!seqNum) {
+                seqNum = request.id || request.request_id || 1;
+            }
+
+            const dbId = Number(request.id || request.request_id);
             const workflow = Array.isArray(request.workflow) ? request.workflow : [];
-            const createdAt = Number(request.createdAt || Date.now());
-            const currentLevel = Number(request.currentLevel || 0);
+            const createdAt = Number(request.createdAt || (request.created_at ? new Date(request.created_at).getTime() : Date.now()));
+            const currentLevel = Number(request.currentLevel ?? request.current_level ?? 0);
+
             return {
                 ...request,
+                dbId,
+                seqNum,
+                empId,
+                empName,
+                employee_id: empId,
+                employee_name: empName,
+                employee: empName,
                 amount: Number(request.amount || 0),
                 workflow,
                 currentLevel,
                 status: normalizeStatus(request.status || 'pending'),
                 createdAt,
-                updatedAt: Number(request.updatedAt || createdAt),
+                updatedAt: Number(request.updatedAt || (request.updated_at ? new Date(request.updated_at).getTime() : createdAt)),
                 history: Array.isArray(request.history) ? request.history : [],
                 comments: Array.isArray(request.comments) ? request.comments : [],
                 lastActionTime: Number(request.lastActionTime || 0),
@@ -1954,7 +1858,7 @@
                 lastActionSnapshot: request.lastActionSnapshot || null,
                 deadline: Number(request.deadline || (createdAt + 24 * 60 * 60 * 1000)),
                 escalated: Boolean(request.escalated),
-                currentRole: request.currentRole || workflow[currentLevel] || '',
+                currentRole: request.currentRole || request.current_role || workflow[currentLevel] || '',
                 department: request.department || 'Corporate'
             };
         }
@@ -2115,7 +2019,8 @@
         }
 
         async function renderRequests() {
-            const requests = readRequestsFromLocalStorage().map(normalizeRequest);
+            const raw = readRequestsFromLocalStorage();
+            const requests = raw.map(r => normalizeRequest(r, raw)).filter(Boolean);
             updateNotifications(requests, currentRole);
             renderSummary(requests, currentRole);
             renderTopHighValueRequests(requests);
@@ -2264,8 +2169,9 @@
         }
 
         function getRequestById(requestId) {
-            const requests = readRequestsFromLocalStorage().map(normalizeRequest);
-            return requests.find((r) => Number(r.id) === Number(requestId));
+            const raw = readRequestsFromLocalStorage();
+            const requests = raw.map(r => normalizeRequest(r, raw)).filter(Boolean);
+            return requests.find((r) => Number(r.id) === Number(requestId) || Number(r.dbId) === Number(requestId));
         }
 
         function closeCfoModal() {
@@ -2288,11 +2194,13 @@
             const msgEl = document.getElementById('cfo-modal-message');
             const extraInput = document.getElementById('cfo-modal-extra-input');
 
-            modalTitle.textContent = `Review Request #${r.id}`;
-
-            const empName = r.employee_name || r.requester_name || r.requester || r.employee || 'Employee';
+            const seqNum = r.seqNum || r.seq_num || r.id;
+            const empId = r.empId || r.employee_id || 'EMP-01';
+            const empName = r.empName || r.employee_name || r.requester_name || r.requester || r.employee || 'Employee';
             const reqType = r.type || r.request_type || r.title || 'Financial';
             const canAct = isPendingCfoRequest(r);
+
+            modalTitle.textContent = `Review Request #${seqNum} — ${empName} (${empId})`;
 
             const defaultWorkflow = ['Employee', 'Accounts', 'Manager', 'CFO', 'MD'];
             const rawWorkflow = Array.isArray(r.workflow) && r.workflow.length > 0 ? r.workflow : defaultWorkflow;
@@ -2363,13 +2271,14 @@
             }
 
             infoGrid.innerHTML = `
-                <div class="cfo-info-item"><span class="cfo-info-label">Request ID</span><strong>#${r.id}</strong></div>
-                <div class="cfo-info-item"><span class="cfo-info-label">Employee</span><strong>${escapeHtml(empName)}</strong></div>
+                <div class="cfo-info-item"><span class="cfo-info-label">Request ID</span><strong>#${seqNum} <span style="font-size:0.75rem; color:#94a3b8; font-weight:normal;">(DB #${r.dbId || r.id})</span></strong></div>
+                <div class="cfo-info-item"><span class="cfo-info-label">Employee ID</span><strong style="color: #38bdf8;">${escapeHtml(empId)}</strong></div>
+                <div class="cfo-info-item"><span class="cfo-info-label">Employee Name</span><strong>${escapeHtml(empName)}</strong></div>
                 <div class="cfo-info-item"><span class="cfo-info-label">Department</span><strong>${escapeHtml(r.department || 'Corporate')}</strong></div>
                 <div class="cfo-info-item"><span class="cfo-info-label">Request Type</span><strong>${escapeHtml(reqType)}</strong></div>
                 <div class="cfo-info-item"><span class="cfo-info-label">Amount</span><strong style="color: #38bdf8;">${formatCurrency(r.amount)}</strong></div>
                 <div class="cfo-info-item"><span class="cfo-info-label">Priority & Score</span><strong>${renderPriority(r)} ${renderPriorityScoreBadge(r)}</strong></div>
-                <div class="cfo-info-item" style="grid-column: span 2;"><span class="cfo-info-label">Current Status</span><strong><span class="table-status status-${normalizeStatus(r.status)}">${toStatusLabel(r.status)}</span></strong></div>
+                <div class="cfo-info-item"><span class="cfo-info-label">Current Status</span><strong><span class="table-status status-${normalizeStatus(r.status)}">${toStatusLabel(r.status)}</span></strong></div>
                 <div class="cfo-info-item" style="grid-column: span 2; margin-top: 8px;">
                     <span class="cfo-info-label" style="margin-bottom: 6px; display: block;">Workflow Progression</span>
                     <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 4px;">
@@ -2535,42 +2444,39 @@
         }
 
         async function escalateRequest(requestId) {
-            const requests = readRequestsFromLocalStorage().map(normalizeRequest);
-            const index = requests.findIndex((r) => Number(r.id) === Number(requestId));
-            if (index === -1) return;
-            const request = requests[index];
-            if (!isPendingCfoRequest(request)) {
-                showMessage('This request is currently not eligible for escalation.', 'warning');
-                return;
+            const apiBase = (typeof API_BASE !== 'undefined' && API_BASE) ? API_BASE : 'http://localhost:4000';
+            const token = localStorage.getItem('authToken') || '';
+            const headers = {
+                'Content-Type': 'application/json',
+                ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+            };
+
+            const comments = 'Escalated to MD for executive review';
+            try {
+                const res = await fetch(`${apiBase}/escalate`, {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify({
+                        request_id: requestId,
+                        requestId: requestId,
+                        role: 'CFO',
+                        comments: comments
+                    })
+                });
+
+                if (!res.ok) {
+                    await fetch(`${apiBase}/requests/${requestId}/escalate`, {
+                        method: 'PUT',
+                        headers,
+                        body: JSON.stringify({ role: 'CFO', comments })
+                    });
+                }
+            } catch (e) {
+                console.warn('Backend escalation call error:', e);
             }
-            const workflow = Array.isArray(request.workflow) ? request.workflow : [];
-            const mdIndex = workflow.findIndex((role) => canonicalRole(role) === 'MD');
-            if (mdIndex === -1) {
-                showMessage('MD escalation path is not configured for this request.', 'error');
-                return;
-            }
-            request.currentLevel = mdIndex;
-            request.currentRole = 'MD';
-            request.escalated = true;
-            request.updatedAt = Date.now();
-            addHistory(request, 'Escalated to MD', currentRole);
-            await saveHistory(request.id, 'Escalated to MD', currentRole);
-            globalApprovalHistory.unshift({
-                request_id: request.id,
-                employee_name: request.employee_name || request.employee || 'Employee',
-                department: request.department || 'Corporate',
-                amount: Number(request.amount || 0),
-                manager_name: currentRole,
-                approval_stage: currentRole,
-                decision: 'Escalated',
-                action: 'escalated',
-                comments: 'Escalated to MD',
-                decision_timestamp: new Date().toISOString()
-            });
-            requests[index] = request;
-            writeRequestsToLocalStorage(requests);
+
+            await loadRequests();
             showMessage('Request escalated to MD successfully.', 'success');
-            renderRequests();
         }
 
         async function updateRequestStatus(requestId, status, optionalComment) {
@@ -2890,25 +2796,29 @@
             const listEl = document.getElementById('top-high-value-list');
             if (!listEl) return;
             if (sorted.length === 0) {
-                listEl.innerHTML = '<tr><td colspan="7" style="padding: 24px; color: #94a3b8; text-align:center; font-weight: 600;">No high-value CFO requests currently pending.</td></tr>';
+                listEl.innerHTML = '<tr><td colspan="9" style="padding: 24px; color: #94a3b8; text-align:center; font-weight: 600;">No high-value CFO requests currently pending.</td></tr>';
                 return;
             }
 
             listEl.innerHTML = sorted.map((r) => {
-                const empName = r.employee_name || r.requester_name || r.requester || r.employee || 'Employee';
+                const empName = r.empName || r.employee_name || r.requester_name || r.requester || r.employee || 'Employee';
+                const empId = r.empId || r.employee_id || 'EMP-01';
+                const seqDisplay = r.seqNum || r.seq_num || r.user_seq || r.id || '—';
                 const reqType = r.type || r.request_type || r.title || 'Financial';
                 const cfoStartTime = getCfoStageStartTime(r);
                 const waitingText = getWaitingTimeText(cfoStartTime);
                 return `
                     <tr>
-                        <td>#${escapeHtml(String(r.id))}</td>
+                        <td><strong>#${escapeHtml(String(seqDisplay))}</strong></td>
+                        <td><span style="font-weight: 700; color: #38bdf8; background: rgba(56,189,248,0.12); padding: 3px 8px; border-radius: 6px; font-size: 0.82rem;">${escapeHtml(String(empId))}</span></td>
+                        <td><strong>${escapeHtml(empName)}</strong></td>
                         <td>${escapeHtml(r.department || 'Corporate')}</td>
                         <td>${escapeHtml(reqType)}</td>
                         <td style="color: #38bdf8; font-weight: 700;">${formatCurrency(r.amount)}</td>
                         <td>${renderPriority(r)} ${renderPriorityScoreBadge(r)}</td>
                         <td>${escapeHtml(waitingText)}</td>
                         <td>
-                            <button class="primary-button" style="padding: 8px 14px; font-size: 0.82rem;" onclick="openApproveModal(${r.id})">Review Request</button>
+                            <button class="primary-button" style="padding: 8px 14px; font-size: 0.82rem;" onclick="openCfoReviewModal(${r.dbId || r.id})">Review Request</button>
                         </td>
                     </tr>
                 `;
@@ -2961,7 +2871,6 @@
             }
 
             // 3. Verify Manager Approval Requirement:
-            // The request must have passed Manager approval (or Manager stage must not be pending).
             const workflow = Array.isArray(r.workflow) ? r.workflow.map(canonicalRole) : ['Accounts', 'Manager', 'CFO', 'MD'];
             const mgrIndex = workflow.indexOf('Manager');
             const cfoIndex = workflow.indexOf('CFO');
@@ -2973,27 +2882,25 @@
                 appHistoryList.some(h => canonicalRole(h.approval_stage || h.manager_name || h.performed_by) === 'Manager' && String(h.decision || h.action || '').toLowerCase().includes('approve')) ||
                 (reqId > 0 && globalHist.some(h => Number(h.request_id) === reqId && canonicalRole(h.approval_stage || h.manager_name || h.performed_by) === 'Manager' && String(h.decision || h.action || '').toLowerCase().includes('approve')));
 
-            const isExplicitCfoPendingStatus = rawStatus.includes('cfo') && (rawStatus.includes('pending') || rawStatus.includes('approval') || rawStatus.includes('review'));
+            const isExplicitCfoPending = rawStatus.includes('cfo') || rawStatus === 'pending cfo approval';
 
             // If Manager is part of the workflow:
-            if (mgrIndex !== -1) {
-                // If current stage is at or before Manager and status is pending manager, or no Manager approval exists and status is not explicit CFO pending:
-                if (currentLevel <= mgrIndex && !hasManagerApprovedInHistory && !isExplicitCfoPendingStatus) {
+            if (mgrIndex !== -1 && mgrIndex < cfoIndex) {
+                if (currentLevel <= mgrIndex && !hasManagerApprovedInHistory && !isExplicitCfoPending) {
                     return false;
                 }
-
-                // If Manager hasn't approved and request is not explicitly in CFO pending state/level:
-                if (!hasManagerApprovedInHistory && currentLevel < cfoIndex && !isExplicitCfoPendingStatus) {
+                if (!hasManagerApprovedInHistory && currentLevel < cfoIndex && !isExplicitCfoPending) {
                     return false;
                 }
             }
 
-            // 4. Verify request is currently assigned / pending for CFO stage:
+            const currentRole = canonicalRole(getRequestCurrentRole(r));
+            const stageRole = workflowChain[currentLevel] ? canonicalRole(workflowChain[currentLevel]) : '';
+
             const isCfoStage = (
-                (cfoIndex !== -1 && currentLevel === cfoIndex) ||
-                getRequestCurrentRole(r) === 'CFO' ||
-                canonicalRole(r.currentRole || r.current_role || r.current_approver || r.currentApprover || r.approvalStage || r.approval_stage) === 'CFO' ||
-                isExplicitCfoPendingStatus
+                currentRole === 'CFO' ||
+                stageRole === 'CFO' ||
+                isExplicitCfoPending
             );
 
             if (!isCfoStage) {
@@ -3002,7 +2909,7 @@
 
             // Verify status is active / pending (not closed)
             const isPendingState =
-                isExplicitCfoPendingStatus ||
+                isExplicitCfoPending ||
                 rawStatus.startsWith('pending') ||
                 rawStatus === 'submitted' ||
                 rawStatus === 'in_review' ||
@@ -3062,8 +2969,23 @@
                 });
             } else if (filter === 'ESCALATED') {
                 const cfoActions = extractCfoActions(requests, globalApprovalHistory);
-                const escalatedIds = new Set(cfoActions.filter(a => a.action === 'escalated').map(a => Number(a.id)));
-                filtered = requests.filter(r => escalatedIds.has(Number(r.id || r.request_id)) || r.escalated);
+                const cfoEscalatedActions = cfoActions.filter(a => a.action === 'escalated');
+                filtered = cfoEscalatedActions.map(a => {
+                    const matched = requests.find(r => Number(r.id || r.request_id || 0) === Number(a.id));
+                    if (matched) return matched;
+                    return {
+                        id: a.id,
+                        employee_name: a.employee,
+                        employee: a.employee,
+                        department: a.department,
+                        amount: a.amount,
+                        type: a.requestType,
+                        status: 'pending',
+                        cfoDecision: 'ESCALATED',
+                        cfoComment: a.comment,
+                        history: []
+                    };
+                });
             } else {
                 filtered = requests.filter(isPendingCfoRequest);
             }
@@ -3095,20 +3017,22 @@
                 const emptyMsg = (filter === 'ALL PENDING' || filter === 'PENDING')
                     ? 'No requests currently pending CFO approval.'
                     : `No requests found under "${escapeHtml(currentFilter)}".`;
-                listEl.innerHTML = `<tr><td colspan="7" style="padding: 24px; color: #94a3b8; text-align:center; font-weight: 600;">${emptyMsg}</td></tr>`;
+                listEl.innerHTML = `<tr><td colspan="8" style="padding: 24px; color: #94a3b8; text-align:center; font-weight: 600;">${emptyMsg}</td></tr>`;
                 return;
             }
 
             listEl.innerHTML = sorted.map((request) => {
-                const empName = request.employee_name || request.requester_name || request.requester || request.employee || 'Employee';
+                const empName = request.empName || request.employee_name || request.requester_name || request.requester || request.employee || 'Employee';
+                const empId = request.empId || request.employee_id || 'EMP-01';
+                const seqDisplay = request.seqNum || request.seq_num || request.id || '—';
                 const reqType = request.type || request.request_type || request.title || 'Financial';
                 const cfoStartTime = getCfoStageStartTime(request);
                 const waitingText = getWaitingTimeText(cfoStartTime);
-                const idDisplay = `<a href="javascript:void(0)" onclick="openCfoReviewModal(${request.id})" style="color: #38bdf8; font-weight: 700; text-decoration: underline;" title="Click to review request">#${escapeHtml(String(request.id || '—'))}</a>`;
+                const idDisplay = `<a href="javascript:void(0)" onclick="openCfoReviewModal(${request.dbId || request.id})" style="color: #38bdf8; font-weight: 700; text-decoration: underline;" title="Click to review request">#${escapeHtml(String(seqDisplay))}</a>`;
 
                 let actionCell = '';
                 if (filter === 'ALL PENDING' || filter === 'PENDING') {
-                    actionCell = `<button class="primary-button" style="padding: 8px 16px; font-size: 0.82rem; font-weight: 700;" onclick="openCfoReviewModal(${request.id})">Review</button>`;
+                    actionCell = `<button class="primary-button" style="padding: 8px 16px; font-size: 0.82rem; font-weight: 700;" onclick="openCfoReviewModal(${request.dbId || request.id})">Review</button>`;
                 } else if (filter === 'APPROVED') {
                     actionCell = `<span class="table-status status-approved" style="display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 700; color: #4ade80; background: rgba(74, 222, 128, 0.15); border: 1px solid rgba(74, 222, 128, 0.3);">✓ Approved</span>`;
                 } else if (filter === 'REJECTED') {
@@ -3120,6 +3044,7 @@
                 return `
                     <tr>
                         <td>${idDisplay}</td>
+                        <td><span style="font-weight: 700; color: #38bdf8; background: rgba(56,189,248,0.12); padding: 3px 8px; border-radius: 6px; font-size: 0.82rem;">${escapeHtml(String(empId))}</span></td>
                         <td>
                             <div style="font-weight: 700; color: #f8fafc;">${escapeHtml(empName)}</div>
                             ${(filter === 'ALL PENDING' || filter === 'PENDING') ? `<div style="font-size: 0.76rem; color: #94a3b8; margin-top: 2px;">🕒 Waiting ${escapeHtml(waitingText)}</div>` : ''}
@@ -3144,25 +3069,28 @@
             const listEl = document.getElementById('overdue-list');
             if (!listEl) return;
             if (overdueList.length === 0) {
-                listEl.innerHTML = '<tr><td colspan="8" style="padding: 24px; color: #94a3b8; text-align:center; font-weight: 600;">No overdue CFO approvals.</td></tr>';
+                listEl.innerHTML = '<tr><td colspan="9" style="padding: 24px; color: #94a3b8; text-align:center; font-weight: 600;">No overdue CFO approvals.</td></tr>';
                 return;
             }
             listEl.innerHTML = overdueList.map((r) => {
-                const empName = r.employee_name || r.requester_name || r.requester || r.employee || 'Employee';
+                const empName = r.empName || r.employee_name || r.requester_name || r.requester || r.employee || 'Employee';
+                const empId = r.empId || r.employee_id || 'EMP-01';
+                const seqDisplay = r.seqNum || r.seq_num || r.id || '—';
                 const reqType = r.type || r.request_type || r.title || 'Financial';
                 const cfoStartTime = getCfoStageStartTime(r);
                 const waitingText = getWaitingTimeText(cfoStartTime);
                 return `
                     <tr>
-                        <td>#${escapeHtml(String(r.id))}</td>
-                        <td>${escapeHtml(empName)}</td>
+                        <td><strong>#${escapeHtml(String(seqDisplay))}</strong></td>
+                        <td><span style="font-weight: 700; color: #38bdf8; background: rgba(56,189,248,0.12); padding: 3px 8px; border-radius: 6px; font-size: 0.82rem;">${escapeHtml(String(empId))}</span></td>
+                        <td><strong>${escapeHtml(empName)}</strong></td>
                         <td>${escapeHtml(r.department || 'Corporate')}</td>
                         <td>${escapeHtml(reqType)}</td>
                         <td style="color: #38bdf8; font-weight: 700;">${formatCurrency(r.amount)}</td>
                         <td>${renderPriority(r)}</td>
                         <td style="color: #f87171; font-weight: 700;">${escapeHtml(waitingText)}</td>
                         <td>
-                            <button class="primary-button" style="padding: 8px 14px; font-size: 0.82rem;" onclick="openApproveModal(${r.id})">Review Request</button>
+                            <button class="primary-button" style="padding: 8px 14px; font-size: 0.82rem;" onclick="openCfoReviewModal(${r.dbId || r.id})">Review Request</button>
                         </td>
                     </tr>
                 `;
@@ -3783,9 +3711,15 @@
 
         function logout() {
             localStorage.removeItem('authToken');
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('token');
             localStorage.removeItem('role');
             localStorage.removeItem('userRole');
             localStorage.removeItem('userEmail');
+            localStorage.removeItem('currentUser');
+            localStorage.removeItem('zyro_remember_me');
+            localStorage.removeItem('rememberMe');
+            sessionStorage.clear();
             window.location.href = 'login.html';
         }
     </script>

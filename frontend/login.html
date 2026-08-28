@@ -602,7 +602,7 @@
                                 <input type="checkbox" id="rememberMe">
                                 Remember Me
                             </label>
-                            <a href="#" class="forgot-link">Forgot Password?</a>
+                            <a href="javascript:void(0)" id="forgotPasswordLink" class="forgot-link" onclick="return openForgotPasswordModal(event);">Forgot Password?</a>
                         </div>
 
                         <button type="submit" id="loginBtn" class="login-button">Sign In</button>
@@ -649,6 +649,96 @@
 
         const API_BASE = 'http://localhost:4000/api';
 
+        function getDashboardUrlForRole(role) {
+            const roleNormalized = normalizeRoleValue(role);
+            if (roleNormalized === 'admin') return 'admin-dashboard.html';
+            if (roleNormalized === 'accounts') return 'accounts-dashboard.html';
+            if (roleNormalized === 'manager') return 'manager-dashboard.html';
+            if (roleNormalized === 'cfo') return 'cfo-dashboard.html';
+            if (roleNormalized === 'md') return 'md-dashboard.html';
+            if (roleNormalized === 'employee') return 'employee.html';
+            return 'user-dashboard.html';
+        }
+
+        function clearAuthStorage() {
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('currentUser');
+            localStorage.removeItem('userRole');
+            localStorage.removeItem('user_role');
+            localStorage.removeItem('role');
+            localStorage.removeItem('userEmail');
+            localStorage.removeItem('email');
+            localStorage.removeItem('userId');
+            localStorage.removeItem('user_id');
+            localStorage.removeItem('employee_id');
+            localStorage.removeItem('employeeId');
+            localStorage.removeItem('userName');
+            localStorage.removeItem('name');
+            localStorage.removeItem('department');
+            localStorage.removeItem('userDepartment');
+            localStorage.removeItem('zyro_remember_me');
+            localStorage.removeItem('rememberMe');
+            sessionStorage.clear();
+        }
+
+        async function checkRememberedSession() {
+            const isRemembered = localStorage.getItem('zyro_remember_me') === 'true' || localStorage.getItem('rememberMe') === 'true';
+            const isSessionActive = sessionStorage.getItem('zyro_session_active') === 'true';
+            const token = localStorage.getItem('authToken') || localStorage.getItem('auth_token');
+
+            if (!token) {
+                clearAuthStorage();
+                return;
+            }
+
+            // If Remember Me was NOT checked and the browser was closed (sessionStorage is empty):
+            if (!isRemembered && !isSessionActive) {
+                console.log('[AUTH] Non-persistent session ended with browser closure. Clearing credentials.');
+                clearAuthStorage();
+                return;
+            }
+
+            // Validate token with backend
+            try {
+                const res = await fetch(`${API_BASE}/auth/verify`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                }).catch(() => null);
+
+                if (!res || !res.ok) {
+                    console.log('[AUTH] Stored session is invalid or expired. Clearing storage.');
+                    clearAuthStorage();
+                    return;
+                }
+
+                const data = await res.json().catch(() => ({}));
+                if (data.success && data.user) {
+                    sessionStorage.setItem('zyro_session_active', 'true');
+                    const user = data.user;
+                    const normalizedRole = normalizeRoleValue(user.role);
+                    const targetUrl = getDashboardUrlForRole(normalizedRole);
+
+                    console.log('[AUTH] Valid session confirmed for role:', normalizedRole, 'Redirecting to:', targetUrl);
+                    window.location.replace(targetUrl);
+                } else {
+                    clearAuthStorage();
+                }
+            } catch (err) {
+                console.error('[AUTH] Auto-login check error:', err);
+                clearAuthStorage();
+            }
+        }
+
+        // Run auto-login check on page load
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', checkRememberedSession);
+        } else {
+            checkRememberedSession();
+        }
+
         // Main Login Handler
         async function handleLogin() {
             // Clear previous messages
@@ -658,6 +748,7 @@
             // Get form values
             const email = emailInput.value.trim();
             const password = passwordInput.value.trim();
+            const rememberMe = Boolean(document.getElementById('rememberMe')?.checked);
 
             // Validation
             if (!email || !password) {
@@ -672,6 +763,7 @@
 
             console.log('[LOGIN] email entered:', email);
             console.log('[LOGIN] password entered:', password);
+            console.log('[LOGIN] rememberMe:', rememberMe);
 
             // Disable button and show loading state
             loginBtn.disabled = true;
@@ -679,64 +771,79 @@
             loginBtn.innerHTML = '<span class="spinner"></span>Signing in...';
 
             try {
-                const response = await validateLogin(email, password);
+                const response = await validateLogin(email, password, rememberMe);
                 console.log('[LOGIN] backend response:', response);
 
                 if (response.success) {
                     successMessage.classList.add('show');
 
+                    // Store Remember Me preferences and active session marker
+                    if (rememberMe) {
+                        localStorage.setItem('zyro_remember_me', 'true');
+                        localStorage.setItem('rememberMe', 'true');
+                    } else {
+                        localStorage.removeItem('zyro_remember_me');
+                        localStorage.removeItem('rememberMe');
+                    }
+                    sessionStorage.setItem('zyro_session_active', 'true');
+
                     // Store authentication data
                     const normalizedRole = normalizeRoleValue(response.role || response.user?.role || 'employee');
                     const empId = response.employee_id || response.employeeId || response.user?.employee_id || response.user?.employeeId || '';
+                    const dept = response.user?.department || response.department || '';
+                    const userName = response.user?.name || response.name || '';
+
                     localStorage.setItem('employee_id', empId);
                     localStorage.setItem('employeeId', empId);
                     localStorage.setItem('authToken', response.token);
                     localStorage.setItem('userRole', normalizedRole);
                     localStorage.setItem('role', normalizedRole);
-                    localStorage.setItem('email', response.user.email);
-                    localStorage.setItem('userEmail', response.user.email);
+                    localStorage.setItem('email', response.user?.email || email);
+                    localStorage.setItem('userEmail', response.user?.email || email);
                     localStorage.setItem('userId', response.userId);
-                    localStorage.setItem('currentUser', JSON.stringify({ ...response.user, role: normalizedRole, employee_id: empId, employeeId: empId }));
+                    localStorage.setItem('userName', userName);
+                    localStorage.setItem('name', userName);
+                    localStorage.setItem('department', dept);
+                    localStorage.setItem('userDepartment', dept);
+                    localStorage.setItem('currentUser', JSON.stringify({
+                        ...response.user,
+                        name: userName,
+                        email: response.user?.email || email,
+                        role: normalizedRole,
+                        employee_id: empId,
+                        employeeId: empId,
+                        department: dept
+                    }));
 
                     console.log('[LOGIN REDIRECT] ========== REDIRECT LOGIC START ==========');
                     console.log('[LOGIN REDIRECT] Role detected:', response.role || response.user?.role);
                     console.log('[LOGIN REDIRECT] Normalized role:', normalizedRole);
                     console.log('[LOGIN REDIRECT] Stored to localStorage - role:', normalizedRole, 'userRole:', normalizedRole);
 
-                    // Redirect based on role after 1.5 seconds
-                    setTimeout(() => {
-                        const roleNormalized = normalizedRole;
-                        console.log('[LOGIN REDIRECT] Redirecting to dashboard for normalized role:', roleNormalized);
+                    // Check if user already has a recovery email
+                    const hasRecoveryEmail = Boolean(response.hasRecoveryEmail ?? response.user?.hasRecoveryEmail);
 
-                        let dashboardUrl = 'user-dashboard.html'; // default
-                        console.log('[LOGIN REDIRECT] Default dashboard: user-dashboard.html');
-
-                        if (roleNormalized === 'admin') {
-                            dashboardUrl = 'admin-dashboard.html';
-                            console.log('[LOGIN REDIRECT] ✓ Role matched: admin → admin-dashboard.html');
-                        } else if (roleNormalized === 'accounts') {
-                            dashboardUrl = 'accounts-dashboard.html';
-                            console.log('[LOGIN REDIRECT] ✓ Role matched: accounts → accounts-dashboard.html');
-                        } else if (roleNormalized === 'manager') {
-                            dashboardUrl = 'manager-dashboard.html';
-                            console.log('[LOGIN REDIRECT] ✓ Role matched: manager → manager-dashboard.html');
-                        } else if (roleNormalized === 'cfo') {
-                            dashboardUrl = 'cfo-dashboard.html';
-                            console.log('[LOGIN REDIRECT] ✓ Role matched: cfo → cfo-dashboard.html');
-                        } else if (roleNormalized === 'md') {
-                            dashboardUrl = 'md-dashboard.html';
-                            console.log('[LOGIN REDIRECT] ✓ Role matched: md → md-dashboard.html');
-                        } else if (roleNormalized === 'employee') {
-                            dashboardUrl = 'employee.html';
-                            console.log('[LOGIN REDIRECT] ✓ Role matched: employee → employee.html');
-                        } else {
-                            console.log('[LOGIN REDIRECT] ⚠ Role did not match any condition, using default: user-dashboard.html');
-                        }
-
+                    function performDashboardRedirect() {
+                        const dashboardUrl = getDashboardUrlForRole(normalizedRole);
                         console.log('[LOGIN REDIRECT] Final redirect URL:', dashboardUrl);
-                        console.log('[LOGIN REDIRECT] ========== REDIRECT LOGIC END ==========\n');
                         window.location.href = dashboardUrl;
-                    }, 1500);
+                    }
+
+                    const isAdmin = String(normalizedRole || '').toLowerCase() === 'admin';
+
+                    if (isAdmin || hasRecoveryEmail) {
+                        setTimeout(() => {
+                            performDashboardRedirect();
+                        }, 1200);
+                    } else {
+                        // Non-admin user has NO recovery email: prompt user with recovery email modal
+                        setTimeout(() => {
+                            successMessage.classList.remove('show');
+                            const effectiveUserId = response.userId || response.user?.id || localStorage.getItem('userId');
+                            const effectiveToken = response.token || localStorage.getItem('authToken');
+                            promptRecoveryEmail(effectiveUserId, effectiveToken, performDashboardRedirect);
+                        }, 600);
+                    }
                 } else {
                     showError(response.message || 'Invalid email or password.');
                     loginBtn.disabled = false;
@@ -790,20 +897,128 @@
             errorMsg.classList.remove('show');
         }
 
-        async function validateLogin(email, password) {
+        function promptRecoveryEmail(userId, token, onCompleteRedirect) {
+            const modal = document.getElementById('recoveryModalBackdrop');
+            const form = document.getElementById('recovery-form');
+            const input = document.getElementById('recoveryEmailInput');
+            const saveBtn = document.getElementById('saveRecoveryBtn');
+            const errStrip = document.getElementById('recoveryErrorStrip');
+            const succStrip = document.getElementById('recoverySuccessStrip');
+
+            if (!modal) {
+                onCompleteRedirect();
+                return;
+            }
+
+            modal.style.display = 'flex';
+            if (input) {
+                input.value = '';
+                input.focus();
+            }
+
+            input?.addEventListener('input', () => {
+                errStrip.textContent = '';
+                errStrip.classList.remove('show');
+            });
+
+            form.onsubmit = async (e) => {
+                e.preventDefault();
+                errStrip.textContent = '';
+                errStrip.classList.remove('show');
+                succStrip.classList.remove('show');
+
+                const recoveryEmailVal = (input.value || '').trim().toLowerCase();
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+                if (!recoveryEmailVal) {
+                    errStrip.textContent = 'Please enter a personal recovery email address.';
+                    errStrip.classList.add('show');
+                    return;
+                }
+
+                if (!emailRegex.test(recoveryEmailVal)) {
+                    errStrip.textContent = 'Please enter a valid email address (e.g. personal.name@gmail.com).';
+                    errStrip.classList.add('show');
+                    return;
+                }
+
+                saveBtn.disabled = true;
+                const originalBtnText = saveBtn.textContent;
+                saveBtn.innerHTML = '<span class="spinner"></span>Saving...';
+
+                try {
+                    const headers = { 'Content-Type': 'application/json' };
+                    const activeToken = token || localStorage.getItem('authToken');
+                    if (activeToken) headers['Authorization'] = `Bearer ${activeToken}`;
+
+                    const effectiveId = Number(userId || localStorage.getItem('userId'));
+
+                    let res = await fetch(`${API_BASE}/auth/recovery-email`, {
+                        method: 'POST',
+                        headers,
+                        body: JSON.stringify({
+                            userId: effectiveId,
+                            recoveryEmail: recoveryEmailVal
+                        })
+                    }).catch(() => null);
+
+                    if (!res || !res.ok) {
+                        // Fallback to relative /api/auth/recovery-email or /recovery-email
+                        res = await fetch('/api/auth/recovery-email', {
+                            method: 'POST',
+                            headers,
+                            body: JSON.stringify({
+                                userId: effectiveId,
+                                recoveryEmail: recoveryEmailVal
+                            })
+                        }).catch(() => null);
+                    }
+
+                    const resData = res ? await res.json().catch(() => ({})) : {};
+
+                    if (!res || !res.ok) {
+                        errStrip.textContent = resData.message || 'Failed to save recovery email. Please try again.';
+                        errStrip.classList.add('show');
+                        saveBtn.disabled = false;
+                        saveBtn.textContent = originalBtnText;
+                        return;
+                    }
+
+                    succStrip.classList.add('show');
+                    
+                    try {
+                        const cur = JSON.parse(localStorage.getItem('currentUser') || '{}');
+                        localStorage.setItem('currentUser', JSON.stringify({ ...cur, hasRecoveryEmail: true }));
+                    } catch (e) { }
+
+                    setTimeout(() => {
+                        onCompleteRedirect();
+                    }, 1000);
+                } catch (err) {
+                    console.error('Error saving recovery email:', err);
+                    errStrip.textContent = 'Network or server error. Please try again.';
+                    errStrip.classList.add('show');
+                    saveBtn.disabled = false;
+                    saveBtn.textContent = originalBtnText;
+                }
+            };
+        }
+
+        async function validateLogin(email, password, rememberMe) {
             const loginUrl = `${API_BASE}/auth/login`;
             console.log('[LOGIN FRONTEND] ========== LOGIN REQUEST START ==========');
             console.log('[LOGIN FRONTEND] Request URL:', loginUrl);
             console.log('[LOGIN FRONTEND] Request method: POST');
             console.log('[LOGIN FRONTEND] Email:', email);
             console.log('[LOGIN FRONTEND] Password:', password ? '***' : 'MISSING');
+            console.log('[LOGIN FRONTEND] Remember Me:', Boolean(rememberMe));
 
             const response = await fetch(loginUrl, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ email, password }),
+                body: JSON.stringify({ email, password, rememberMe: Boolean(rememberMe) }),
             });
 
             let data;
@@ -838,16 +1053,243 @@
             console.log('[LOGIN FRONTEND] UserId from backend:', data.userId);
             console.log('[LOGIN FRONTEND] ========== LOGIN REQUEST END (SUCCESS) ==========\n');
 
+            const hasRecoveryEmail = Boolean(data.hasRecoveryEmail || data.user?.hasRecoveryEmail);
+
+            const userObj = data.user || {
+                id: data.userId,
+                name: data.name || '',
+                email: email,
+                role: data.role,
+                department: data.department || '',
+                employee_id: data.employee_id || data.employeeId || '',
+                hasRecoveryEmail
+            };
+
             return {
                 success: true,
                 token: data.token,
                 role: data.role,
                 userId: data.userId,
-                user: { email, userId: data.userId },
+                name: data.name || userObj.name || '',
+                employee_id: data.employee_id || data.employeeId || userObj.employee_id || '',
+                employeeId: data.employee_id || data.employeeId || userObj.employee_id || '',
+                department: data.department || userObj.department || '',
+                hasRecoveryEmail,
+                user: userObj,
                 message: 'Login successful',
             };
         }
+
+        // ==========================================
+        // FORGOT PASSWORD MODAL HANDLERS
+        // ==========================================
+        function openForgotPasswordModal(e) {
+            if (e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            const modal = document.getElementById('forgotPasswordModalBackdrop');
+            const errStrip = document.getElementById('forgotErrorStrip');
+            const succStrip = document.getElementById('forgotSuccessStrip');
+            const emailInp = document.getElementById('forgotEmailInput');
+            const mainEmailInp = document.getElementById('email');
+
+            if (!modal) {
+                console.error('[FORGOT PASSWORD] Modal element not found in DOM');
+                return false;
+            }
+
+            modal.style.display = 'flex';
+            if (errStrip) {
+                errStrip.textContent = '';
+                errStrip.classList.remove('show');
+            }
+            if (succStrip) {
+                succStrip.textContent = '';
+                succStrip.classList.remove('show');
+            }
+            if (emailInp) {
+                emailInp.value = mainEmailInp ? mainEmailInp.value.trim() : '';
+                setTimeout(() => emailInp.focus(), 50);
+            }
+            return false;
+        }
+
+        function closeForgotPasswordModal() {
+            const modal = document.getElementById('forgotPasswordModalBackdrop');
+            if (modal) modal.style.display = 'none';
+        }
+
+        function initForgotPasswordHandlers() {
+            const forgotLink = document.getElementById('forgotPasswordLink') || document.querySelector('.forgot-link');
+            const forgotModal = document.getElementById('forgotPasswordModalBackdrop');
+            const closeForgotModalBtn = document.getElementById('closeForgotModalBtn');
+            const forgotForm = document.getElementById('forgotPasswordForm');
+            const forgotEmailInput = document.getElementById('forgotEmailInput');
+            const sendResetBtn = document.getElementById('sendResetLinkBtn');
+            const forgotErrorStrip = document.getElementById('forgotErrorStrip');
+            const forgotSuccessStrip = document.getElementById('forgotSuccessStrip');
+
+            if (forgotLink) {
+                forgotLink.addEventListener('click', openForgotPasswordModal);
+            }
+
+            if (closeForgotModalBtn) {
+                closeForgotModalBtn.addEventListener('click', closeForgotPasswordModal);
+            }
+
+            if (forgotModal) {
+                forgotModal.addEventListener('click', (e) => {
+                    if (e.target === forgotModal) {
+                        closeForgotPasswordModal();
+                    }
+                });
+            }
+
+            if (forgotEmailInput) {
+                forgotEmailInput.addEventListener('input', () => {
+                    if (forgotErrorStrip) {
+                        forgotErrorStrip.textContent = '';
+                        forgotErrorStrip.classList.remove('show');
+                    }
+                });
+            }
+
+            if (forgotForm) {
+                forgotForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    if (forgotErrorStrip) {
+                        forgotErrorStrip.textContent = '';
+                        forgotErrorStrip.classList.remove('show');
+                    }
+                    if (forgotSuccessStrip) {
+                        forgotSuccessStrip.textContent = '';
+                        forgotSuccessStrip.classList.remove('show');
+                    }
+
+                    const loginEmailVal = (forgotEmailInput?.value || '').trim();
+                    if (!loginEmailVal) {
+                        if (forgotErrorStrip) {
+                            forgotErrorStrip.textContent = 'Please enter your login email address.';
+                            forgotErrorStrip.classList.add('show');
+                        }
+                        return;
+                    }
+
+                    if (sendResetBtn) {
+                        sendResetBtn.disabled = true;
+                        const origText = sendResetBtn.textContent;
+                        sendResetBtn.innerHTML = '<span class="spinner"></span> Sending...';
+
+                        try {
+                            let res = await fetch(`${API_BASE}/auth/forgot-password`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ email: loginEmailVal })
+                            }).catch(() => null);
+
+                            if (!res || !res.ok) {
+                                res = await fetch('/api/auth/forgot-password', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ email: loginEmailVal })
+                                }).catch(() => null);
+                            }
+
+                            const data = res ? await res.json().catch(() => ({})) : {};
+
+                            if (forgotSuccessStrip) {
+                                forgotSuccessStrip.textContent = data.message || 'If the account exists and has a recovery email configured, a password reset link has been sent.';
+                                forgotSuccessStrip.classList.add('show');
+                            }
+                        } catch (err) {
+                            console.error('[FORGOT PASSWORD] Error:', err);
+                            if (forgotErrorStrip) {
+                                forgotErrorStrip.textContent = 'Network or server error. Please try again.';
+                                forgotErrorStrip.classList.add('show');
+                            }
+                        } finally {
+                            sendResetBtn.disabled = false;
+                            sendResetBtn.textContent = origText;
+                        }
+                    }
+                });
+            }
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initForgotPasswordHandlers);
+        } else {
+            initForgotPasswordHandlers();
+        }
     </script>
+
+    <!-- Forgot Password Modal -->
+    <div id="forgotPasswordModalBackdrop" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(15, 23, 42, 0.75); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); z-index:99999; align-items:center; justify-content:center; padding:20px;">
+        <div style="background:#ffffff; border-radius:18px; max-width:440px; width:100%; box-shadow:0 25px 50px -12px rgba(0, 0, 0, 0.35); border:1px solid rgba(226, 232, 240, 0.8); overflow:hidden; position:relative;">
+            <button type="button" id="closeForgotModalBtn" style="position:absolute; top:18px; right:18px; background:none; border:none; font-size:22px; color:#94a3b8; cursor:pointer; padding:4px 8px; border-radius:6px; line-height:1;" aria-label="Close modal">&times;</button>
+            <div style="padding:28px 28px 20px 28px;">
+                <div style="display:inline-flex; align-items:center; justify-content:center; width:48px; height:48px; border-radius:12px; background:rgba(37, 99, 235, 0.12); color:#2563eb; font-size:24px; margin-bottom:16px;">
+                    🔑
+                </div>
+                <h2 style="font-size:1.35rem; font-weight:700; color:#0f172a; margin:0 0 8px 0; letter-spacing:-0.02em;">Forgot Password?</h2>
+                <p style="font-size:0.9rem; color:#475569; margin:0 0 16px 0; line-height:1.5;">
+                    Enter your login email address. If an account with a recovery email is found, we will send a password reset link.
+                </p>
+
+                <div id="forgotErrorStrip" class="message-strip error-message" style="margin-bottom:14px;"></div>
+                <div id="forgotSuccessStrip" class="message-strip success-message" style="margin-bottom:14px;"></div>
+
+                <form id="forgotPasswordForm">
+                    <div class="form-group" style="margin-bottom:20px;">
+                        <label class="form-label" for="forgotEmailInput" style="font-size:0.85rem; font-weight:600; color:#334155; margin-bottom:6px; display:block;">Email Address</label>
+                        <div class="input-wrapper">
+                            <input type="email" id="forgotEmailInput" class="form-input" placeholder="Enter your login email" required style="width:100%;" />
+                        </div>
+                    </div>
+                    <button type="submit" id="sendResetLinkBtn" class="login-button" style="width:100%; margin-top:4px;">
+                        Send Reset Link
+                    </button>
+                </form>
+            </div>
+            <div style="padding:14px 28px; background:#f8fafc; border-top:1px solid #f1f5f9; text-align:center; font-size:0.75rem; color:#94a3b8;">
+                ZyroFlow Enterprise Security
+            </div>
+        </div>
+    </div>
+
+    <!-- Complete Your Account / Recovery Email Modal -->
+    <div id="recoveryModalBackdrop" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(15, 23, 42, 0.75); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); z-index:99999; align-items:center; justify-content:center; padding:20px;">
+        <div style="background:#ffffff; border-radius:18px; max-width:440px; width:100%; box-shadow:0 25px 50px -12px rgba(0, 0, 0, 0.35); border:1px solid rgba(226, 232, 240, 0.8); overflow:hidden;">
+            <div style="padding:28px 28px 16px 28px;">
+                <div style="display:inline-flex; align-items:center; justify-content:center; width:48px; height:48px; border-radius:12px; background:rgba(56, 189, 248, 0.12); color:#0284c7; font-size:24px; margin-bottom:16px;">
+                    🛡️
+                </div>
+                <h2 style="font-size:1.35rem; font-weight:700; color:#0f172a; margin:0 0 8px 0; letter-spacing:-0.02em;">Complete Your Account</h2>
+                <p style="font-size:0.9rem; color:#475569; margin:0 0 16px 0; line-height:1.5;">
+                    Please provide a recovery email address. This email will be used to recover your ZyroFlow account if you forget your password.
+                </p>
+
+                <div id="recoveryErrorStrip" class="message-strip error-message" style="margin-bottom:14px;"></div>
+                <div id="recoverySuccessStrip" class="message-strip success-message" style="margin-bottom:14px;">Recovery email saved successfully. Redirecting...</div>
+
+                <form id="recovery-form">
+                    <div class="form-group" style="margin-bottom:20px;">
+                        <label class="form-label" for="recoveryEmailInput" style="font-size:0.85rem; font-weight:600; color:#334155; margin-bottom:6px; display:block;">Recovery Email</label>
+                        <div class="input-wrapper">
+                            <input type="email" id="recoveryEmailInput" class="form-input" placeholder="Enter personal email" required style="width:100%;" />
+                        </div>
+                    </div>
+                    <button type="submit" id="saveRecoveryBtn" class="login-button" style="width:100%; margin-top:4px;">
+                        Save & Continue
+                    </button>
+                </form>
+            </div>
+            <div style="padding:14px 28px; background:#f8fafc; border-top:1px solid #f1f5f9; text-align:center; font-size:0.75rem; color:#94a3b8;">
+                ZyroFlow Enterprise Security
+            </div>
+        </div>
+    </div>
 </body>
 
 </html>

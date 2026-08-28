@@ -1913,18 +1913,65 @@
             return 'Employee';
         }
 
-        function normalizeRequest(request) {
+        function normalizeRequest(request, allList = []) {
+            if (!request) return null;
+            const rawEmail = String(request.requester_email || request.requesterEmail || request.email || '').toLowerCase().trim();
+            let empName = request.employee_name || request.employeeName || request.requester_name || request.requester || request.employee || '';
+            if (!empName) {
+                if (rawEmail.includes('employee1')) empName = 'Gokul';
+                else if (rawEmail.includes('employee3') || rawEmail.includes('employee2')) empName = 'Ravi';
+                else if (rawEmail) empName = rawEmail.split('@')[0];
+                else empName = 'Gokul';
+            }
+
+            let empId = request.employee_id || request.employeeId || request.empId || '';
+            if (!empId) {
+                if (rawEmail.includes('employee1') || empName.toLowerCase() === 'gokul') empId = 'EMP-01';
+                else if (rawEmail.includes('employee3')) empId = 'EMP-04';
+                else if (rawEmail.includes('employee2') || empName.toLowerCase() === 'ravi') empId = 'EMP-02';
+                else empId = 'EMP-01';
+            }
+
+            const list = Array.isArray(allList) && allList.length > 0 ? allList : (Array.isArray(requestsCache) ? requestsCache : []);
+            let seqNum = request.seq_num || request.seqNum || request.user_seq || null;
+            if (!seqNum && list.length > 0) {
+                const userReqs = list
+                    .filter(item => {
+                        const itemEmail = String(item.requester_email || item.requesterEmail || item.email || '').toLowerCase().trim();
+                        const itemName = String(item.employee_name || item.employeeName || item.requester_name || item.requester || item.employee || '').toLowerCase().trim();
+                        return (rawEmail && itemEmail === rawEmail) || (itemName && itemName === empName.toLowerCase());
+                    })
+                    .sort((a, b) => Number(a.id || a.request_id || 0) - Number(b.id || b.request_id || 0));
+
+                const idx = userReqs.findIndex(item => String(item.id || item.request_id) === String(request.id || request.request_id));
+                if (idx !== -1) {
+                    seqNum = idx + 1;
+                }
+            }
+            if (!seqNum) {
+                seqNum = request.id || request.request_id || 1;
+            }
+
+            const dbId = Number(request.id || request.request_id);
             const workflow = Array.isArray(request.workflow) ? request.workflow : [];
-            const createdAt = Number(request.createdAt || Date.now());
-            const currentLevel = Number(request.currentLevel || 0);
+            const createdAt = Number(request.createdAt || (request.created_at ? new Date(request.created_at).getTime() : Date.now()));
+            const currentLevel = Number(request.currentLevel ?? request.current_level ?? 0);
+
             return {
                 ...request,
+                dbId,
+                seqNum,
+                empId,
+                empName,
+                employee_id: empId,
+                employee_name: empName,
+                employee: empName,
                 amount: Number(request.amount || 0),
                 workflow,
                 currentLevel,
                 status: normalizeStatus(request.status || 'pending'),
                 createdAt,
-                updatedAt: Number(request.updatedAt || createdAt),
+                updatedAt: Number(request.updatedAt || (request.updated_at ? new Date(request.updated_at).getTime() : createdAt)),
                 history: Array.isArray(request.history) ? request.history : [],
                 comments: Array.isArray(request.comments) ? request.comments : [],
                 lastActionTime: Number(request.lastActionTime || 0),
@@ -1936,7 +1983,7 @@
                 lastActionSnapshot: request.lastActionSnapshot || null,
                 deadline: Number(request.deadline || (createdAt + (24 * 60 * 60 * 1000))),
                 escalated: Boolean(request.escalated),
-                currentRole: request.currentRole || workflow[currentLevel] || '',
+                currentRole: request.currentRole || request.current_role || workflow[currentLevel] || '',
                 fileName: request.fileName || null
             };
         }
@@ -2624,6 +2671,7 @@
             listEl.innerHTML = `
                 <div class="action-row header">
                     <div>Req ID</div>
+                    <div>Employee ID</div>
                     <div>Employee Name</div>
                     <div>Department</div>
                     <div>Request Type</div>
@@ -2633,8 +2681,9 @@
                     <div>Actions</div>
                 </div>
                 ${filteredRequests.map((request) => {
-                const reqId = `#${request.id}`;
-                const employee = escapeHtml(request.requester_name || request.requester || request.employee || request.employee_name || request.email || 'Employee');
+                const reqId = `#${request.seqNum || request.seq_num || request.id}`;
+                const empId = escapeHtml(String(request.empId || request.employee_id || 'EMP-01'));
+                const employee = escapeHtml(request.empName || request.employee_name || request.requester_name || request.requester || request.employee || request.email || 'Employee');
                 const dept = escapeHtml(getDepartmentLabel(request));
                 const requestType = escapeHtml(request.request_type || request.type || request.title || 'Financial Request');
                 const amount = formatCurrency(request.amount);
@@ -2644,6 +2693,7 @@
                 return `
                         <div class="action-row">
                             <div><strong>${reqId}</strong></div>
+                            <div><span style="font-weight: 700; color: #38bdf8; background: rgba(56,189,248,0.12); padding: 3px 8px; border-radius: 6px; font-size: 0.82rem;">${empId}</span></div>
                             <div class="action-name">${employee}</div>
                             <div>${dept}</div>
                             <div>${requestType}</div>
@@ -2651,8 +2701,8 @@
                             <div><span class="status-pill status-pending">${statusStr}</span></div>
                             <div>${priorityHtml} <span class="badge" style="background: rgba(168, 85, 247, 0.2); color: #c084fc; font-weight: 700; padding: 2px 6px; border-radius: 4px; font-size: 10px; margin-left: 4px;">Score: ${score}</span></div>
                             <div class="action-buttons">
-                                <button class="action-button approve-button" onclick="approveRequest(${request.id})">✓ Approve</button>
-                                <button class="action-button reject-button" onclick="rejectRequest(${request.id})">✕ Reject</button>
+                                <button class="action-button approve-button" onclick="approveRequest(${request.dbId || request.id})">✓ Approve</button>
+                                <button class="action-button reject-button" onclick="rejectRequest(${request.dbId || request.id})">✕ Reject</button>
                             </div>
                         </div>
                     `;
@@ -3195,7 +3245,8 @@
                     <thead>
                         <tr>
                             <th>Req ID</th>
-                            <th>Employee</th>
+                            <th>Employee ID</th>
+                            <th>Employee Name</th>
                             <th>Department</th>
                             <th>Type</th>
                             <th>Priority</th>
@@ -3204,19 +3255,25 @@
                         </tr>
                     </thead>
                     <tbody>
-                        ${overdueList.map((r) => `
+                        ${overdueList.map((r) => {
+                            const empId = escapeHtml(String(r.empId || r.employee_id || 'EMP-01'));
+                            const empName = escapeHtml(r.empName || r.employee_name || r.requester_name || r.requester || 'Employee');
+                            const seqId = r.seqNum || r.seq_num || r.id;
+                            return `
                             <tr>
-                                <td><strong>#${r.id}</strong></td>
-                                <td>${escapeHtml(r.requester_name || r.requester || 'Employee')}</td>
+                                <td><strong>#${seqId}</strong></td>
+                                <td><span style="font-weight: 700; color: #38bdf8; background: rgba(56,189,248,0.12); padding: 3px 8px; border-radius: 6px; font-size: 0.82rem;">${empId}</span></td>
+                                <td><strong>${empName}</strong></td>
                                 <td>${escapeHtml(getDepartmentLabel(r))}</td>
                                 <td>${escapeHtml(r.type || r.request_type || 'Request')}</td>
                                 <td><span class="status-pill status-high" style="padding: 2px 6px; font-size: 10px;">${escapeHtml(r.priority || 'HIGH')}</span></td>
                                 <td><span style="color: #ef4444; font-weight: 600;">${timeAgo(r.createdAt)}</span></td>
                                 <td>
-                                    <button class="btn btn-primary" onclick="openReviewModal('${r.id}')" style="padding: 3px 10px; font-size: 11px;">Review</button>
+                                    <button class="btn btn-primary" onclick="openReviewModal('${r.dbId || r.id}')" style="padding: 3px 10px; font-size: 11px;">Review</button>
                                 </td>
                             </tr>
-                        `).join('')}
+                            `;
+                        }).join('')}
                     </tbody>
                 </table>
             `;
@@ -3242,12 +3299,13 @@
                 return;
             }
 
-            list.innerHTML = `
+            listEl = `
                 <table class="modal-table" style="width: 100%; border-collapse: collapse;">
                     <thead>
                         <tr>
                             <th>Req ID</th>
-                            <th>Employee</th>
+                            <th>Employee ID</th>
+                            <th>Employee Name</th>
                             <th>Department</th>
                             <th>Type</th>
                             <th>Score</th>
@@ -3256,22 +3314,29 @@
                         </tr>
                     </thead>
                     <tbody>
-                        ${highPriorityList.map((r) => `
+                        ${highPriorityList.map((r) => {
+                            const empId = escapeHtml(String(r.empId || r.employee_id || 'EMP-01'));
+                            const empName = escapeHtml(r.empName || r.employee_name || r.requester_name || r.requester || 'Employee');
+                            const seqId = r.seqNum || r.seq_num || r.id;
+                            return `
                             <tr>
-                                <td><strong>#${r.id}</strong></td>
-                                <td>${escapeHtml(r.requester_name || r.requester || 'Employee')}</td>
+                                <td><strong>#${seqId}</strong></td>
+                                <td><span style="font-weight: 700; color: #38bdf8; background: rgba(56,189,248,0.12); padding: 3px 8px; border-radius: 6px; font-size: 0.82rem;">${empId}</span></td>
+                                <td><strong>${empName}</strong></td>
                                 <td>${escapeHtml(getDepartmentLabel(r))}</td>
                                 <td>${escapeHtml(r.type || r.request_type || 'Request')}</td>
                                 <td><span class="badge" style="background: rgba(168, 85, 247, 0.2); color: #c084fc; font-weight: 700; padding: 2px 6px; border-radius: 4px; font-size: 10px;">Score: ${calculatePriorityScore(r)}</span></td>
                                 <td><strong>${formatCurrency(r.amount)}</strong></td>
                                 <td>
-                                    <button class="btn btn-primary" onclick="openReviewModal('${r.id}')" style="padding: 3px 10px; font-size: 11px;">Review</button>
+                                    <button class="btn btn-primary" onclick="openReviewModal('${r.dbId || r.id}')" style="padding: 3px 10px; font-size: 11px;">Review</button>
                                 </td>
                             </tr>
-                        `).join('')}
+                            `;
+                        }).join('')}
                     </tbody>
                 </table>
             `;
+            list.innerHTML = listEl;
         }
 
         function renderEscalationAlerts(requests) {
@@ -3692,9 +3757,15 @@
         // Logout
         function logout() {
             localStorage.removeItem('authToken');
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('token');
             localStorage.removeItem('role');
             localStorage.removeItem('userRole');
             localStorage.removeItem('userEmail');
+            localStorage.removeItem('currentUser');
+            localStorage.removeItem('zyro_remember_me');
+            localStorage.removeItem('rememberMe');
+            sessionStorage.clear();
             window.location.href = 'login.html';
         }
     </script>

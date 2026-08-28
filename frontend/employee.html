@@ -141,6 +141,28 @@
       color: #111827 !important;
     }
 
+    #department:disabled,
+    #department.locked-dept {
+      appearance: none !important;
+      -webkit-appearance: none !important;
+      -moz-appearance: none !important;
+      background-image: none !important;
+      cursor: default !important;
+      pointer-events: none !important;
+      background-color: #F9FAFB !important;
+      color: #111827 !important;
+      border: 1px solid #E5E7EB !important;
+      font-weight: 600 !important;
+      padding-right: 12px !important;
+    }
+
+    body.dark-theme #department:disabled,
+    body.dark-theme #department.locked-dept {
+      background-color: rgba(255, 255, 255, 0.05) !important;
+      color: #F8FAFC !important;
+      border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    }
+
     .grid {
       display: grid;
       grid-template-columns: 1fr;
@@ -1145,15 +1167,13 @@
                   <label class="label">Department</label>
                   <select id="department" class="profile-pill" required style="width:100%">
                     <option value="">Select Department</option>
-                    <option>Operations</option>
-                    <option>Accounts</option>
-                    <option>Finance</option>
-                    <option>HR</option>
-                    <option>IT</option>
-                    <option>Sales</option>
-                    <option>Marketing</option>
-                    <option>Production</option>
-                    <option>Administration</option>
+                    <option value="Operations">Operations</option>
+                    <option value="Finance">Finance</option>
+                    <option value="HR">HR</option>
+                    <option value="IT">IT</option>
+                    <option value="Sales">Sales</option>
+                    <option value="Marketing">Marketing</option>
+                    <option value="Production">Production</option>
                   </select>
                 </div>
                 <div>
@@ -1258,21 +1278,12 @@
               <div
                 style="font-size:0.72rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.04em; font-weight:700; margin-bottom:8px;">
                 Current Workflow</div>
-              <div class="assistant-workflow-steps" style="display:flex; flex-wrap:wrap; gap:4px; font-size:0.72rem;">
+              <div id="assistantWorkflowSteps" class="assistant-workflow-steps" style="display:flex; flex-wrap:wrap; gap:4px; font-size:0.72rem;">
                 <span class="step-tag active"
                   style="padding:2px 7px; border-radius:6px; background:linear-gradient(90deg, var(--accent), #60a5fa); color:#071029; font-weight:800;">Employee</span>
                 <span style="color:var(--muted); align-self:center;">↓</span>
                 <span class="step-tag"
-                  style="padding:2px 7px; border-radius:6px; background:rgba(255,255,255,0.04); color:var(--muted);">Accounts</span>
-                <span style="color:var(--muted); align-self:center;">↓</span>
-                <span class="step-tag"
-                  style="padding:2px 7px; border-radius:6px; background:rgba(255,255,255,0.04); color:var(--muted);">Payment</span>
-                <span style="color:var(--muted); align-self:center;">↓</span>
-                <span class="step-tag"
                   style="padding:2px 7px; border-radius:6px; background:rgba(255,255,255,0.04); color:var(--muted);">Manager</span>
-                <span style="color:var(--muted); align-self:center;">↓</span>
-                <span class="step-tag"
-                  style="padding:2px 7px; border-radius:6px; background:rgba(255,255,255,0.04); color:var(--muted);">CFO</span>
                 <span style="color:var(--muted); align-self:center;">↓</span>
                 <span class="step-tag"
                   style="padding:2px 7px; border-radius:6px; background:rgba(255,255,255,0.04); color:var(--muted);">MD</span>
@@ -1648,6 +1659,7 @@
       if (newRequestBtn) newRequestBtn.addEventListener('click', () => {
         exitEditMode();
         requestForm?.reset();
+        autoFillUserDepartment();
         document.getElementById('request_type')?.focus();
       });
       if (myDraftsBtn) myDraftsBtn.addEventListener('click', openMyDraftsModal);
@@ -1657,6 +1669,7 @@
       if (clearFormBtn) clearFormBtn.addEventListener('click', () => {
         requestForm?.reset();
         exitEditMode();
+        autoFillUserDepartment();
       });
       document.getElementById('detailsApproveBtn')?.addEventListener('click', () => handleRequestAction('approve'));
       document.getElementById('detailsRejectBtn')?.addEventListener('click', () => handleRequestAction('reject'));
@@ -1669,6 +1682,9 @@
       }
       if (searchBox) searchBox.addEventListener('input', renderRequestsTable);
       if (filterStatus) filterStatus.addEventListener('change', renderRequestsTable);
+      
+      autoFillUserDepartment();
+      syncUserProfile();
       updateSmartAssistant();
     }
 
@@ -2040,6 +2056,9 @@
 
     function onTypeChange(typeVal, prefillData = {}) {
       renderDynamicForm(typeVal, prefillData);
+      if (!document.getElementById('department')?.value) {
+        autoFillUserDepartment();
+      }
       updateSmartAssistant();
     }
     window.onTypeChange = onTypeChange;
@@ -2058,7 +2077,7 @@
 
     function updateSmartAssistant() {
       const reqType = document.getElementById('request_type')?.value || '';
-      const dept = document.getElementById('department')?.value || '';
+      const dept = document.getElementById('department')?.value || getCurrentUserDepartment() || '';
       const prio = document.getElementById('priority')?.value || '';
 
       const assistantCard = document.getElementById('smartAssistantCard');
@@ -2200,11 +2219,47 @@
         'Purchase Request': '3–4 Business Days',
         'Maintenance': '2–4 Business Days',
         'Training': '2–3 Business Days',
+        'Leave Request': '1–2 Business Days',
+        'Budget Approval': '3–5 Business Days',
         'Other': '2–5 Business Days'
       };
 
       if (estTimeEl) {
         estTimeEl.textContent = estimates[reqType] || 'Select Request Type';
+      }
+
+      // Dynamic Current Workflow in Assistant
+      const wfContainer = document.getElementById('assistantWorkflowSteps');
+      if (wfContainer) {
+        let wfChain = [];
+        try {
+          const savedWorkflows = JSON.parse(localStorage.getItem('workflows') || '[]');
+          const cleanReqType = String(reqType || '').trim().toLowerCase();
+          const isLeave = cleanReqType === 'leave request' || cleanReqType === 'leave';
+          const match = savedWorkflows.find(w => {
+            const cleanWfType = String(w.type || '').trim().toLowerCase();
+            const cleanWfName = String(w.name || '').trim().toLowerCase();
+            return (cleanWfType === cleanReqType || cleanWfName.includes(cleanReqType) || cleanReqType.includes(cleanWfType)) && Array.isArray(w.levels) && w.levels.length > 0;
+          });
+          if (match && Array.isArray(match.levels) && match.levels.length) {
+            wfChain = ['Employee', ...match.levels, 'Done'];
+          } else if (isLeave) {
+            wfChain = ['Employee', 'Manager', 'MD', 'Done'];
+          } else {
+            wfChain = ['Employee', 'Accounts', 'Manager', 'CFO', 'MD', 'Done'];
+          }
+        } catch (e) {
+          wfChain = reqType === 'Leave Request' ? ['Employee', 'Manager', 'MD', 'Done'] : ['Employee', 'Accounts', 'Manager', 'CFO', 'MD', 'Done'];
+        }
+
+        wfContainer.innerHTML = wfChain.map((step, idx) => {
+          const isFirst = idx === 0;
+          const style = isFirst
+            ? 'padding:2px 7px; border-radius:6px; background:linear-gradient(90deg, var(--accent), #60a5fa); color:#071029; font-weight:800;'
+            : 'padding:2px 7px; border-radius:6px; background:rgba(255,255,255,0.04); color:var(--muted);';
+          const arrow = idx < wfChain.length - 1 ? '<span style="color:var(--muted); align-self:center;">↓</span>' : '';
+          return `<span class="step-tag ${isFirst ? 'active' : ''}" style="${style}">${escapeHtml(step)}</span>${arrow}`;
+        }).join('');
       }
 
       const tipsEl = document.getElementById('assistantTipsList');
@@ -2236,6 +2291,14 @@
         'Training': [
           '• Mention business justification.',
           '• Include course title and dates.'
+        ],
+        'Leave Request': [
+          '• Specify leave type and duration clearly.',
+          '• Ensure total days match start and end dates.'
+        ],
+        'Budget Approval': [
+          '• Provide project ROI and fiscal year details.',
+          '• Detail department budget allocation.'
         ],
         'Capital Expenditure': [
           '• Explain expected ROI.',
@@ -2638,6 +2701,7 @@
       if (submitButton) submitButton.textContent = 'Submit Request';
       const cancelEditBtn = document.getElementById('cancelEditBtn');
       if (cancelEditBtn) cancelEditBtn.style.display = 'none';
+      autoFillUserDepartment();
     }
     window.clearRequestForm = clearRequestForm;
 
@@ -2645,7 +2709,7 @@
       console.log('[Employee Submit] Function started');
       e.preventDefault();
       const request_type = document.getElementById('request_type').value.trim();
-      const department = document.getElementById('department').value;
+      const department = document.getElementById('department')?.value || getCurrentUserDepartment() || '';
       const priority = document.getElementById('priority').value;
       const employeeName = getCurrentUserName();
       const employeeEmail = getCurrentUserEmail();
@@ -2688,7 +2752,8 @@
         });
       }
 
-      if (request_type !== 'Other' && (!amount || Number.isNaN(amount) || amount <= 0)) {
+      const isLeave = request_type === 'Leave Request' || String(request_type).toLowerCase() === 'leave';
+      if (!isLeave && request_type !== 'Other' && (!amount || Number.isNaN(amount) || amount <= 0)) {
         if (!missingFields.includes('Cost/Amount')) missingFields.push('Cost/Amount');
       }
 
@@ -2705,6 +2770,8 @@
 
       const fullPayload = {
         request_type,
+        title: request_type,
+        type: request_type,
         department,
         priority,
         description: description || `${request_type} Request`,
@@ -2764,12 +2831,17 @@
         }
 
         const numAmt = Number(amount || 0);
+        const cleanReqType = String(request_type || '').trim().toLowerCase();
+        const isLeaveReq = cleanReqType === 'leave request' || cleanReqType === 'leave';
+
         const match = savedWorkflows.find(w => {
-          const cleanReqType = String(request_type || '').trim().toLowerCase();
           const cleanWfType = String(w.type || '').trim().toLowerCase();
           const cleanWfName = String(w.name || '').trim().toLowerCase();
 
           const typeMatch = cleanWfType === cleanReqType || cleanWfName.includes(cleanReqType) || cleanReqType.includes(cleanWfType);
+          if (isLeaveReq) {
+            return typeMatch && Array.isArray(w.levels) && w.levels.length > 0;
+          }
           const minVal = Number(w.minAmount ?? w.min_amount ?? 0);
           const maxVal = Number(w.maxAmount ?? w.max_amount ?? 0);
           const amountMatch = numAmt >= minVal && (maxVal > 0 ? numAmt <= maxVal : true);
@@ -2782,8 +2854,9 @@
         console.warn('Error reading workflows:', err);
       }
 
-      const activeChain = customChain && customChain.length ? customChain : ['Accounts', 'Manager', 'CFO', 'MD'];
-      const initialApprover = activeChain[0] || 'Accounts';
+      const defaultFallbackChain = (isLeave ? ['Manager', 'MD'] : ['Accounts', 'Manager', 'CFO', 'MD']);
+      const activeChain = customChain && customChain.length ? customChain : defaultFallbackChain;
+      const initialApprover = activeChain[0] || (isLeave ? 'Manager' : 'Accounts');
       const initialStatus = `Pending ${initialApprover} Approval`;
       const fullWorkflowChain = ['Employee', ...activeChain, 'Completed'];
 
@@ -2873,7 +2946,7 @@
     async function saveDraft() {
       console.log("Save Draft clicked");
       const request_type = document.getElementById('request_type')?.value || '';
-      const department = document.getElementById('department')?.value || '';
+      const department = document.getElementById('department')?.value || getCurrentUserDepartment() || '';
       const priority = document.getElementById('priority')?.value || 'Medium';
       const amount = document.getElementById('amount')?.value || 0;
       const description = document.getElementById('description')?.value || '';
@@ -3194,6 +3267,7 @@
       const typeSelect = document.getElementById('request_type');
       if (typeSelect) typeSelect.value = '';
       if (typeof renderDynamicForm === 'function') renderDynamicForm('');
+      autoFillUserDepartment();
     }
 
     function enterEditMode(requestId) {
@@ -3366,6 +3440,107 @@
       renderChart('historyStatusChart', 'doughnut', Object.keys(statusMap), [Object.values(statusMap)], ['#22c55e', '#38bdf8', '#f97316', '#94a3b8']);
     }
 
+    function getCurrentUserDepartment() {
+      try {
+        const u = JSON.parse(localStorage.getItem('currentUser') || 'null');
+        if (u && u.department) return u.department;
+      } catch (e) { }
+      try {
+        const u = JSON.parse(sessionStorage.getItem('currentUser') || 'null');
+        if (u && u.department) return u.department;
+      } catch (e) { }
+      return localStorage.getItem('department') || localStorage.getItem('userDepartment') || sessionStorage.getItem('department') || sessionStorage.getItem('userDepartment') || '';
+    }
+
+    function autoFillUserDepartment(explicitDept = null) {
+      const dept = explicitDept || getCurrentUserDepartment();
+      const deptSelect = document.getElementById('department');
+      if (!deptSelect) return;
+
+      if (dept) {
+        const cleanDept = String(dept).trim().toLowerCase();
+        let matchedValue = '';
+        for (let i = 0; i < deptSelect.options.length; i++) {
+          const opt = deptSelect.options[i];
+          const optVal = String(opt.value || '').trim().toLowerCase();
+          const optText = String(opt.textContent || '').trim().toLowerCase();
+          if (optVal && (optVal === cleanDept || optText === cleanDept)) {
+            matchedValue = opt.value || opt.textContent;
+            deptSelect.selectedIndex = i;
+            deptSelect.value = matchedValue;
+            break;
+          }
+        }
+        if (!matchedValue && dept) {
+          deptSelect.value = dept;
+        }
+
+        // Lock department field to be non-editable and remove dropdown arrow
+        deptSelect.disabled = true;
+        deptSelect.classList.add('locked-dept');
+        deptSelect.style.setProperty('appearance', 'none', 'important');
+        deptSelect.style.setProperty('-webkit-appearance', 'none', 'important');
+        deptSelect.style.setProperty('-moz-appearance', 'none', 'important');
+        deptSelect.style.setProperty('background-image', 'none', 'important');
+        deptSelect.style.cursor = 'default';
+        deptSelect.style.pointerEvents = 'none';
+        deptSelect.title = 'Assigned Department: ' + (deptSelect.value || dept) + ' (Locked)';
+      }
+
+      if (typeof updateSmartAssistant === 'function') {
+        updateSmartAssistant();
+      }
+    }
+
+    async function syncUserProfile() {
+      autoFillUserDepartment();
+      const token = localStorage.getItem('authToken') || localStorage.getItem('auth_token') || '';
+      const email = (getCurrentUserEmail() || '').toLowerCase().trim();
+      const apiBase = (typeof API_BASE !== 'undefined' && API_BASE) ? API_BASE : 'http://localhost:4000/api';
+
+      // 1. Try authenticated /api/profile
+      if (token) {
+        try {
+          const res = await fetch(`${apiBase}/profile`, {
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            }
+          });
+          if (res.ok) {
+            const profile = await res.json();
+            if (profile && profile.department) {
+              localStorage.setItem('department', profile.department);
+              localStorage.setItem('userDepartment', profile.department);
+              const cur = JSON.parse(localStorage.getItem('currentUser') || '{}');
+              localStorage.setItem('currentUser', JSON.stringify({ ...cur, ...profile, department: profile.department }));
+              autoFillUserDepartment(profile.department);
+              return;
+            }
+          }
+        } catch (e) { }
+      }
+
+      // 2. Try /api/auth/users
+      try {
+        const res = await fetch(`${apiBase}/auth/users`);
+        if (res.ok) {
+          const users = await res.json();
+          if (Array.isArray(users)) {
+            const me = users.find(u => String(u.email || '').toLowerCase().trim() === email || (u.id && String(u.id) === String(localStorage.getItem('userId'))));
+            if (me && me.department) {
+              localStorage.setItem('department', me.department);
+              localStorage.setItem('userDepartment', me.department);
+              const cur = JSON.parse(localStorage.getItem('currentUser') || '{}');
+              localStorage.setItem('currentUser', JSON.stringify({ ...cur, ...me, department: me.department }));
+              autoFillUserDepartment(me.department);
+              return;
+            }
+          }
+        }
+      } catch (e) { }
+    }
+
     function getCurrentUser() {
       try {
         const u = JSON.parse(localStorage.getItem('currentUser') || 'null');
@@ -3374,7 +3549,8 @@
       return {
         email: getCurrentUserEmail(),
         name: getCurrentUserName(),
-        role: getCurrentUserRole()
+        role: getCurrentUserRole(),
+        department: getCurrentUserDepartment()
       };
     }
     function getCurrentUserEmail() { const u = JSON.parse(localStorage.getItem('currentUser') || 'null'); return u?.email || localStorage.getItem('userEmail') || localStorage.getItem('email') || ''; }
@@ -3853,10 +4029,16 @@
       }
     }
     async function cancelRequest(id) {
-      console.log('Deleting request', id);
+      console.log('Cancelling request', id);
       try {
-        const response = await fetch(`${REQUESTS_API_URL}/${encodeURIComponent(id)}`, {
-          method: 'DELETE',
+        const token = localStorage.getItem('authToken') || localStorage.getItem('auth_token') || '';
+        const headers = { 'Content-Type': 'application/json' };
+        if (token && token !== 'null' && token !== 'undefined') headers['Authorization'] = `Bearer ${token}`;
+
+        const response = await fetch(`${REQUESTS_API_URL}/${encodeURIComponent(id)}/status`, {
+          method: 'PATCH',
+          headers,
+          body: JSON.stringify({ status: 'Cancelled' })
         });
         const data = await response.json().catch(() => ({}));
         console.log('API response:', data);
@@ -3866,9 +4048,10 @@
           }
           return alert(data.error || data.message || 'Unable to cancel request.');
         }
+        showQuickToast('✓ Request cancelled successfully.');
         await loadRequests();
       } catch (err) {
-        console.error('Error deleting request:', err);
+        console.error('Error cancelling request:', err);
         alert('Unable to cancel request.');
       }
     }
@@ -4139,6 +4322,10 @@
       }
       if (typeof window.updateChartColors === 'function') {
         window.updateChartColors(theme);
+      }
+
+      if (typeof autoFillUserDepartment === 'function') {
+        autoFillUserDepartment();
       }
 
       const urlParams = new URLSearchParams(window.location.search);

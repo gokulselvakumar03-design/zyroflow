@@ -1155,10 +1155,16 @@
         }
 
         async function cancelRequest(requestId) {
-            console.log('Deleting request', requestId);
+            console.log('Cancelling request', requestId);
             try {
-                const response = await fetch(`${REQUESTS_API_URL}/${encodeURIComponent(requestId)}`, {
-                    method: 'DELETE'
+                const token = localStorage.getItem('authToken') || localStorage.getItem('auth_token') || '';
+                const headers = { 'Content-Type': 'application/json' };
+                if (token && token !== 'null' && token !== 'undefined') headers['Authorization'] = `Bearer ${token}`;
+
+                const response = await fetch(`${REQUESTS_API_URL}/${encodeURIComponent(requestId)}/status`, {
+                    method: 'PATCH',
+                    headers,
+                    body: JSON.stringify({ status: 'Cancelled' })
                 });
                 const data = await response.json().catch(() => ({}));
                 console.log('API response:', data);
@@ -1170,7 +1176,7 @@
                 showMessage('Request cancelled successfully', 'success');
                 loadRequests();
             } catch (err) {
-                console.error('Error deleting/cancelling request:', err);
+                console.error('Error cancelling request:', err);
                 showMessage('Unable to cancel request', 'error');
             }
         }
@@ -1203,11 +1209,16 @@
             }
 
             const adminWorkflows = getWorkflows();
+            const cleanType = String(type || '').trim().toLowerCase();
+            const isLeave = cleanType === 'leave request' || cleanType === 'leave';
+
             const matchedWorkflow = adminWorkflows.find((w) => {
                 if (!w) return false;
-                const cleanType = String(type || '').trim().toLowerCase();
                 const cleanWfType = String(w.type || '').trim().toLowerCase();
                 const typeMatch = cleanWfType === cleanType || String(w.name || '').toLowerCase().includes(cleanType);
+                if (isLeave) {
+                    return typeMatch && Array.isArray(w.levels) && w.levels.length > 0;
+                }
                 const minVal = Number(w.minAmount ?? w.min_amount ?? 0);
                 const maxVal = Number(w.maxAmount ?? w.max_amount ?? 0);
                 const amountMatch = amount >= minVal && (maxVal > 0 ? amount <= maxVal : true);
@@ -1543,9 +1554,15 @@
         // Logout
         function logout() {
             localStorage.removeItem('authToken');
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('token');
             localStorage.removeItem('role');
             localStorage.removeItem('userRole');
             localStorage.removeItem('userEmail');
+            localStorage.removeItem('currentUser');
+            localStorage.removeItem('zyro_remember_me');
+            localStorage.removeItem('rememberMe');
+            sessionStorage.clear();
             window.location.href = 'login.html';
         }
     </script>

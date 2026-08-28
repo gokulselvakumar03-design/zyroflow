@@ -359,18 +359,33 @@ exports.escalate = async (req, res, next) => {
     conn = await pool.getConnection();
     await conn.beginTransaction();
 
-    const [requestRows] = await conn.execute('SELECT status, requester_email FROM workflow_requests WHERE id = ? FOR UPDATE', [id]);
+    const [requestRows] = await conn.execute('SELECT status, requester_email, workflow, current_level FROM workflow_requests WHERE id = ? FOR UPDATE', [id]);
     const request = requestRows[0];
     if (!request) {
       await conn.rollback();
       return res.status(404).json({ success: false, message: 'Request not found' });
     }
 
+    let wf = [];
+    try { wf = typeof request.workflow === 'string' ? JSON.parse(request.workflow) : (request.workflow || []); } catch(e) { wf = []; }
+    const mdIndex = wf.findIndex(r => String(r).toLowerCase().trim() === 'md');
+    const nextLevel = mdIndex !== -1 ? mdIndex : Math.max(1, Number(request.current_level || 0) + 1);
+
     const performer = req.user ? (req.user.name || req.user.email) : role;
     const actionText = comments ? `ESCALATED to MD by ${role}: ${comments}` : `ESCALATED to MD by ${role}`;
 
     await conn.execute(
-      "UPDATE workflow_requests SET status = 'Escalated to MD', approval_stage = 'MD', current_role = 'MD', current_approver = 'MD', current_level = 3 WHERE id = ?",
+      "UPDATE workflow_requests SET status = 'Pending MD Approval', approval_stage = 'MD', current_role = 'MD', current_approver = 'MD', current_level = ? WHERE id = ?",
+      [nextLevel, id]
+    );
+
+    // Update approvals table steps
+    await conn.execute(
+      "UPDATE approvals SET status = 'approved', updated_at = NOW() WHERE request_id = ? AND LOWER(approver_role) = LOWER(?)",
+      [id, role]
+    );
+    await conn.execute(
+      "UPDATE approvals SET status = 'pending', updated_at = NOW() WHERE request_id = ? AND LOWER(approver_role) = 'md'",
       [id]
     );
 
@@ -382,6 +397,7 @@ exports.escalate = async (req, res, next) => {
     await recordApprovalHistory(conn, {
       request_id: id,
       action: 'Escalated',
+      decision: 'Escalated',
       manager_name: performer,
       role: role,
       comments: comments || 'Escalated to MD for executive review'
@@ -391,6 +407,13 @@ exports.escalate = async (req, res, next) => {
       `INSERT INTO notifications (user_role, request_id, title, message, type) VALUES ('md', ?, 'Escalated Request', 'Request escalated to MD for executive review.', 'warning')`,
       [id]
     ).catch(() => {});
+
+    if (request.requester_email) {
+      await conn.execute(
+        `INSERT INTO notifications (user_email, user_role, request_id, title, message, type) VALUES (?, 'employee', ?, 'Request Escalated to MD', 'Your request has been escalated to MD by CFO.', 'info')`,
+        [request.requester_email, id]
+      ).catch(() => {});
+    }
 
     await conn.commit();
     res.json({ success: true, message: 'Request escalated to MD successfully' });
