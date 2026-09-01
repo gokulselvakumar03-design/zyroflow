@@ -9,25 +9,28 @@ dotenv.config();
 
 exports.login = async (req, res, next) => {
   try {
-    const { email, password, rememberMe } = req.body;
+    const rawEmployeeId = req.body.employee_id || req.body.employeeId || req.body.username || req.body.userId;
+    const { password, rememberMe } = req.body;
+    const employee_id = rawEmployeeId ? String(rawEmployeeId).trim() : '';
+
     console.log('\n[AUTH] ========== LOGIN ATTEMPT START ==========');
-    console.log('[AUTH] Email received:', email);
+    console.log('[AUTH] Employee ID received:', employee_id);
     console.log('[AUTH] Password received:', password ? '***' : 'MISSING');
     console.log('[AUTH] Remember Me:', Boolean(rememberMe));
 
-    if (!email || !password) {
-      console.log('[AUTH] ❌ Missing email or password');
-      return res.status(400).json({ message: 'Email and password are required' });
+    if (!employee_id || !password) {
+      console.log('[AUTH] ❌ Missing employee_id or password');
+      return res.status(400).json({ message: 'Employee ID and password are required' });
     }
 
-    const sql = 'SELECT * FROM users WHERE email = ?';
+    const sql = 'SELECT * FROM users WHERE LOWER(TRIM(employee_id)) = LOWER(?) LIMIT 1';
     console.log('[AUTH] Executing query:', sql);
-    const [users] = await pool.execute(sql, [email]);
+    const [users] = await pool.execute(sql, [employee_id]);
     const user = users[0];
 
     if (user) {
       console.log('[AUTH] ✓ User found in database');
-      console.log('[AUTH] User details - ID:', user.id, 'Email:', user.email, 'Role:', user.role, 'Name:', user.name, 'Status:', user.status);
+      console.log('[AUTH] User details - ID:', user.id, 'Employee ID:', user.employee_id, 'Role:', user.role, 'Name:', user.name, 'Status:', user.status);
     } else {
       console.log('[AUTH] ❌ User NOT found in database');
       return res.status(401).json({ message: 'Invalid credentials' });
@@ -39,9 +42,8 @@ exports.login = async (req, res, next) => {
     }
 
     const storedPassword = user.password;
-    const isHashed = typeof storedPassword === 'string' && storedPassword.startsWith('$2b$');
+    const isHashed = typeof storedPassword === 'string' && (storedPassword.startsWith('$2b$') || storedPassword.startsWith('$2a$'));
     console.log('[AUTH] Password format:', isHashed ? 'bcrypt hashed' : 'plain text');
-    console.log('[AUTH] Stored password (first 20 chars):', storedPassword.substring(0, 20));
 
     let match = false;
     if (isHashed) {
@@ -49,7 +51,7 @@ exports.login = async (req, res, next) => {
       console.log('[AUTH] Bcrypt comparison result:', match);
     } else {
       match = password === storedPassword;
-      console.log('[AUTH] Plain text comparison - Input:', password, 'Stored:', storedPassword, 'Match:', match);
+      console.log('[AUTH] Plain text comparison match:', match);
     }
 
     if (!match) {
@@ -61,12 +63,12 @@ exports.login = async (req, res, next) => {
     console.log('[AUTH] ✓ Password matched successfully');
     console.log('[AUTH] Detected role:', user.role);
 
-    const payload = { id: user.id, role: user.role, name: user.name || null, email: user.email };
+    const payload = { id: user.id, role: user.role, name: user.name || null, email: user.email, employee_id: user.employee_id };
     const tokenExpiry = rememberMe ? '30d' : (process.env.JWT_EXPIRES_IN || '24h');
     const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: tokenExpiry });
 
     console.log('[AUTH] ✓ JWT token created');
-    console.log('[AUTH] Returning to client - role:', user.role, 'userId:', user.id);
+    console.log('[AUTH] Returning to client - role:', user.role, 'userId:', user.id, 'employee_id:', user.employee_id);
     console.log('[AUTH] ========== LOGIN ATTEMPT END (SUCCESS) ==========\n');
 
     const isAdmin = String(user.role || '').toLowerCase() === 'admin';
@@ -87,6 +89,7 @@ exports.login = async (req, res, next) => {
       user: {
         id: user.id,
         employee_id: user.employee_id || '',
+        employeeId: user.employee_id || '',
         name: user.name || '',
         email: user.email || '',
         role: user.role || '',

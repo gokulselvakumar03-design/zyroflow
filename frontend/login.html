@@ -578,10 +578,10 @@
 
                     <form id="login-form">
                         <div class="form-group">
-                            <label class="form-label" for="email">Email Address</label>
+                            <label class="form-label" for="employee_id">Employee ID</label>
                             <div class="input-wrapper">
-                                <input type="email" id="email" class="form-input" placeholder="Enter your email"
-                                    required>
+                                <input type="text" id="employee_id" name="employee_id" class="form-input" placeholder="Enter Employee ID"
+                                    required autocomplete="username">
                             </div>
                         </div>
 
@@ -616,7 +616,7 @@
 
     <script>
         // DOM Elements
-        const emailInput = document.getElementById('email');
+        const employeeIdInput = document.getElementById('employee_id') || document.getElementById('email');
         const passwordInput = document.getElementById('password');
         const passwordToggle = document.getElementById('password-toggle');
         const loginForm = document.getElementById('login-form');
@@ -633,9 +633,11 @@
         });
 
         // Clear error messages on input
-        emailInput.addEventListener('input', () => {
-            hideError();
-        });
+        if (employeeIdInput) {
+            employeeIdInput.addEventListener('input', () => {
+                hideError();
+            });
+        }
 
         passwordInput.addEventListener('input', () => {
             hideError();
@@ -746,23 +748,18 @@
             successMessage.classList.remove('show');
 
             // Get form values
-            const email = emailInput.value.trim();
+            const employee_id = (employeeIdInput ? employeeIdInput.value : '').trim();
             const password = passwordInput.value.trim();
             const rememberMe = Boolean(document.getElementById('rememberMe')?.checked);
 
             // Validation
-            if (!email || !password) {
+            if (!employee_id || !password) {
                 showError('Please fill all fields');
                 return;
             }
 
-            if (!isValidEmail(email)) {
-                showError('Please enter a valid email');
-                return;
-            }
-
-            console.log('[LOGIN] email entered:', email);
-            console.log('[LOGIN] password entered:', password);
+            console.log('[LOGIN] employee_id entered:', employee_id);
+            console.log('[LOGIN] password entered:', password ? '***' : 'MISSING');
             console.log('[LOGIN] rememberMe:', rememberMe);
 
             // Disable button and show loading state
@@ -771,7 +768,7 @@
             loginBtn.innerHTML = '<span class="spinner"></span>Signing in...';
 
             try {
-                const response = await validateLogin(email, password, rememberMe);
+                const response = await validateLogin(employee_id, password, rememberMe);
                 console.log('[LOGIN] backend response:', response);
 
                 if (response.success) {
@@ -789,17 +786,18 @@
 
                     // Store authentication data
                     const normalizedRole = normalizeRoleValue(response.role || response.user?.role || 'employee');
-                    const empId = response.employee_id || response.employeeId || response.user?.employee_id || response.user?.employeeId || '';
+                    const empId = response.employee_id || response.employeeId || response.user?.employee_id || response.user?.employeeId || employee_id;
                     const dept = response.user?.department || response.department || '';
                     const userName = response.user?.name || response.name || '';
+                    const userEmail = response.user?.email || response.email || '';
 
                     localStorage.setItem('employee_id', empId);
                     localStorage.setItem('employeeId', empId);
                     localStorage.setItem('authToken', response.token);
                     localStorage.setItem('userRole', normalizedRole);
                     localStorage.setItem('role', normalizedRole);
-                    localStorage.setItem('email', response.user?.email || email);
-                    localStorage.setItem('userEmail', response.user?.email || email);
+                    localStorage.setItem('email', userEmail);
+                    localStorage.setItem('userEmail', userEmail);
                     localStorage.setItem('userId', response.userId);
                     localStorage.setItem('userName', userName);
                     localStorage.setItem('name', userName);
@@ -808,7 +806,7 @@
                     localStorage.setItem('currentUser', JSON.stringify({
                         ...response.user,
                         name: userName,
-                        email: response.user?.email || email,
+                        email: userEmail,
                         role: normalizedRole,
                         employee_id: empId,
                         employeeId: empId,
@@ -845,7 +843,7 @@
                         }, 600);
                     }
                 } else {
-                    showError(response.message || 'Invalid email or password.');
+                    showError(response.message || 'Invalid Employee ID or password.');
                     loginBtn.disabled = false;
                     loginBtn.textContent = originalText;
                 }
@@ -1004,12 +1002,12 @@
             };
         }
 
-        async function validateLogin(email, password, rememberMe) {
+        async function validateLogin(employee_id, password, rememberMe) {
             const loginUrl = `${API_BASE}/auth/login`;
             console.log('[LOGIN FRONTEND] ========== LOGIN REQUEST START ==========');
             console.log('[LOGIN FRONTEND] Request URL:', loginUrl);
             console.log('[LOGIN FRONTEND] Request method: POST');
-            console.log('[LOGIN FRONTEND] Email:', email);
+            console.log('[LOGIN FRONTEND] Employee ID:', employee_id);
             console.log('[LOGIN FRONTEND] Password:', password ? '***' : 'MISSING');
             console.log('[LOGIN FRONTEND] Remember Me:', Boolean(rememberMe));
 
@@ -1018,7 +1016,12 @@
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ email, password, rememberMe: Boolean(rememberMe) }),
+                body: JSON.stringify({
+                    employee_id,
+                    employeeId: employee_id,
+                    password,
+                    rememberMe: Boolean(rememberMe)
+                }),
             });
 
             let data;
@@ -1037,9 +1040,10 @@
             console.log('[LOGIN FRONTEND] Response data:', data);
 
             if (!response.ok) {
-                let message = 'Invalid email or password.';
-                if (response.status === 400) message = data.message || 'Email and password are required.';
-                if (response.status === 401) message = data.message || 'Invalid email or password.';
+                let message = 'Invalid Employee ID or password.';
+                if (response.status === 400) message = data.message || 'Employee ID and password are required.';
+                if (response.status === 401) message = data.message || 'Invalid Employee ID or password.';
+                if (response.status === 403) message = data.message || 'Account has been deactivated. Please contact your administrator.';
                 if (response.status === 404) message = data.message || 'Login endpoint not found.';
                 if (response.status === 500) message = data.message || 'Server error. Please try again later.';
                 console.log('[LOGIN FRONTEND] ❌ Login failed:', message);
@@ -1058,10 +1062,10 @@
             const userObj = data.user || {
                 id: data.userId,
                 name: data.name || '',
-                email: email,
+                email: data.email || '',
                 role: data.role,
                 department: data.department || '',
-                employee_id: data.employee_id || data.employeeId || '',
+                employee_id: data.employee_id || data.employeeId || employee_id,
                 hasRecoveryEmail
             };
 
@@ -1071,8 +1075,9 @@
                 role: data.role,
                 userId: data.userId,
                 name: data.name || userObj.name || '',
-                employee_id: data.employee_id || data.employeeId || userObj.employee_id || '',
-                employeeId: data.employee_id || data.employeeId || userObj.employee_id || '',
+                email: data.email || userObj.email || '',
+                employee_id: data.employee_id || data.employeeId || userObj.employee_id || employee_id,
+                employeeId: data.employee_id || data.employeeId || userObj.employee_id || employee_id,
                 department: data.department || userObj.department || '',
                 hasRecoveryEmail,
                 user: userObj,
