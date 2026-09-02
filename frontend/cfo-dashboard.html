@@ -1586,7 +1586,7 @@
         let currentFilter = 'All Pending';
         const UNDO_WINDOW_MS = 25000;
         const undoTimers = new Map();
-        const REQUESTS_API_URL = 'http://localhost:4000/requests';
+        const REQUESTS_API_URL = '/requests';
         let requestsCache = [];
 
         let cfoDeptChart = null;
@@ -1634,7 +1634,7 @@
             const normalizedRequestId = Number(requestId);
             if (!Number.isInteger(normalizedRequestId) || normalizedRequestId <= 0) return;
             try {
-                await fetch('http://localhost:4000/history', {
+                await fetch('/history', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ request_id: normalizedRequestId, action, performed_by: user })
@@ -1655,7 +1655,7 @@
                     headers['Authorization'] = `Bearer ${token}`;
                 }
 
-                const response = await fetch(`http://localhost:4000/${act}`, {
+                const response = await fetch(`/${act}`, {
                     method: 'POST',
                     headers,
                     body: JSON.stringify({
@@ -1669,7 +1669,7 @@
 
                 if (response.ok) {
                     try {
-                        const histRes = await fetch('http://localhost:4000/approval-history');
+                        const histRes = await fetch('/approval-history');
                         if (histRes && histRes.ok) {
                             const histData = await histRes.json();
                             if (Array.isArray(histData)) {
@@ -1711,7 +1711,7 @@
                 btn.disabled = true;
                 btn.innerText = 'Refreshing...';
             }
-            const apiBase = (typeof API_BASE !== 'undefined' && API_BASE) ? API_BASE : 'http://localhost:4000';
+            const apiBase = (typeof API_BASE !== 'undefined' && API_BASE) ? API_BASE : '';
             const token = localStorage.getItem('authToken') || '';
             const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
 
@@ -1747,7 +1747,7 @@
         }
 
         async function loadRequests() {
-            const apiBase = (typeof API_BASE !== 'undefined' && API_BASE) ? API_BASE : 'http://localhost:4000';
+            const apiBase = (typeof API_BASE !== 'undefined' && API_BASE) ? API_BASE : '';
             const token = localStorage.getItem('authToken') || '';
             const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
 
@@ -2444,7 +2444,7 @@
         }
 
         async function escalateRequest(requestId) {
-            const apiBase = (typeof API_BASE !== 'undefined' && API_BASE) ? API_BASE : 'http://localhost:4000';
+            const apiBase = (typeof API_BASE !== 'undefined' && API_BASE) ? API_BASE : '';
             const token = localStorage.getItem('authToken') || '';
             const headers = {
                 'Content-Type': 'application/json',
@@ -2570,7 +2570,7 @@
             console.log('[CFO APPROVE] RESPONSE:', response);
 
             try {
-                const verifyRes = await fetch('http://localhost:4000/requests');
+                const verifyRes = await fetch('/requests');
                 if (verifyRes.ok) {
                     const allServerReqs = await verifyRes.json();
                     const serverRequest = allServerReqs.find(r => Number(r.id) === Number(request.id));

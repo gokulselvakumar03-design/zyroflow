@@ -1632,7 +1632,7 @@
   <script src="app.js"></script>
   <script src="notification-center.js"></script>
   <script>
-    const REQUESTS_API_URL = 'http://localhost:4000/requests';
+    const REQUESTS_API_URL = '/requests';
     let requestsCache = [];
     let editingRequestId = null;
     let submissionTimelineEntries = [];
@@ -3496,7 +3496,7 @@
       autoFillUserDepartment();
       const token = localStorage.getItem('authToken') || localStorage.getItem('auth_token') || '';
       const email = (getCurrentUserEmail() || '').toLowerCase().trim();
-      const apiBase = (typeof API_BASE !== 'undefined' && API_BASE) ? API_BASE : 'http://localhost:4000/api';
+      const apiBase = (typeof API_BASE !== 'undefined' && API_BASE) ? API_BASE : '/api';
 
       // 1. Try authenticated /api/profile
       if (token) {

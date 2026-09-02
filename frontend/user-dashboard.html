@@ -652,7 +652,7 @@
 
     <script>
         let currentFilter = 'ALL';
-        const REQUESTS_API_URL = 'http://localhost:4000/requests';
+        const REQUESTS_API_URL = '/requests';
         let requestsCache = [];
 
         // Initialize
@@ -698,7 +698,7 @@
             const normalizedRequestId = Number(requestId);
             if (!Number.isInteger(normalizedRequestId) || normalizedRequestId <= 0) return;
             try {
-                await fetch('http://localhost:4000/history', {
+                await fetch('/history', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -717,7 +717,7 @@
 
         async function fetchApprovalSteps(requestId) {
             try {
-                const res = await fetch(`http://localhost:4000/approvals/${requestId}`);
+                const res = await fetch(`/approvals/${requestId}`);
                 if (!res.ok) return [];
                 const steps = await res.json();
                 return Array.isArray(steps) ? steps : [];

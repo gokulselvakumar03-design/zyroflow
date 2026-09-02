@@ -469,7 +469,7 @@ const ZyroWorkflow = (function () {
 
     try {
       const token = getAuthToken();
-      const res = await fetch(`http://localhost:4000/api/requests/${requestId}`, {
+      const res = await fetch(`/api/requests/${requestId}`, {
         headers: { Authorization: token ? `Bearer ${token}` : '' }
       });
 
@@ -742,7 +742,7 @@ const ZyroWorkflow = (function () {
 
     try {
       const token = getAuthToken();
-      const endpoint = pendingDecision.action === 'approve' ? 'http://localhost:4000/approve' : 'http://localhost:4000/reject';
+      const endpoint = pendingDecision.action === 'approve' ? '/approve' : '/reject';
 
       const res = await fetch(endpoint, {
         method: 'POST',

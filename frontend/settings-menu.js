@@ -6,7 +6,7 @@
 (function () {
   console.log('[ZyroSettings] Centralized Settings Controller initialized.');
 
-  const API_BASE = typeof window.API_BASE !== 'undefined' ? window.API_BASE : 'http://localhost:4000/api';
+  const API_BASE = typeof window.API_BASE !== 'undefined' ? window.API_BASE : '/api';
   let currentUserData = null;
 
   // Initialize Theme from localStorage (default: light)

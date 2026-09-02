@@ -465,19 +465,7 @@ const ZyroAnalytics = (function () {
       });
 
       if (!res.ok) {
-        res = await fetch('http://localhost:4000/api/analytics/dashboard', {
-          headers: { Authorization: token ? `Bearer ${token}` : '' }
-        });
-      }
-
-      if (!res.ok) {
         res = await fetch('/api/manager/analytics', {
-          headers: { Authorization: token ? `Bearer ${token}` : '' }
-        });
-      }
-
-      if (!res.ok) {
-        res = await fetch('http://localhost:4000/api/manager/analytics', {
           headers: { Authorization: token ? `Bearer ${token}` : '' }
         });
       }

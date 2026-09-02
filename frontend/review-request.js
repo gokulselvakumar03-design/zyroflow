@@ -3,7 +3,7 @@
  * Handles detailed request inspection and Accounts approval/rejection workflow
  */
 
-const API_BASE_URL = 'http://localhost:4000';
+const API_BASE_URL = '';
 let currentRequestId = null;
 let currentRequestData = null;
 let pendingActionType = null;

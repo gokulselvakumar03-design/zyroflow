@@ -86,7 +86,18 @@ async function updateRequestStatus(conn, requestId) {
 exports.approve = async (req, res, next) => {
   let conn;
   try {
-    const role = req.body?.role || (req.user ? req.user.role : 'Accounts');
+    const userRole = req.user ? req.user.role : null;
+    if (!userRole) {
+      return res.status(401).json({ success: false, message: 'Authentication required' });
+    }
+
+    const role = userRole;
+    const lowerRole = String(role).toLowerCase().trim();
+
+    if (lowerRole === 'employee' || lowerRole === 'requester' || lowerRole === 'user') {
+      return res.status(403).json({ success: false, message: 'Forbidden: Employees are not authorized to approve requests.' });
+    }
+
     const { request_id, requestId, comments } = req.body || {};
     const id = Number(request_id || requestId || req.params.id);
     if (!id || !Number.isInteger(id)) return res.status(400).json({ success: false, message: 'Valid request_id required' });
@@ -94,19 +105,37 @@ exports.approve = async (req, res, next) => {
     conn = await pool.getConnection();
     await conn.beginTransaction();
 
-    const [requestRows] = await conn.execute('SELECT status, payment_verified, current_role, requester_email FROM workflow_requests WHERE id = ? FOR UPDATE', [id]);
+    const [requestRows] = await conn.execute('SELECT id, status, approval_stage, current_role, payment_verified, requester_email FROM workflow_requests WHERE id = ? FOR UPDATE', [id]);
     const request = requestRows[0];
-    const currentStatus = String(request ? request.status : '').toLowerCase().trim();
-    if (!request || currentStatus === 'rejected' || currentStatus === 'approved') {
+    if (!request) {
+      await conn.rollback();
+      return res.status(404).json({ success: false, message: 'Request not found' });
+    }
+
+    const currentStatus = String(request.status || '').toLowerCase().trim();
+    if (currentStatus === 'rejected' || currentStatus === 'approved') {
       await conn.rollback();
       return res.status(400).json({ success: false, message: 'Request cannot be approved' });
     }
 
-    const [currentRows] = await conn.execute(
-      'SELECT * FROM approvals WHERE request_id = ? AND LOWER(approver_role) = LOWER(?) AND status = ? ORDER BY step ASC LIMIT 1',
-      [id, role, 'pending']
+    // Determine current pending approval step from approvals table
+    const [pendingStepRows] = await conn.execute(
+      'SELECT * FROM approvals WHERE request_id = ? AND status = ? ORDER BY step ASC LIMIT 1',
+      [id, 'pending']
     );
-    let current = currentRows[0];
+    let current = pendingStepRows[0];
+    const currentStage = current ? current.approver_role : (request.approval_stage || request.current_role || 'Accounts');
+    const normCurrentStage = String(currentStage).toLowerCase().trim();
+
+    // Verify authenticated user's role matches current required approval stage
+    if (lowerRole !== normCurrentStage && lowerRole !== 'admin') {
+      await conn.rollback();
+      return res.status(403).json({
+        success: false,
+        message: `Forbidden: Role '${role}' is not authorized to approve requests at the '${currentStage}' stage.`
+      });
+    }
+
     if (!current) {
       const [anyRows] = await conn.execute(
         'SELECT * FROM approvals WHERE request_id = ? AND LOWER(approver_role) = LOWER(?) ORDER BY step ASC LIMIT 1',
@@ -114,8 +143,6 @@ exports.approve = async (req, res, next) => {
       );
       current = anyRows[0];
     }
-
-    const lowerRole = String(role).toLowerCase().trim();
 
     if (!current) {
       let nextRole = lowerRole === 'cfo' ? 'MD' : lowerRole === 'manager' ? 'CFO' : lowerRole === 'accounts' ? 'Manager' : 'Completed';

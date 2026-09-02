@@ -2464,30 +2464,12 @@
                 const token = localStorage.getItem('authToken') || localStorage.getItem('auth_token') || '';
                 const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
 
-                let reqRes = await fetch('http://localhost:4000/requests', { headers }).catch(() => null);
-                if (!reqRes || !reqRes.ok) {
-                    reqRes = await fetch('http://127.0.0.1:4000/requests', { headers }).catch(() => null);
-                }
-                if (!reqRes || !reqRes.ok) {
-                    reqRes = await fetch('/requests', { headers }).catch(() => null);
-                }
-                if (!reqRes || !reqRes.ok) {
-                    reqRes = await fetch('http://localhost:4000/api/requests', { headers }).catch(() => null);
-                }
-                if (!reqRes || !reqRes.ok) {
-                    reqRes = await fetch('http://127.0.0.1:4000/api/requests', { headers }).catch(() => null);
-                }
+                let reqRes = await fetch('/requests', { headers }).catch(() => null);
                 if (!reqRes || !reqRes.ok) {
                     reqRes = await fetch('/api/requests', { headers }).catch(() => null);
                 }
 
-                let histRes = await fetch('http://localhost:4000/approval-history').catch(() => null);
-                if (!histRes || !histRes.ok) {
-                    histRes = await fetch('http://127.0.0.1:4000/approval-history').catch(() => null);
-                }
-                if (!histRes || !histRes.ok) {
-                    histRes = await fetch('/approval-history').catch(() => null);
-                }
+                let histRes = await fetch('/approval-history').catch(() => null);
 
                 if (reqRes && reqRes.ok) {
                     const data = await reqRes.json();
@@ -3113,9 +3095,7 @@
             const headers = { 'Content-Type': 'application/json' };
             if (token) headers['Authorization'] = `Bearer ${token}`;
 
-            const apiBase = (window.location.origin && window.location.origin.includes(':4000'))
-                ? window.location.origin
-                : 'http://localhost:4000';
+            const apiBase = '';
 
             const endpoint = action === 'approve' ? 'approve' : 'reject';
             const payload = {

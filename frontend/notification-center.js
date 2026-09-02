@@ -5,7 +5,7 @@
  */
 
 (function () {
-  const NOTIFICATION_API_BASE = typeof API_BASE !== 'undefined' ? `${API_BASE}/notifications` : 'http://localhost:4000/api/notifications';
+  const NOTIFICATION_API_BASE = typeof API_BASE !== 'undefined' ? `${API_BASE}/notifications` : '/api/notifications';
   let notificationsData = [];
   let unreadCount = 0;
   let dropdownEl = null;
@@ -394,7 +394,7 @@
 
     try {
       const token = getToken();
-      const res = await fetch('http://localhost:4000/requests', {
+      const res = await fetch('/requests', {
         headers: token ? { 'Authorization': `Bearer ${token}` } : {}
       });
       if (res.ok) {

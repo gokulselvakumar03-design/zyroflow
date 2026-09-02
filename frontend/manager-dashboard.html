@@ -1790,7 +1790,7 @@
         let currentFilter = 'ALL';
         const UNDO_WINDOW_MS = 25000;
         const undoTimers = new Map();
-        const REQUESTS_API_URL = 'http://localhost:4000/requests';
+        const REQUESTS_API_URL = '/requests';
         let requestsCache = [];
         let approvalHistoryCache = [];
         let trendChartInstance = null;
@@ -1817,7 +1817,7 @@
             const normalizedRequestId = Number(requestId);
             if (!Number.isInteger(normalizedRequestId) || normalizedRequestId <= 0) return;
             try {
-                await fetch('http://localhost:4000/history', {
+                await fetch('/history', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -1840,7 +1840,7 @@
                 const act = normalizeStatus(action) === 'approved' ? 'approve' : 'reject';
                 const commentsText = remarks && String(remarks).trim() ? String(remarks).trim() : (act === 'approve' ? 'Approved by Manager' : 'Rejected by Manager');
 
-                const response = await fetch(`http://localhost:4000/requests/${requestId}/${act}`, {
+                const response = await fetch(`/requests/${requestId}/${act}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -1853,7 +1853,7 @@
                 });
 
                 if (!response.ok) {
-                    await fetch(`http://localhost:4000/${act}`, {
+                    await fetch(`/${act}`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -1876,10 +1876,10 @@
             const token = localStorage.getItem('authToken') || localStorage.getItem('auth_token') || '';
             try {
                 const [reqRes, histRes] = await Promise.all([
-                    fetch('http://localhost:4000/requests', {
+                    fetch('/requests', {
                         headers: { 'Content-Type': 'application/json', 'Authorization': token ? `Bearer ${token}` : '' }
                     }),
-                    fetch('http://localhost:4000/approval-history?role=Manager', {
+                    fetch('/approval-history?role=Manager', {
                         headers: { 'Content-Type': 'application/json', 'Authorization': token ? `Bearer ${token}` : '' }
                     })
                 ]);
@@ -3571,7 +3571,7 @@
 
             try {
                 const token = localStorage.getItem('authToken') || localStorage.getItem('auth_token') || '';
-                const res = await fetch('http://localhost:4000/approval-history?role=Manager', {
+                const res = await fetch('/approval-history?role=Manager', {
                     headers: { 'Content-Type': 'application/json', 'Authorization': token ? `Bearer ${token}` : '' }
                 });
                 if (res.ok) {
@@ -3671,7 +3671,7 @@
             let data = null;
             try {
                 const token = localStorage.getItem('authToken') || localStorage.getItem('auth_token') || '';
-                const res = await fetch('http://localhost:4000/api/manager/analytics', {
+                const res = await fetch('/api/manager/analytics', {
                     headers: { 'Content-Type': 'application/json', 'Authorization': token ? `Bearer ${token}` : '' }
                 });
                 if (res.ok) {

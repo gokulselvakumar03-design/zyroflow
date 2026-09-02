@@ -1788,7 +1788,7 @@
 
     <script>
         const workflowLevels = [];
-        const REQUESTS_API_URL = 'http://localhost:4000/requests';
+        const REQUESTS_API_URL = '/requests';
         let requestsCache = [];
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -1989,7 +1989,7 @@
             if (!userId || !action) return;
 
             try {
-                const endpoint = `http://localhost:4000/api/auth/users/${userId}/${action}`;
+                const endpoint = `/api/auth/users/${userId}/${action}`;
                 const res = await fetch(endpoint, {
                     method: 'PATCH',
                     headers: { 'Content-Type': 'application/json' }
@@ -2036,9 +2036,9 @@
             try {
                 const token = localStorage.getItem('authToken') || localStorage.getItem('auth_token') || '';
                 const headers = (token && token !== 'null' && token !== 'undefined') ? { 'Authorization': `Bearer ${token}` } : {};
-                let res = await fetch('http://localhost:4000/api/auth/users', { headers });
+                let res = await fetch('/api/auth/users', { headers });
                 if (!res.ok) {
-                    res = await fetch('http://localhost:4000/api/auth/users');
+                    res = await fetch('/api/auth/users');
                 }
                 if (res.ok) {
                     const users = await res.json();
@@ -2125,7 +2125,7 @@
 
             try {
                 if (isEdit) {
-                    const res = await fetch(`http://localhost:4000/api/auth/users/${userId}`, {
+                    const res = await fetch(`/api/auth/users/${userId}`, {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ name, email, phone, role, department })
@@ -2158,7 +2158,7 @@
                         closeAddUserModal();
                     }, 1200);
                 } else {
-                    const res = await fetch('http://localhost:4000/api/auth/users', {
+                    const res = await fetch('/api/auth/users', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ name, email, phone, role, department, password })

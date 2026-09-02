@@ -1739,7 +1739,7 @@ app.get('/test-db', async (req, res) => {
 });
 
 app.get('/', (req, res) => {
-  res.json({ message: 'Multi-Level Approval Workflow API is running' });
+  res.redirect('/login.html');
 });
 
 // Global Error Handler
