@@ -514,6 +514,209 @@
       }
     }
 
+    /* Modern Recent Activities Workflow Feed */
+    .activity-feed-container {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .activity-card {
+      background: #FFFFFF !important;
+      border: 1px solid #E5E7EB !important;
+      border-radius: 12px;
+      padding: 14px 18px;
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      transition: all 0.2s ease;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    }
+
+    .activity-card:hover {
+      border-color: #CBD5E1 !important;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      transform: translateY(-1px);
+    }
+
+    body.dark-theme .activity-card {
+      background: #1E293B !important;
+      border-color: rgba(255, 255, 255, 0.08) !important;
+    }
+
+    .activity-icon-node {
+      width: 36px;
+      height: 36px;
+      min-width: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      font-weight: bold;
+      margin-top: 2px;
+      flex-shrink: 0;
+    }
+
+    /* Status Color Rules:
+       APPROVED -> GREEN
+       REJECTED -> RED
+       SUBMITTED -> BLUE
+       PENDING -> YELLOW
+       IN PROGRESS -> YELLOW
+       CANCELLED -> ORANGE
+       PAYMENT VERIFIED -> GREEN
+    */
+    .activity-icon-node.status-approved,
+    .activity-icon-node.status-payment {
+      background: #ECFDF5 !important;
+      color: #10B981 !important;
+      border: 1px solid #A7F3D0 !important;
+    }
+
+    .activity-icon-node.status-rejected {
+      background: #FEF2F2 !important;
+      color: #EF4444 !important;
+      border: 1px solid #FECACA !important;
+    }
+
+    .activity-icon-node.status-submitted {
+      background: #EFF6FF !important;
+      color: #2563EB !important;
+      border: 1px solid #BFDBFE !important;
+    }
+
+    .activity-icon-node.status-pending,
+    .activity-icon-node.status-in-progress {
+      background: #FFFBEB !important;
+      color: #D97706 !important;
+      border: 1px solid #FDE68A !important;
+    }
+
+    .activity-icon-node.status-cancelled {
+      background: #FFF7ED !important;
+      color: #EA580C !important;
+      border: 1px solid #FED7AA !important;
+    }
+
+    .activity-body {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .activity-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 4px;
+      flex-wrap: wrap;
+    }
+
+    .activity-req-title {
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: #111827 !important;
+    }
+
+    body.dark-theme .activity-req-title {
+      color: #F8FAFC !important;
+    }
+
+    .activity-badge {
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .activity-badge.status-approved,
+    .activity-badge.status-payment {
+      background: #ECFDF5 !important;
+      color: #15803D !important;
+      border: 1px solid #86EFAC !important;
+    }
+
+    .activity-badge.status-rejected {
+      background: #FEF2F2 !important;
+      color: #B91C1C !important;
+      border: 1px solid #FCA5A5 !important;
+    }
+
+    .activity-badge.status-submitted {
+      background: #EFF6FF !important;
+      color: #1D4ED8 !important;
+      border: 1px solid #BFDBFE !important;
+    }
+
+    .activity-badge.status-pending,
+    .activity-badge.status-in-progress {
+      background: #FFFBEB !important;
+      color: #B45309 !important;
+      border: 1px solid #FDE68A !important;
+    }
+
+    .activity-badge.status-cancelled {
+      background: #FFF7ED !important;
+      color: #C2410C !important;
+      border: 1px solid #FDBA74 !important;
+    }
+
+    .activity-actor {
+      font-weight: 600;
+      font-size: 0.88rem;
+      color: #374151 !important;
+      margin-bottom: 3px;
+    }
+
+    body.dark-theme .activity-actor {
+      color: #E2E8F0 !important;
+    }
+
+    .activity-desc {
+      font-size: 0.83rem;
+      color: #6B7280 !important;
+      line-height: 1.45;
+      margin-bottom: 6px;
+    }
+
+    body.dark-theme .activity-desc {
+      color: #94A3B8 !important;
+    }
+
+    .activity-remark {
+      font-size: 0.82rem;
+      color: #4B5563 !important;
+      background: #F9FAFB !important;
+      border: 1px dashed #E5E7EB !important;
+      border-radius: 6px;
+      padding: 4px 10px;
+      margin-bottom: 6px;
+      display: inline-block;
+      max-width: 100%;
+      word-break: break-word;
+    }
+
+    body.dark-theme .activity-remark {
+      background: rgba(255, 255, 255, 0.04) !important;
+      border-color: rgba(255, 255, 255, 0.12) !important;
+      color: #CBD5E1 !important;
+    }
+
+    .activity-time {
+      font-size: 0.76rem;
+      color: #9CA3AF !important;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
     @keyframes assistantFadeSlide {
       from {
         opacity: 0;
@@ -3408,14 +3611,17 @@
 
     function renderRequestAnalytics() {
       const requests = getEmployeeRequests();
-      const total = requests.length;
-      const approved = requests.filter(r => toStatusLabel(r.status) === 'Approved').length;
-      const rejected = requests.filter(r => toStatusLabel(r.status) === 'Rejected').length;
+      const activeRequests = requests.filter(
+        r => String(r.status || '').toLowerCase() !== 'cancelled'
+      );
+      const total = activeRequests.length;
+      const approved = activeRequests.filter(r => toStatusLabel(r.status) === 'Approved').length;
+      const rejected = activeRequests.filter(r => toStatusLabel(r.status) === 'Rejected').length;
       const cancelled = requests.filter(r => toStatusLabel(r.status) === 'Cancelled').length;
-      const approvedAmount = requests.filter(r => toStatusLabel(r.status) === 'Approved').reduce((sum, r) => sum + Number(r.amount || 0), 0);
-      const rejectedAmount = requests.filter(r => toStatusLabel(r.status) === 'Rejected').reduce((sum, r) => sum + Number(r.amount || 0), 0);
-      const approvalRate = total ? Math.round((approved / total) * 100) : 0;
-      const avgTime = calculateAverageApprovalTime(requests);
+      const approvedAmount = activeRequests.filter(r => toStatusLabel(r.status) === 'Approved').reduce((sum, r) => sum + Number(r.amount || 0), 0);
+      const rejectedAmount = activeRequests.filter(r => toStatusLabel(r.status) === 'Rejected').reduce((sum, r) => sum + Number(r.amount || 0), 0);
+      const approvalRate = total > 0 ? Math.round((approved / total) * 100) : 0;
+      const avgTime = calculateAverageApprovalTime(activeRequests);
       document.getElementById('analyticsTotalRequests').textContent = total;
       document.getElementById('analyticsApprovalRate').textContent = approvalRate + '%';
       document.getElementById('analyticsApprovedAmount').textContent = formatCurrency(approvedAmount);
@@ -3806,11 +4012,14 @@
 
     function renderKPIs(requests) {
       const list = Array.isArray(requests) ? requests : [];
-      const total = list.length;
-      const pending = list.filter(r => toStatusLabel(r.status) === 'Pending').length;
-      const approved = list.filter(r => toStatusLabel(r.status) === 'Approved').length;
-      const rejected = list.filter(r => toStatusLabel(r.status) === 'Rejected').length;
-      const rate = total ? Math.round((approved / total) * 100) : 0;
+      const activeRequests = list.filter(
+        r => String(r.status || '').toLowerCase() !== 'cancelled'
+      );
+      const total = activeRequests.length;
+      const pending = activeRequests.filter(r => toStatusLabel(r.status) === 'Pending').length;
+      const approved = activeRequests.filter(r => toStatusLabel(r.status) === 'Approved').length;
+      const rejected = activeRequests.filter(r => toStatusLabel(r.status) === 'Rejected').length;
+      const rate = total > 0 ? Math.round((approved / total) * 100) : 0;
       animateValue('k_total', total);
       animateValue('k_pending', pending);
       animateValue('k_approved', approved);
@@ -4116,6 +4325,7 @@
       const container = document.getElementById('recentActivities');
       if (!container) return;
       container.innerHTML = '';
+      container.className = 'activity-feed-container';
       const activities = [];
       const seqMap = getEmployeeSeqMap();
 
@@ -4123,43 +4333,233 @@
         const d = safeParseDate(timestamp);
         const day = d.getDate();
         const month = d.toLocaleString('en-IN', { month: 'short' });
+        const year = d.getFullYear();
         const time = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        return `${day} ${month}, ${time}`;
+        return `${day} ${month} ${year}, ${time}`;
       }
 
-      requests.forEach(r => {
+      const list = Array.isArray(requests) ? requests : [];
+
+      list.forEach(r => {
         const cTime = safeParseDate(r.createdAt || r.created_at).getTime();
         const seqId = seqMap.get(String(r.id)) || r.id;
-        const reqTitle = r.request_type || r.title || 'Request';
+        const reqTitle = r.request_type || r.title || r.type || 'Equipment';
+        const requesterName = r.requester_name || r.requester || r.employee_name || 'Employee';
+        const rawStatus = String(r.status || '').toLowerCase().trim();
+
+        // 1. Initial Submission Event
         activities.push({
           t: cTime,
-          text: `${formatActivityDateTime(cTime)} — ${reqTitle} (Request #${seqId}) Submitted`
+          reqSeq: seqId,
+          reqTitle: reqTitle,
+          statusBadge: 'SUBMITTED',
+          statusClass: 'status-submitted',
+          iconSymbol: '📤',
+          actor: `Submitted by ${requesterName}`,
+          desc: 'The request has been submitted and entered the approval workflow.',
+          remark: '',
+          timeStr: formatActivityDateTime(cTime)
         });
-        (r.history || []).forEach(h => {
-          const hTime = safeParseDate(h.time || h.timestamp || cTime).getTime();
-          let actionStr = String(h.action || h.decision || h.status || 'updated').trim();
-          let role = String(h.role || h.performed_by || '').trim();
-          if (role && role.toLowerCase() !== 'system' && !actionStr.toLowerCase().includes(' by ')) {
-            actionStr = `${actionStr} by ${role}`;
+
+        // 2. Request History Events (Approvals, Rejections, Payment Verification, Cancellation, Escalations, etc.)
+        const hist = Array.isArray(r.history) ? r.history : [];
+        hist.forEach(h => {
+          const hTime = safeParseDate(h.time || h.timestamp || h.created_at || cTime).getTime();
+          let rawAction = String(h.action || h.decision || h.status || '').trim();
+          let actor = String(h.role || h.performed_by || h.manager_name || '').trim();
+          let comment = String(h.comments || h.rejection_reason || '').trim();
+
+          // If action contains inline comment/reason (e.g., "APPROVED by Manager: Manager OK")
+          let actionMain = rawAction;
+          if (rawAction.includes(':')) {
+            const parts = rawAction.split(':');
+            actionMain = parts[0].trim();
+            if (!comment) {
+              comment = parts.slice(1).join(':').trim();
+            }
           }
-          actionStr = actionStr.replace(/\s+by\s+system/gi, '').trim();
+
+          const lowerAction = actionMain.toLowerCase();
+
+          // Skip redundant "Created request" if already covered by initial submission
+          if (lowerAction === 'created request' || lowerAction === 'created') {
+            return;
+          }
+
+          // A. Cancellation
+          if (lowerAction.startsWith('cancelled') || lowerAction.includes('cancel')) {
+            let cancelActor = actor;
+            if (!cancelActor || cancelActor.toLowerCase() === 'system' || cancelActor.toLowerCase() === 'employee') {
+              if (actionMain.includes('by ')) {
+                cancelActor = actionMain.split(/by\s+/i)[1].trim();
+              } else {
+                cancelActor = requesterName;
+              }
+            }
+            activities.push({
+              t: hTime,
+              reqSeq: seqId,
+              reqTitle: reqTitle,
+              statusBadge: 'CANCELLED',
+              statusClass: 'status-cancelled',
+              iconSymbol: '🚫',
+              actor: `Cancelled by ${cancelActor}`,
+              desc: 'This request was cancelled by the employee and will not continue through the approval workflow.',
+              remark: comment ? `Reason: ${comment}` : '',
+              timeStr: formatActivityDateTime(hTime)
+            });
+            return;
+          }
+
+          // B. Payment Verified
+          if (lowerAction.includes('payment verifi') || lowerAction.includes('verified payment')) {
+            let pvActor = actor || 'Accounts Officer';
+            if (pvActor.toLowerCase() === 'system') pvActor = 'Accounts Officer';
+            activities.push({
+              t: hTime,
+              reqSeq: seqId,
+              reqTitle: reqTitle,
+              statusBadge: 'PAYMENT VERIFIED',
+              statusClass: 'status-payment',
+              iconSymbol: '💳',
+              actor: `Verified by ${pvActor}`,
+              desc: 'Payment verification has been completed successfully.',
+              remark: comment ? `Note: ${comment}` : '',
+              timeStr: formatActivityDateTime(hTime)
+            });
+            return;
+          }
+
+          // C. Rejection
+          if (lowerAction.includes('reject')) {
+            let rejActor = actor;
+            if (!rejActor || rejActor.toLowerCase() === 'system') {
+              if (actionMain.includes('by ')) rejActor = actionMain.split(/by\s+/i)[1].trim();
+              else rejActor = 'Approver';
+            }
+            const rejReason = comment || r.rejection_reason || '';
+            activities.push({
+              t: hTime,
+              reqSeq: seqId,
+              reqTitle: reqTitle,
+              statusBadge: 'REJECTED',
+              statusClass: 'status-rejected',
+              iconSymbol: '✕',
+              actor: `Rejected by ${rejActor}`,
+              desc: 'This request was rejected during the approval process.',
+              remark: rejReason ? `Reason: ${rejReason}` : '',
+              timeStr: formatActivityDateTime(hTime)
+            });
+            return;
+          }
+
+          // D. Approval
+          if (lowerAction.includes('approv')) {
+            let appActor = actor;
+            if (!appActor || appActor.toLowerCase() === 'system') {
+              if (actionMain.includes('by ')) appActor = actionMain.split(/by\s+/i)[1].trim();
+              else appActor = 'Approver';
+            }
+            activities.push({
+              t: hTime,
+              reqSeq: seqId,
+              reqTitle: reqTitle,
+              statusBadge: 'APPROVED',
+              statusClass: 'status-approved',
+              iconSymbol: '✓',
+              actor: `Approved by ${appActor}`,
+              desc: `${appActor} reviewed and approved this request.`,
+              remark: comment ? `Reason: ${comment}` : '',
+              timeStr: formatActivityDateTime(hTime)
+            });
+            return;
+          }
+
+          // E. Escalation
+          if (lowerAction.includes('escalat')) {
+            let escActor = actor || 'Manager';
+            activities.push({
+              t: hTime,
+              reqSeq: seqId,
+              reqTitle: reqTitle,
+              statusBadge: 'IN PROGRESS',
+              statusClass: 'status-in-progress',
+              iconSymbol: '⚡',
+              actor: `Escalated by ${escActor}`,
+              desc: 'This request was escalated for prioritized review.',
+              remark: comment ? `Note: ${comment}` : '',
+              timeStr: formatActivityDateTime(hTime)
+            });
+            return;
+          }
+
+          // F. Other generic actions
           activities.push({
             t: hTime,
-            text: `${formatActivityDateTime(hTime)} — Request #${seqId}: ${actionStr}`
+            reqSeq: seqId,
+            reqTitle: reqTitle,
+            statusBadge: actionMain.toUpperCase(),
+            statusClass: 'status-submitted',
+            iconSymbol: '📌',
+            actor: actor ? `${actionMain} by ${actor}` : actionMain,
+            desc: 'Workflow status updated.',
+            remark: comment ? `Note: ${comment}` : '',
+            timeStr: formatActivityDateTime(hTime)
           });
         });
+
+        // 3. If the request is currently active and PENDING approval, add a pending event
+        if (rawStatus.startsWith('pending') || rawStatus === 'waiting') {
+          const uTime = safeParseDate(r.updated_at || r.updatedAt || r.created_at).getTime();
+          const targetRole = r.current_approver || r.current_role || r.currentRole || 'Manager';
+          activities.push({
+            t: uTime,
+            reqSeq: seqId,
+            reqTitle: reqTitle,
+            statusBadge: 'PENDING',
+            statusClass: 'status-pending',
+            iconSymbol: '⏳',
+            actor: `Waiting for ${targetRole} Approval`,
+            desc: 'This request is currently waiting for the next approval stage.',
+            remark: '',
+            timeStr: formatActivityDateTime(uTime)
+          });
+        }
       });
 
       if (activities.length === 0) {
-        container.innerHTML = '<div style="color: var(--muted); font-size: 0.9rem; padding: 8px 0;">No recent activities logged yet.</div>';
+        container.innerHTML = '<div style="color: var(--muted); font-size: 0.9rem; padding: 12px 0;">No recent activities logged yet.</div>';
         return;
       }
 
-      activities.sort((a, b) => b.t - a.t).slice(0, 8).forEach(a => {
-        const d = document.createElement('div');
-        d.className = 'timeline-item';
-        d.textContent = a.text;
-        container.appendChild(d);
+      // Sort newest first and display top 8 activities
+      const sorted = activities.sort((a, b) => b.t - a.t).slice(0, 8);
+
+      sorted.forEach(act => {
+        const card = document.createElement('div');
+        card.className = 'activity-card';
+
+        const remarkHtml = act.remark
+          ? `<div class="activity-remark">${escapeHtml(act.remark)}</div>`
+          : '';
+
+        card.innerHTML = `
+          <div class="activity-icon-node ${act.statusClass}">
+            ${act.iconSymbol}
+          </div>
+          <div class="activity-body">
+            <div class="activity-header">
+              <span class="activity-req-title">Request #${escapeHtml(String(act.reqSeq))} · ${escapeHtml(act.reqTitle)}</span>
+              <span class="activity-badge ${act.statusClass}">${escapeHtml(act.statusBadge)}</span>
+            </div>
+            <div class="activity-actor">${escapeHtml(act.actor)}</div>
+            <div class="activity-desc">${escapeHtml(act.desc)}</div>
+            ${remarkHtml}
+            <div class="activity-time">📅 ${escapeHtml(act.timeStr)}</div>
+          </div>
+        `;
+
+        container.appendChild(card);
       });
     }
 

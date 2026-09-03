@@ -741,14 +741,30 @@ app.get(['/requests', '/api/requests'], optionalAuth, async (req, res) => {
     });
 
     const [rows] = await dbPool.query(query, params);
+
+    // Fetch request_history for requests so dashboard has real cancellation & submission events
+    const historyByReqId = new Map();
+    try {
+      const [allHist] = await dbPool.query(
+        'SELECT id, request_id, action, performed_by, timestamp, comments FROM request_history ORDER BY id ASC'
+      );
+      (allHist || []).forEach(h => {
+        const reqId = Number(h.request_id);
+        if (!historyByReqId.has(reqId)) historyByReqId.set(reqId, []);
+        historyByReqId.get(reqId).push(h);
+      });
+    } catch (e) {}
+
     const data = rows.map(r => {
       const mapped = mapRequestRow(r);
       const seq = userSeqMap.get(Number(r.id)) || Number(r.id);
       const user = userMap.get(String(r.requester_email || '').toLowerCase().trim());
       const empId = user?.employee_id || (String(r.requester_email).includes('employee1') ? 'EMP-01' : (String(r.requester_email).includes('employee3') ? 'EMP-04' : (String(r.requester_email).includes('employee2') ? 'EMP-03' : 'EMP-01')));
       const empName = user?.name || r.requester_name || 'Employee';
+      const reqHist = historyByReqId.get(Number(r.id)) || [];
       return {
         ...mapped,
+        history: reqHist,
         db_id: mapped.id,
         dbId: mapped.id,
         seq_num: seq,
@@ -1277,7 +1293,7 @@ app.get(['/api/manager/analytics', '/manager/analytics', '/api/analytics/dashboa
     const [overallPendingRes] = await dbPool.query("SELECT COUNT(*) as count FROM workflow_requests WHERE LOWER(status) LIKE 'pending%' OR LOWER(status) = 'waiting'");
     const [wfApprovedRes] = await dbPool.query("SELECT COUNT(*) as count FROM workflow_requests WHERE LOWER(status) = 'approved'");
     const [wfRejectedRes] = await dbPool.query("SELECT COUNT(*) as count FROM workflow_requests WHERE LOWER(status) = 'rejected'");
-    const [totalRequestsRes] = await dbPool.query("SELECT COUNT(*) as count FROM workflow_requests");
+    const [totalRequestsRes] = await dbPool.query("SELECT COUNT(*) as count FROM workflow_requests WHERE LOWER(status) != 'cancelled'");
     const [escalatedRes] = await dbPool.query("SELECT COUNT(*) as count FROM workflow_requests WHERE LOWER(status) LIKE '%escalat%'");
 
     const managerPending = mgrPendingRes[0]?.count || 0;

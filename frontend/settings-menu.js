@@ -664,6 +664,11 @@
       showDrawerMessage('Please complete all password fields.', 'err');
       return;
     }
+    const strongPasswordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
+    if (!strongPasswordRegex.test(newPassword)) {
+      showDrawerMessage('Password must be at least 8 characters and contain at least one letter, one number, and one special character.', 'err');
+      return;
+    }
     if (newPassword !== confirm) {
       showDrawerMessage('New passwords do not match.', 'err');
       return;

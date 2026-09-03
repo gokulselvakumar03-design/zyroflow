@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken');
 const dotenv = require('dotenv');
 const crypto = require('crypto');
 const { sendPasswordResetEmail } = require('../utils/emailService');
+const { validatePassword } = require('../utils/passwordValidator');
 
 dotenv.config();
 
@@ -114,6 +115,11 @@ exports.createUser = async (req, res, next) => {
       return res.status(400).json({ message: 'Name, email, password, and role are required.' });
     }
 
+    const passwordValidation = validatePassword(password);
+    if (!passwordValidation.valid) {
+      return res.status(400).json({ message: passwordValidation.message });
+    }
+
     const [existing] = await pool.execute('SELECT id FROM users WHERE email = ? LIMIT 1', [email]);
     if (existing && existing.length > 0) {
       return res.status(400).json({ message: 'User with this email already exists.' });
@@ -148,10 +154,11 @@ exports.createUser = async (req, res, next) => {
     }
 
     const employee_id = `${prefix}${String(nextNum).padStart(3, '0')}`;
+    const hashedPassword = await bcrypt.hash(String(password), 10);
 
     const [result] = await pool.execute(
       'INSERT INTO users (employee_id, name, email, password, role, department, phone, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-      [employee_id, name, email, password, role, department || '', phone || '', 'ACTIVE']
+      [employee_id, name, email, hashedPassword, role, department || '', phone || '', 'ACTIVE']
     );
 
     res.status(201).json({
@@ -480,6 +487,14 @@ exports.resetPassword = async (req, res, next) => {
       return res.status(400).json({
         success: false,
         message: 'New password is required.'
+      });
+    }
+
+    const passwordValidation = validatePassword(newPassword);
+    if (!passwordValidation.valid) {
+      return res.status(400).json({
+        success: false,
+        message: passwordValidation.message
       });
     }
 

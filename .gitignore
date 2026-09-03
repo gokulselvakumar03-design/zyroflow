@@ -2,3 +2,5 @@ node_modules/
 .env
 backups/
 scratch/
+zyroflow_production_backup.sql
+zyroflow_production_backup.sql

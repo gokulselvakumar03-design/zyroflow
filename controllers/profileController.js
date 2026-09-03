@@ -1,6 +1,7 @@
 const pool = require('../config/db');
 const bcrypt = require('bcrypt');
 const dotenv = require('dotenv');
+const { validatePassword } = require('../utils/passwordValidator');
 
 dotenv.config();
 
@@ -91,6 +92,11 @@ exports.changePassword = async (req, res, next) => {
 
     if (!String(newPassword).trim()) {
       return res.status(400).json({ message: 'New password is required' });
+    }
+
+    const passwordValidation = validatePassword(newPassword);
+    if (!passwordValidation.valid) {
+      return res.status(400).json({ message: passwordValidation.message });
     }
 
     if (String(newPassword) !== String(confirmPassword)) {

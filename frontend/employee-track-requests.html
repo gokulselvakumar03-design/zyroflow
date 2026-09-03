@@ -703,10 +703,11 @@
     }
 
     function updateStats() {
-      document.getElementById('statTotal').textContent = allRequests.length;
-      document.getElementById('statPending').textContent = allRequests.filter(r => toStatusCategory(r.status) === 'Pending').length;
-      document.getElementById('statApproved').textContent = allRequests.filter(r => toStatusCategory(r.status) === 'Approved' || toStatusCategory(r.status) === 'Completed').length;
-      document.getElementById('statRejected').textContent = allRequests.filter(r => toStatusCategory(r.status) === 'Rejected').length;
+      const activeRequests = allRequests.filter(r => String(r.status || '').toLowerCase() !== 'cancelled');
+      document.getElementById('statTotal').textContent = activeRequests.length;
+      document.getElementById('statPending').textContent = activeRequests.filter(r => toStatusCategory(r.status) === 'Pending').length;
+      document.getElementById('statApproved').textContent = activeRequests.filter(r => toStatusCategory(r.status) === 'Completed').length;
+      document.getElementById('statRejected').textContent = activeRequests.filter(r => toStatusCategory(r.status) === 'Rejected').length;
     }
 
     function setFilter(filter) {
@@ -722,6 +723,7 @@
       const s = String(status || '').toLowerCase().trim();
       if (s === 'approved' || s === 'completed') return 'Completed';
       if (s === 'rejected') return 'Rejected';
+      if (s === 'cancelled') return 'Cancelled';
       return 'Pending';
     }
 
@@ -741,6 +743,9 @@
 
       const totalSteps = cleanChain.length + 2; // Submitted + Approvers + Completed
 
+      if (s === 'cancelled') {
+        return { percent: 100, label: 'Cancelled', isCompleted: false, isRejected: true, isCancelled: true };
+      }
       if (s === 'approved' || s === 'completed') {
         return { percent: 100, label: `${totalSteps} / ${totalSteps} stages completed`, isCompleted: true, isRejected: false };
       }
@@ -954,6 +959,10 @@
         } else if (statusCat === 'Rejected') {
           badgeClass = 'badge-rejected';
           statusText = 'Rejected';
+        } else if (statusCat === 'Cancelled') {
+          badgeClass = 'badge-rejected';
+          statusText = 'Cancelled';
+          currentStage = 'Cancelled';
         }
 
         const progress = calculateProgress(r);
