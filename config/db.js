@@ -9,7 +9,7 @@ const isDemoMode = String(process.env.DEMO_MODE || '').toLowerCase() === 'true' 
 const host = process.env.MYSQL_HOST || process.env.DB_HOST || 'localhost';
 const port = Number(process.env.DB_PORT || process.env.MYSQL_PORT || 3306);
 const user = process.env.MYSQL_USER || process.env.DB_USER || 'root';
-const password = process.env.MYSQL_PASSWORD !== undefined ? process.env.MYSQL_PASSWORD : (process.env.DB_PASSWORD !== undefined ? process.env.DB_PASSWORD : 'root123');
+const password = process.env.MYSQL_PASSWORD !== undefined ? process.env.MYSQL_PASSWORD : process.env.DB_PASSWORD;
 
 // Database name configuration
 let database;
@@ -33,6 +33,9 @@ const pool = mysql.createPool({
   user,
   password,
   database,
+  ssl: process.env.MYSQL_SSL === 'true'
+    ? { rejectUnauthorized: false }
+    : undefined,
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
