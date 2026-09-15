@@ -4,3 +4,14 @@ backups/
 scratch/
 zyroflow_production_backup.sql
 zyroflow_production_backup.sql
+
+# Local production backup
+zyroflow_FINAL_PRODUCTION_BACKUP.sql
+
+# Local demo environment
+.env.demo
+
+# Local database/test utilities
+clean_demo_db.js
+test_*.js
+verify_demo_unseeded.js

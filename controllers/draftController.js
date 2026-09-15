@@ -1,5 +1,10 @@
 const pool = require('../config/db');
 
+function getSessionId(req) {
+  if (!pool.isDemoMode) return null;
+  return req?.demoSessionId || req?.user?.demo_session_id || 'default';
+}
+
 function parseJsonValue(val, fallback = {}) {
   if (!val) return fallback;
   if (typeof val === 'object') return val;
@@ -12,11 +17,11 @@ function parseJsonValue(val, fallback = {}) {
 
 /**
  * GET /api/drafts
- * Retrieves all saved drafts for the logged-in employee
  */
 exports.getDrafts = async (req, res, next) => {
   try {
     const employeeId = String(req.user?.employee_id || req.user?.email || req.user?.id || req.query.employee_id || req.query.email || '').toLowerCase().trim();
+    const sessionId = getSessionId(req);
 
     if (!employeeId) {
       return res.status(200).json({ success: true, message: 'No employee ID provided', drafts: [] });
@@ -26,13 +31,20 @@ exports.getDrafts = async (req, res, next) => {
       return res.status(500).json({ success: false, message: 'Database connection unavailable', drafts: [] });
     }
 
-    const [rows] = await pool.query(
-      `SELECT id, employee_id, request_type, department, priority, payload, created_at, updated_at
-       FROM draft_requests
-       WHERE LOWER(employee_id) = LOWER(?) OR LOWER(employee_id) = LOWER(?)
-       ORDER BY updated_at DESC`,
-      [employeeId, req.user?.email || employeeId]
-    );
+    const sql = pool.isDemoMode && sessionId
+      ? `SELECT id, employee_id, request_type, department, priority, payload, created_at, updated_at
+         FROM draft_requests
+         WHERE demo_session_id = ? AND (LOWER(employee_id) = LOWER(?) OR LOWER(employee_id) = LOWER(?))
+         ORDER BY updated_at DESC`
+      : `SELECT id, employee_id, request_type, department, priority, payload, created_at, updated_at
+         FROM draft_requests
+         WHERE LOWER(employee_id) = LOWER(?) OR LOWER(employee_id) = LOWER(?)
+         ORDER BY updated_at DESC`;
+    const params = pool.isDemoMode && sessionId
+      ? [sessionId, employeeId, req.user?.email || employeeId]
+      : [employeeId, req.user?.email || employeeId];
+
+    const [rows] = await pool.query(sql, params);
 
     const drafts = (rows || []).map(r => ({
       id: Number(r.id),
@@ -54,11 +66,12 @@ exports.getDrafts = async (req, res, next) => {
 
 /**
  * GET /api/drafts/:id
- * Fetches a single draft by ID
  */
 exports.getDraftById = async (req, res, next) => {
   try {
     const id = Number(req.params.id);
+    const sessionId = getSessionId(req);
+
     if (!id || isNaN(id)) {
       return res.status(400).json({ success: false, message: 'Valid draft ID required' });
     }
@@ -67,7 +80,12 @@ exports.getDraftById = async (req, res, next) => {
       return res.status(500).json({ success: false, message: 'Database connection unavailable' });
     }
 
-    const [rows] = await pool.query('SELECT * FROM draft_requests WHERE id = ?', [id]);
+    const sql = pool.isDemoMode && sessionId
+      ? 'SELECT * FROM draft_requests WHERE demo_session_id = ? AND id = ?'
+      : 'SELECT * FROM draft_requests WHERE id = ?';
+    const params = pool.isDemoMode && sessionId ? [sessionId, id] : [id];
+
+    const [rows] = await pool.query(sql, params);
     if (!rows || rows.length === 0) {
       return res.status(404).json({ success: false, message: 'Draft not found' });
     }
@@ -93,12 +111,12 @@ exports.getDraftById = async (req, res, next) => {
 
 /**
  * POST /api/drafts
- * Saves a new draft or updates an existing draft (if id is provided)
  */
 exports.saveDraft = async (req, res, next) => {
   try {
     const { id, request_type, department, priority, payload } = req.body || {};
     const employeeId = String(req.user?.employee_id || req.user?.email || req.user?.id || req.body?.employee_id || '').toLowerCase().trim();
+    const sessionId = getSessionId(req);
 
     if (!employeeId) {
       return res.status(400).json({ success: false, message: 'Employee identification required' });
@@ -116,15 +134,49 @@ exports.saveDraft = async (req, res, next) => {
     let draftId = Number(id);
 
     if (draftId && Number.isInteger(draftId) && draftId > 0) {
-      // Check if draft exists
-      const [existing] = await pool.query('SELECT id FROM draft_requests WHERE id = ?', [draftId]);
+      const checkSql = pool.isDemoMode && sessionId
+        ? 'SELECT id FROM draft_requests WHERE demo_session_id = ? AND id = ?'
+        : 'SELECT id FROM draft_requests WHERE id = ?';
+      const checkParams = pool.isDemoMode && sessionId ? [sessionId, draftId] : [draftId];
+
+      const [existing] = await pool.query(checkSql, checkParams);
       if (existing && existing.length > 0) {
-        await pool.query(
-          `UPDATE draft_requests
-           SET request_type = ?, department = ?, priority = ?, payload = ?, updated_at = CURRENT_TIMESTAMP
-           WHERE id = ?`,
-          [reqType, dept, prio, payloadJson, draftId]
+        const upSql = pool.isDemoMode && sessionId
+          ? `UPDATE draft_requests
+             SET request_type = ?, department = ?, priority = ?, payload = ?, updated_at = CURRENT_TIMESTAMP
+             WHERE demo_session_id = ? AND id = ?`
+          : `UPDATE draft_requests
+             SET request_type = ?, department = ?, priority = ?, payload = ?, updated_at = CURRENT_TIMESTAMP
+             WHERE id = ?`;
+        const upParams = pool.isDemoMode && sessionId
+          ? [reqType, dept, prio, payloadJson, sessionId, draftId]
+          : [reqType, dept, prio, payloadJson, draftId];
+        await pool.query(upSql, upParams);
+      } else {
+        if (pool.isDemoMode && sessionId) {
+          const [result] = await pool.query(
+            `INSERT INTO draft_requests (demo_session_id, employee_id, request_type, department, priority, payload)
+             VALUES (?, ?, ?, ?, ?, ?)`,
+            [sessionId, employeeId, reqType, dept, prio, payloadJson]
+          );
+          draftId = result.insertId;
+        } else {
+          const [result] = await pool.query(
+            `INSERT INTO draft_requests (employee_id, request_type, department, priority, payload)
+             VALUES (?, ?, ?, ?, ?)`,
+            [employeeId, reqType, dept, prio, payloadJson]
+          );
+          draftId = result.insertId;
+        }
+      }
+    } else {
+      if (pool.isDemoMode && sessionId) {
+        const [result] = await pool.query(
+          `INSERT INTO draft_requests (demo_session_id, employee_id, request_type, department, priority, payload)
+           VALUES (?, ?, ?, ?, ?, ?)`,
+          [sessionId, employeeId, reqType, dept, prio, payloadJson]
         );
+        draftId = result.insertId;
       } else {
         const [result] = await pool.query(
           `INSERT INTO draft_requests (employee_id, request_type, department, priority, payload)
@@ -133,16 +185,14 @@ exports.saveDraft = async (req, res, next) => {
         );
         draftId = result.insertId;
       }
-    } else {
-      const [result] = await pool.query(
-        `INSERT INTO draft_requests (employee_id, request_type, department, priority, payload)
-         VALUES (?, ?, ?, ?, ?)`,
-        [employeeId, reqType, dept, prio, payloadJson]
-      );
-      draftId = result.insertId;
     }
 
-    const [updatedRows] = await pool.query('SELECT * FROM draft_requests WHERE id = ?', [draftId]);
+    const selectSql = pool.isDemoMode && sessionId
+      ? 'SELECT * FROM draft_requests WHERE demo_session_id = ? AND id = ?'
+      : 'SELECT * FROM draft_requests WHERE id = ?';
+    const selectParams = pool.isDemoMode && sessionId ? [sessionId, draftId] : [draftId];
+
+    const [updatedRows] = await pool.query(selectSql, selectParams);
     const updated = updatedRows[0] || {};
 
     return res.status(200).json({
@@ -170,11 +220,12 @@ exports.saveDraft = async (req, res, next) => {
 
 /**
  * DELETE /api/drafts/:id
- * Deletes a draft by ID
  */
 exports.deleteDraft = async (req, res, next) => {
   try {
     const id = Number(req.params.id);
+    const sessionId = getSessionId(req);
+
     if (!id || isNaN(id)) {
       return res.status(400).json({ success: false, message: 'Valid draft ID required' });
     }
@@ -183,7 +234,12 @@ exports.deleteDraft = async (req, res, next) => {
       return res.status(500).json({ success: false, message: 'Unable to delete draft.' });
     }
 
-    await pool.query('DELETE FROM draft_requests WHERE id = ?', [id]);
+    const sql = pool.isDemoMode && sessionId
+      ? 'DELETE FROM draft_requests WHERE demo_session_id = ? AND id = ?'
+      : 'DELETE FROM draft_requests WHERE id = ?';
+    const params = pool.isDemoMode && sessionId ? [sessionId, id] : [id];
+
+    await pool.query(sql, params);
     return res.status(200).json({ success: true, message: 'Draft deleted successfully.' });
   } catch (err) {
     console.error('[DraftController] deleteDraft error:', err.message);

@@ -2238,12 +2238,14 @@
                 });
             }
 
-            const candidateUrl = r.receipt_url || r.attachment_url || r.image_url ||
+            const isReimbursement = String(reqType || r.type || r.request_type || '').toLowerCase() === 'reimbursement';
+
+            const candidateUrl = isReimbursement ? null : (r.receipt_url || r.attachment_url || r.image_url ||
                 payloadObj.attached_file_url || payloadObj.receipt_file || payloadObj.receipt_url ||
                 payloadObj.attachment || payloadObj.image || payloadObj.photo || payloadObj.file ||
                 payloadObj.receipt_photo || payloadObj.bill_image || payloadObj.upload || dynamicPhoto ||
                 (Array.isArray(payloadObj.attachments) ? payloadObj.attachments[0]?.url || payloadObj.attachments[0] : null) ||
-                (Array.isArray(r.attachments) ? r.attachments[0]?.url || r.attachments[0] : null);
+                (Array.isArray(r.attachments) ? r.attachments[0]?.url || r.attachments[0] : null));
 
             const candidateName = r.fileName || r.file_name || payloadObj.attached_file_name ||
                 payloadObj.fileName || payloadObj.file_name || payloadObj.receipt_name || 'Attached Photo / Document';

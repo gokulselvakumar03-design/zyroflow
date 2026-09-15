@@ -1041,6 +1041,9 @@
 
     function getAttachmentInfo(req) {
       if (!req) return null;
+      const reqType = String(req.request_type || req.type || req.title || '').toLowerCase();
+      if (reqType === 'reimbursement') return null;
+
       let payload = req.payload;
       if (typeof payload === 'string') {
         try { payload = JSON.parse(payload); } catch(e) { payload = {}; }

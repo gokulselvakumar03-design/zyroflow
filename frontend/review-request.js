@@ -255,7 +255,10 @@ function renderRequestDetails(req) {
     if (typeof payload === 'string') {
         try { payload = JSON.parse(payload); } catch(e) { payload = {}; }
     }
-    payload = payload || {};
+    if (String(reqType).toLowerCase() === 'reimbursement') {
+        if (attachContainer) attachContainer.style.display = 'none';
+        return;
+    }
 
     let dynamicPhoto = null;
     if (typeof payload === 'object' && payload !== null) {

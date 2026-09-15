@@ -562,16 +562,18 @@ const ZyroWorkflow = (function () {
           });
         }
 
-        const singleUrl = req.receipt_url || req.attachment_url || req.image_url ||
+        const isReimbursement = String(req.type || req.request_type || req.title || '').toLowerCase() === 'reimbursement';
+
+        const singleUrl = isReimbursement ? null : (req.receipt_url || req.attachment_url || req.image_url ||
           payload.attached_file_url || payload.receipt_file || payload.receipt_url ||
           payload.attachment || payload.image || payload.photo || payload.file ||
           payload.receipt_photo || payload.bill_image || payload.upload || dynamicPhoto ||
-          payload.receipt_file_url;
+          payload.receipt_file_url);
 
         const singleName = req.fileName || req.file_name || payload.attached_file_name ||
           payload.fileName || payload.file_name || payload.receipt_name || 'Attached Photo / Document';
 
-        if (singleUrl && typeof singleUrl === 'string' && singleUrl !== 'null' && singleUrl !== 'undefined') {
+        if (!isReimbursement && singleUrl && typeof singleUrl === 'string' && singleUrl !== 'null' && singleUrl !== 'undefined') {
           attachListItems.push({ name: singleName, url: singleUrl });
         }
 

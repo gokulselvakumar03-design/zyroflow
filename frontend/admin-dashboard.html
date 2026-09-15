@@ -1357,8 +1357,83 @@
 
     <div class="quick-actions">
         <button id="auditLogsBtn" type="button" class="quick-action-btn">Audit Logs</button>
+        <button id="demoAccessBtn" type="button" class="quick-action-btn" onclick="openDemoAccessModal()" style="display: none;">🔑 Generate Demo Access</button>
     </div>
     <div id="exportReportMsg" class="msg"></div>
+
+    <div id="demoAccessModal" class="modal-overlay hidden">
+        <div class="modal-card" style="max-width: 680px;">
+            <div class="modal-header">
+                <div>
+                    <div class="modal-title">Generate Temporary Demo Access</div>
+                    <div class="modal-subtitle">Generate secure, isolated temporary demo credentials for recruiters with automatic 24-hour expiration.</div>
+                </div>
+                <button id="closeDemoAccessBtn" class="modal-close" type="button" onclick="closeDemoAccessModal()">×</button>
+            </div>
+            <div class="modal-table-wrapper" style="padding: 24px;">
+                <div id="demoAccessMessage" class="msg" style="display: none; margin-bottom: 16px;"></div>
+
+                <div class="card" style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); padding: 18px; border-radius: 12px; margin-bottom: 20px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+                        <div>
+                            <div style="font-size: 12px; color: var(--text-secondary); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Validity</div>
+                            <div style="font-size: 16px; font-weight: 800; color: var(--text-primary); margin-top: 4px;">⏱️ 24 Hours</div>
+                        </div>
+                        <button id="generateDemoBtn" type="button" class="btn btn-primary" onclick="handleGenerateDemoAccess()" style="padding: 10px 22px; font-size: 14px; font-weight: 700;">
+                            ⚡ GENERATE CREDENTIALS
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Newly Generated Credentials Display -->
+                <div id="newCredentialsDisplay" style="display: none; background: rgba(34, 197, 94, 0.08); border: 1.5px solid rgba(34, 197, 94, 0.4); border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+                        <span style="font-size: 15px; font-weight: 800; color: #22c55e;">Temporary Demo Credentials</span>
+                        <span class="badge" style="background: rgba(34, 197, 94, 0.2); color: #22c55e; border: 1px solid rgba(34, 197, 94, 0.4); font-weight: 700;">ACTIVE</span>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px;">
+                        <div>
+                            <div style="font-size: 12px; color: var(--text-secondary); font-weight: 700;">Employee ID:</div>
+                            <div id="displayDemoEmpId" style="font-size: 17px; font-weight: 900; color: var(--primary); font-family: monospace; margin-top: 2px;">DEMO-XXXXXX</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 12px; color: var(--text-secondary); font-weight: 700;">Password:</div>
+                            <div id="displayDemoPassword" style="font-size: 17px; font-weight: 900; color: #f59e0b; font-family: monospace; margin-top: 2px;">XXXXXXXX</div>
+                        </div>
+                        <div style="grid-column: 1 / -1;">
+                            <div style="font-size: 12px; color: var(--text-secondary); font-weight: 700;">Expires:</div>
+                            <div id="displayDemoExpires" style="font-size: 14px; font-weight: 700; color: var(--text-primary); margin-top: 2px;">-</div>
+                        </div>
+                    </div>
+                    <button id="copyDemoCredsBtn" type="button" class="btn btn-secondary" onclick="copyDemoCredentials()" style="width: 100%; justify-content: center; font-weight: 700;">
+                        📋 COPY CREDENTIALS
+                    </button>
+                </div>
+
+                <!-- Previously Generated Credentials Table -->
+                <div>
+                    <div style="font-size: 14px; font-weight: 800; color: var(--text-primary); margin-bottom: 10px;">Generated Demo Credentials</div>
+                    <div style="max-height: 220px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 8px;">
+                        <table class="audit-table" style="font-size: 12px; width: 100%; min-width: 100%;">
+                            <thead>
+                                <tr>
+                                    <th>Demo ID</th>
+                                    <th>Created</th>
+                                    <th>Expires</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="demoAccessTableBody">
+                                <tr>
+                                    <td colspan="4" style="text-align: center; color: var(--text-secondary);">Loading credentials...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <div id="auditLogsModal" class="modal-overlay hidden">
         <div class="modal-card">
@@ -1418,19 +1493,9 @@
             <form id="addUserForm" class="modal-table-wrapper">
                 <input type="hidden" id="editUserId" value="" />
                 <div class="form-grid">
-                    <div class="form-group" id="employeeIdGroup" style="display: none;">
-                        <label class="form-label" for="editEmployeeId">Employee ID</label>
-                        <input id="editEmployeeId" class="form-input" type="text" readonly
-                            style="opacity: 0.7; cursor: not-allowed;" />
-                    </div>
                     <div class="form-group">
                         <label class="form-label" for="newUserName">Name</label>
                         <input id="newUserName" class="form-input" type="text" placeholder="Jane Doe" required />
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="newUserEmail">Email</label>
-                        <input id="newUserEmail" class="form-input" type="email" placeholder="jane.doe@example.com"
-                            required />
                     </div>
                     <div class="form-group">
                         <label class="form-label" for="newUserPhone">Phone Number</label>
@@ -1438,9 +1503,8 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label" for="newUserRole">Role</label>
-                        <select id="newUserRole" class="form-select" required>
+                        <select id="newUserRole" class="form-select" required onchange="handleRoleDepartmentState()">
                             <option value="">Select Role</option>
-                            <option value="Admin">Admin</option>
                             <option value="Employee">Employee</option>
                             <option value="Accounts">Accounts</option>
                             <option value="Manager">Manager</option>
@@ -1448,16 +1512,23 @@
                             <option value="MD">MD</option>
                         </select>
                     </div>
+                    <div class="form-group" id="employeeIdGroup">
+                        <label class="form-label" for="editEmployeeId">Employee ID</label>
+                        <input id="editEmployeeId" class="form-input" type="text" readonly
+                            placeholder="Select role first"
+                            style="opacity: 0.7; cursor: not-allowed; background-color: rgba(255, 255, 255, 0.05);" />
+                    </div>
                     <div class="form-group">
                         <label class="form-label" for="newUserDepartment">Department</label>
                         <select id="newUserDepartment" class="form-select" required>
                             <option value="">Select Department</option>
-                            <option value="Operations">Operations</option>
-                            <option value="Finance">Finance</option>
-                            <option value="HR">HR</option>
                             <option value="IT">IT</option>
-                            <option value="Sales">Sales</option>
+                            <option value="HR">HR</option>
+                            <option value="Finance">Finance</option>
                             <option value="Marketing">Marketing</option>
+                            <option value="Operations">Operations</option>
+                            <option value="Administration">Administration</option>
+                            <option value="Sales">Sales</option>
                             <option value="Production">Production</option>
                         </select>
                     </div>
@@ -1793,6 +1864,7 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             checkAuthentication();
+            checkDemoOwnerAccess();
             displayUserRole();
             wireWorkflowActions();
             wireAuditLogs();
@@ -1836,6 +1908,7 @@
             const cancelBtn = document.getElementById('cancelAddUserBtn');
             const modal = document.getElementById('addUserModal');
             const form = document.getElementById('addUserForm');
+            const roleSelect = document.getElementById('newUserRole');
 
             if (!modal || !form) return;
             if (addUserBtn) {
@@ -1846,6 +1919,9 @@
             }
             if (cancelBtn) {
                 cancelBtn.addEventListener('click', closeAddUserModal);
+            }
+            if (roleSelect) {
+                roleSelect.addEventListener('change', handleRoleDepartmentState);
             }
             modal.addEventListener('click', (event) => {
                 if (event.target === modal) closeAddUserModal();
@@ -1861,6 +1937,145 @@
 
         let usersDataCache = [];
 
+        function getNextEmployeeIdForRole(roleStr) {
+            const r = String(roleStr || '').toLowerCase().trim();
+            if (!r) return '';
+
+            const singletonMap = {
+                accounts: 'ACC001',
+                manager: 'MGR001',
+                cfo: 'CFO001',
+                md: 'MD001',
+                admin: 'ADM001'
+            };
+
+            if (singletonMap[r]) {
+                return singletonMap[r];
+            }
+
+            if (r === 'employee') {
+                const prefix = 'EMP';
+                let maxNum = 0;
+                (usersDataCache || []).forEach(u => {
+                    const empId = String(u.employee_id || u.employeeId || '').toUpperCase().trim();
+                    if (empId.startsWith(prefix)) {
+                        const num = parseInt(empId.substring(prefix.length), 10);
+                        if (!isNaN(num) && num > maxNum) {
+                            maxNum = num;
+                        }
+                    }
+                });
+                return `${prefix}${String(maxNum + 1).padStart(3, '0')}`;
+            }
+
+            return '';
+        }
+
+        function handleRoleDepartmentState() {
+            const roleSelect = document.getElementById('newUserRole');
+            const deptSelect = document.getElementById('newUserDepartment');
+            const empInput = document.getElementById('editEmployeeId');
+            const editUserId = document.getElementById('editUserId')?.value;
+            const isEdit = Boolean(editUserId);
+            const message = document.getElementById('addUserMessage');
+
+            if (!roleSelect || !deptSelect) return;
+
+            const role = String(roleSelect.value || '').trim().toLowerCase();
+            const isApprover = ['accounts', 'manager', 'cfo', 'md'].includes(role);
+
+            // 1. Employee ID Auto-generation
+            if (!isEdit && empInput) {
+                if (!role) {
+                    empInput.value = '';
+                    empInput.placeholder = 'Select role first';
+                } else {
+                    const generatedId = getNextEmployeeIdForRole(role);
+                    empInput.value = generatedId;
+                    empInput.placeholder = generatedId;
+                }
+            }
+
+            // 2. Singleton check notice for Create mode
+            if (!isEdit && isApprover && role) {
+                const exists = usersDataCache.some(u => 
+                    String(u.role || '').trim().toLowerCase() === role
+                );
+                if (exists && message) {
+                    message.textContent = `An ${roleSelect.value} user already exists. Only one ${roleSelect.value} user is allowed.`;
+                    message.className = 'msg show err';
+                    message.style.display = 'block';
+                } else if (message && message.textContent.includes('already exists')) {
+                    message.style.display = 'none';
+                    message.textContent = '';
+                }
+            }
+
+            // 3. Department field behavior
+            if (isApprover) {
+                let allDeptOpt = Array.from(deptSelect.options).find(o => o.value === 'All Departments');
+                if (!allDeptOpt) {
+                    allDeptOpt = document.createElement('option');
+                    allDeptOpt.value = 'All Departments';
+                    allDeptOpt.textContent = 'All Departments';
+                    deptSelect.appendChild(allDeptOpt);
+                }
+                deptSelect.value = 'All Departments';
+                deptSelect.disabled = true;
+                deptSelect.style.opacity = '0.7';
+                deptSelect.style.cursor = 'not-allowed';
+                deptSelect.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+            } else {
+                // Remove "All Departments" option if present so Employee cannot select it
+                const allDeptOpt = Array.from(deptSelect.options).find(o => o.value === 'All Departments');
+                if (allDeptOpt) {
+                    allDeptOpt.remove();
+                }
+                deptSelect.disabled = false;
+                deptSelect.style.opacity = '1';
+                deptSelect.style.cursor = 'pointer';
+                deptSelect.style.backgroundColor = '';
+                if (deptSelect.value === 'All Departments') {
+                    deptSelect.value = '';
+                }
+            }
+        }
+
+        function updateRoleSelectOptions(currentUserId = null, currentUserRole = '') {
+            const roleSelect = document.getElementById('newUserRole');
+            if (!roleSelect) return;
+
+            const singletons = [
+                { role: 'Accounts', label: 'Accounts' },
+                { role: 'Manager', label: 'Manager' },
+                { role: 'CFO', label: 'CFO' },
+                { role: 'MD', label: 'MD' }
+            ];
+
+            const isCurrentAdmin = String(currentUserRole).toLowerCase() === 'admin';
+
+            let html = '<option value="">Select Role</option>';
+            if (isCurrentAdmin) {
+                html += '<option value="Admin" selected disabled>Admin (Protected)</option>';
+            }
+            html += '<option value="Employee">Employee (Unlimited)</option>';
+
+            singletons.forEach(s => {
+                const exists = usersDataCache.some(u => 
+                    String(u.role || '').trim().toLowerCase() === s.role.toLowerCase() &&
+                    (!currentUserId || String(u.id) !== String(currentUserId))
+                );
+
+                if (exists) {
+                    html += `<option value="${s.role}" disabled>${s.label} (Already Exists - 1 Allowed)</option>`;
+                } else {
+                    html += `<option value="${s.role}">${s.label}</option>`;
+                }
+            });
+
+            roleSelect.innerHTML = html;
+        }
+
         function openAddUserModal() {
             const modal = document.getElementById('addUserModal');
             if (!modal) return;
@@ -1870,7 +2085,12 @@
             document.getElementById('userModalSubmitBtn').textContent = 'Create User';
 
             const empGroup = document.getElementById('employeeIdGroup');
-            if (empGroup) empGroup.style.display = 'none';
+            if (empGroup) empGroup.style.display = 'block';
+            const empInput = document.getElementById('editEmployeeId');
+            if (empInput) {
+                empInput.value = '';
+                empInput.placeholder = 'Select role first';
+            }
 
             const pwdGroup = document.getElementById('passwordGroup');
             if (pwdGroup) pwdGroup.style.display = 'block';
@@ -1879,6 +2099,8 @@
 
             const form = document.getElementById('addUserForm');
             form?.reset();
+            updateRoleSelectOptions(null, '');
+            handleRoleDepartmentState();
             const message = document.getElementById('addUserMessage');
             if (message) {
                 message.style.display = 'none';
@@ -1910,11 +2132,18 @@
             if (pwdInput) pwdInput.required = false;
 
             document.getElementById('newUserName').value = user.name || '';
-            document.getElementById('newUserEmail').value = user.email || '';
             document.getElementById('newUserPhone').value = user.phone || '';
+            updateRoleSelectOptions(user.id, user.role);
             document.getElementById('newUserRole').value = user.role || '';
+            
             const deptSelect = document.getElementById('newUserDepartment');
-            if (deptSelect) {
+            const roleStr = String(user.role || '').toLowerCase().trim();
+            const isApprover = ['accounts', 'manager', 'cfo', 'md'].includes(roleStr);
+
+            if (isApprover) {
+                handleRoleDepartmentState();
+            } else if (deptSelect) {
+                handleRoleDepartmentState();
                 const userDept = String(user.department || '').trim();
                 const matchedOption = Array.from(deptSelect.options).find(opt => opt.value.toLowerCase() === userDept.toLowerCase());
                 deptSelect.value = matchedOption ? matchedOption.value : userDept;
@@ -2051,7 +2280,9 @@
                         const status = (u.status || 'ACTIVE').toUpperCase();
                         const roleStr = String(u.role || '').trim().toLowerCase();
                         const isAdmin = roleStr === 'admin';
+                        const isApprover = ['accounts', 'manager', 'cfo', 'md'].includes(roleStr);
                         const isInactive = status === 'INACTIVE';
+                        const displayDept = isApprover ? 'All Departments' : (u.department || 'N/A');
 
                         const statusBadge = isInactive
                             ? '<span class="badge" style="background: rgba(239, 68, 68, 0.2); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.4); font-weight: 700;">🔴 Inactive</span>'
@@ -2072,7 +2303,7 @@
                                 <td>${escapeHtml(u.name || '')}</td>
                                 <td>${escapeHtml(u.email || '')}</td>
                                 <td><span class="badge badge-info">${escapeHtml(u.role || '')}</span></td>
-                                <td>${escapeHtml(u.department || 'N/A')}</td>
+                                <td>${escapeHtml(displayDept)}</td>
                                 <td>${statusBadge}</td>
                                 <td>
                                     <div style="display: flex; gap: 8px; align-items: center;">
@@ -2105,18 +2336,31 @@
             event.preventDefault();
             const userId = document.getElementById('editUserId')?.value;
             const name = document.getElementById('newUserName')?.value.trim();
-            const email = document.getElementById('newUserEmail')?.value.trim();
             const phone = document.getElementById('newUserPhone')?.value.trim();
             const role = document.getElementById('newUserRole')?.value;
-            const department = document.getElementById('newUserDepartment')?.value.trim();
+            const roleLower = String(role || '').toLowerCase().trim();
+            const isApprover = ['accounts', 'manager', 'cfo', 'md'].includes(roleLower);
+            let department = document.getElementById('newUserDepartment')?.value.trim();
+            if (isApprover) {
+                department = 'All Departments';
+            }
             const password = document.getElementById('newUserPassword')?.value;
             const message = document.getElementById('addUserMessage');
 
             const isEdit = Boolean(userId);
 
-            if (!name || !email || !role || !department || (!isEdit && !password)) {
+            if (!name || !role || (!isApprover && !department) || (!isEdit && !password)) {
                 if (message) {
                     message.textContent = 'Please fill all required fields.';
+                    message.className = 'msg show err';
+                    message.style.display = 'block';
+                }
+                return;
+            }
+
+            if (roleLower === 'employee' && (!department || department.toLowerCase() === 'all departments')) {
+                if (message) {
+                    message.textContent = 'Employees must be assigned to a specific department.';
                     message.className = 'msg show err';
                     message.style.display = 'block';
                 }
@@ -2140,7 +2384,7 @@
                     const res = await fetch(`/api/auth/users/${userId}`, {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ name, email, phone, role, department })
+                        body: JSON.stringify({ name, phone, role, department })
                     });
 
                     const data = await res.json();
@@ -2173,7 +2417,7 @@
                     const res = await fetch('/api/auth/users', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ name, email, phone, role, department, password })
+                        body: JSON.stringify({ name, phone, role, department, password })
                     });
 
                     const data = await res.json();
@@ -2194,7 +2438,6 @@
                             <div style="text-align:left; font-size:14px; line-height:1.6; border-left:3px solid #22c55e; padding-left:10px;">
                                 <strong>User Created Successfully</strong><br/>
                                 Employee ID: <strong>${empId}</strong><br/>
-                                Email: ${email}<br/>
                                 Temporary Password: ${password}
                             </div>
                         `;
@@ -2215,6 +2458,212 @@
                     message.style.display = 'block';
                 }
             }
+        }
+
+        let lastGeneratedDemoCreds = null;
+
+        async function checkDemoOwnerAccess() {
+            const demoBtn = document.getElementById('demoAccessBtn');
+            const demoModal = document.getElementById('demoAccessModal');
+
+            if (demoBtn) demoBtn.style.display = 'none';
+
+            try {
+                const token = localStorage.getItem('authToken') || localStorage.getItem('auth_token') || '';
+                if (!token || token === 'null' || token === 'undefined') {
+                    if (demoBtn) demoBtn.remove();
+                    if (demoModal) demoModal.remove();
+                    return;
+                }
+
+                const res = await fetch('/api/auth/verify', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+                    const isDemoMode = Boolean(data.is_demo_mode ?? data.user?.is_demo_mode);
+                    const isDemoOwner = Boolean(
+                        data.is_demo_owner === true ||
+                        data.user?.is_demo_owner === true ||
+                        (isDemoMode && (data.account_type === 'DEMO_OWNER' || data.user?.account_type === 'DEMO_OWNER'))
+                    );
+
+                    if (isDemoMode && isDemoOwner) {
+                        if (demoBtn) {
+                            demoBtn.style.display = 'inline-block';
+                            demoBtn.style.visibility = 'visible';
+                        }
+                        if (data.user) {
+                            try {
+                                const cur = JSON.parse(localStorage.getItem('currentUser') || '{}');
+                                localStorage.setItem('currentUser', JSON.stringify({ ...cur, ...data.user }));
+                            } catch(e) {}
+                        }
+                        return;
+                    }
+                }
+            } catch (err) {
+                console.error('[DEMO ACCESS] Error checking demo owner access:', err);
+            }
+
+            // Not demo owner or running in production -> remove completely from DOM
+            if (demoBtn) demoBtn.remove();
+            if (demoModal) demoModal.remove();
+        }
+
+        function openDemoAccessModal() {
+            const modal = document.getElementById('demoAccessModal');
+            if (!modal) return;
+            modal.classList.remove('hidden');
+            const msgEl = document.getElementById('demoAccessMessage');
+            if (msgEl) {
+                msgEl.style.display = 'none';
+                msgEl.textContent = '';
+            }
+            loadDemoAccessList();
+        }
+
+        function closeDemoAccessModal() {
+            const modal = document.getElementById('demoAccessModal');
+            if (!modal) return;
+            modal.classList.add('hidden');
+        }
+
+        async function loadDemoAccessList() {
+            const tbody = document.getElementById('demoAccessTableBody');
+            if (!tbody) return;
+            try {
+                const token = localStorage.getItem('authToken') || localStorage.getItem('auth_token') || '';
+                const headers = (token && token !== 'null' && token !== 'undefined') ? { 'Authorization': `Bearer ${token}` } : {};
+                const res = await fetch('/api/auth/demo-access/list', { headers });
+                if (res.ok) {
+                    const list = await res.json();
+                    if (!Array.isArray(list) || list.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:var(--text-secondary); padding: 14px 0;">No demo credentials generated yet.</td></tr>';
+                        return;
+                    }
+                    tbody.innerHTML = list.map(item => {
+                        const status = (item.status || 'ACTIVE').toUpperCase();
+                        const isExpired = status === 'EXPIRED';
+                        const badge = isExpired
+                            ? '<span class="badge" style="background: rgba(239, 68, 68, 0.2); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.4); font-weight: 700;">EXPIRED</span>'
+                            : '<span class="badge" style="background: rgba(34, 197, 94, 0.2); color: #22c55e; border: 1px solid rgba(34, 197, 94, 0.4); font-weight: 700;">ACTIVE</span>';
+                        
+                        const createdStr = item.created_at ? new Date(item.created_at).toLocaleString() : 'N/A';
+                        const expiresStr = item.expires_at ? new Date(item.expires_at).toLocaleString() : 'N/A';
+
+                        return `
+                            <tr>
+                                <td><strong style="color: var(--primary); font-family: monospace;">${escapeHtml(item.employee_id || item.employeeId || 'N/A')}</strong></td>
+                                <td style="color: var(--text-secondary);">${escapeHtml(createdStr)}</td>
+                                <td style="color: var(--text-secondary);">${escapeHtml(expiresStr)}</td>
+                                <td>${badge}</td>
+                            </tr>
+                        `;
+                    }).join('');
+                    return;
+                }
+            } catch (err) {
+                console.error('Failed to load demo access list:', err);
+            }
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:var(--text-secondary); padding: 14px 0;">Unable to load history.</td></tr>';
+        }
+
+        async function handleGenerateDemoAccess() {
+            const btn = document.getElementById('generateDemoBtn');
+            const msgEl = document.getElementById('demoAccessMessage');
+            const credsBox = document.getElementById('newCredentialsDisplay');
+
+            if (btn) {
+                btn.disabled = true;
+                btn.textContent = 'Generating...';
+            }
+            if (msgEl) {
+                msgEl.style.display = 'none';
+                msgEl.textContent = '';
+            }
+
+            try {
+                const token = localStorage.getItem('authToken') || localStorage.getItem('auth_token') || '';
+                const headers = {
+                    'Content-Type': 'application/json',
+                    ...(token && token !== 'null' && token !== 'undefined' ? { 'Authorization': `Bearer ${token}` } : {})
+                };
+
+                const res = await fetch('/api/auth/demo-access/generate', {
+                    method: 'POST',
+                    headers
+                });
+
+                const data = await res.json();
+
+                if (!res.ok) {
+                    if (msgEl) {
+                        msgEl.textContent = data.message || 'Failed to generate demo credentials.';
+                        msgEl.className = 'msg show err';
+                        msgEl.style.display = 'block';
+                    }
+                    return;
+                }
+
+                lastGeneratedDemoCreds = data;
+
+                const empIdEl = document.getElementById('displayDemoEmpId');
+                const pwdEl = document.getElementById('displayDemoPassword');
+                const expEl = document.getElementById('displayDemoExpires');
+
+                if (empIdEl) empIdEl.textContent = data.employee_id || data.employeeId || 'N/A';
+                if (pwdEl) pwdEl.textContent = data.password || 'N/A';
+                if (expEl) {
+                    const expDate = data.expires_at ? new Date(data.expires_at) : new Date(Date.now() + 24 * 60 * 60 * 1000);
+                    expEl.textContent = expDate.toLocaleString();
+                }
+
+                if (credsBox) {
+                    credsBox.style.display = 'block';
+                }
+
+                loadDemoAccessList();
+            } catch (err) {
+                if (msgEl) {
+                    msgEl.textContent = 'Error connecting to server. Please try again.';
+                    msgEl.className = 'msg show err';
+                    msgEl.style.display = 'block';
+                }
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.textContent = '⚡ GENERATE CREDENTIALS';
+                }
+            }
+        }
+
+        function copyDemoCredentials() {
+            if (!lastGeneratedDemoCreds) return;
+            const empId = lastGeneratedDemoCreds.employee_id || lastGeneratedDemoCreds.employeeId || '';
+            const password = lastGeneratedDemoCreds.password || '';
+            const expires = lastGeneratedDemoCreds.expires_at ? new Date(lastGeneratedDemoCreds.expires_at).toLocaleString() : '';
+            const loginUrl = `${window.location.origin}/login.html`;
+
+            const textToCopy = `ZyroFlow Temporary Demo Credentials\nEmployee ID: ${empId}\nPassword: ${password}\nExpires: ${expires}\nStatus: ACTIVE\nLogin URL: ${loginUrl}`;
+
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                const copyBtn = document.getElementById('copyDemoCredsBtn');
+                if (copyBtn) {
+                    const origText = copyBtn.innerHTML;
+                    copyBtn.innerHTML = '✓ COPIED TO CLIPBOARD!';
+                    copyBtn.style.background = 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)';
+                    copyBtn.style.color = '#ffffff';
+                    setTimeout(() => {
+                        copyBtn.innerHTML = origText;
+                        copyBtn.style.background = '';
+                        copyBtn.style.color = '';
+                    }, 2000);
+                }
+            }).catch(err => {
+                console.error('Clipboard copy failed:', err);
+            });
         }
 
         function openAuditLogs() {
@@ -2538,7 +2987,6 @@
                 sections: [
                     { title: 'Expense Details', fields: [{ label: 'Expense Category', required: true }, { label: 'Bill Number', required: true }, { label: 'Bill Date', required: true }] },
                     { title: 'Payment Details', fields: [{ label: 'Amount (₹)', required: true }, { label: 'Payment Method', required: true }] },
-                    { title: 'Supporting Documents', fields: [{ label: 'Upload Receipt', required: false }] },
                     { title: 'Reason', fields: [{ label: 'Reason', required: true }] }
                 ]
             },

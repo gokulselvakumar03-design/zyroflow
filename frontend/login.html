@@ -1172,10 +1172,11 @@
                         forgotSuccessStrip.classList.remove('show');
                     }
 
-                    const loginEmailVal = (forgotEmailInput?.value || '').trim();
-                    if (!loginEmailVal) {
+                    const forgotInput = document.getElementById('forgotEmployeeIdInput') || document.getElementById('forgotEmailInput');
+                    const empIdVal = (forgotInput?.value || '').trim();
+                    if (!empIdVal) {
                         if (forgotErrorStrip) {
-                            forgotErrorStrip.textContent = 'Please enter your login email address.';
+                            forgotErrorStrip.textContent = 'Please enter your Employee ID.';
                             forgotErrorStrip.classList.add('show');
                         }
                         return;
@@ -1187,24 +1188,25 @@
                         sendResetBtn.innerHTML = '<span class="spinner"></span> Sending...';
 
                         try {
+                            const reqPayload = { employee_id: empIdVal, employeeId: empIdVal, loginIdentifier: empIdVal };
                             let res = await fetch(`${API_BASE}/auth/forgot-password`, {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ email: loginEmailVal })
+                                body: JSON.stringify(reqPayload)
                             }).catch(() => null);
 
                             if (!res || !res.ok) {
                                 res = await fetch('/api/auth/forgot-password', {
                                     method: 'POST',
                                     headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({ email: loginEmailVal })
+                                    body: JSON.stringify(reqPayload)
                                 }).catch(() => null);
                             }
 
                             const data = res ? await res.json().catch(() => ({})) : {};
 
                             if (forgotSuccessStrip) {
-                                forgotSuccessStrip.textContent = data.message || 'If the account exists and has a recovery email configured, a password reset link has been sent.';
+                                forgotSuccessStrip.textContent = data.message || 'If the account is eligible, a password reset link has been sent to the registered recovery email.';
                                 forgotSuccessStrip.classList.add('show');
                             }
                         } catch (err) {
@@ -1239,7 +1241,7 @@
                 </div>
                 <h2 style="font-size:1.35rem; font-weight:700; color:#0f172a; margin:0 0 8px 0; letter-spacing:-0.02em;">Forgot Password?</h2>
                 <p style="font-size:0.9rem; color:#475569; margin:0 0 16px 0; line-height:1.5;">
-                    Enter your login email address. If an account with a recovery email is found, we will send a password reset link.
+                    Enter your Employee ID. If the account has a recovery email, a password reset link will be sent to that registered recovery email.
                 </p>
 
                 <div id="forgotErrorStrip" class="message-strip error-message" style="margin-bottom:14px;"></div>
@@ -1247,9 +1249,9 @@
 
                 <form id="forgotPasswordForm">
                     <div class="form-group" style="margin-bottom:20px;">
-                        <label class="form-label" for="forgotEmailInput" style="font-size:0.85rem; font-weight:600; color:#334155; margin-bottom:6px; display:block;">Email Address</label>
+                        <label class="form-label" for="forgotEmployeeIdInput" style="font-size:0.85rem; font-weight:600; color:#334155; margin-bottom:6px; display:block;">Employee ID</label>
                         <div class="input-wrapper">
-                            <input type="email" id="forgotEmailInput" class="form-input" placeholder="Enter your login email" required style="width:100%;" />
+                            <input type="text" id="forgotEmployeeIdInput" class="form-input" placeholder="Enter your Employee ID" required style="width:100%;" />
                         </div>
                     </div>
                     <button type="submit" id="sendResetLinkBtn" class="login-button" style="width:100%; margin-top:4px;">

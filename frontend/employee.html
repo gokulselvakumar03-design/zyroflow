@@ -2073,12 +2073,6 @@
             ]
           },
           {
-            title: 'Supporting Documents',
-            fields: [
-              { name: 'receipt_file', label: 'Upload Receipt', type: 'file', fullWidth: true }
-            ]
-          },
-          {
             title: 'Reason',
             fields: [
               { name: 'reason', label: 'Reason', type: 'textarea', placeholder: 'Enter reason for reimbursement...', required: true, fullWidth: true, isDescription: true }
@@ -2971,6 +2965,28 @@
       const descEl = document.getElementById('description');
       if (descEl) descEl.value = description;
 
+      // Read attachment file if uploaded
+      const fileInput = document.querySelector('#dynamic-form-sections input[type="file"]') || document.getElementById('df_receipt_file');
+      let attachedFileUrl = null;
+      let attachedFileName = null;
+      let attachedFileType = null;
+
+      if (fileInput && fileInput.files && fileInput.files[0]) {
+        const file = fileInput.files[0];
+        attachedFileName = file.name;
+        attachedFileType = file.type || 'image/jpeg';
+        try {
+          attachedFileUrl = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = err => reject(err);
+            reader.readAsDataURL(file);
+          });
+        } catch (readErr) {
+          console.error('[Employee Submit] Error reading attached file:', readErr);
+        }
+      }
+
       const fullPayload = {
         request_type,
         title: request_type,
@@ -2985,11 +3001,18 @@
         ...dynamicData
       };
 
+      if (attachedFileUrl) {
+        fullPayload.attached_file_url = attachedFileUrl;
+        fullPayload.attached_file_name = attachedFileName;
+        fullPayload.attached_file_type = attachedFileType;
+        fullPayload.receipt_file = attachedFileUrl;
+        fullPayload.receipt_url = attachedFileUrl;
+      }
+
       if (editingRequestId && editingExistingRequest) {
         fullPayload.is_edited = 1;
         
         // Preserve original attachment if employee did not select a new file and did not delete existing attachment
-        const fileInput = document.querySelector('#dynamic-form-sections input[type="file"]') || document.getElementById('df_receipt_file');
         if ((!fileInput || !fileInput.files || !fileInput.files[0]) && !window.attachmentDeleted) {
           const existingPayload = typeof editingExistingRequest.payload === 'string' ? JSON.parse(editingExistingRequest.payload || '{}') : (editingExistingRequest.payload || {});
           const existingName = editingExistingRequest.fileName || editingExistingRequest.file_name || existingPayload.attached_file_name || existingPayload.fileName || existingPayload.file_name;
@@ -2999,7 +3022,7 @@
           fullPayload.attached_file_type = existingType;
           fullPayload.attached_file_url = 'PRESERVE_EXISTING';
           fullPayload.preserve_existing_attachment = true;
-        } else if (window.attachmentDeleted) {
+        } else if (window.attachmentDeleted && (!fileInput || !fileInput.files || !fileInput.files[0])) {
           fullPayload.attached_file_name = null;
           fullPayload.attached_file_type = null;
           fullPayload.attached_file_url = null;
@@ -3881,6 +3904,9 @@
 
       function getAttachmentInfo(req) {
         if (!req) return null;
+        const reqType = String(req.request_type || req.type || req.title || '').toLowerCase();
+        if (reqType === 'reimbursement') return null;
+
         let payload = req.payload;
         if (typeof payload === 'string') {
           try { payload = JSON.parse(payload); } catch(e) { payload = {}; }

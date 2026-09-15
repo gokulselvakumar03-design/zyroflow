@@ -1,5 +1,10 @@
 const pool = require('../config/db');
 
+function getSessionId(req) {
+  if (!pool.isDemoMode) return null;
+  return req?.demoSessionId || req?.user?.demo_session_id || 'default';
+}
+
 function parseJsonValue(value, fallback = null) {
   if (value == null || value === '') return fallback;
   if (typeof value === 'object') return value;
@@ -58,11 +63,18 @@ function mapRequestRow(row) {
 exports.trackRequest = async (req, res, next) => {
   try {
     const requestId = Number(req.params.requestId);
+    const sessionId = getSessionId(req);
+
     if (!requestId || !Number.isInteger(requestId)) {
       return res.status(400).json({ message: 'Invalid request ID' });
     }
 
-    const [requests] = await pool.execute('SELECT * FROM workflow_requests WHERE id = ?', [requestId]);
+    const reqSql = pool.isDemoMode && sessionId
+      ? 'SELECT * FROM workflow_requests WHERE demo_session_id = ? AND id = ?'
+      : 'SELECT * FROM workflow_requests WHERE id = ?';
+    const reqParams = pool.isDemoMode && sessionId ? [sessionId, requestId] : [requestId];
+
+    const [requests] = await pool.execute(reqSql, reqParams);
     const request = requests[0];
 
     if (!request) {
@@ -78,21 +90,31 @@ exports.trackRequest = async (req, res, next) => {
       }
     }
 
-    const [approvalRows] = await pool.execute(
-      `SELECT approver_role, step, status, updated_at
-       FROM approvals
-       WHERE request_id = ?
-       ORDER BY step ASC`,
-      [requestId]
-    );
+    const apprSql = pool.isDemoMode && sessionId
+      ? `SELECT approver_role, step, status, updated_at
+         FROM approvals
+         WHERE demo_session_id = ? AND request_id = ?
+         ORDER BY step ASC`
+      : `SELECT approver_role, step, status, updated_at
+         FROM approvals
+         WHERE request_id = ?
+         ORDER BY step ASC`;
+    const apprParams = pool.isDemoMode && sessionId ? [sessionId, requestId] : [requestId];
 
-    const [historyRows] = await pool.execute(
-      `SELECT id, request_id, action, performed_by, timestamp
-       FROM request_history
-       WHERE request_id = ?
-       ORDER BY id ASC`,
-      [requestId]
-    );
+    const [approvalRows] = await pool.execute(apprSql, apprParams);
+
+    const histSql = pool.isDemoMode && sessionId
+      ? `SELECT id, request_id, action, performed_by, timestamp
+         FROM request_history
+         WHERE demo_session_id = ? AND request_id = ?
+         ORDER BY id ASC`
+      : `SELECT id, request_id, action, performed_by, timestamp
+         FROM request_history
+         WHERE request_id = ?
+         ORDER BY id ASC`;
+    const histParams = pool.isDemoMode && sessionId ? [sessionId, requestId] : [requestId];
+
+    const [historyRows] = await pool.execute(histSql, histParams);
 
     const mappedRequest = mapRequestRow(request);
 
@@ -132,4 +154,3 @@ exports.trackRequest = async (req, res, next) => {
     next(err);
   }
 };
-

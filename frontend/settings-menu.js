@@ -565,8 +565,8 @@
 
     const empId = user.employee_id || user.employeeId || fallbackUser.employee_id || fallbackUser.employeeId || 'EMP001';
     const name = user.name || fallbackUser.name || 'Employee';
-    const role = user.role || fallbackUser.role || localStorage.getItem('userRole') || 'Employee';
-    const dept = user.department || fallbackUser.department || 'Operations';
+    const isApproverRole = ['accounts', 'manager', 'cfo', 'md'].includes(String(role).toLowerCase().trim());
+    const dept = isApproverRole ? 'All Departments' : (user.department || fallbackUser.department || 'Operations');
     const emailVal = user.email || fallbackUser.email || email || '';
     const phone = user.phone || fallbackUser.phone || '';
     const storedImg = getStoredProfileImage();
@@ -594,7 +594,19 @@
     if (editPhone) editPhone.value = phone;
 
     const editDept = document.getElementById('zyroProfEditDept');
-    if (editDept) editDept.value = dept;
+    if (editDept) {
+      if (isApproverRole) {
+        editDept.value = 'All Departments';
+        editDept.readOnly = true;
+        editDept.style.opacity = '0.7';
+        editDept.style.cursor = 'not-allowed';
+      } else {
+        editDept.value = dept;
+        editDept.readOnly = false;
+        editDept.style.opacity = '1';
+        editDept.style.cursor = 'text';
+      }
+    }
 
     renderAvatarDisplays(profileImg, name);
   }

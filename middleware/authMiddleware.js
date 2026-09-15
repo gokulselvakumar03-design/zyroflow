@@ -27,6 +27,14 @@ function authMiddleware(req, res, next) {
       return res.status(401).json({ message: 'Invalid or expired token' });
     }
     req.user = decoded;
+    if (decoded && decoded.demo_expires_at) {
+      if (new Date() >= new Date(decoded.demo_expires_at)) {
+        return res.status(401).json({ message: 'Demo access has expired. Please contact us for new access.' });
+      }
+    }
+    if (decoded && decoded.demo_session_id) {
+      req.demoSessionId = decoded.demo_session_id;
+    }
     next();
   });
 }
@@ -49,6 +57,9 @@ function optionalAuth(req, res, next) {
   jwt.verify(token, secret, (err, decoded) => {
     if (!err && decoded) {
       req.user = decoded;
+      if (decoded.demo_session_id && !req.demoSessionId) {
+        req.demoSessionId = decoded.demo_session_id;
+      }
     }
     next();
   });

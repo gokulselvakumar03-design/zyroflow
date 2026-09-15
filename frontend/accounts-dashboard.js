@@ -713,6 +713,9 @@ function renderPaymentVerificationModal(selectedId) {
         }
         payload = payload || {};
 
+        const reqType = String(pvSelectedRequest.type || pvSelectedRequest.request_type || pvSelectedRequest.title || '').toLowerCase();
+        if (reqType === 'reimbursement') return '';
+
         let dynamicPhoto = null;
         if (typeof payload === 'object' && payload !== null) {
           Object.keys(payload).forEach(k => {
