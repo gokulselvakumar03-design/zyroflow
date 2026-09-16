@@ -504,6 +504,351 @@
                 gap: 12px;
             }
         }
+
+        /* Demo-Only Modern Enterprise Action Bar */
+        .demo-nav-wrapper {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+            margin-top: 18px;
+        }
+
+        .demo-links-bar {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            padding: 5px 8px;
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 9999px;
+            box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .demo-links-bar:hover {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 14px 36px -4px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.28);
+        }
+
+        .demo-link-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 6px 14px;
+            border-radius: 9999px;
+            color: #F8FAFC !important;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-decoration: none !important;
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            outline: none;
+            letter-spacing: -0.01em;
+        }
+
+        .demo-link-item .demo-link-icon {
+            font-size: 0.95rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s ease;
+        }
+
+        .demo-link-item:hover {
+            background: rgba(255, 255, 255, 0.14);
+            color: #FFFFFF !important;
+            transform: translateY(-1px);
+        }
+
+        .demo-link-item:hover .demo-link-icon {
+            transform: scale(1.18);
+        }
+
+        .demo-link-item:active {
+            transform: translateY(0);
+        }
+
+        .demo-link-item:focus-visible {
+            outline: 2px solid #60A5FA;
+            outline-offset: 2px;
+        }
+
+        .demo-link-divider {
+            width: 1px;
+            height: 16px;
+            background: rgba(255, 255, 255, 0.22);
+            user-select: none;
+            margin: 0 2px;
+        }
+
+        .guide-modal-backdrop {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(15, 23, 42, 0.78);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 99999;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .guide-modal-container {
+            background: #FFFFFF;
+            border-radius: 20px;
+            max-width: 920px;
+            width: 100%;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 25px 60px -12px rgba(0, 0, 0, 0.4);
+            border: 1px solid #E2E8F0;
+            overflow: hidden;
+            position: relative;
+            animation: modalFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .contact-modal-container {
+            background: #FFFFFF;
+            border-radius: 20px;
+            max-width: 520px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 25px 60px -12px rgba(0, 0, 0, 0.4);
+            border: 1px solid #E2E8F0;
+            overflow: hidden;
+            position: relative;
+            animation: modalFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.96) translateY(8px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .guide-modal-header {
+            padding: 20px 28px;
+            background: #FFFFFF;
+            border-bottom: 1px solid #E2E8F0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .guide-modal-body {
+            padding: 26px 30px;
+            overflow-y: auto;
+            color: #334155;
+            font-size: 0.92rem;
+            line-height: 1.65;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .guide-modal-footer {
+            padding: 14px 28px;
+            background: #F8FAFC;
+            border-top: 1px solid #E2E8F0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .guide-section {
+            background: #F8FAFC;
+            border: 1px solid #E2E8F0;
+            border-radius: 16px;
+            padding: 20px 22px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .guide-section-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .guide-section-badge {
+            width: 32px;
+            height: 32px;
+            border-radius: 10px;
+            background: #2563EB;
+            color: #FFFFFF;
+            display: grid;
+            place-items: center;
+            font-size: 0.85rem;
+            font-weight: 800;
+            flex-shrink: 0;
+        }
+
+        .guide-section-title {
+            margin: 0;
+            font-size: 1.08rem;
+            font-weight: 700;
+            color: #0F172A;
+            letter-spacing: -0.01em;
+        }
+
+        .guide-badge-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 0.76rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .guide-badge-blue { background: #DBEAFE; color: #1D4ED8; }
+        .guide-badge-amber { background: #FEF3C7; color: #B45309; }
+        .guide-badge-green { background: #DCFCE7; color: #15803D; }
+        .guide-badge-purple { background: #F3E8FF; color: #7E22CE; }
+
+        .workflow-visual-track {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            background: #FFFFFF;
+            border: 1px solid #E2E8F0;
+            border-radius: 14px;
+            padding: 16px 14px;
+            margin: 6px 0;
+            overflow-x: auto;
+        }
+
+        .workflow-step-node {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            min-width: 80px;
+            text-align: center;
+        }
+
+        .workflow-node-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
+            background: #EFF6FF;
+            border: 2px solid #3B82F6;
+            color: #1D4ED8;
+            display: grid;
+            place-items: center;
+            font-size: 1rem;
+            font-weight: 800;
+        }
+
+        .workflow-node-label {
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: #1E293B;
+        }
+
+        .workflow-node-desc {
+            font-size: 0.68rem;
+            color: #64748B;
+        }
+
+        .workflow-step-arrow {
+            color: #94A3B8;
+            font-size: 1.1rem;
+            font-weight: 800;
+            margin-top: -16px;
+        }
+
+        .rbac-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 12px;
+        }
+
+        .rbac-card {
+            background: #FFFFFF;
+            border: 1px solid #E2E8F0;
+            border-radius: 12px;
+            padding: 14px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .rbac-role-title {
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: #0F172A;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .rbac-desc-list {
+            margin: 0;
+            padding-left: 18px;
+            font-size: 0.82rem;
+            color: #475569;
+            line-height: 1.5;
+        }
+
+        .contact-channel-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 10px;
+        }
+
+        .contact-channel-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 16px;
+            background: #F8FAFC;
+            border: 1px solid #E2E8F0;
+            border-radius: 14px;
+            text-decoration: none;
+            color: #0F172A;
+            transition: all 0.2s ease;
+        }
+
+        .contact-channel-item:hover {
+            background: #EFF6FF;
+            border-color: #BFDBFE;
+            transform: translateY(-1px);
+        }
+
+        .contact-channel-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: grid;
+            place-items: center;
+            flex-shrink: 0;
+            font-size: 1.25rem;
+        }
     </style>
 </head>
 
@@ -565,7 +910,7 @@
         </section>
 
         <section class="panel-right">
-            <div class="login-shell">
+            <div class="login-shell" id="loginShell">
                 <div class="login-card">
                     <div class="login-head">
                         <h1>Welcome Back</h1>
@@ -1228,6 +1573,579 @@
             document.addEventListener('DOMContentLoaded', initForgotPasswordHandlers);
         } else {
             initForgotPasswordHandlers();
+        }
+
+        // ==========================================
+        // DEMO-ONLY FEATURES (HOW TO USE & CONTACT US)
+        // Strictly isolated: rendered ONLY when DEMO_MODE=true
+        // ==========================================
+        function openHowToUseModal(e) {
+            if (e && typeof e.preventDefault === 'function') e.preventDefault();
+            if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
+            const modal = document.getElementById('howToUseModalBackdrop');
+            if (modal) {
+                modal.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+            }
+        }
+
+        function closeHowToUseModal() {
+            const modal = document.getElementById('howToUseModalBackdrop');
+            if (modal) {
+                modal.style.display = 'none';
+                document.body.style.overflow = '';
+            }
+        }
+
+        function openContactUsModal(e) {
+            if (e && typeof e.preventDefault === 'function') e.preventDefault();
+            if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
+            const modal = document.getElementById('contactUsModalBackdrop');
+            if (modal) {
+                modal.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+            }
+        }
+
+        function closeContactUsModal() {
+            const modal = document.getElementById('contactUsModalBackdrop');
+            if (modal) {
+                modal.style.display = 'none';
+                document.body.style.overflow = '';
+            }
+        }
+
+        // Global Escape key listener to close active demo modals
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeHowToUseModal();
+                closeContactUsModal();
+            }
+        });
+
+        function renderDemoUI() {
+            if (document.getElementById('demoNavContainer')) return;
+
+            // 1. Insert action links below login card in login-shell
+            const loginShell = document.getElementById('loginShell');
+            if (loginShell) {
+                const navDiv = document.createElement('div');
+                navDiv.id = 'demoNavContainer';
+                navDiv.className = 'demo-nav-wrapper';
+                navDiv.innerHTML = `
+                    <div class="demo-links-bar">
+                        <a id="howToUseLink" class="demo-link-item" role="button" tabindex="0">
+                            <span class="demo-link-icon">📖</span>
+                            <span>How to Use ZyroFlow</span>
+                        </a>
+                        <span class="demo-link-divider"></span>
+                        <a id="contactUsLink" class="demo-link-item" role="button" tabindex="0">
+                            <span class="demo-link-icon">💬</span>
+                            <span>Contact Us</span>
+                        </a>
+                    </div>
+                `;
+                loginShell.appendChild(navDiv);
+
+                const howToUseLink = document.getElementById('howToUseLink');
+                if (howToUseLink) {
+                    howToUseLink.addEventListener('click', function(event) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        openHowToUseModal(event);
+                    });
+                    howToUseLink.addEventListener('keydown', function(event) {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                            event.preventDefault();
+                            event.stopPropagation();
+                            openHowToUseModal(event);
+                        }
+                    });
+                }
+
+                const contactUsLink = document.getElementById('contactUsLink');
+                if (contactUsLink) {
+                    contactUsLink.addEventListener('click', function(event) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        openContactUsModal(event);
+                    });
+                    contactUsLink.addEventListener('keydown', function(event) {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                            event.preventDefault();
+                            event.stopPropagation();
+                            openContactUsModal(event);
+                        }
+                    });
+                }
+            }
+
+            // 2. Insert How to Use Modal
+            const guideModal = document.createElement('div');
+            guideModal.id = 'howToUseModalBackdrop';
+            guideModal.className = 'guide-modal-backdrop';
+            guideModal.innerHTML = `
+                <div class="guide-modal-container">
+                    <div class="guide-modal-header">
+                        <div style="display:flex; align-items:center; gap:12px;">
+                            <div style="width:40px; height:40px; border-radius:12px; background:rgba(37, 99, 235, 0.12); color:#2563EB; display:grid; place-items:center; font-size:20px;">
+                                📖
+                            </div>
+                            <div>
+                                <h2 style="font-size:1.3rem; font-weight:800; color:#0F172A; margin:0; letter-spacing:-0.02em;">How to Use ZyroFlow</h2>
+                                <div style="display:flex; align-items:center; gap:8px; margin-top:2px;">
+                                    <span class="guide-badge-pill guide-badge-blue">End-to-End Guide</span>
+                                    <span style="font-size:0.8rem; color:#64748B;">Multi-Level Enterprise Approval Platform</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" onclick="closeHowToUseModal()" style="background:none; border:none; font-size:26px; color:#94A3B8; cursor:pointer; padding:4px 8px; border-radius:8px; line-height:1;" aria-label="Close guide">&times;</button>
+                    </div>
+
+                    <div class="guide-modal-body">
+                        <!-- Section 1: Login -->
+                        <div class="guide-section">
+                            <div class="guide-section-header">
+                                <div class="guide-section-badge">1</div>
+                                <h3 class="guide-section-title">Login & Role-Based Routing</h3>
+                            </div>
+                            <p style="margin:0;">
+                                Users sign in using their unique <strong>Employee ID</strong> and <strong>Password</strong>. Upon authentication, ZyroFlow automatically routes the user to their designated role-specific dashboard (Employee, Accounts, Manager, CFO, MD, or Admin). Users can access only the specific functionality and data permitted by their assigned role.
+                            </p>
+                        </div>
+
+                        <!-- Section 2: First-Time Account Setup -->
+                        <div class="guide-section">
+                            <div class="guide-section-header">
+                                <div class="guide-section-badge">2</div>
+                                <h3 class="guide-section-title">First-Time Account Setup & Recovery Email</h3>
+                            </div>
+                            <p style="margin:0;">
+                                When an Administrator creates a new user account, initial credentials are provided. Upon logging in for the first time, non-admin users are automatically prompted to register a personal <strong>Recovery Email</strong>. This verified recovery email address is securely utilized for self-service password recovery if the user ever forgets their password.
+                            </p>
+                        </div>
+
+                        <!-- Section 3: Employee Dashboard -->
+                        <div class="guide-section">
+                            <div class="guide-section-header">
+                                <div class="guide-section-badge">3</div>
+                                <h3 class="guide-section-title">Employee Dashboard Overview</h3>
+                            </div>
+                            <p style="margin:0 0 8px 0;">
+                                The Employee Dashboard serves as the central operations hub for team members to create, manage, and monitor all organization requests:
+                            </p>
+                            <ul style="margin:0; padding-left:20px; display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:6px;">
+                                <li>✨ <strong>Create Request</strong></li>
+                                <li>📋 <strong>Select Request Type</strong></li>
+                                <li>🏢 <strong>Select Department</strong></li>
+                                <li>📝 <strong>Enter Required Details</strong></li>
+                                <li>💾 <strong>Save as Draft</strong></li>
+                                <li>✏️ <strong>Edit Saved Drafts</strong></li>
+                                <li>🚀 <strong>Submit Request</strong></li>
+                                <li>🔍 <strong>Live Request Tracking</strong></li>
+                                <li>📜 <strong>View History & Audit Trail</strong></li>
+                                <li>🔔 <strong>View Real-Time Notifications</strong></li>
+                            </ul>
+                        </div>
+
+                        <!-- Section 4: Creating a Request -->
+                        <div class="guide-section">
+                            <div class="guide-section-header">
+                                <div class="guide-section-badge">4</div>
+                                <h3 class="guide-section-title">Creating a Request (Step-by-Step)</h3>
+                            </div>
+                            <ol style="margin:0; padding-left:20px; display:flex; flex-direction:column; gap:6px;">
+                                <li><strong>Open request creation</strong>: Click the <em>"New Request"</em> button on the dashboard.</li>
+                                <li><strong>Select request type</strong>: Choose from standard enterprise types (Reimbursement, Purchase Order, Travel, Software License, Budget Approval, etc.).</li>
+                                <li><strong>Enter required information</strong>: Input request title, description, amount, department, priority, and provide supporting details or documents where applicable.</li>
+                                <li><strong>Review the request</strong>: Check all fields to ensure accuracy and completeness.</li>
+                                <li><strong>Save as Draft if incomplete</strong>: If supplementary details are pending, safely save the request to drafts.</li>
+                                <li><strong>Submit when ready</strong>: Click <em>"Submit Request"</em> to finalize.</li>
+                                <li><strong>Enters approval workflow</strong>: The request immediately enters the automated multi-level pipeline starting at the Accounts review stage.</li>
+                            </ol>
+                        </div>
+
+                        <!-- Section 5: Draft Requests -->
+                        <div class="guide-section">
+                            <div class="guide-section-header">
+                                <div class="guide-section-badge">5</div>
+                                <h3 class="guide-section-title">Draft Requests Management</h3>
+                            </div>
+                            <p style="margin:0;">
+                                Drafts allow employees to prepare complex requests incrementally. Incomplete forms can be saved at any time and reopened, modified, or deleted later from the <strong>Drafts</strong> tab. <em>Draft requests remain strictly private to the initiator and do not enter the active approval workflow until explicitly submitted.</em>
+                            </p>
+                        </div>
+
+                        <!-- Section 6: Complete Approval Workflow -->
+                        <div class="guide-section">
+                            <div class="guide-section-header">
+                                <div class="guide-section-badge">6</div>
+                                <h3 class="guide-section-title">Complete Approval Workflow Pipeline</h3>
+                            </div>
+                            <p style="margin:0 0 6px 0;">Every submitted workflow request progresses through a standardized multi-tier verification hierarchy:</p>
+                            <div class="workflow-visual-track">
+                                <div class="workflow-step-node">
+                                    <div class="workflow-node-icon">👤</div>
+                                    <div class="workflow-node-label">Employee</div>
+                                    <div class="workflow-node-desc">Initiator</div>
+                                </div>
+                                <div class="workflow-step-arrow">→</div>
+                                <div class="workflow-step-node">
+                                    <div class="workflow-node-icon">📊</div>
+                                    <div class="workflow-node-label">Accounts</div>
+                                    <div class="workflow-node-desc">Verification</div>
+                                </div>
+                                <div class="workflow-step-arrow">→</div>
+                                <div class="workflow-step-node">
+                                    <div class="workflow-node-icon">👔</div>
+                                    <div class="workflow-node-label">Manager</div>
+                                    <div class="workflow-node-desc">Operational</div>
+                                </div>
+                                <div class="workflow-step-arrow">→</div>
+                                <div class="workflow-step-node">
+                                    <div class="workflow-node-icon">💼</div>
+                                    <div class="workflow-node-label">CFO</div>
+                                    <div class="workflow-node-desc">Financial</div>
+                                </div>
+                                <div class="workflow-step-arrow">→</div>
+                                <div class="workflow-step-node">
+                                    <div class="workflow-node-icon">👑</div>
+                                    <div class="workflow-node-label">MD</div>
+                                    <div class="workflow-node-desc">Executive</div>
+                                </div>
+                                <div class="workflow-step-arrow">→</div>
+                                <div class="workflow-step-node">
+                                    <div class="workflow-node-icon" style="background:#DCFCE7; border-color:#22C55E; color:#15803D;">✓</div>
+                                    <div class="workflow-node-label">Completed</div>
+                                    <div class="workflow-node-desc">Finalized</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section 7: Accounts Dashboard -->
+                        <div class="guide-section">
+                            <div class="guide-section-header">
+                                <div class="guide-section-badge">7</div>
+                                <h3 class="guide-section-title">Accounts Dashboard</h3>
+                            </div>
+                            <p style="margin:0;">
+                                Accounts team members review all newly submitted requests assigned to their queue. They inspect supporting invoices, verify expense amounts and budget allocations, perform financial verification, input required accounting remarks, and either <strong>Approve & Forward</strong> the request to Department Managers or <strong>Reject</strong> it with specific financial feedback.
+                            </p>
+                        </div>
+
+                        <!-- Section 8: Manager Dashboard -->
+                        <div class="guide-section">
+                            <div class="guide-section-header">
+                                <div class="guide-section-badge">8</div>
+                                <h3 class="guide-section-title">Manager Dashboard</h3>
+                            </div>
+                            <p style="margin:0;">
+                                Department Managers review operational necessity, project relevance, and previous Accounts processing notes. The manager evaluates the request and can <strong>Approve</strong> it to escalate to the CFO stage, or <strong>Reject</strong> the request with a detailed reason that is communicated back to the initiator.
+                            </p>
+                        </div>
+
+                        <!-- Section 9: CFO Dashboard -->
+                        <div class="guide-section">
+                            <div class="guide-section-header">
+                                <div class="guide-section-badge">9</div>
+                                <h3 class="guide-section-title">CFO Dashboard</h3>
+                            </div>
+                            <p style="margin:0;">
+                                The Chief Financial Officer conducts executive fiscal oversight across all high-value and organizational budget requests. The CFO reviews prior Accounts verification and Manager endorsements, adds financial remarks, and chooses to <strong>Approve</strong> (forwarding to the Managing Director) or <strong>Reject</strong> with fiscal guidance.
+                            </p>
+                        </div>
+
+                        <!-- Section 10: MD Dashboard -->
+                        <div class="guide-section">
+                            <div class="guide-section-header">
+                                <div class="guide-section-badge">10</div>
+                                <h3 class="guide-section-title">MD (Managing Director) Dashboard</h3>
+                            </div>
+                            <p style="margin:0;">
+                                The Managing Director possesses final approval authority. The MD reviews the comprehensive request file, complete request information and previous approval history. <strong>MD approval officially completes and approves the workflow</strong>, triggering final execution status across the enterprise.
+                            </p>
+                        </div>
+
+                        <!-- Section 11: Request Tracking -->
+                        <div class="guide-section">
+                            <div class="guide-section-header">
+                                <div class="guide-section-badge">11</div>
+                                <h3 class="guide-section-title">Request Tracking</h3>
+                            </div>
+                            <p style="margin:0 0 6px 0;">Employees and managers can track requests in real time with comprehensive visibility:</p>
+                            <ul style="margin:0; padding-left:20px; display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:6px;">
+                                <li>🏷️ <strong>Request ID</strong> & Tracking Code</li>
+                                <li>📂 <strong>Request Type</strong> & Department</li>
+                                <li>⚡ <strong>Current Status</strong> (Pending, Approved, Rejected)</li>
+                                <li>🎯 <strong>Current Workflow Stage</strong> & Assigned Approver</li>
+                                <li>📊 <strong>Approval Progress Bar</strong> & Percent Complete</li>
+                                <li>🕒 <strong>Approval Timeline</strong> & Timestamped History</li>
+                                <li>❌ <strong>Rejection Reason</strong> (if rejected)</li>
+                            </ul>
+                        </div>
+
+                        <!-- Section 12: Notifications -->
+                        <div class="guide-section">
+                            <div class="guide-section-header">
+                                <div class="guide-section-badge">12</div>
+                                <h3 class="guide-section-title">In-App Notifications</h3>
+                            </div>
+                            <p style="margin:0;">
+                                ZyroFlow includes an integrated in-app notification center (accessible via the bell icon in the dashboard navigation). Users receive instant notification alerts when a request is assigned to them, approved at a stage, finalized, or rejected, ensuring all stakeholders stay informed of important workflow events.
+                            </p>
+                        </div>
+
+                        <!-- Section 13: Approval History & Audit Trail -->
+                        <div class="guide-section">
+                            <div class="guide-section-header">
+                                <div class="guide-section-badge">13</div>
+                                <h3 class="guide-section-title">Approval History & Audit Trail</h3>
+                            </div>
+                            <p style="margin:0;">
+                                Every workflow transition is recorded in the approval history/audit trail. Authorized users can review the actions, timestamps, decisions and remarks associated with the workflow.
+                            </p>
+                        </div>
+
+                        <!-- Section 14: Forgot Password Flow -->
+                        <div class="guide-section">
+                            <div class="guide-section-header">
+                                <div class="guide-section-badge">14</div>
+                                <h3 class="guide-section-title">Forgot Password & Account Recovery</h3>
+                            </div>
+                            <ol style="margin:0; padding-left:20px; display:flex; flex-direction:column; gap:6px;">
+                                <li>Click <em>"Forgot Password?"</em> on the login screen.</li>
+                                <li>Enter your <strong>Employee ID</strong>.</li>
+                                <li>ZyroFlow validates the account.</li>
+                                <li>If a personal <strong>Recovery Email</strong> is registered, a secure single-use password reset link is sent to that email address. <em>(Recovery email addresses are kept strictly confidential).</em></li>
+                                <li>Open the password reset link in your browser.</li>
+                                <li>Create and confirm your new secure password.</li>
+                                <li>Return to the login screen and sign in with your Employee ID and new password.</li>
+                            </ol>
+                        </div>
+
+                        <!-- Section 15: Role-Based Access Control (RBAC) -->
+                        <div class="guide-section">
+                            <div class="guide-section-header">
+                                <div class="guide-section-badge">15</div>
+                                <h3 class="guide-section-title">Role-Based Access Control (RBAC)</h3>
+                            </div>
+                            <p style="margin:0 0 10px 0;">Available system features strictly conform to the user's authenticated role:</p>
+                            <div class="rbac-grid">
+                                <div class="rbac-card">
+                                    <div class="rbac-role-title"><span class="guide-badge-pill guide-badge-blue">EMPLOYEE</span></div>
+                                    <ul class="rbac-desc-list">
+                                        <li>Create new requests</li>
+                                        <li>Save & edit drafts</li>
+                                        <li>Submit to workflow</li>
+                                        <li>Track active requests</li>
+                                        <li>View personal request history</li>
+                                    </ul>
+                                </div>
+                                <div class="rbac-card">
+                                    <div class="rbac-role-title"><span class="guide-badge-pill guide-badge-amber">ACCOUNTS</span></div>
+                                    <ul class="rbac-desc-list">
+                                        <li>Review submitted requests</li>
+                                        <li>Verify invoices & finances</li>
+                                        <li>Add accounting remarks</li>
+                                        <li>Approve / Reject at Stage 1</li>
+                                    </ul>
+                                </div>
+                                <div class="rbac-card">
+                                    <div class="rbac-role-title"><span class="guide-badge-pill guide-badge-purple">MANAGER</span></div>
+                                    <ul class="rbac-desc-list">
+                                        <li>Operational request review</li>
+                                        <li>Inspect Accounts verification</li>
+                                        <li>Approve / Reject with remarks</li>
+                                        <li>Forward to executive queue</li>
+                                    </ul>
+                                </div>
+                                <div class="rbac-card">
+                                    <div class="rbac-role-title"><span class="guide-badge-pill guide-badge-green">CFO</span></div>
+                                    <ul class="rbac-desc-list">
+                                        <li>Financial & budget oversight</li>
+                                        <li>Review previous approver notes</li>
+                                        <li>Approve / Reject high-value items</li>
+                                        <li>Forward to MD</li>
+                                    </ul>
+                                </div>
+                                <div class="rbac-card">
+                                    <div class="rbac-role-title"><span class="guide-badge-pill guide-badge-blue">MD</span></div>
+                                    <ul class="rbac-desc-list">
+                                        <li>Final executive review</li>
+                                        <li>Inspect complete audit path</li>
+                                        <li>Grant final approval (completes workflow)</li>
+                                        <li>Reject when necessary</li>
+                                    </ul>
+                                </div>
+                                <div class="rbac-card">
+                                    <div class="rbac-role-title"><span class="guide-badge-pill guide-badge-amber">ADMIN</span></div>
+                                    <ul class="rbac-desc-list">
+                                        <li>User management & provisioning</li>
+                                        <li>Account activation / deactivation</li>
+                                        <li>System & workflow configuration</li>
+                                    </ul>
+                                    <div style="font-size:0.75rem; color:#64748B; margin-top:4px; font-style:italic;">
+                                        Note: Demo credential generation is restricted to the authorized Demo Owner account.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section 16: End-to-End Example -->
+                        <div class="guide-section">
+                            <div class="guide-section-header">
+                                <div class="guide-section-badge">16</div>
+                                <h3 class="guide-section-title">End-to-End Lifecycle & Rejection Path</h3>
+                            </div>
+                            <div style="background:#FFFFFF; border:1px solid #E2E8F0; border-radius:12px; padding:14px 16px;">
+                                <div style="font-weight:700; color:#15803D; margin-bottom:8px; display:flex; align-items:center; gap:6px;">
+                                    ✓ Standard Success Path
+                                </div>
+                                <div style="font-size:0.86rem; color:#475569; line-height:1.6;">
+                                    <strong>Employee creates request</strong> → <strong>Employee submits</strong> → <strong>Accounts reviews & verifies</strong> → <strong>Accounts approves</strong> → <strong>Manager reviews</strong> → <strong>Manager approves</strong> → <strong>CFO reviews</strong> → <strong>CFO approves</strong> → <strong>MD reviews</strong> → <strong>MD approves</strong> → <span style="color:#15803D; font-weight:700;">Workflow Completed & Approved</span>
+                                </div>
+                            </div>
+                            <div style="background:#FEF2F2; border:1px solid #FEE2E2; border-radius:12px; padding:14px 16px; margin-top:4px;">
+                                <div style="font-weight:700; color:#B91C1C; margin-bottom:8px; display:flex; align-items:center; gap:6px;">
+                                    ⚠️ Rejection Path
+                                </div>
+                                <div style="font-size:0.86rem; color:#7F1D1D; line-height:1.5;">
+                                    If an approver at <em>any stage</em> (Accounts, Manager, CFO, or MD) determines that a request cannot be approved, they click <strong>Reject</strong> and enter a mandatory rejection reason. The request immediately transitions to <strong>REJECTED</strong> status, halts progression, and the initiator is notified with the applicable remarks recorded in the request tracking audit log.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="guide-modal-footer">
+                        <span style="font-size:0.8rem; color:#64748B;">ZyroFlow Multi-Level Approval System</span>
+                        <button type="button" onclick="closeHowToUseModal()" class="login-button" style="width:auto; padding:8px 22px; font-size:0.88rem;">
+                            Close Guide
+                        </button>
+                    </div>
+                </div>
+            `;
+            guideModal.addEventListener('click', (e) => {
+                if (e.target === guideModal) closeHowToUseModal();
+            });
+            document.body.appendChild(guideModal);
+
+            // 3. Insert Contact Us Modal
+            const contactModal = document.createElement('div');
+            contactModal.id = 'contactUsModalBackdrop';
+            contactModal.className = 'guide-modal-backdrop';
+            contactModal.innerHTML = `
+                <div class="contact-modal-container">
+                    <div class="guide-modal-header">
+                        <div style="display:flex; align-items:center; gap:12px;">
+                            <div style="width:40px; height:40px; border-radius:12px; background:rgba(37, 99, 235, 0.12); color:#2563EB; display:grid; place-items:center; font-size:20px;">
+                                💬
+                            </div>
+                            <div>
+                                <h2 style="font-size:1.25rem; font-weight:800; color:#0F172A; margin:0; letter-spacing:-0.02em;">Contact ZyroFlow Team</h2>
+                                <span style="font-size:0.8rem; color:#64748B;">Official Inquiries & Support</span>
+                            </div>
+                        </div>
+                        <button type="button" onclick="closeContactUsModal()" style="background:none; border:none; font-size:26px; color:#94A3B8; cursor:pointer; padding:4px 8px; border-radius:8px; line-height:1;" aria-label="Close contact">&times;</button>
+                    </div>
+
+                    <div style="padding:22px 26px;">
+                        <p style="margin:0 0 16px 0; font-size:0.9rem; color:#475569; line-height:1.55;">
+                            Interested in ZyroFlow for your organization? Contact us for product information, deployment, customization, or a private demonstration.
+                        </p>
+
+                        <div class="contact-channel-list">
+                            <!-- Email -->
+                            <a href="mailto:zyroflowsecurity@gmail.com" class="contact-channel-item">
+                                <div class="contact-channel-icon" style="background:#EFF6FF; color:#2563EB;">
+                                    ✉️
+                                </div>
+                                <div style="flex:1; overflow:hidden;">
+                                    <div style="font-size:0.78rem; font-weight:700; color:#64748B; text-transform:uppercase; letter-spacing:0.04em;">Email</div>
+                                    <div style="font-size:0.92rem; font-weight:700; color:#1D4ED8; text-overflow:ellipsis; overflow:hidden; white-space:nowrap;">zyroflowsecurity@gmail.com</div>
+                                </div>
+                                <div style="color:#94A3B8; font-size:1.1rem;">↗</div>
+                            </a>
+
+                            <!-- LinkedIn -->
+                            <a href="https://www.linkedin.com/in/gokul-s-940a40328/" target="_blank" rel="noopener noreferrer" class="contact-channel-item">
+                                <div class="contact-channel-icon" style="background:#EFF6FF; color:#0A66C2;">
+                                    <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.46 10.9v8.37H9.2V10.9H6.46M7.83 6.25a1.62 1.62 0 1 0 0 3.24 1.62 1.62 0 0 0 0-3.24z"/>
+                                    </svg>
+                                </div>
+                                <div style="flex:1; overflow:hidden;">
+                                    <div style="font-size:0.78rem; font-weight:700; color:#64748B; text-transform:uppercase; letter-spacing:0.04em;">LinkedIn</div>
+                                    <div style="font-size:0.92rem; font-weight:700; color:#0A66C2;">Gokul S | LinkedIn</div>
+                                </div>
+                                <div style="color:#94A3B8; font-size:1.1rem;">↗</div>
+                            </a>
+
+                            <!-- GitHub -->
+                            <a href="https://github.com/gokulselvakumar03-design/zyroflow" target="_blank" rel="noopener noreferrer" class="contact-channel-item">
+                                <div class="contact-channel-icon" style="background:#F1F5F9; color:#0F172A;">
+                                    <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+                                        <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
+                                    </svg>
+                                </div>
+                                <div style="flex:1; overflow:hidden;">
+                                    <div style="font-size:0.78rem; font-weight:700; color:#64748B; text-transform:uppercase; letter-spacing:0.04em;">GitHub</div>
+                                    <div style="font-size:0.92rem; font-weight:700; color:#0F172A;">gokulselvakumar03-design/zyroflow</div>
+                                </div>
+                                <div style="color:#94A3B8; font-size:1.1rem;">↗</div>
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="guide-modal-footer">
+                        <span style="font-size:0.78rem; color:#94A3B8;">ZyroFlow Enterprise</span>
+                        <button type="button" onclick="closeContactUsModal()" class="login-button" style="width:auto; padding:8px 20px; font-size:0.86rem;">
+                            Close
+                        </button>
+                    </div>
+                </div>
+            `;
+            contactModal.addEventListener('click', (e) => {
+                if (e.target === contactModal) closeContactUsModal();
+            });
+            document.body.appendChild(contactModal);
+        }
+
+        async function checkDemoModeAndRender() {
+            try {
+                let isDemo = false;
+
+                // 1. Check server environment config endpoint (/test-db returns mode: 'DEMO' or 'PRODUCTION')
+                const res = await fetch('/test-db').catch(() => null);
+                if (res && res.ok) {
+                    const data = await res.json().catch(() => ({}));
+                    if (data && data.mode === 'DEMO') {
+                        isDemo = true;
+                    }
+                    if (res.headers && res.headers.get('X-Demo-Session-Id')) {
+                        isDemo = true;
+                    }
+                }
+
+                // 2. Check for the demo session cookie set by demoSessionMiddleware
+                if (!isDemo && typeof document !== 'undefined') {
+                    if (document.cookie.includes('zyro_demo_session=')) {
+                        isDemo = true;
+                    }
+                }
+
+                if (isDemo) {
+                    renderDemoUI();
+                }
+            } catch (err) {
+                // Production fallback: do not render demo UI on any failure
+            }
+        }
+
+        // Initialize Demo-only features check
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', checkDemoModeAndRender);
+        } else {
+            checkDemoModeAndRender();
         }
     </script>
 
