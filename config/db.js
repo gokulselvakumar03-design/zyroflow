@@ -1,3 +1,5 @@
+const dns = require('dns');
+const net = require('net');
 const mysql = require('mysql2/promise');
 const dotenv = require('dotenv');
 
@@ -26,6 +28,54 @@ if (isDemoMode && database.toLowerCase() === 'zyroflow') {
   console.error(errorMsg);
   throw new Error(errorMsg);
 }
+
+// Temporary Startup Diagnostics: DNS resolution & TCP connectivity test
+(async () => {
+  try {
+    const addresses = await dns.promises.lookup(host, { all: true });
+    console.log('[DB DNS LOOKUP] Resolved IPs:', addresses);
+  } catch (err) {
+    console.error('[DB DNS LOOKUP] ERROR:', err.message);
+  }
+
+  try {
+    await new Promise((resolve) => {
+      const socket = net.createConnection({ host, port });
+      let finished = false;
+
+      socket.setTimeout(10000);
+
+      socket.on('connect', () => {
+        if (!finished) {
+          finished = true;
+          console.log('[DB TCP TEST] CONNECTED');
+          socket.destroy();
+          resolve();
+        }
+      });
+
+      socket.on('timeout', () => {
+        if (!finished) {
+          finished = true;
+          console.log('[DB TCP TEST] TIMEOUT');
+          socket.destroy();
+          resolve();
+        }
+      });
+
+      socket.on('error', (err) => {
+        if (!finished) {
+          finished = true;
+          console.log(`[DB TCP TEST] ERROR: ${err.code ? `${err.code} - ${err.message}` : err.message}`);
+          socket.destroy();
+          resolve();
+        }
+      });
+    });
+  } catch (err) {
+    console.error(`[DB TCP TEST] ERROR: ${err.message}`);
+  }
+})();
 
 const pool = mysql.createPool({
   host,
