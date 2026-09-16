@@ -48,13 +48,18 @@ async function initializeMysqlStorage() {
     console.log(`[DB INIT] Initializing MySQL Database: ${database} (Mode: ${isDemo ? 'DEMO' : 'PRODUCTION'})...`);
 
     const host = process.env.MYSQL_HOST || 'localhost';
+    const port = Number(process.env.DB_PORT || process.env.MYSQL_PORT || 3306);
     const user = process.env.MYSQL_USER || 'root';
     const configuredPassword = process.env.MYSQL_PASSWORD !== undefined ? process.env.MYSQL_PASSWORD : (process.env.DB_PASSWORD !== undefined ? process.env.DB_PASSWORD : 'root123');
 
     const tempConn = await mysql.createConnection({
       host,
+      port,
       user,
       password: configuredPassword,
+      ssl: process.env.MYSQL_SSL === 'true'
+        ? { rejectUnauthorized: false }
+        : undefined,
       multipleStatements: true
     }).promise();
 
