@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS workflow_requests (
   status VARCHAR(50),
   requester_name VARCHAR(100),
   requester_email VARCHAR(100),
-  current_role VARCHAR(50),
+  `current_role` VARCHAR(50),
   current_approver VARCHAR(100),
   approval_stage VARCHAR(100) DEFAULT 'Accounts',
   workflow TEXT,

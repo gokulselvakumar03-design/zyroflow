@@ -15,3 +15,6 @@ zyroflow_FINAL_PRODUCTION_BACKUP.sql
 clean_demo_db.js
 test_*.js
 verify_demo_unseeded.js
+
+# Local schema dump
+zyroflow_PRODUCTION_SCHEMA.sql

@@ -47,9 +47,9 @@ async function initializeMysqlStorage() {
 
     console.log(`[DB INIT] Initializing MySQL Database: ${database} (Mode: ${isDemo ? 'DEMO' : 'PRODUCTION'})...`);
 
-    const host = process.env.MYSQL_HOST || 'localhost';
+    const host = process.env.MYSQL_HOST || process.env.DB_HOST || 'localhost';
     const port = Number(process.env.DB_PORT || process.env.MYSQL_PORT || 3306);
-    const user = process.env.MYSQL_USER || 'root';
+    const user = process.env.MYSQL_USER || process.env.DB_USER || 'root';
     const configuredPassword = process.env.MYSQL_PASSWORD !== undefined ? process.env.MYSQL_PASSWORD : (process.env.DB_PASSWORD !== undefined ? process.env.DB_PASSWORD : 'root123');
 
     const tempConn = await mysql.createConnection({
@@ -85,7 +85,7 @@ async function initializeMysqlStorage() {
           status VARCHAR(50),
           requester_name VARCHAR(100),
           requester_email VARCHAR(100),
-          current_role VARCHAR(50),
+          \`current_role\` VARCHAR(50),
           current_approver VARCHAR(100),
           approval_stage VARCHAR(100) DEFAULT 'Accounts',
           workflow TEXT,
@@ -284,7 +284,7 @@ async function initializeMysqlStorage() {
           status VARCHAR(50),
           requester_name VARCHAR(100),
           requester_email VARCHAR(100),
-          current_role VARCHAR(50),
+          \`current_role\` VARCHAR(50),
           current_approver VARCHAR(100),
           approval_stage VARCHAR(100) DEFAULT 'Accounts',
           workflow TEXT,
@@ -472,7 +472,7 @@ async function initializeMysqlStorage() {
 
     // Automatic Migration: Set default account_type for admins
     try {
-      if (isDemoMode) {
+      if (isDemo) {
         await tempConn.execute(`
           UPDATE users 
           SET account_type = 'DEMO_OWNER' 
