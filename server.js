@@ -265,11 +265,6 @@ async function initializeMysqlStorage() {
           INDEX idx_demo_status (status)
         )
       `);
-
-      // Seed default demo session if enabled
-      if (process.env.DEMO_SEED === 'true') {
-        await seedDemoSession(pool, 'default');
-      }
     } else {
       // Production Schema Initialization
       await tempConn.execute(`
@@ -295,6 +290,7 @@ async function initializeMysqlStorage() {
           payment_verified_at TIMESTAMP NULL,
           payment_verification_status VARCHAR(50) DEFAULT 'Unverified',
           rejection_reason TEXT NULL,
+          comments TEXT NULL,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
         )
@@ -329,13 +325,14 @@ async function initializeMysqlStorage() {
           id INT AUTO_INCREMENT PRIMARY KEY,
           employee_id VARCHAR(20) UNIQUE,
           name VARCHAR(100),
-          email VARCHAR(100) NULL,
+          email VARCHAR(150) NULL,
           password VARCHAR(255),
           role VARCHAR(50),
           phone VARCHAR(20),
           department VARCHAR(100),
           profile_image VARCHAR(255),
           status VARCHAR(20) DEFAULT 'ACTIVE',
+          account_type VARCHAR(50) NULL,
           recovery_email VARCHAR(255) NULL
         )
       `);
@@ -446,24 +443,164 @@ async function initializeMysqlStorage() {
       `);
     }
 
-    // Automatic Migration: Ensure account_type column exists on users and demo_access
-    try {
-      await tempConn.execute(`ALTER TABLE users ADD COLUMN account_type VARCHAR(50) NULL DEFAULT NULL`);
-    } catch (acctErr) {}
-    try {
-      await tempConn.execute(`ALTER TABLE demo_access ADD COLUMN account_type VARCHAR(50) NULL DEFAULT NULL`);
-    } catch (acctErr2) {}
+    // Migration Helper: Safely add column if it doesn't already exist (TiDB & MySQL compatible)
+    async function safeAddColumn(conn, table, column, definition) {
+      try {
+        await conn.execute(`ALTER TABLE \`${table}\` ADD COLUMN IF NOT EXISTS \`${column}\` ${definition}`);
+      } catch (syntaxErr) {
+        try {
+          await conn.execute(`ALTER TABLE \`${table}\` ADD COLUMN \`${column}\` ${definition}`);
+        } catch (addErr) {
+          if (
+            addErr.code === 'ER_DUP_FIELDNAME' ||
+            addErr.errno === 1060 ||
+            (addErr.message && addErr.message.toLowerCase().includes('duplicate column'))
+          ) {
+            return;
+          }
+        }
+      }
+    }
 
-    // Automatic Migration: Ensure email column is nullable
+    // Migration Helper: Safely add index if it doesn't already exist
+    async function safeAddIndex(conn, table, indexDef) {
+      try {
+        await conn.execute(`ALTER TABLE \`${table}\` ADD ${indexDef}`);
+      } catch (err) {
+        if (
+          err.code === 'ER_DUP_KEYNAME' ||
+          err.errno === 1061 ||
+          (err.message && (err.message.toLowerCase().includes('duplicate key') || err.message.toLowerCase().includes('already exists')))
+        ) {
+          return;
+        }
+      }
+    }
+
+    // Migration Helper: Safely drop index
+    async function safeDropIndex(conn, table, indexName) {
+      try {
+        await conn.execute(`ALTER TABLE \`${table}\` DROP INDEX \`${indexName}\``);
+      } catch (err) {}
+    }
+
+    // Safe Additive Migrations
+    if (isDemo) {
+      // 1. Ensure Demo-specific columns and indexes exist on all tables
+      await safeAddColumn(tempConn, 'users', 'demo_session_id', "VARCHAR(64) NOT NULL DEFAULT 'default'");
+      await safeAddColumn(tempConn, 'users', 'account_type', "VARCHAR(50) NULL DEFAULT NULL");
+      await safeAddColumn(tempConn, 'users', 'recovery_email', "VARCHAR(255) NULL DEFAULT NULL");
+
+      await safeDropIndex(tempConn, 'users', 'email');
+      await safeDropIndex(tempConn, 'users', 'employee_id');
+      await safeDropIndex(tempConn, 'users', 'uq_emp_id');
+      await safeDropIndex(tempConn, 'users', 'uq_email');
+      await safeAddIndex(tempConn, 'users', 'INDEX idx_demo_session (demo_session_id)');
+      await safeAddIndex(tempConn, 'users', 'UNIQUE KEY uq_emp_session (employee_id, demo_session_id)');
+      await safeAddIndex(tempConn, 'users', 'UNIQUE KEY uq_email_session (email, demo_session_id)');
+
+      // Populate default session for any existing rows in demo mode
+      try {
+        await tempConn.execute(`
+          UPDATE users
+          SET demo_session_id = 'default'
+          WHERE demo_session_id IS NULL OR demo_session_id = ''
+        `);
+      } catch (sessionInitErr) {}
+
+      await safeAddColumn(tempConn, 'workflow_requests', 'demo_session_id', "VARCHAR(64) NOT NULL DEFAULT 'default'");
+      await safeAddColumn(tempConn, 'workflow_requests', 'approval_stage', "VARCHAR(100) DEFAULT 'Accounts'");
+      await safeAddColumn(tempConn, 'workflow_requests', 'payload', "JSON NULL");
+      await safeAddColumn(tempConn, 'workflow_requests', 'current_level', "INT DEFAULT 0");
+      await safeAddColumn(tempConn, 'workflow_requests', 'payment_verified', "INT DEFAULT 0");
+      await safeAddColumn(tempConn, 'workflow_requests', 'payment_verified_by', "VARCHAR(100) NULL");
+      await safeAddColumn(tempConn, 'workflow_requests', 'payment_verified_at', "TIMESTAMP NULL");
+      await safeAddColumn(tempConn, 'workflow_requests', 'payment_verification_status', "VARCHAR(50) DEFAULT 'Unverified'");
+      await safeAddColumn(tempConn, 'workflow_requests', 'rejection_reason', "TEXT NULL");
+      await safeAddColumn(tempConn, 'workflow_requests', 'comments', "TEXT NULL");
+      await safeAddIndex(tempConn, 'workflow_requests', 'INDEX idx_demo_session (demo_session_id)');
+      await safeAddIndex(tempConn, 'workflow_requests', 'INDEX idx_req_status (status)');
+
+      await safeAddColumn(tempConn, 'approvals', 'demo_session_id', "VARCHAR(64) NOT NULL DEFAULT 'default'");
+      await safeAddColumn(tempConn, 'approvals', 'comments', "TEXT NULL");
+      await safeAddIndex(tempConn, 'approvals', 'INDEX idx_demo_session (demo_session_id)');
+      await safeAddIndex(tempConn, 'approvals', 'INDEX idx_appr_req (request_id)');
+
+      await safeAddColumn(tempConn, 'rules', 'demo_session_id', "VARCHAR(64) NOT NULL DEFAULT 'default'");
+      await safeAddIndex(tempConn, 'rules', 'INDEX idx_demo_session (demo_session_id)');
+
+      await safeAddColumn(tempConn, 'approval_history', 'demo_session_id', "VARCHAR(64) NOT NULL DEFAULT 'default'");
+      await safeAddColumn(tempConn, 'approval_history', 'manager_name', "VARCHAR(100) DEFAULT 'Manager'");
+      await safeAddColumn(tempConn, 'approval_history', 'approval_stage', "VARCHAR(50) DEFAULT 'Manager'");
+      await safeAddColumn(tempConn, 'approval_history', 'action', "VARCHAR(50) NULL");
+      await safeAddColumn(tempConn, 'approval_history', 'decision_time', "INT DEFAULT 0");
+      await safeAddColumn(tempConn, 'approval_history', 'decision_time_seconds', "INT DEFAULT 0");
+      await safeAddColumn(tempConn, 'approval_history', 'decision_timestamp', "TIMESTAMP DEFAULT CURRENT_TIMESTAMP");
+      await safeAddColumn(tempConn, 'approval_history', 'comments', "TEXT NULL");
+      await safeAddIndex(tempConn, 'approval_history', 'INDEX idx_demo_session (demo_session_id)');
+      await safeAddIndex(tempConn, 'approval_history', 'INDEX idx_ah_req (request_id)');
+
+      await safeAddColumn(tempConn, 'payment_verifications', 'demo_session_id', "VARCHAR(64) NOT NULL DEFAULT 'default'");
+      await safeAddColumn(tempConn, 'payment_verifications', 'remarks', "TEXT NULL");
+      await safeAddColumn(tempConn, 'payment_verifications', 'status', "VARCHAR(50) DEFAULT 'Verified'");
+      await safeAddIndex(tempConn, 'payment_verifications', 'INDEX idx_demo_session (demo_session_id)');
+      await safeAddIndex(tempConn, 'payment_verifications', 'INDEX idx_pv_req (request_id)');
+
+      await safeAddColumn(tempConn, 'notifications', 'demo_session_id', "VARCHAR(64) NOT NULL DEFAULT 'default'");
+      await safeAddColumn(tempConn, 'notifications', 'user_role', "VARCHAR(50) DEFAULT 'accounts'");
+      await safeAddColumn(tempConn, 'notifications', 'user_email', "VARCHAR(100) NULL");
+      await safeAddColumn(tempConn, 'notifications', 'request_id', "INT NULL");
+      await safeAddColumn(tempConn, 'notifications', 'type', "VARCHAR(50) DEFAULT 'info'");
+      await safeAddColumn(tempConn, 'notifications', 'is_read', "BOOLEAN DEFAULT FALSE");
+      await safeAddIndex(tempConn, 'notifications', 'INDEX idx_demo_session (demo_session_id)');
+
+      await safeAddColumn(tempConn, 'draft_requests', 'demo_session_id', "VARCHAR(64) NOT NULL DEFAULT 'default'");
+      await safeAddColumn(tempConn, 'draft_requests', 'payload', "JSON NULL");
+      await safeAddIndex(tempConn, 'draft_requests', 'INDEX idx_demo_session (demo_session_id)');
+
+      await safeAddColumn(tempConn, 'request_history', 'demo_session_id', "VARCHAR(64) NOT NULL DEFAULT 'default'");
+      await safeAddColumn(tempConn, 'request_history', 'comments', "TEXT NULL");
+      await safeAddIndex(tempConn, 'request_history', 'INDEX idx_demo_session (demo_session_id)');
+
+      await safeAddColumn(tempConn, 'password_reset_tokens', 'demo_session_id', "VARCHAR(64) NOT NULL DEFAULT 'default'");
+      await safeAddIndex(tempConn, 'password_reset_tokens', 'INDEX idx_demo_session (demo_session_id)');
+
+      await safeAddColumn(tempConn, 'demo_access', 'demo_session_id', "VARCHAR(64) NOT NULL DEFAULT 'default'");
+      await safeAddColumn(tempConn, 'demo_access', 'account_type', "VARCHAR(50) NULL DEFAULT NULL");
+      await safeAddIndex(tempConn, 'demo_access', 'INDEX idx_demo_session (demo_session_id)');
+    } else {
+      // Production mode safe additive column migrations
+      await safeAddColumn(tempConn, 'users', 'account_type', "VARCHAR(50) NULL DEFAULT NULL");
+      await safeAddColumn(tempConn, 'users', 'recovery_email', "VARCHAR(255) NULL DEFAULT NULL");
+      await safeAddColumn(tempConn, 'demo_access', 'account_type', "VARCHAR(50) NULL DEFAULT NULL");
+
+      await safeAddColumn(tempConn, 'workflow_requests', 'approval_stage', "VARCHAR(100) DEFAULT 'Accounts'");
+      await safeAddColumn(tempConn, 'workflow_requests', 'payment_verified', "INT DEFAULT 0");
+      await safeAddColumn(tempConn, 'workflow_requests', 'payment_verified_by', "VARCHAR(100) NULL");
+      await safeAddColumn(tempConn, 'workflow_requests', 'payment_verified_at', "TIMESTAMP NULL");
+      await safeAddColumn(tempConn, 'workflow_requests', 'payment_verification_status', "VARCHAR(50) DEFAULT 'Unverified'");
+      await safeAddColumn(tempConn, 'workflow_requests', 'rejection_reason', "TEXT NULL");
+      await safeAddColumn(tempConn, 'workflow_requests', 'comments', "TEXT NULL");
+
+      await safeAddColumn(tempConn, 'approvals', 'comments', "TEXT NULL");
+      await safeAddColumn(tempConn, 'request_history', 'comments', "TEXT NULL");
+      await safeAddColumn(tempConn, 'approval_history', 'comments', "TEXT NULL");
+      await safeAddColumn(tempConn, 'approval_history', 'decision_time_seconds', "INT DEFAULT 0");
+    }
+
+    // Common column modifications
     try {
       await tempConn.execute(`ALTER TABLE users MODIFY COLUMN email VARCHAR(150) NULL DEFAULT NULL`);
     } catch (emailMigErr) {}
+    try {
+      await tempConn.execute(`ALTER TABLE users MODIFY COLUMN password VARCHAR(255) NULL DEFAULT NULL`);
+    } catch (pwdMigErr) {}
 
     // Automatic Migration: Ensure approver roles (Accounts, Manager, CFO, MD) have department = 'All Departments'
     try {
       await tempConn.execute(`
-        UPDATE users 
-        SET department = 'All Departments' 
+        UPDATE users
+        SET department = 'All Departments'
         WHERE LOWER(role) IN ('accounts', 'manager', 'cfo', 'md')
       `);
     } catch (migErr) {
@@ -474,29 +611,34 @@ async function initializeMysqlStorage() {
     try {
       if (isDemo) {
         await tempConn.execute(`
-          UPDATE users 
-          SET account_type = 'DEMO_OWNER' 
+          UPDATE users
+          SET account_type = 'DEMO_OWNER'
           WHERE LOWER(role) = 'admin' AND NOT (LOWER(employee_id) LIKE 'demo-%')
         `);
         await tempConn.execute(`
-          UPDATE users 
-          SET account_type = 'TEMPORARY_DEMO_ADMIN' 
+          UPDATE users
+          SET account_type = 'TEMPORARY_DEMO_ADMIN'
           WHERE LOWER(employee_id) LIKE 'demo-%'
         `);
         await tempConn.execute(`
-          UPDATE demo_access 
-          SET account_type = 'TEMPORARY_DEMO_ADMIN' 
+          UPDATE demo_access
+          SET account_type = 'TEMPORARY_DEMO_ADMIN'
           WHERE account_type IS NULL OR account_type = ''
         `);
       } else {
         await tempConn.execute(`
-          UPDATE users 
-          SET account_type = 'PRODUCTION_ADMIN' 
+          UPDATE users
+          SET account_type = 'PRODUCTION_ADMIN'
           WHERE LOWER(role) = 'admin'
         `);
       }
     } catch (acctTypeMigErr) {
       console.warn('[DB INIT] Account type migration note:', acctTypeMigErr.message);
+    }
+
+    // Seed default demo session if enabled (runs after all migrations complete)
+    if (isDemo && process.env.DEMO_SEED === 'true') {
+      await seedDemoSession(pool, 'default');
     }
 
     await tempConn.end();
@@ -1778,11 +1920,11 @@ app.get(['/approval-history', '/api/approval-history'], async (req, res) => {
       if (queryRole) {
         const role = String(queryRole).toLowerCase().trim();
         query = `
-          SELECT ah.*, 
-                 wr.requester_name AS wr_requester_name, 
-                 wr.requester_email AS wr_requester_email, 
-                 wr.department AS wr_department, 
-                 wr.type AS wr_type, 
+          SELECT ah.*,
+                 wr.requester_name AS wr_requester_name,
+                 wr.requester_email AS wr_requester_email,
+                 wr.department AS wr_department,
+                 wr.type AS wr_type,
                  wr.amount AS wr_amount,
                  wr.title AS wr_title
           FROM approval_history ah
@@ -1793,11 +1935,11 @@ app.get(['/approval-history', '/api/approval-history'], async (req, res) => {
         params = [sessionId, sessionId, role, role];
       } else {
         query = `
-          SELECT ah.*, 
-                 wr.requester_name AS wr_requester_name, 
-                 wr.requester_email AS wr_requester_email, 
-                 wr.department AS wr_department, 
-                 wr.type AS wr_type, 
+          SELECT ah.*,
+                 wr.requester_name AS wr_requester_name,
+                 wr.requester_email AS wr_requester_email,
+                 wr.department AS wr_department,
+                 wr.type AS wr_type,
                  wr.amount AS wr_amount,
                  wr.title AS wr_title
           FROM approval_history ah
@@ -1811,11 +1953,11 @@ app.get(['/approval-history', '/api/approval-history'], async (req, res) => {
       if (queryRole) {
         const role = String(queryRole).toLowerCase().trim();
         query = `
-          SELECT ah.*, 
-                 wr.requester_name AS wr_requester_name, 
-                 wr.requester_email AS wr_requester_email, 
-                 wr.department AS wr_department, 
-                 wr.type AS wr_type, 
+          SELECT ah.*,
+                 wr.requester_name AS wr_requester_name,
+                 wr.requester_email AS wr_requester_email,
+                 wr.department AS wr_department,
+                 wr.type AS wr_type,
                  wr.amount AS wr_amount,
                  wr.title AS wr_title
           FROM approval_history ah
@@ -1826,11 +1968,11 @@ app.get(['/approval-history', '/api/approval-history'], async (req, res) => {
         params = [role, role];
       } else {
         query = `
-          SELECT ah.*, 
-                 wr.requester_name AS wr_requester_name, 
-                 wr.requester_email AS wr_requester_email, 
-                 wr.department AS wr_department, 
-                 wr.type AS wr_type, 
+          SELECT ah.*,
+                 wr.requester_name AS wr_requester_name,
+                 wr.requester_email AS wr_requester_email,
+                 wr.department AS wr_department,
+                 wr.type AS wr_type,
                  wr.amount AS wr_amount,
                  wr.title AS wr_title
           FROM approval_history ah

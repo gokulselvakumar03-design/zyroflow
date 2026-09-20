@@ -54,11 +54,9 @@ async function demoSessionMiddleware(req, res, next) {
     // Expose header for API clients
     res.setHeader('X-Demo-Session-Id', req.demoSessionId);
 
-    // Auto-seed demo dataset for this session if enabled, otherwise ensure only isolated demo Admin exists
+    // Auto-seed permanent Demo Owner on session request ONLY if DEMO_SEED is explicitly enabled
     if (process.env.DEMO_SEED === 'true') {
       await seedDemoSession(pool, req.demoSessionId);
-    } else {
-      await ensureDemoAdmin(pool, req.demoSessionId);
     }
 
     next();

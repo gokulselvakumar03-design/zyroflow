@@ -72,13 +72,14 @@ CREATE TABLE IF NOT EXISTS users (
   demo_session_id VARCHAR(64) NOT NULL DEFAULT 'default',
   employee_id VARCHAR(20) NOT NULL,
   name VARCHAR(100),
-  email VARCHAR(100) NOT NULL,
+  email VARCHAR(150) NULL,
   password VARCHAR(255),
   role VARCHAR(50),
   phone VARCHAR(20),
   department VARCHAR(100),
   profile_image VARCHAR(255),
   status VARCHAR(20) DEFAULT 'ACTIVE',
+  account_type VARCHAR(50) NULL,
   recovery_email VARCHAR(255) NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   INDEX idx_demo_session (demo_session_id),
@@ -183,6 +184,22 @@ CREATE TABLE IF NOT EXISTS password_reset_tokens (
   INDEX idx_demo_session (demo_session_id),
   INDEX idx_token_hash (token_hash),
   INDEX idx_user_id (user_id)
+);
+
+-- 11. demo_access table
+CREATE TABLE IF NOT EXISTS demo_access (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  demo_session_id VARCHAR(64) NOT NULL,
+  employee_id VARCHAR(50) NOT NULL UNIQUE,
+  password_hash VARCHAR(255) NOT NULL,
+  role VARCHAR(50) NOT NULL DEFAULT 'Admin',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  expires_at DATETIME NOT NULL,
+  status VARCHAR(20) DEFAULT 'ACTIVE',
+  account_type VARCHAR(50) NULL,
+  INDEX idx_demo_emp (employee_id),
+  INDEX idx_demo_session (demo_session_id),
+  INDEX idx_demo_status (status)
 );
 
 SET FOREIGN_KEY_CHECKS = 1;
