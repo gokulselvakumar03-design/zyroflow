@@ -505,6 +505,172 @@
             }
         }
 
+        /* ── Mobile Responsiveness (≤768px) ─────────────────────────────── */
+        @media (max-width: 768px) {
+            /* Allow natural vertical scrolling; kill fixed heights that block it */
+            html,
+            body {
+                height: auto;
+                min-height: 100%;
+                overflow-x: hidden;
+                overflow-y: auto;
+            }
+
+            body {
+                background: #0E1E3D;
+            }
+
+            /* Stack panels vertically and let them grow with their content */
+            .app-shell {
+                flex-direction: column;
+                height: auto;
+                min-height: 100vh;
+                overflow: visible;
+                width: 100%;
+                max-width: 100%;
+            }
+
+            /* Left panel: shrink and let content breathe */
+            .panel-left {
+                width: 100%;
+                max-width: 100%;
+                box-sizing: border-box;
+                padding: 28px 20px 24px;
+                height: auto;
+                min-height: auto;
+                overflow: visible;
+            }
+
+            /* Hide the decorative pseudo-element blob that bleeds off-screen */
+            .panel-left::after {
+                display: none;
+            }
+
+            /* Keep left-panel inner content within bounds */
+            .panel-left .panel-inner {
+                width: 100%;
+                max-width: 100%;
+                box-sizing: border-box;
+            }
+
+            /* Condense feature grid to a single column */
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+
+            /* Trust card: stack vertically */
+            .trust-card {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            /* Clamp the hero headline so it doesn't overflow */
+            .hero-title {
+                font-size: clamp(1.6rem, 6vw, 2.2rem);
+                word-break: break-word;
+            }
+
+            /* Right panel: remove fixed min-height; allow it to size naturally */
+            .panel-right {
+                width: 100%;
+                max-width: 100%;
+                box-sizing: border-box;
+                padding: 24px 16px 32px;
+                height: auto;
+                min-height: auto;
+                overflow: visible;
+            }
+
+            /* Login shell: fill full width with horizontal padding */
+            .login-shell {
+                width: 100%;
+                max-width: 100%;
+                box-sizing: border-box;
+                padding: 0;
+            }
+
+            /* Login card: full width, no fixed max-height that clips content */
+            .login-card {
+                width: 100%;
+                max-width: 100%;
+                box-sizing: border-box;
+                max-height: none;
+                border-radius: 20px;
+                padding: 24px 20px;
+            }
+
+            /* Inputs & buttons: always fill available width */
+            .form-input,
+            .login-button {
+                width: 100%;
+                max-width: 100%;
+                box-sizing: border-box;
+            }
+
+            /* Prevent the options row from overflowing on narrow screens */
+            .options-row {
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+
+            /* Demo nav bar: allow items to wrap and prevent horizontal overflow */
+            .demo-nav-wrapper {
+                width: 100%;
+                max-width: 100%;
+                box-sizing: border-box;
+                overflow: hidden;
+            }
+
+            .demo-links-bar {
+                flex-wrap: wrap;
+                width: 100%;
+                justify-content: center;
+                border-radius: 16px;
+                padding: 8px;
+                box-sizing: border-box;
+            }
+
+            .demo-link-item {
+                flex: 1 1 auto;
+                justify-content: center;
+                min-width: 0;
+                font-size: 0.82rem;
+                padding: 8px 10px;
+            }
+
+            .demo-link-divider {
+                display: none;
+            }
+
+            /* Modals: ensure they fit within the phone viewport */
+            .guide-modal-container,
+            .contact-modal-container {
+                max-width: 100%;
+                width: 100%;
+                max-height: 92vh;
+                border-radius: 16px;
+            }
+
+            .guide-modal-backdrop {
+                padding: 12px;
+                align-items: flex-end;
+            }
+
+            .guide-modal-body {
+                padding: 18px 16px;
+            }
+
+            .guide-modal-header {
+                padding: 16px;
+            }
+
+            .guide-modal-footer {
+                padding: 12px 16px;
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+        }
+
         /* Demo-Only Modern Enterprise Action Bar */
         .demo-nav-wrapper {
             display: flex;
